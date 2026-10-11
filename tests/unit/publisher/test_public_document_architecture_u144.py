@@ -217,6 +217,7 @@ def test_draft_and_final_document_construction_is_single_owned() -> None:
 
     assert snapshot.constructor_calls == [
         (_PUBLIC_DOCUMENT, "_construct_draft", "PublicDocumentDraft"),
+        (_PUBLIC_DOCUMENT, "_seal_native_document", "FinalizedPublicDocument"),
         (_PUBLIC_DOCUMENT, "_seal_document", "FinalizedPublicDocument"),
     ]
     assert snapshot.seal_calls == [

@@ -25,8 +25,8 @@ Use a reviewed commit pushed to the isolated branch. Dispatch sequentially and w
 completion before dispatching another run; five dispatch requests are not five executions.
 
 ```sh
-gh workflow run sector-dashboard-probe.yml --ref codex/u145-resume-20260922
-gh run list --workflow sector-dashboard-probe.yml --branch codex/u145-resume-20260922 --limit 5
+gh workflow run sector-dashboard-probe.yml --ref REVIEWED_BRANCH
+gh run list --workflow sector-dashboard-probe.yml --branch REVIEWED_BRANCH --limit 5
 gh run view RUN_ID --log
 ```
 
@@ -35,7 +35,7 @@ Pages or Telegram step. It installs locked core dependencies, runs the synthetic
 and invokes:
 
 ```sh
-uv run --frozen --no-sync python scripts/build_sector_dashboard_public.py --probe-only
+uv run --frozen --no-sync python scripts/build_sector_dashboard_public.py --probe-only --market-groups
 ```
 
 There is no write mode, date override, URL/symbol override or fallback. The only endpoint is
@@ -47,7 +47,8 @@ calendar: regular close 16:00 New York, 13:00 on November 27 and December 24, as
 before the probe requests data.
 
 Only `quote.close` feeds simple price-return metrics, never `adjclose`, NAV, volume or fund
-flow. Source metadata is schema 2, `yahoo-chart-daily-v2`, with public-use permission unverified.
+flow. Expanded snapshots are schema3, `yahoo-chart-daily-v2`, with public-use permission
+unverified. Legacy schema2 probe calls remain supported without the group flag.
 
 ## Qualifying evidence
 
@@ -55,7 +56,8 @@ Require five distinct successful runs on the exact reviewed implementation commi
 
 - passing `synthetic_resource_benchmark`;
 - `production_adapter_probe` status `qualified`;
-- all 12 symbols (SPY and 11 sector ETFs, including XLRE), 11 comparable sectors;
+- all23 symbols (SPY, eleven sector ETFs, SMH/XSW/MAGS and eight hardware equities),
+  eleven comparable overview sectors and fourteen complete/comparable groups;
 - fresh data, equal target/as-of dates, canonical snapshot identity and no terminal reasons;
 - bounded request count and resource measurements, plus run and commit ids.
 
@@ -69,7 +71,7 @@ Resource ceilings: 1 MiB JSON and 256 rows per response, two concurrent sector r
 256 MiB incremental peak RSS. These request limits are application policy, not a Yahoo quota.
 Compressed responses are rejected before body decoding; 401/403 are terminal; 429, server and transport errors have at most two bounded retries.
 
-The synthetic benchmark sends twelve 1 MiB responses containing every valid trading date in
+The expanded synthetic benchmark sends twenty-three1 MiB responses containing every valid trading date in
 the 200-day window (140 observations at the pinned fixture date). Whitespace fills the response
 to the byte ceiling; separate tests reject excessive rows, dates, nesting and invalid values.
 It includes cold imports and fixture generation. Each GitHub Ubuntu run must pass the resource

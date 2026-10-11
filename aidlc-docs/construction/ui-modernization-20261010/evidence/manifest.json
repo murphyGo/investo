@@ -1,0 +1,72 @@
+{
+  "kind": "ui-analysis-observation-snapshot",
+  "observed_on": "2026-10-10",
+  "timezone": "Asia/Seoul",
+  "observation_window": "01:12-01:17 KST",
+  "site_url": "https://murphygo.github.io/investo/",
+  "analysis_source_sha": "4ea211b4c1aeefe40b1787e00ae14cf317110882",
+  "planning_source_sha": "487627931e27548a4a755a53df2dadc7c03543b8",
+  "method": "Isolated headless Chromium; public pages only; Browser plugin initialization failed due to a missing runtime module. This evidence does not satisfy or change any u145 Browser-specific acceptance gate.",
+  "variants": [
+    "1440x1000 light",
+    "390x844 light",
+    "1440x1000 dark"
+  ],
+  "page_names": [
+    "home",
+    "us",
+    "archive",
+    "us-index",
+    "quality",
+    "watchlist"
+  ],
+  "concept_status": "Design candidate only; static 2026-10-08 content snapshot, not approved functional design or production implementation.",
+  "files": {
+    "metrics.json": {
+      "sha256": "8ea040845ee91e692018048a0973decf1f7f5a23f1c6ba758ff6bdb9ec584642",
+      "bytes": 67642
+    },
+    "focused-findings.json": {
+      "sha256": "bfc1e579962832b589634d8928f638b116d3c39d0476fa7c35bfd2e6cde033b3",
+      "bytes": 2126
+    },
+    "concept-metrics.json": {
+      "sha256": "769f124213e0b618a8ca578bcaa39e90bf6be34fd458b1707da512689bcf80c9",
+      "bytes": 861
+    },
+    "home-concept.html": {
+      "sha256": "32ccc68cd10ca530c5f89f2c95c67d3555ee2a0544603653ef60174f1b42827d",
+      "bytes": 10947
+    },
+    "home-concept-desktop.png": {
+      "sha256": "88dd63172680404224e69717814db5f7a853e4c08e5befd554056face9acba6f",
+      "bytes": 111323
+    },
+    "home-concept-mobile.png": {
+      "sha256": "85f373336c40fe62b93e8c4efaa09f7373e438f47acedd6a13a916b087f42724",
+      "bytes": 93426
+    },
+    "home-concept-desktop-dark.png": {
+      "sha256": "b334447a48db98b0dfce6bd6c2dbedb334c426b4b443e56623171daf34767bb2",
+      "bytes": 113783
+    },
+    "home-desktop-light-viewport.png": {
+      "sha256": "e8fdfcc3f8506ff217ed677147ead3aa35ebce39801322ba5562220c907ecb93",
+      "bytes": 98172
+    },
+    "archive-desktop-light-viewport.png": {
+      "sha256": "c88183483c5e4868d05d5612dc0f4b49c3267143ff839270790540e2d75adad9",
+      "bytes": 91003
+    },
+    "us-chart-mobile-dark.png": {
+      "sha256": "8f62d40d893a56dff299058542a1877cd08c0c5d0cd4793034bc5d1f2d320ab1",
+      "bytes": 10601
+    },
+    "watchlist-desktop-dark-viewport.png": {
+      "sha256": "5506519fd4b21db1b10f773fbceb33bf8eba2f54fe3359519203fa9d18ba72f5",
+      "bytes": 112778
+    }
+  },
+  "final_documentation_base_sha": "838bed607e1e170893de8f9230634a1f8568a06e",
+  "concurrent_planning_note": "New event/news v3 units u167-u173 were registered remotely during drafting; UI units are u174-u179. Code baseline remains unchanged."
+}

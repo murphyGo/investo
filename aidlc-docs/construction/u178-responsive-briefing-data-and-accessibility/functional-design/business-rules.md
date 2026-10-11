@@ -1,0 +1,12 @@
+# u178 Business rules
+
+D178.1: Renderer owner visuals/html_cards.py, existing four CardInput models, assets.py optional html_by_kind mapping defaultNone preserves direct legacy helper callers. Publisher does not import visuals renderer. No new registry/DTO.
+D178.2: Target date is always labeled 대상일, never actual quote as-of. Price row label/source/price/change/volume/high/low strings stay exact. Existing live-snapshot label may carry verified time; otherwise 구체 기준 시각 미확인. Crypto frame uses existing UTC24h meaning, not equity close. Missing optional fields show 미확인, not0.
+D178.3: Data-confidence displays canonical Korean coverage label, exact counts, public projected missing/reasons, and a diagnostics-reference notice instead of raw adapter rows. Market snapshot has full projected conclusion/driver/caution. Watchlist preserves configured/default/no-match/total and up to5 exact public rows + HttpUrl source links; no investment impact inference.
+D178.4: Same supplement ID/order/artifact IDs; HTML and paired SVG removed together on optional visual omission, existing required decisions unchanged. HTML numeric/links stay reader_visible in all gates. Invalid inputs/preparation follow existing failure paths; no post-seal edits.
+D178.5: Native closed SVG details avoid default screen-reader image duplicate. Data-confidence HTML is also closed; other structured text is primary. Caption attribution survives outside fallback details. No CSS-only hiding removes gate content.
+D178.6: Section nav reads actual H2 IDs, excludes permalink glyph, preserves heading/section order and uses native links+tabindex focus. Build-only output, no source rewriting. Actual overflow hints measured, tables keyboard-scrollable and text never clipped.
+
+Source links stay Markdown inside explicit build-time containers for both MkDocs rewriting and existing href trust scans. HTML escaping stays intact; existing numeric gate predicate decodes character references once without changing finding source spans. Raw SVG caption remains once outside its closed native details.
+
+Narrative inline presentation admits escaped text, strong emphasis and well-formed HTTP(S) links only. Markdown images/autolinks/unsafe schemes remain inert literal text; malformed link evidence remains observable to existing trust scans. Producer card paragraphs are separate raw blocks. Existing cosmetic emphasis/glossing skips these structured cards so repeated quote-time/source/label fields stay exact; every trust gate still reads them.

@@ -1,0 +1,607 @@
+{
+  "unit": "u174",
+  "method": "isolated headless Chromium, actual MkDocs built HTML",
+  "base": "http://127.0.0.1:8874/investo/",
+  "rows": [
+    {
+      "root": "investo",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "light",
+      "initial": {
+        "scheme": "default",
+        "svgChildren": 172,
+        "rects": 160,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": "\n.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}\n월\n화\n수\n목\n금\n토\n일\n2026-05-06 · 정상\n2026-05-07 · 정상\n2026-05-08 · 정상\n2026-05-09 · 미발행\n2026-05-10 · 미발행\n2026-05-11 · 정상\n2026-05-12 · 미발행\n2026-05-13 · 정상\n2026-05-14 · 정상\n2026-05-15 · 정상\n2026-05-16 · 미발행\n2026-05-17 · 미발행\n2026-05-18 · 부분\n2026-05-19 · 정상\n2026-05-20 · 정상\n2026-05-21 · 부분\n2026-05-22 · 정상\n2026-05-23 · 미발행\n2026-05-24 · 미발행\n2026-05-25 · 정상\n2026-05-26 · 정상\n2026-05-27 · 미발행\n2026-05-28 · 부분\n2026-05-29 · 정상\n2026-05-30 · 미발행\n2026-05-31 · 미발행\n2026-06-01 · 정상\n2026-06-02 · 정상\n2026-06-03 · 정상\n2026-06-04 · 정상\n2026-06-05 · 미발행\n2026-06-06 · 미발행\n2026-06-07 · 미발행\n2026-06-08 · 정상\n2026-06-09 · 정상\n2026-06-10 · 정상\n2026-06-11 · 정상\n2026-06-12 · 정상\n2026-06-13 · 미발행\n2026-06-14 · 미발행\n2026-06-15 · 정상\n2026-06-16 · 정상\n2026-06-17 · 정상\n2026-06-18 · 정상\n2026-06-19 · 정상\n2026-06-20 · 미발행\n2026-06-21 · 미발행\n2026-06-22 · 정상\n2026-06-23 · 정상\n2026-06-24 · 정상\n2026-06-25 · 정상\n2026-06-26 · 정상\n2026-06-27 · 미발행\n2026-06-28 · 미발행\n2026-06-29 · 정상\n2026-06-30 · 부분\n2026-07-01 · 정상\n2026-07-02 · 정상\n2026-07-03 · 정상\n2026-07-04 · 미발행\n2026-07-05 · 미발행\n2026-07-06 · 정상\n2026-07-07 · 부분\n2026-07-08 · 미발행\n2026-07-09 · 부분\n2026-07-10 · 부분\n2026-07-11 · 미발행\n2026-07-12 · 미발행\n2026-07-13 · 정상\n2026-07-14 · 정상\n2026-07-15 · 부분\n2026-07-16 · 미발행\n2026-07-17 · 정상\n2026-07-18 · 정상\n2026-07-19 · 미발행\n2026-07-20 · 미발행\n2026-07-21 · 정상\n2026-07-22 · 정상\n2026-07-23 · 정상\n2026-07-24 · 정상\n2026-07-25 · 미발행\n2026-07-26 · 미발행\n2026-07-27 · 정상\n2026-07-28 · 정상\n2026-07-29 · 정상\n2026-07-30 · 정상\n2026-07-31 · 정상\n2026-08-01 · 미발행\n2026-08-02 · 미발행\n2026-08-03 · 정상\n2026-08-04 · 정상\n2026-08-05 · 정상\n2026-08-06 · 정상\n2026-08-07 · 정상\n2026-08-08 · 미발행\n2026-08-09 · 미발행\n2026-08-10 · 정상\n2026-08-11 · 정상\n2026-08-12 · 정상\n2026-08-13 · 부분\n2026-08-14 · 정상\n2026-08-15 · 미발행\n2026-08-16 · 미발행\n2026-08-17 · 정상\n2026-08-18 · 정상\n2026-08-19 · 정상\n2026-08-20 · 정상\n2026-08-21 · 정상\n2026-08-22 · 미발행\n2026-08-23 · 미발행\n2026-08-24 · 부분\n2026-08-25 · 정상\n2026-08-26 · 부분\n2026-08-27 · 정상\n2026-08-28 · 정상\n2026-08-29 · 미발행\n2026-08-30 · 미발행\n2026-08-31 · 정상\n2026-09-01 · 부분\n2026-09-02 · 부분\n2026-09-03 · 정상\n2026-09-04 · 정상\n2026-09-05 · 미발행\n2026-09-06 · 미발행\n2026-09-07 · 정상\n2026-09-08 · 정상\n2026-09-09 · 정상\n2026-09-10 · 정상\n2026-09-11 · 정상\n2026-09-12 · 미발행\n2026-09-13 · 미발행\n2026-09-14 · 부분\n2026-09-15 · 정상\n2026-09-16 · 정상\n2026-09-17 · 정상\n2026-09-18 · 정상\n2026-09-19 · 미발행\n2026-09-20 · 미발행\n2026-09-21 · 정상\n2026-09-22 · 정상\n2026-09-23 · 정상\n2026-09-24 · 정상\n2026-09-25 · 정상\n2026-09-26 · 미발행\n2026-09-27 · 미발행\n2026-09-28 · 부분\n2026-09-29 · 부분\n2026-09-30 · 정상\n2026-10-01 · 정상\n2026-10-02 · 정상\n2026-10-03 · 미발행\n2026-10-04 · 미발행\n2026-10-05 · 정상\n2026-10-06 · 정상\n2026-10-07 · 정상\n2026-10-08 · 부분\n\n정상\n\n부분\n\n부족\n\n미발행\n",
+        "normalFill": "rgb(46, 164, 79)",
+        "bounds": {
+          "width": 435,
+          "height": 165
+        },
+        "overflow": 0
+      },
+      "toggled": {
+        "scheme": "slate",
+        "svgChildren": 172,
+        "rects": 160,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": "\n.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}\n월\n화\n수\n목\n금\n토\n일\n2026-05-06 · 정상\n2026-05-07 · 정상\n2026-05-08 · 정상\n2026-05-09 · 미발행\n2026-05-10 · 미발행\n2026-05-11 · 정상\n2026-05-12 · 미발행\n2026-05-13 · 정상\n2026-05-14 · 정상\n2026-05-15 · 정상\n2026-05-16 · 미발행\n2026-05-17 · 미발행\n2026-05-18 · 부분\n2026-05-19 · 정상\n2026-05-20 · 정상\n2026-05-21 · 부분\n2026-05-22 · 정상\n2026-05-23 · 미발행\n2026-05-24 · 미발행\n2026-05-25 · 정상\n2026-05-26 · 정상\n2026-05-27 · 미발행\n2026-05-28 · 부분\n2026-05-29 · 정상\n2026-05-30 · 미발행\n2026-05-31 · 미발행\n2026-06-01 · 정상\n2026-06-02 · 정상\n2026-06-03 · 정상\n2026-06-04 · 정상\n2026-06-05 · 미발행\n2026-06-06 · 미발행\n2026-06-07 · 미발행\n2026-06-08 · 정상\n2026-06-09 · 정상\n2026-06-10 · 정상\n2026-06-11 · 정상\n2026-06-12 · 정상\n2026-06-13 · 미발행\n2026-06-14 · 미발행\n2026-06-15 · 정상\n2026-06-16 · 정상\n2026-06-17 · 정상\n2026-06-18 · 정상\n2026-06-19 · 정상\n2026-06-20 · 미발행\n2026-06-21 · 미발행\n2026-06-22 · 정상\n2026-06-23 · 정상\n2026-06-24 · 정상\n2026-06-25 · 정상\n2026-06-26 · 정상\n2026-06-27 · 미발행\n2026-06-28 · 미발행\n2026-06-29 · 정상\n2026-06-30 · 부분\n2026-07-01 · 정상\n2026-07-02 · 정상\n2026-07-03 · 정상\n2026-07-04 · 미발행\n2026-07-05 · 미발행\n2026-07-06 · 정상\n2026-07-07 · 부분\n2026-07-08 · 미발행\n2026-07-09 · 부분\n2026-07-10 · 부분\n2026-07-11 · 미발행\n2026-07-12 · 미발행\n2026-07-13 · 정상\n2026-07-14 · 정상\n2026-07-15 · 부분\n2026-07-16 · 미발행\n2026-07-17 · 정상\n2026-07-18 · 정상\n2026-07-19 · 미발행\n2026-07-20 · 미발행\n2026-07-21 · 정상\n2026-07-22 · 정상\n2026-07-23 · 정상\n2026-07-24 · 정상\n2026-07-25 · 미발행\n2026-07-26 · 미발행\n2026-07-27 · 정상\n2026-07-28 · 정상\n2026-07-29 · 정상\n2026-07-30 · 정상\n2026-07-31 · 정상\n2026-08-01 · 미발행\n2026-08-02 · 미발행\n2026-08-03 · 정상\n2026-08-04 · 정상\n2026-08-05 · 정상\n2026-08-06 · 정상\n2026-08-07 · 정상\n2026-08-08 · 미발행\n2026-08-09 · 미발행\n2026-08-10 · 정상\n2026-08-11 · 정상\n2026-08-12 · 정상\n2026-08-13 · 부분\n2026-08-14 · 정상\n2026-08-15 · 미발행\n2026-08-16 · 미발행\n2026-08-17 · 정상\n2026-08-18 · 정상\n2026-08-19 · 정상\n2026-08-20 · 정상\n2026-08-21 · 정상\n2026-08-22 · 미발행\n2026-08-23 · 미발행\n2026-08-24 · 부분\n2026-08-25 · 정상\n2026-08-26 · 부분\n2026-08-27 · 정상\n2026-08-28 · 정상\n2026-08-29 · 미발행\n2026-08-30 · 미발행\n2026-08-31 · 정상\n2026-09-01 · 부분\n2026-09-02 · 부분\n2026-09-03 · 정상\n2026-09-04 · 정상\n2026-09-05 · 미발행\n2026-09-06 · 미발행\n2026-09-07 · 정상\n2026-09-08 · 정상\n2026-09-09 · 정상\n2026-09-10 · 정상\n2026-09-11 · 정상\n2026-09-12 · 미발행\n2026-09-13 · 미발행\n2026-09-14 · 부분\n2026-09-15 · 정상\n2026-09-16 · 정상\n2026-09-17 · 정상\n2026-09-18 · 정상\n2026-09-19 · 미발행\n2026-09-20 · 미발행\n2026-09-21 · 정상\n2026-09-22 · 정상\n2026-09-23 · 정상\n2026-09-24 · 정상\n2026-09-25 · 정상\n2026-09-26 · 미발행\n2026-09-27 · 미발행\n2026-09-28 · 부분\n2026-09-29 · 부분\n2026-09-30 · 정상\n2026-10-01 · 정상\n2026-10-02 · 정상\n2026-10-03 · 미발행\n2026-10-04 · 미발행\n2026-10-05 · 정상\n2026-10-06 · 정상\n2026-10-07 · 정상\n2026-10-08 · 부분\n\n정상\n\n부분\n\n부족\n\n미발행\n",
+        "normalFill": "rgb(63, 185, 80)",
+        "bounds": {
+          "width": 435,
+          "height": 165
+        },
+        "overflow": 0
+      },
+      "restored": {
+        "scheme": "default",
+        "svgChildren": 172,
+        "rects": 160,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": "\n.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}\n월\n화\n수\n목\n금\n토\n일\n2026-05-06 · 정상\n2026-05-07 · 정상\n2026-05-08 · 정상\n2026-05-09 · 미발행\n2026-05-10 · 미발행\n2026-05-11 · 정상\n2026-05-12 · 미발행\n2026-05-13 · 정상\n2026-05-14 · 정상\n2026-05-15 · 정상\n2026-05-16 · 미발행\n2026-05-17 · 미발행\n2026-05-18 · 부분\n2026-05-19 · 정상\n2026-05-20 · 정상\n2026-05-21 · 부분\n2026-05-22 · 정상\n2026-05-23 · 미발행\n2026-05-24 · 미발행\n2026-05-25 · 정상\n2026-05-26 · 정상\n2026-05-27 · 미발행\n2026-05-28 · 부분\n2026-05-29 · 정상\n2026-05-30 · 미발행\n2026-05-31 · 미발행\n2026-06-01 · 정상\n2026-06-02 · 정상\n2026-06-03 · 정상\n2026-06-04 · 정상\n2026-06-05 · 미발행\n2026-06-06 · 미발행\n2026-06-07 · 미발행\n2026-06-08 · 정상\n2026-06-09 · 정상\n2026-06-10 · 정상\n2026-06-11 · 정상\n2026-06-12 · 정상\n2026-06-13 · 미발행\n2026-06-14 · 미발행\n2026-06-15 · 정상\n2026-06-16 · 정상\n2026-06-17 · 정상\n2026-06-18 · 정상\n2026-06-19 · 정상\n2026-06-20 · 미발행\n2026-06-21 · 미발행\n2026-06-22 · 정상\n2026-06-23 · 정상\n2026-06-24 · 정상\n2026-06-25 · 정상\n2026-06-26 · 정상\n2026-06-27 · 미발행\n2026-06-28 · 미발행\n2026-06-29 · 정상\n2026-06-30 · 부분\n2026-07-01 · 정상\n2026-07-02 · 정상\n2026-07-03 · 정상\n2026-07-04 · 미발행\n2026-07-05 · 미발행\n2026-07-06 · 정상\n2026-07-07 · 부분\n2026-07-08 · 미발행\n2026-07-09 · 부분\n2026-07-10 · 부분\n2026-07-11 · 미발행\n2026-07-12 · 미발행\n2026-07-13 · 정상\n2026-07-14 · 정상\n2026-07-15 · 부분\n2026-07-16 · 미발행\n2026-07-17 · 정상\n2026-07-18 · 정상\n2026-07-19 · 미발행\n2026-07-20 · 미발행\n2026-07-21 · 정상\n2026-07-22 · 정상\n2026-07-23 · 정상\n2026-07-24 · 정상\n2026-07-25 · 미발행\n2026-07-26 · 미발행\n2026-07-27 · 정상\n2026-07-28 · 정상\n2026-07-29 · 정상\n2026-07-30 · 정상\n2026-07-31 · 정상\n2026-08-01 · 미발행\n2026-08-02 · 미발행\n2026-08-03 · 정상\n2026-08-04 · 정상\n2026-08-05 · 정상\n2026-08-06 · 정상\n2026-08-07 · 정상\n2026-08-08 · 미발행\n2026-08-09 · 미발행\n2026-08-10 · 정상\n2026-08-11 · 정상\n2026-08-12 · 정상\n2026-08-13 · 부분\n2026-08-14 · 정상\n2026-08-15 · 미발행\n2026-08-16 · 미발행\n2026-08-17 · 정상\n2026-08-18 · 정상\n2026-08-19 · 정상\n2026-08-20 · 정상\n2026-08-21 · 정상\n2026-08-22 · 미발행\n2026-08-23 · 미발행\n2026-08-24 · 부분\n2026-08-25 · 정상\n2026-08-26 · 부분\n2026-08-27 · 정상\n2026-08-28 · 정상\n2026-08-29 · 미발행\n2026-08-30 · 미발행\n2026-08-31 · 정상\n2026-09-01 · 부분\n2026-09-02 · 부분\n2026-09-03 · 정상\n2026-09-04 · 정상\n2026-09-05 · 미발행\n2026-09-06 · 미발행\n2026-09-07 · 정상\n2026-09-08 · 정상\n2026-09-09 · 정상\n2026-09-10 · 정상\n2026-09-11 · 정상\n2026-09-12 · 미발행\n2026-09-13 · 미발행\n2026-09-14 · 부분\n2026-09-15 · 정상\n2026-09-16 · 정상\n2026-09-17 · 정상\n2026-09-18 · 정상\n2026-09-19 · 미발행\n2026-09-20 · 미발행\n2026-09-21 · 정상\n2026-09-22 · 정상\n2026-09-23 · 정상\n2026-09-24 · 정상\n2026-09-25 · 정상\n2026-09-26 · 미발행\n2026-09-27 · 미발행\n2026-09-28 · 부분\n2026-09-29 · 부분\n2026-09-30 · 정상\n2026-10-01 · 정상\n2026-10-02 · 정상\n2026-10-03 · 미발행\n2026-10-04 · 미발행\n2026-10-05 · 정상\n2026-10-06 · 정상\n2026-10-07 · 정상\n2026-10-08 · 부분\n\n정상\n\n부분\n\n부족\n\n미발행\n",
+        "normalFill": "rgb(46, 164, 79)",
+        "bounds": {
+          "width": 435,
+          "height": 165
+        },
+        "overflow": 0
+      }
+    },
+    {
+      "root": "fixtures-states",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "light",
+      "initial": {
+        "scheme": "default",
+        "svgChildren": 20,
+        "rects": 8,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": "\n.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}\n월\n화\n수\n목\n금\n토\n일\n2026-10-05 · 정상\n2026-10-06 · 부분\n2026-10-07 · 부족\n2026-10-08 · 미발행\n\n정상\n\n부분\n\n부족\n\n미발행\n",
+        "normalFill": "rgb(46, 164, 79)",
+        "bounds": {
+          "width": 61,
+          "height": 165
+        },
+        "overflow": 0
+      },
+      "toggled": {
+        "scheme": "slate",
+        "svgChildren": 20,
+        "rects": 8,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": "\n.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}\n월\n화\n수\n목\n금\n토\n일\n2026-10-05 · 정상\n2026-10-06 · 부분\n2026-10-07 · 부족\n2026-10-08 · 미발행\n\n정상\n\n부분\n\n부족\n\n미발행\n",
+        "normalFill": "rgb(63, 185, 80)",
+        "bounds": {
+          "width": 61,
+          "height": 165
+        },
+        "overflow": 0
+      },
+      "restored": {
+        "scheme": "default",
+        "svgChildren": 20,
+        "rects": 8,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": "\n.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}\n월\n화\n수\n목\n금\n토\n일\n2026-10-05 · 정상\n2026-10-06 · 부분\n2026-10-07 · 부족\n2026-10-08 · 미발행\n\n정상\n\n부분\n\n부족\n\n미발행\n",
+        "normalFill": "rgb(46, 164, 79)",
+        "bounds": {
+          "width": 61,
+          "height": 165
+        },
+        "overflow": 0
+      }
+    },
+    {
+      "root": "fixtures-empty",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "light",
+      "initial": {
+        "scheme": "default",
+        "svgChildren": 2,
+        "rects": 0,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": ".u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}발행 이력이 아직 없습니다.",
+        "normalFill": null,
+        "bounds": {
+          "width": 200,
+          "height": 40
+        },
+        "overflow": 0
+      },
+      "toggled": {
+        "scheme": "slate",
+        "svgChildren": 2,
+        "rects": 0,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": ".u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}발행 이력이 아직 없습니다.",
+        "normalFill": null,
+        "bounds": {
+          "width": 200,
+          "height": 40
+        },
+        "overflow": 0
+      },
+      "restored": {
+        "scheme": "default",
+        "svgChildren": 2,
+        "rects": 0,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": ".u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}발행 이력이 아직 없습니다.",
+        "normalFill": null,
+        "bounds": {
+          "width": 200,
+          "height": 40
+        },
+        "overflow": 0
+      }
+    },
+    {
+      "root": "investo",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "dark",
+      "initial": {
+        "scheme": "slate",
+        "svgChildren": 172,
+        "rects": 160,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": "\n.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}\n월\n화\n수\n목\n금\n토\n일\n2026-05-06 · 정상\n2026-05-07 · 정상\n2026-05-08 · 정상\n2026-05-09 · 미발행\n2026-05-10 · 미발행\n2026-05-11 · 정상\n2026-05-12 · 미발행\n2026-05-13 · 정상\n2026-05-14 · 정상\n2026-05-15 · 정상\n2026-05-16 · 미발행\n2026-05-17 · 미발행\n2026-05-18 · 부분\n2026-05-19 · 정상\n2026-05-20 · 정상\n2026-05-21 · 부분\n2026-05-22 · 정상\n2026-05-23 · 미발행\n2026-05-24 · 미발행\n2026-05-25 · 정상\n2026-05-26 · 정상\n2026-05-27 · 미발행\n2026-05-28 · 부분\n2026-05-29 · 정상\n2026-05-30 · 미발행\n2026-05-31 · 미발행\n2026-06-01 · 정상\n2026-06-02 · 정상\n2026-06-03 · 정상\n2026-06-04 · 정상\n2026-06-05 · 미발행\n2026-06-06 · 미발행\n2026-06-07 · 미발행\n2026-06-08 · 정상\n2026-06-09 · 정상\n2026-06-10 · 정상\n2026-06-11 · 정상\n2026-06-12 · 정상\n2026-06-13 · 미발행\n2026-06-14 · 미발행\n2026-06-15 · 정상\n2026-06-16 · 정상\n2026-06-17 · 정상\n2026-06-18 · 정상\n2026-06-19 · 정상\n2026-06-20 · 미발행\n2026-06-21 · 미발행\n2026-06-22 · 정상\n2026-06-23 · 정상\n2026-06-24 · 정상\n2026-06-25 · 정상\n2026-06-26 · 정상\n2026-06-27 · 미발행\n2026-06-28 · 미발행\n2026-06-29 · 정상\n2026-06-30 · 부분\n2026-07-01 · 정상\n2026-07-02 · 정상\n2026-07-03 · 정상\n2026-07-04 · 미발행\n2026-07-05 · 미발행\n2026-07-06 · 정상\n2026-07-07 · 부분\n2026-07-08 · 미발행\n2026-07-09 · 부분\n2026-07-10 · 부분\n2026-07-11 · 미발행\n2026-07-12 · 미발행\n2026-07-13 · 정상\n2026-07-14 · 정상\n2026-07-15 · 부분\n2026-07-16 · 미발행\n2026-07-17 · 정상\n2026-07-18 · 정상\n2026-07-19 · 미발행\n2026-07-20 · 미발행\n2026-07-21 · 정상\n2026-07-22 · 정상\n2026-07-23 · 정상\n2026-07-24 · 정상\n2026-07-25 · 미발행\n2026-07-26 · 미발행\n2026-07-27 · 정상\n2026-07-28 · 정상\n2026-07-29 · 정상\n2026-07-30 · 정상\n2026-07-31 · 정상\n2026-08-01 · 미발행\n2026-08-02 · 미발행\n2026-08-03 · 정상\n2026-08-04 · 정상\n2026-08-05 · 정상\n2026-08-06 · 정상\n2026-08-07 · 정상\n2026-08-08 · 미발행\n2026-08-09 · 미발행\n2026-08-10 · 정상\n2026-08-11 · 정상\n2026-08-12 · 정상\n2026-08-13 · 부분\n2026-08-14 · 정상\n2026-08-15 · 미발행\n2026-08-16 · 미발행\n2026-08-17 · 정상\n2026-08-18 · 정상\n2026-08-19 · 정상\n2026-08-20 · 정상\n2026-08-21 · 정상\n2026-08-22 · 미발행\n2026-08-23 · 미발행\n2026-08-24 · 부분\n2026-08-25 · 정상\n2026-08-26 · 부분\n2026-08-27 · 정상\n2026-08-28 · 정상\n2026-08-29 · 미발행\n2026-08-30 · 미발행\n2026-08-31 · 정상\n2026-09-01 · 부분\n2026-09-02 · 부분\n2026-09-03 · 정상\n2026-09-04 · 정상\n2026-09-05 · 미발행\n2026-09-06 · 미발행\n2026-09-07 · 정상\n2026-09-08 · 정상\n2026-09-09 · 정상\n2026-09-10 · 정상\n2026-09-11 · 정상\n2026-09-12 · 미발행\n2026-09-13 · 미발행\n2026-09-14 · 부분\n2026-09-15 · 정상\n2026-09-16 · 정상\n2026-09-17 · 정상\n2026-09-18 · 정상\n2026-09-19 · 미발행\n2026-09-20 · 미발행\n2026-09-21 · 정상\n2026-09-22 · 정상\n2026-09-23 · 정상\n2026-09-24 · 정상\n2026-09-25 · 정상\n2026-09-26 · 미발행\n2026-09-27 · 미발행\n2026-09-28 · 부분\n2026-09-29 · 부분\n2026-09-30 · 정상\n2026-10-01 · 정상\n2026-10-02 · 정상\n2026-10-03 · 미발행\n2026-10-04 · 미발행\n2026-10-05 · 정상\n2026-10-06 · 정상\n2026-10-07 · 정상\n2026-10-08 · 부분\n\n정상\n\n부분\n\n부족\n\n미발행\n",
+        "normalFill": "rgb(63, 185, 80)",
+        "bounds": {
+          "width": 435,
+          "height": 165
+        },
+        "overflow": 0
+      },
+      "toggled": {
+        "scheme": "default",
+        "svgChildren": 172,
+        "rects": 160,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": "\n.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}\n월\n화\n수\n목\n금\n토\n일\n2026-05-06 · 정상\n2026-05-07 · 정상\n2026-05-08 · 정상\n2026-05-09 · 미발행\n2026-05-10 · 미발행\n2026-05-11 · 정상\n2026-05-12 · 미발행\n2026-05-13 · 정상\n2026-05-14 · 정상\n2026-05-15 · 정상\n2026-05-16 · 미발행\n2026-05-17 · 미발행\n2026-05-18 · 부분\n2026-05-19 · 정상\n2026-05-20 · 정상\n2026-05-21 · 부분\n2026-05-22 · 정상\n2026-05-23 · 미발행\n2026-05-24 · 미발행\n2026-05-25 · 정상\n2026-05-26 · 정상\n2026-05-27 · 미발행\n2026-05-28 · 부분\n2026-05-29 · 정상\n2026-05-30 · 미발행\n2026-05-31 · 미발행\n2026-06-01 · 정상\n2026-06-02 · 정상\n2026-06-03 · 정상\n2026-06-04 · 정상\n2026-06-05 · 미발행\n2026-06-06 · 미발행\n2026-06-07 · 미발행\n2026-06-08 · 정상\n2026-06-09 · 정상\n2026-06-10 · 정상\n2026-06-11 · 정상\n2026-06-12 · 정상\n2026-06-13 · 미발행\n2026-06-14 · 미발행\n2026-06-15 · 정상\n2026-06-16 · 정상\n2026-06-17 · 정상\n2026-06-18 · 정상\n2026-06-19 · 정상\n2026-06-20 · 미발행\n2026-06-21 · 미발행\n2026-06-22 · 정상\n2026-06-23 · 정상\n2026-06-24 · 정상\n2026-06-25 · 정상\n2026-06-26 · 정상\n2026-06-27 · 미발행\n2026-06-28 · 미발행\n2026-06-29 · 정상\n2026-06-30 · 부분\n2026-07-01 · 정상\n2026-07-02 · 정상\n2026-07-03 · 정상\n2026-07-04 · 미발행\n2026-07-05 · 미발행\n2026-07-06 · 정상\n2026-07-07 · 부분\n2026-07-08 · 미발행\n2026-07-09 · 부분\n2026-07-10 · 부분\n2026-07-11 · 미발행\n2026-07-12 · 미발행\n2026-07-13 · 정상\n2026-07-14 · 정상\n2026-07-15 · 부분\n2026-07-16 · 미발행\n2026-07-17 · 정상\n2026-07-18 · 정상\n2026-07-19 · 미발행\n2026-07-20 · 미발행\n2026-07-21 · 정상\n2026-07-22 · 정상\n2026-07-23 · 정상\n2026-07-24 · 정상\n2026-07-25 · 미발행\n2026-07-26 · 미발행\n2026-07-27 · 정상\n2026-07-28 · 정상\n2026-07-29 · 정상\n2026-07-30 · 정상\n2026-07-31 · 정상\n2026-08-01 · 미발행\n2026-08-02 · 미발행\n2026-08-03 · 정상\n2026-08-04 · 정상\n2026-08-05 · 정상\n2026-08-06 · 정상\n2026-08-07 · 정상\n2026-08-08 · 미발행\n2026-08-09 · 미발행\n2026-08-10 · 정상\n2026-08-11 · 정상\n2026-08-12 · 정상\n2026-08-13 · 부분\n2026-08-14 · 정상\n2026-08-15 · 미발행\n2026-08-16 · 미발행\n2026-08-17 · 정상\n2026-08-18 · 정상\n2026-08-19 · 정상\n2026-08-20 · 정상\n2026-08-21 · 정상\n2026-08-22 · 미발행\n2026-08-23 · 미발행\n2026-08-24 · 부분\n2026-08-25 · 정상\n2026-08-26 · 부분\n2026-08-27 · 정상\n2026-08-28 · 정상\n2026-08-29 · 미발행\n2026-08-30 · 미발행\n2026-08-31 · 정상\n2026-09-01 · 부분\n2026-09-02 · 부분\n2026-09-03 · 정상\n2026-09-04 · 정상\n2026-09-05 · 미발행\n2026-09-06 · 미발행\n2026-09-07 · 정상\n2026-09-08 · 정상\n2026-09-09 · 정상\n2026-09-10 · 정상\n2026-09-11 · 정상\n2026-09-12 · 미발행\n2026-09-13 · 미발행\n2026-09-14 · 부분\n2026-09-15 · 정상\n2026-09-16 · 정상\n2026-09-17 · 정상\n2026-09-18 · 정상\n2026-09-19 · 미발행\n2026-09-20 · 미발행\n2026-09-21 · 정상\n2026-09-22 · 정상\n2026-09-23 · 정상\n2026-09-24 · 정상\n2026-09-25 · 정상\n2026-09-26 · 미발행\n2026-09-27 · 미발행\n2026-09-28 · 부분\n2026-09-29 · 부분\n2026-09-30 · 정상\n2026-10-01 · 정상\n2026-10-02 · 정상\n2026-10-03 · 미발행\n2026-10-04 · 미발행\n2026-10-05 · 정상\n2026-10-06 · 정상\n2026-10-07 · 정상\n2026-10-08 · 부분\n\n정상\n\n부분\n\n부족\n\n미발행\n",
+        "normalFill": "rgb(46, 164, 79)",
+        "bounds": {
+          "width": 435,
+          "height": 165
+        },
+        "overflow": 0
+      },
+      "restored": {
+        "scheme": "slate",
+        "svgChildren": 172,
+        "rects": 160,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": "\n.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}\n월\n화\n수\n목\n금\n토\n일\n2026-05-06 · 정상\n2026-05-07 · 정상\n2026-05-08 · 정상\n2026-05-09 · 미발행\n2026-05-10 · 미발행\n2026-05-11 · 정상\n2026-05-12 · 미발행\n2026-05-13 · 정상\n2026-05-14 · 정상\n2026-05-15 · 정상\n2026-05-16 · 미발행\n2026-05-17 · 미발행\n2026-05-18 · 부분\n2026-05-19 · 정상\n2026-05-20 · 정상\n2026-05-21 · 부분\n2026-05-22 · 정상\n2026-05-23 · 미발행\n2026-05-24 · 미발행\n2026-05-25 · 정상\n2026-05-26 · 정상\n2026-05-27 · 미발행\n2026-05-28 · 부분\n2026-05-29 · 정상\n2026-05-30 · 미발행\n2026-05-31 · 미발행\n2026-06-01 · 정상\n2026-06-02 · 정상\n2026-06-03 · 정상\n2026-06-04 · 정상\n2026-06-05 · 미발행\n2026-06-06 · 미발행\n2026-06-07 · 미발행\n2026-06-08 · 정상\n2026-06-09 · 정상\n2026-06-10 · 정상\n2026-06-11 · 정상\n2026-06-12 · 정상\n2026-06-13 · 미발행\n2026-06-14 · 미발행\n2026-06-15 · 정상\n2026-06-16 · 정상\n2026-06-17 · 정상\n2026-06-18 · 정상\n2026-06-19 · 정상\n2026-06-20 · 미발행\n2026-06-21 · 미발행\n2026-06-22 · 정상\n2026-06-23 · 정상\n2026-06-24 · 정상\n2026-06-25 · 정상\n2026-06-26 · 정상\n2026-06-27 · 미발행\n2026-06-28 · 미발행\n2026-06-29 · 정상\n2026-06-30 · 부분\n2026-07-01 · 정상\n2026-07-02 · 정상\n2026-07-03 · 정상\n2026-07-04 · 미발행\n2026-07-05 · 미발행\n2026-07-06 · 정상\n2026-07-07 · 부분\n2026-07-08 · 미발행\n2026-07-09 · 부분\n2026-07-10 · 부분\n2026-07-11 · 미발행\n2026-07-12 · 미발행\n2026-07-13 · 정상\n2026-07-14 · 정상\n2026-07-15 · 부분\n2026-07-16 · 미발행\n2026-07-17 · 정상\n2026-07-18 · 정상\n2026-07-19 · 미발행\n2026-07-20 · 미발행\n2026-07-21 · 정상\n2026-07-22 · 정상\n2026-07-23 · 정상\n2026-07-24 · 정상\n2026-07-25 · 미발행\n2026-07-26 · 미발행\n2026-07-27 · 정상\n2026-07-28 · 정상\n2026-07-29 · 정상\n2026-07-30 · 정상\n2026-07-31 · 정상\n2026-08-01 · 미발행\n2026-08-02 · 미발행\n2026-08-03 · 정상\n2026-08-04 · 정상\n2026-08-05 · 정상\n2026-08-06 · 정상\n2026-08-07 · 정상\n2026-08-08 · 미발행\n2026-08-09 · 미발행\n2026-08-10 · 정상\n2026-08-11 · 정상\n2026-08-12 · 정상\n2026-08-13 · 부분\n2026-08-14 · 정상\n2026-08-15 · 미발행\n2026-08-16 · 미발행\n2026-08-17 · 정상\n2026-08-18 · 정상\n2026-08-19 · 정상\n2026-08-20 · 정상\n2026-08-21 · 정상\n2026-08-22 · 미발행\n2026-08-23 · 미발행\n2026-08-24 · 부분\n2026-08-25 · 정상\n2026-08-26 · 부분\n2026-08-27 · 정상\n2026-08-28 · 정상\n2026-08-29 · 미발행\n2026-08-30 · 미발행\n2026-08-31 · 정상\n2026-09-01 · 부분\n2026-09-02 · 부분\n2026-09-03 · 정상\n2026-09-04 · 정상\n2026-09-05 · 미발행\n2026-09-06 · 미발행\n2026-09-07 · 정상\n2026-09-08 · 정상\n2026-09-09 · 정상\n2026-09-10 · 정상\n2026-09-11 · 정상\n2026-09-12 · 미발행\n2026-09-13 · 미발행\n2026-09-14 · 부분\n2026-09-15 · 정상\n2026-09-16 · 정상\n2026-09-17 · 정상\n2026-09-18 · 정상\n2026-09-19 · 미발행\n2026-09-20 · 미발행\n2026-09-21 · 정상\n2026-09-22 · 정상\n2026-09-23 · 정상\n2026-09-24 · 정상\n2026-09-25 · 정상\n2026-09-26 · 미발행\n2026-09-27 · 미발행\n2026-09-28 · 부분\n2026-09-29 · 부분\n2026-09-30 · 정상\n2026-10-01 · 정상\n2026-10-02 · 정상\n2026-10-03 · 미발행\n2026-10-04 · 미발행\n2026-10-05 · 정상\n2026-10-06 · 정상\n2026-10-07 · 정상\n2026-10-08 · 부분\n\n정상\n\n부분\n\n부족\n\n미발행\n",
+        "normalFill": "rgb(63, 185, 80)",
+        "bounds": {
+          "width": 435,
+          "height": 165
+        },
+        "overflow": 0
+      }
+    },
+    {
+      "root": "fixtures-states",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "dark",
+      "initial": {
+        "scheme": "slate",
+        "svgChildren": 20,
+        "rects": 8,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": "\n.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}\n월\n화\n수\n목\n금\n토\n일\n2026-10-05 · 정상\n2026-10-06 · 부분\n2026-10-07 · 부족\n2026-10-08 · 미발행\n\n정상\n\n부분\n\n부족\n\n미발행\n",
+        "normalFill": "rgb(63, 185, 80)",
+        "bounds": {
+          "width": 61,
+          "height": 165
+        },
+        "overflow": 0
+      },
+      "toggled": {
+        "scheme": "default",
+        "svgChildren": 20,
+        "rects": 8,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": "\n.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}\n월\n화\n수\n목\n금\n토\n일\n2026-10-05 · 정상\n2026-10-06 · 부분\n2026-10-07 · 부족\n2026-10-08 · 미발행\n\n정상\n\n부분\n\n부족\n\n미발행\n",
+        "normalFill": "rgb(46, 164, 79)",
+        "bounds": {
+          "width": 61,
+          "height": 165
+        },
+        "overflow": 0
+      },
+      "restored": {
+        "scheme": "slate",
+        "svgChildren": 20,
+        "rects": 8,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": "\n.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}\n월\n화\n수\n목\n금\n토\n일\n2026-10-05 · 정상\n2026-10-06 · 부분\n2026-10-07 · 부족\n2026-10-08 · 미발행\n\n정상\n\n부분\n\n부족\n\n미발행\n",
+        "normalFill": "rgb(63, 185, 80)",
+        "bounds": {
+          "width": 61,
+          "height": 165
+        },
+        "overflow": 0
+      }
+    },
+    {
+      "root": "fixtures-empty",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "dark",
+      "initial": {
+        "scheme": "slate",
+        "svgChildren": 2,
+        "rects": 0,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": ".u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}발행 이력이 아직 없습니다.",
+        "normalFill": null,
+        "bounds": {
+          "width": 200,
+          "height": 40
+        },
+        "overflow": 0
+      },
+      "toggled": {
+        "scheme": "default",
+        "svgChildren": 2,
+        "rects": 0,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": ".u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}발행 이력이 아직 없습니다.",
+        "normalFill": null,
+        "bounds": {
+          "width": 200,
+          "height": 40
+        },
+        "overflow": 0
+      },
+      "restored": {
+        "scheme": "slate",
+        "svgChildren": 2,
+        "rects": 0,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": ".u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}발행 이력이 아직 없습니다.",
+        "normalFill": null,
+        "bounds": {
+          "width": 200,
+          "height": 40
+        },
+        "overflow": 0
+      }
+    },
+    {
+      "root": "investo",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "light",
+      "initial": {
+        "scheme": "default",
+        "svgChildren": 172,
+        "rects": 160,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": "\n.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}\n월\n화\n수\n목\n금\n토\n일\n2026-05-06 · 정상\n2026-05-07 · 정상\n2026-05-08 · 정상\n2026-05-09 · 미발행\n2026-05-10 · 미발행\n2026-05-11 · 정상\n2026-05-12 · 미발행\n2026-05-13 · 정상\n2026-05-14 · 정상\n2026-05-15 · 정상\n2026-05-16 · 미발행\n2026-05-17 · 미발행\n2026-05-18 · 부분\n2026-05-19 · 정상\n2026-05-20 · 정상\n2026-05-21 · 부분\n2026-05-22 · 정상\n2026-05-23 · 미발행\n2026-05-24 · 미발행\n2026-05-25 · 정상\n2026-05-26 · 정상\n2026-05-27 · 미발행\n2026-05-28 · 부분\n2026-05-29 · 정상\n2026-05-30 · 미발행\n2026-05-31 · 미발행\n2026-06-01 · 정상\n2026-06-02 · 정상\n2026-06-03 · 정상\n2026-06-04 · 정상\n2026-06-05 · 미발행\n2026-06-06 · 미발행\n2026-06-07 · 미발행\n2026-06-08 · 정상\n2026-06-09 · 정상\n2026-06-10 · 정상\n2026-06-11 · 정상\n2026-06-12 · 정상\n2026-06-13 · 미발행\n2026-06-14 · 미발행\n2026-06-15 · 정상\n2026-06-16 · 정상\n2026-06-17 · 정상\n2026-06-18 · 정상\n2026-06-19 · 정상\n2026-06-20 · 미발행\n2026-06-21 · 미발행\n2026-06-22 · 정상\n2026-06-23 · 정상\n2026-06-24 · 정상\n2026-06-25 · 정상\n2026-06-26 · 정상\n2026-06-27 · 미발행\n2026-06-28 · 미발행\n2026-06-29 · 정상\n2026-06-30 · 부분\n2026-07-01 · 정상\n2026-07-02 · 정상\n2026-07-03 · 정상\n2026-07-04 · 미발행\n2026-07-05 · 미발행\n2026-07-06 · 정상\n2026-07-07 · 부분\n2026-07-08 · 미발행\n2026-07-09 · 부분\n2026-07-10 · 부분\n2026-07-11 · 미발행\n2026-07-12 · 미발행\n2026-07-13 · 정상\n2026-07-14 · 정상\n2026-07-15 · 부분\n2026-07-16 · 미발행\n2026-07-17 · 정상\n2026-07-18 · 정상\n2026-07-19 · 미발행\n2026-07-20 · 미발행\n2026-07-21 · 정상\n2026-07-22 · 정상\n2026-07-23 · 정상\n2026-07-24 · 정상\n2026-07-25 · 미발행\n2026-07-26 · 미발행\n2026-07-27 · 정상\n2026-07-28 · 정상\n2026-07-29 · 정상\n2026-07-30 · 정상\n2026-07-31 · 정상\n2026-08-01 · 미발행\n2026-08-02 · 미발행\n2026-08-03 · 정상\n2026-08-04 · 정상\n2026-08-05 · 정상\n2026-08-06 · 정상\n2026-08-07 · 정상\n2026-08-08 · 미발행\n2026-08-09 · 미발행\n2026-08-10 · 정상\n2026-08-11 · 정상\n2026-08-12 · 정상\n2026-08-13 · 부분\n2026-08-14 · 정상\n2026-08-15 · 미발행\n2026-08-16 · 미발행\n2026-08-17 · 정상\n2026-08-18 · 정상\n2026-08-19 · 정상\n2026-08-20 · 정상\n2026-08-21 · 정상\n2026-08-22 · 미발행\n2026-08-23 · 미발행\n2026-08-24 · 부분\n2026-08-25 · 정상\n2026-08-26 · 부분\n2026-08-27 · 정상\n2026-08-28 · 정상\n2026-08-29 · 미발행\n2026-08-30 · 미발행\n2026-08-31 · 정상\n2026-09-01 · 부분\n2026-09-02 · 부분\n2026-09-03 · 정상\n2026-09-04 · 정상\n2026-09-05 · 미발행\n2026-09-06 · 미발행\n2026-09-07 · 정상\n2026-09-08 · 정상\n2026-09-09 · 정상\n2026-09-10 · 정상\n2026-09-11 · 정상\n2026-09-12 · 미발행\n2026-09-13 · 미발행\n2026-09-14 · 부분\n2026-09-15 · 정상\n2026-09-16 · 정상\n2026-09-17 · 정상\n2026-09-18 · 정상\n2026-09-19 · 미발행\n2026-09-20 · 미발행\n2026-09-21 · 정상\n2026-09-22 · 정상\n2026-09-23 · 정상\n2026-09-24 · 정상\n2026-09-25 · 정상\n2026-09-26 · 미발행\n2026-09-27 · 미발행\n2026-09-28 · 부분\n2026-09-29 · 부분\n2026-09-30 · 정상\n2026-10-01 · 정상\n2026-10-02 · 정상\n2026-10-03 · 미발행\n2026-10-04 · 미발행\n2026-10-05 · 정상\n2026-10-06 · 정상\n2026-10-07 · 정상\n2026-10-08 · 부분\n\n정상\n\n부분\n\n부족\n\n미발행\n",
+        "normalFill": "rgb(46, 164, 79)",
+        "bounds": {
+          "width": 358,
+          "height": 135.78125
+        },
+        "overflow": 0
+      },
+      "toggled": {
+        "scheme": "slate",
+        "svgChildren": 172,
+        "rects": 160,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": "\n.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}\n월\n화\n수\n목\n금\n토\n일\n2026-05-06 · 정상\n2026-05-07 · 정상\n2026-05-08 · 정상\n2026-05-09 · 미발행\n2026-05-10 · 미발행\n2026-05-11 · 정상\n2026-05-12 · 미발행\n2026-05-13 · 정상\n2026-05-14 · 정상\n2026-05-15 · 정상\n2026-05-16 · 미발행\n2026-05-17 · 미발행\n2026-05-18 · 부분\n2026-05-19 · 정상\n2026-05-20 · 정상\n2026-05-21 · 부분\n2026-05-22 · 정상\n2026-05-23 · 미발행\n2026-05-24 · 미발행\n2026-05-25 · 정상\n2026-05-26 · 정상\n2026-05-27 · 미발행\n2026-05-28 · 부분\n2026-05-29 · 정상\n2026-05-30 · 미발행\n2026-05-31 · 미발행\n2026-06-01 · 정상\n2026-06-02 · 정상\n2026-06-03 · 정상\n2026-06-04 · 정상\n2026-06-05 · 미발행\n2026-06-06 · 미발행\n2026-06-07 · 미발행\n2026-06-08 · 정상\n2026-06-09 · 정상\n2026-06-10 · 정상\n2026-06-11 · 정상\n2026-06-12 · 정상\n2026-06-13 · 미발행\n2026-06-14 · 미발행\n2026-06-15 · 정상\n2026-06-16 · 정상\n2026-06-17 · 정상\n2026-06-18 · 정상\n2026-06-19 · 정상\n2026-06-20 · 미발행\n2026-06-21 · 미발행\n2026-06-22 · 정상\n2026-06-23 · 정상\n2026-06-24 · 정상\n2026-06-25 · 정상\n2026-06-26 · 정상\n2026-06-27 · 미발행\n2026-06-28 · 미발행\n2026-06-29 · 정상\n2026-06-30 · 부분\n2026-07-01 · 정상\n2026-07-02 · 정상\n2026-07-03 · 정상\n2026-07-04 · 미발행\n2026-07-05 · 미발행\n2026-07-06 · 정상\n2026-07-07 · 부분\n2026-07-08 · 미발행\n2026-07-09 · 부분\n2026-07-10 · 부분\n2026-07-11 · 미발행\n2026-07-12 · 미발행\n2026-07-13 · 정상\n2026-07-14 · 정상\n2026-07-15 · 부분\n2026-07-16 · 미발행\n2026-07-17 · 정상\n2026-07-18 · 정상\n2026-07-19 · 미발행\n2026-07-20 · 미발행\n2026-07-21 · 정상\n2026-07-22 · 정상\n2026-07-23 · 정상\n2026-07-24 · 정상\n2026-07-25 · 미발행\n2026-07-26 · 미발행\n2026-07-27 · 정상\n2026-07-28 · 정상\n2026-07-29 · 정상\n2026-07-30 · 정상\n2026-07-31 · 정상\n2026-08-01 · 미발행\n2026-08-02 · 미발행\n2026-08-03 · 정상\n2026-08-04 · 정상\n2026-08-05 · 정상\n2026-08-06 · 정상\n2026-08-07 · 정상\n2026-08-08 · 미발행\n2026-08-09 · 미발행\n2026-08-10 · 정상\n2026-08-11 · 정상\n2026-08-12 · 정상\n2026-08-13 · 부분\n2026-08-14 · 정상\n2026-08-15 · 미발행\n2026-08-16 · 미발행\n2026-08-17 · 정상\n2026-08-18 · 정상\n2026-08-19 · 정상\n2026-08-20 · 정상\n2026-08-21 · 정상\n2026-08-22 · 미발행\n2026-08-23 · 미발행\n2026-08-24 · 부분\n2026-08-25 · 정상\n2026-08-26 · 부분\n2026-08-27 · 정상\n2026-08-28 · 정상\n2026-08-29 · 미발행\n2026-08-30 · 미발행\n2026-08-31 · 정상\n2026-09-01 · 부분\n2026-09-02 · 부분\n2026-09-03 · 정상\n2026-09-04 · 정상\n2026-09-05 · 미발행\n2026-09-06 · 미발행\n2026-09-07 · 정상\n2026-09-08 · 정상\n2026-09-09 · 정상\n2026-09-10 · 정상\n2026-09-11 · 정상\n2026-09-12 · 미발행\n2026-09-13 · 미발행\n2026-09-14 · 부분\n2026-09-15 · 정상\n2026-09-16 · 정상\n2026-09-17 · 정상\n2026-09-18 · 정상\n2026-09-19 · 미발행\n2026-09-20 · 미발행\n2026-09-21 · 정상\n2026-09-22 · 정상\n2026-09-23 · 정상\n2026-09-24 · 정상\n2026-09-25 · 정상\n2026-09-26 · 미발행\n2026-09-27 · 미발행\n2026-09-28 · 부분\n2026-09-29 · 부분\n2026-09-30 · 정상\n2026-10-01 · 정상\n2026-10-02 · 정상\n2026-10-03 · 미발행\n2026-10-04 · 미발행\n2026-10-05 · 정상\n2026-10-06 · 정상\n2026-10-07 · 정상\n2026-10-08 · 부분\n\n정상\n\n부분\n\n부족\n\n미발행\n",
+        "normalFill": "rgb(63, 185, 80)",
+        "bounds": {
+          "width": 358,
+          "height": 135.78125
+        },
+        "overflow": 0
+      },
+      "restored": {
+        "scheme": "default",
+        "svgChildren": 172,
+        "rects": 160,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": "\n.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}\n월\n화\n수\n목\n금\n토\n일\n2026-05-06 · 정상\n2026-05-07 · 정상\n2026-05-08 · 정상\n2026-05-09 · 미발행\n2026-05-10 · 미발행\n2026-05-11 · 정상\n2026-05-12 · 미발행\n2026-05-13 · 정상\n2026-05-14 · 정상\n2026-05-15 · 정상\n2026-05-16 · 미발행\n2026-05-17 · 미발행\n2026-05-18 · 부분\n2026-05-19 · 정상\n2026-05-20 · 정상\n2026-05-21 · 부분\n2026-05-22 · 정상\n2026-05-23 · 미발행\n2026-05-24 · 미발행\n2026-05-25 · 정상\n2026-05-26 · 정상\n2026-05-27 · 미발행\n2026-05-28 · 부분\n2026-05-29 · 정상\n2026-05-30 · 미발행\n2026-05-31 · 미발행\n2026-06-01 · 정상\n2026-06-02 · 정상\n2026-06-03 · 정상\n2026-06-04 · 정상\n2026-06-05 · 미발행\n2026-06-06 · 미발행\n2026-06-07 · 미발행\n2026-06-08 · 정상\n2026-06-09 · 정상\n2026-06-10 · 정상\n2026-06-11 · 정상\n2026-06-12 · 정상\n2026-06-13 · 미발행\n2026-06-14 · 미발행\n2026-06-15 · 정상\n2026-06-16 · 정상\n2026-06-17 · 정상\n2026-06-18 · 정상\n2026-06-19 · 정상\n2026-06-20 · 미발행\n2026-06-21 · 미발행\n2026-06-22 · 정상\n2026-06-23 · 정상\n2026-06-24 · 정상\n2026-06-25 · 정상\n2026-06-26 · 정상\n2026-06-27 · 미발행\n2026-06-28 · 미발행\n2026-06-29 · 정상\n2026-06-30 · 부분\n2026-07-01 · 정상\n2026-07-02 · 정상\n2026-07-03 · 정상\n2026-07-04 · 미발행\n2026-07-05 · 미발행\n2026-07-06 · 정상\n2026-07-07 · 부분\n2026-07-08 · 미발행\n2026-07-09 · 부분\n2026-07-10 · 부분\n2026-07-11 · 미발행\n2026-07-12 · 미발행\n2026-07-13 · 정상\n2026-07-14 · 정상\n2026-07-15 · 부분\n2026-07-16 · 미발행\n2026-07-17 · 정상\n2026-07-18 · 정상\n2026-07-19 · 미발행\n2026-07-20 · 미발행\n2026-07-21 · 정상\n2026-07-22 · 정상\n2026-07-23 · 정상\n2026-07-24 · 정상\n2026-07-25 · 미발행\n2026-07-26 · 미발행\n2026-07-27 · 정상\n2026-07-28 · 정상\n2026-07-29 · 정상\n2026-07-30 · 정상\n2026-07-31 · 정상\n2026-08-01 · 미발행\n2026-08-02 · 미발행\n2026-08-03 · 정상\n2026-08-04 · 정상\n2026-08-05 · 정상\n2026-08-06 · 정상\n2026-08-07 · 정상\n2026-08-08 · 미발행\n2026-08-09 · 미발행\n2026-08-10 · 정상\n2026-08-11 · 정상\n2026-08-12 · 정상\n2026-08-13 · 부분\n2026-08-14 · 정상\n2026-08-15 · 미발행\n2026-08-16 · 미발행\n2026-08-17 · 정상\n2026-08-18 · 정상\n2026-08-19 · 정상\n2026-08-20 · 정상\n2026-08-21 · 정상\n2026-08-22 · 미발행\n2026-08-23 · 미발행\n2026-08-24 · 부분\n2026-08-25 · 정상\n2026-08-26 · 부분\n2026-08-27 · 정상\n2026-08-28 · 정상\n2026-08-29 · 미발행\n2026-08-30 · 미발행\n2026-08-31 · 정상\n2026-09-01 · 부분\n2026-09-02 · 부분\n2026-09-03 · 정상\n2026-09-04 · 정상\n2026-09-05 · 미발행\n2026-09-06 · 미발행\n2026-09-07 · 정상\n2026-09-08 · 정상\n2026-09-09 · 정상\n2026-09-10 · 정상\n2026-09-11 · 정상\n2026-09-12 · 미발행\n2026-09-13 · 미발행\n2026-09-14 · 부분\n2026-09-15 · 정상\n2026-09-16 · 정상\n2026-09-17 · 정상\n2026-09-18 · 정상\n2026-09-19 · 미발행\n2026-09-20 · 미발행\n2026-09-21 · 정상\n2026-09-22 · 정상\n2026-09-23 · 정상\n2026-09-24 · 정상\n2026-09-25 · 정상\n2026-09-26 · 미발행\n2026-09-27 · 미발행\n2026-09-28 · 부분\n2026-09-29 · 부분\n2026-09-30 · 정상\n2026-10-01 · 정상\n2026-10-02 · 정상\n2026-10-03 · 미발행\n2026-10-04 · 미발행\n2026-10-05 · 정상\n2026-10-06 · 정상\n2026-10-07 · 정상\n2026-10-08 · 부분\n\n정상\n\n부분\n\n부족\n\n미발행\n",
+        "normalFill": "rgb(46, 164, 79)",
+        "bounds": {
+          "width": 358,
+          "height": 135.78125
+        },
+        "overflow": 0
+      }
+    },
+    {
+      "root": "fixtures-states",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "light",
+      "initial": {
+        "scheme": "default",
+        "svgChildren": 20,
+        "rects": 8,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": "\n.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}\n월\n화\n수\n목\n금\n토\n일\n2026-10-05 · 정상\n2026-10-06 · 부분\n2026-10-07 · 부족\n2026-10-08 · 미발행\n\n정상\n\n부분\n\n부족\n\n미발행\n",
+        "normalFill": "rgb(46, 164, 79)",
+        "bounds": {
+          "width": 61,
+          "height": 165
+        },
+        "overflow": 0
+      },
+      "toggled": {
+        "scheme": "slate",
+        "svgChildren": 20,
+        "rects": 8,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": "\n.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}\n월\n화\n수\n목\n금\n토\n일\n2026-10-05 · 정상\n2026-10-06 · 부분\n2026-10-07 · 부족\n2026-10-08 · 미발행\n\n정상\n\n부분\n\n부족\n\n미발행\n",
+        "normalFill": "rgb(63, 185, 80)",
+        "bounds": {
+          "width": 61,
+          "height": 165
+        },
+        "overflow": 0
+      },
+      "restored": {
+        "scheme": "default",
+        "svgChildren": 20,
+        "rects": 8,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": "\n.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}\n월\n화\n수\n목\n금\n토\n일\n2026-10-05 · 정상\n2026-10-06 · 부분\n2026-10-07 · 부족\n2026-10-08 · 미발행\n\n정상\n\n부분\n\n부족\n\n미발행\n",
+        "normalFill": "rgb(46, 164, 79)",
+        "bounds": {
+          "width": 61,
+          "height": 165
+        },
+        "overflow": 0
+      }
+    },
+    {
+      "root": "fixtures-empty",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "light",
+      "initial": {
+        "scheme": "default",
+        "svgChildren": 2,
+        "rects": 0,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": ".u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}발행 이력이 아직 없습니다.",
+        "normalFill": null,
+        "bounds": {
+          "width": 200,
+          "height": 40
+        },
+        "overflow": 0
+      },
+      "toggled": {
+        "scheme": "slate",
+        "svgChildren": 2,
+        "rects": 0,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": ".u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}발행 이력이 아직 없습니다.",
+        "normalFill": null,
+        "bounds": {
+          "width": 200,
+          "height": 40
+        },
+        "overflow": 0
+      },
+      "restored": {
+        "scheme": "default",
+        "svgChildren": 2,
+        "rects": 0,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": ".u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}발행 이력이 아직 없습니다.",
+        "normalFill": null,
+        "bounds": {
+          "width": 200,
+          "height": 40
+        },
+        "overflow": 0
+      }
+    },
+    {
+      "root": "investo",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "dark",
+      "initial": {
+        "scheme": "slate",
+        "svgChildren": 172,
+        "rects": 160,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": "\n.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}\n월\n화\n수\n목\n금\n토\n일\n2026-05-06 · 정상\n2026-05-07 · 정상\n2026-05-08 · 정상\n2026-05-09 · 미발행\n2026-05-10 · 미발행\n2026-05-11 · 정상\n2026-05-12 · 미발행\n2026-05-13 · 정상\n2026-05-14 · 정상\n2026-05-15 · 정상\n2026-05-16 · 미발행\n2026-05-17 · 미발행\n2026-05-18 · 부분\n2026-05-19 · 정상\n2026-05-20 · 정상\n2026-05-21 · 부분\n2026-05-22 · 정상\n2026-05-23 · 미발행\n2026-05-24 · 미발행\n2026-05-25 · 정상\n2026-05-26 · 정상\n2026-05-27 · 미발행\n2026-05-28 · 부분\n2026-05-29 · 정상\n2026-05-30 · 미발행\n2026-05-31 · 미발행\n2026-06-01 · 정상\n2026-06-02 · 정상\n2026-06-03 · 정상\n2026-06-04 · 정상\n2026-06-05 · 미발행\n2026-06-06 · 미발행\n2026-06-07 · 미발행\n2026-06-08 · 정상\n2026-06-09 · 정상\n2026-06-10 · 정상\n2026-06-11 · 정상\n2026-06-12 · 정상\n2026-06-13 · 미발행\n2026-06-14 · 미발행\n2026-06-15 · 정상\n2026-06-16 · 정상\n2026-06-17 · 정상\n2026-06-18 · 정상\n2026-06-19 · 정상\n2026-06-20 · 미발행\n2026-06-21 · 미발행\n2026-06-22 · 정상\n2026-06-23 · 정상\n2026-06-24 · 정상\n2026-06-25 · 정상\n2026-06-26 · 정상\n2026-06-27 · 미발행\n2026-06-28 · 미발행\n2026-06-29 · 정상\n2026-06-30 · 부분\n2026-07-01 · 정상\n2026-07-02 · 정상\n2026-07-03 · 정상\n2026-07-04 · 미발행\n2026-07-05 · 미발행\n2026-07-06 · 정상\n2026-07-07 · 부분\n2026-07-08 · 미발행\n2026-07-09 · 부분\n2026-07-10 · 부분\n2026-07-11 · 미발행\n2026-07-12 · 미발행\n2026-07-13 · 정상\n2026-07-14 · 정상\n2026-07-15 · 부분\n2026-07-16 · 미발행\n2026-07-17 · 정상\n2026-07-18 · 정상\n2026-07-19 · 미발행\n2026-07-20 · 미발행\n2026-07-21 · 정상\n2026-07-22 · 정상\n2026-07-23 · 정상\n2026-07-24 · 정상\n2026-07-25 · 미발행\n2026-07-26 · 미발행\n2026-07-27 · 정상\n2026-07-28 · 정상\n2026-07-29 · 정상\n2026-07-30 · 정상\n2026-07-31 · 정상\n2026-08-01 · 미발행\n2026-08-02 · 미발행\n2026-08-03 · 정상\n2026-08-04 · 정상\n2026-08-05 · 정상\n2026-08-06 · 정상\n2026-08-07 · 정상\n2026-08-08 · 미발행\n2026-08-09 · 미발행\n2026-08-10 · 정상\n2026-08-11 · 정상\n2026-08-12 · 정상\n2026-08-13 · 부분\n2026-08-14 · 정상\n2026-08-15 · 미발행\n2026-08-16 · 미발행\n2026-08-17 · 정상\n2026-08-18 · 정상\n2026-08-19 · 정상\n2026-08-20 · 정상\n2026-08-21 · 정상\n2026-08-22 · 미발행\n2026-08-23 · 미발행\n2026-08-24 · 부분\n2026-08-25 · 정상\n2026-08-26 · 부분\n2026-08-27 · 정상\n2026-08-28 · 정상\n2026-08-29 · 미발행\n2026-08-30 · 미발행\n2026-08-31 · 정상\n2026-09-01 · 부분\n2026-09-02 · 부분\n2026-09-03 · 정상\n2026-09-04 · 정상\n2026-09-05 · 미발행\n2026-09-06 · 미발행\n2026-09-07 · 정상\n2026-09-08 · 정상\n2026-09-09 · 정상\n2026-09-10 · 정상\n2026-09-11 · 정상\n2026-09-12 · 미발행\n2026-09-13 · 미발행\n2026-09-14 · 부분\n2026-09-15 · 정상\n2026-09-16 · 정상\n2026-09-17 · 정상\n2026-09-18 · 정상\n2026-09-19 · 미발행\n2026-09-20 · 미발행\n2026-09-21 · 정상\n2026-09-22 · 정상\n2026-09-23 · 정상\n2026-09-24 · 정상\n2026-09-25 · 정상\n2026-09-26 · 미발행\n2026-09-27 · 미발행\n2026-09-28 · 부분\n2026-09-29 · 부분\n2026-09-30 · 정상\n2026-10-01 · 정상\n2026-10-02 · 정상\n2026-10-03 · 미발행\n2026-10-04 · 미발행\n2026-10-05 · 정상\n2026-10-06 · 정상\n2026-10-07 · 정상\n2026-10-08 · 부분\n\n정상\n\n부분\n\n부족\n\n미발행\n",
+        "normalFill": "rgb(63, 185, 80)",
+        "bounds": {
+          "width": 358,
+          "height": 135.78125
+        },
+        "overflow": 0
+      },
+      "toggled": {
+        "scheme": "default",
+        "svgChildren": 172,
+        "rects": 160,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": "\n.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}\n월\n화\n수\n목\n금\n토\n일\n2026-05-06 · 정상\n2026-05-07 · 정상\n2026-05-08 · 정상\n2026-05-09 · 미발행\n2026-05-10 · 미발행\n2026-05-11 · 정상\n2026-05-12 · 미발행\n2026-05-13 · 정상\n2026-05-14 · 정상\n2026-05-15 · 정상\n2026-05-16 · 미발행\n2026-05-17 · 미발행\n2026-05-18 · 부분\n2026-05-19 · 정상\n2026-05-20 · 정상\n2026-05-21 · 부분\n2026-05-22 · 정상\n2026-05-23 · 미발행\n2026-05-24 · 미발행\n2026-05-25 · 정상\n2026-05-26 · 정상\n2026-05-27 · 미발행\n2026-05-28 · 부분\n2026-05-29 · 정상\n2026-05-30 · 미발행\n2026-05-31 · 미발행\n2026-06-01 · 정상\n2026-06-02 · 정상\n2026-06-03 · 정상\n2026-06-04 · 정상\n2026-06-05 · 미발행\n2026-06-06 · 미발행\n2026-06-07 · 미발행\n2026-06-08 · 정상\n2026-06-09 · 정상\n2026-06-10 · 정상\n2026-06-11 · 정상\n2026-06-12 · 정상\n2026-06-13 · 미발행\n2026-06-14 · 미발행\n2026-06-15 · 정상\n2026-06-16 · 정상\n2026-06-17 · 정상\n2026-06-18 · 정상\n2026-06-19 · 정상\n2026-06-20 · 미발행\n2026-06-21 · 미발행\n2026-06-22 · 정상\n2026-06-23 · 정상\n2026-06-24 · 정상\n2026-06-25 · 정상\n2026-06-26 · 정상\n2026-06-27 · 미발행\n2026-06-28 · 미발행\n2026-06-29 · 정상\n2026-06-30 · 부분\n2026-07-01 · 정상\n2026-07-02 · 정상\n2026-07-03 · 정상\n2026-07-04 · 미발행\n2026-07-05 · 미발행\n2026-07-06 · 정상\n2026-07-07 · 부분\n2026-07-08 · 미발행\n2026-07-09 · 부분\n2026-07-10 · 부분\n2026-07-11 · 미발행\n2026-07-12 · 미발행\n2026-07-13 · 정상\n2026-07-14 · 정상\n2026-07-15 · 부분\n2026-07-16 · 미발행\n2026-07-17 · 정상\n2026-07-18 · 정상\n2026-07-19 · 미발행\n2026-07-20 · 미발행\n2026-07-21 · 정상\n2026-07-22 · 정상\n2026-07-23 · 정상\n2026-07-24 · 정상\n2026-07-25 · 미발행\n2026-07-26 · 미발행\n2026-07-27 · 정상\n2026-07-28 · 정상\n2026-07-29 · 정상\n2026-07-30 · 정상\n2026-07-31 · 정상\n2026-08-01 · 미발행\n2026-08-02 · 미발행\n2026-08-03 · 정상\n2026-08-04 · 정상\n2026-08-05 · 정상\n2026-08-06 · 정상\n2026-08-07 · 정상\n2026-08-08 · 미발행\n2026-08-09 · 미발행\n2026-08-10 · 정상\n2026-08-11 · 정상\n2026-08-12 · 정상\n2026-08-13 · 부분\n2026-08-14 · 정상\n2026-08-15 · 미발행\n2026-08-16 · 미발행\n2026-08-17 · 정상\n2026-08-18 · 정상\n2026-08-19 · 정상\n2026-08-20 · 정상\n2026-08-21 · 정상\n2026-08-22 · 미발행\n2026-08-23 · 미발행\n2026-08-24 · 부분\n2026-08-25 · 정상\n2026-08-26 · 부분\n2026-08-27 · 정상\n2026-08-28 · 정상\n2026-08-29 · 미발행\n2026-08-30 · 미발행\n2026-08-31 · 정상\n2026-09-01 · 부분\n2026-09-02 · 부분\n2026-09-03 · 정상\n2026-09-04 · 정상\n2026-09-05 · 미발행\n2026-09-06 · 미발행\n2026-09-07 · 정상\n2026-09-08 · 정상\n2026-09-09 · 정상\n2026-09-10 · 정상\n2026-09-11 · 정상\n2026-09-12 · 미발행\n2026-09-13 · 미발행\n2026-09-14 · 부분\n2026-09-15 · 정상\n2026-09-16 · 정상\n2026-09-17 · 정상\n2026-09-18 · 정상\n2026-09-19 · 미발행\n2026-09-20 · 미발행\n2026-09-21 · 정상\n2026-09-22 · 정상\n2026-09-23 · 정상\n2026-09-24 · 정상\n2026-09-25 · 정상\n2026-09-26 · 미발행\n2026-09-27 · 미발행\n2026-09-28 · 부분\n2026-09-29 · 부분\n2026-09-30 · 정상\n2026-10-01 · 정상\n2026-10-02 · 정상\n2026-10-03 · 미발행\n2026-10-04 · 미발행\n2026-10-05 · 정상\n2026-10-06 · 정상\n2026-10-07 · 정상\n2026-10-08 · 부분\n\n정상\n\n부분\n\n부족\n\n미발행\n",
+        "normalFill": "rgb(46, 164, 79)",
+        "bounds": {
+          "width": 358,
+          "height": 135.78125
+        },
+        "overflow": 0
+      },
+      "restored": {
+        "scheme": "slate",
+        "svgChildren": 172,
+        "rects": 160,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": "\n.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}\n월\n화\n수\n목\n금\n토\n일\n2026-05-06 · 정상\n2026-05-07 · 정상\n2026-05-08 · 정상\n2026-05-09 · 미발행\n2026-05-10 · 미발행\n2026-05-11 · 정상\n2026-05-12 · 미발행\n2026-05-13 · 정상\n2026-05-14 · 정상\n2026-05-15 · 정상\n2026-05-16 · 미발행\n2026-05-17 · 미발행\n2026-05-18 · 부분\n2026-05-19 · 정상\n2026-05-20 · 정상\n2026-05-21 · 부분\n2026-05-22 · 정상\n2026-05-23 · 미발행\n2026-05-24 · 미발행\n2026-05-25 · 정상\n2026-05-26 · 정상\n2026-05-27 · 미발행\n2026-05-28 · 부분\n2026-05-29 · 정상\n2026-05-30 · 미발행\n2026-05-31 · 미발행\n2026-06-01 · 정상\n2026-06-02 · 정상\n2026-06-03 · 정상\n2026-06-04 · 정상\n2026-06-05 · 미발행\n2026-06-06 · 미발행\n2026-06-07 · 미발행\n2026-06-08 · 정상\n2026-06-09 · 정상\n2026-06-10 · 정상\n2026-06-11 · 정상\n2026-06-12 · 정상\n2026-06-13 · 미발행\n2026-06-14 · 미발행\n2026-06-15 · 정상\n2026-06-16 · 정상\n2026-06-17 · 정상\n2026-06-18 · 정상\n2026-06-19 · 정상\n2026-06-20 · 미발행\n2026-06-21 · 미발행\n2026-06-22 · 정상\n2026-06-23 · 정상\n2026-06-24 · 정상\n2026-06-25 · 정상\n2026-06-26 · 정상\n2026-06-27 · 미발행\n2026-06-28 · 미발행\n2026-06-29 · 정상\n2026-06-30 · 부분\n2026-07-01 · 정상\n2026-07-02 · 정상\n2026-07-03 · 정상\n2026-07-04 · 미발행\n2026-07-05 · 미발행\n2026-07-06 · 정상\n2026-07-07 · 부분\n2026-07-08 · 미발행\n2026-07-09 · 부분\n2026-07-10 · 부분\n2026-07-11 · 미발행\n2026-07-12 · 미발행\n2026-07-13 · 정상\n2026-07-14 · 정상\n2026-07-15 · 부분\n2026-07-16 · 미발행\n2026-07-17 · 정상\n2026-07-18 · 정상\n2026-07-19 · 미발행\n2026-07-20 · 미발행\n2026-07-21 · 정상\n2026-07-22 · 정상\n2026-07-23 · 정상\n2026-07-24 · 정상\n2026-07-25 · 미발행\n2026-07-26 · 미발행\n2026-07-27 · 정상\n2026-07-28 · 정상\n2026-07-29 · 정상\n2026-07-30 · 정상\n2026-07-31 · 정상\n2026-08-01 · 미발행\n2026-08-02 · 미발행\n2026-08-03 · 정상\n2026-08-04 · 정상\n2026-08-05 · 정상\n2026-08-06 · 정상\n2026-08-07 · 정상\n2026-08-08 · 미발행\n2026-08-09 · 미발행\n2026-08-10 · 정상\n2026-08-11 · 정상\n2026-08-12 · 정상\n2026-08-13 · 부분\n2026-08-14 · 정상\n2026-08-15 · 미발행\n2026-08-16 · 미발행\n2026-08-17 · 정상\n2026-08-18 · 정상\n2026-08-19 · 정상\n2026-08-20 · 정상\n2026-08-21 · 정상\n2026-08-22 · 미발행\n2026-08-23 · 미발행\n2026-08-24 · 부분\n2026-08-25 · 정상\n2026-08-26 · 부분\n2026-08-27 · 정상\n2026-08-28 · 정상\n2026-08-29 · 미발행\n2026-08-30 · 미발행\n2026-08-31 · 정상\n2026-09-01 · 부분\n2026-09-02 · 부분\n2026-09-03 · 정상\n2026-09-04 · 정상\n2026-09-05 · 미발행\n2026-09-06 · 미발행\n2026-09-07 · 정상\n2026-09-08 · 정상\n2026-09-09 · 정상\n2026-09-10 · 정상\n2026-09-11 · 정상\n2026-09-12 · 미발행\n2026-09-13 · 미발행\n2026-09-14 · 부분\n2026-09-15 · 정상\n2026-09-16 · 정상\n2026-09-17 · 정상\n2026-09-18 · 정상\n2026-09-19 · 미발행\n2026-09-20 · 미발행\n2026-09-21 · 정상\n2026-09-22 · 정상\n2026-09-23 · 정상\n2026-09-24 · 정상\n2026-09-25 · 정상\n2026-09-26 · 미발행\n2026-09-27 · 미발행\n2026-09-28 · 부분\n2026-09-29 · 부분\n2026-09-30 · 정상\n2026-10-01 · 정상\n2026-10-02 · 정상\n2026-10-03 · 미발행\n2026-10-04 · 미발행\n2026-10-05 · 정상\n2026-10-06 · 정상\n2026-10-07 · 정상\n2026-10-08 · 부분\n\n정상\n\n부분\n\n부족\n\n미발행\n",
+        "normalFill": "rgb(63, 185, 80)",
+        "bounds": {
+          "width": 358,
+          "height": 135.78125
+        },
+        "overflow": 0
+      }
+    },
+    {
+      "root": "fixtures-states",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "dark",
+      "initial": {
+        "scheme": "slate",
+        "svgChildren": 20,
+        "rects": 8,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": "\n.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}\n월\n화\n수\n목\n금\n토\n일\n2026-10-05 · 정상\n2026-10-06 · 부분\n2026-10-07 · 부족\n2026-10-08 · 미발행\n\n정상\n\n부분\n\n부족\n\n미발행\n",
+        "normalFill": "rgb(63, 185, 80)",
+        "bounds": {
+          "width": 61,
+          "height": 165
+        },
+        "overflow": 0
+      },
+      "toggled": {
+        "scheme": "default",
+        "svgChildren": 20,
+        "rects": 8,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": "\n.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}\n월\n화\n수\n목\n금\n토\n일\n2026-10-05 · 정상\n2026-10-06 · 부분\n2026-10-07 · 부족\n2026-10-08 · 미발행\n\n정상\n\n부분\n\n부족\n\n미발행\n",
+        "normalFill": "rgb(46, 164, 79)",
+        "bounds": {
+          "width": 61,
+          "height": 165
+        },
+        "overflow": 0
+      },
+      "restored": {
+        "scheme": "slate",
+        "svgChildren": 20,
+        "rects": 8,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": "\n.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}\n월\n화\n수\n목\n금\n토\n일\n2026-10-05 · 정상\n2026-10-06 · 부분\n2026-10-07 · 부족\n2026-10-08 · 미발행\n\n정상\n\n부분\n\n부족\n\n미발행\n",
+        "normalFill": "rgb(63, 185, 80)",
+        "bounds": {
+          "width": 61,
+          "height": 165
+        },
+        "overflow": 0
+      }
+    },
+    {
+      "root": "fixtures-empty",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "dark",
+      "initial": {
+        "scheme": "slate",
+        "svgChildren": 2,
+        "rects": 0,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": ".u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}발행 이력이 아직 없습니다.",
+        "normalFill": null,
+        "bounds": {
+          "width": 200,
+          "height": 40
+        },
+        "overflow": 0
+      },
+      "toggled": {
+        "scheme": "default",
+        "svgChildren": 2,
+        "rects": 0,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": ".u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}발행 이력이 아직 없습니다.",
+        "normalFill": null,
+        "bounds": {
+          "width": 200,
+          "height": 40
+        },
+        "overflow": 0
+      },
+      "restored": {
+        "scheme": "slate",
+        "svgChildren": 2,
+        "rects": 0,
+        "escapedRects": 0,
+        "svgNamespace": true,
+        "text": ".u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme=\"slate\"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme=\"slate\"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme=\"slate\"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme=\"slate\"] .u29-text{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}[data-md-color-scheme=\"slate\"] .u29-legend{fill:#e6edf3;font-family:\"Noto Sans KR\",Arial,sans-serif;}발행 이력이 아직 없습니다.",
+        "normalFill": null,
+        "bounds": {
+          "width": 200,
+          "height": 40
+        },
+        "overflow": 0
+      }
+    }
+  ]
+}

@@ -37,6 +37,8 @@ on:
       - 'archive/**'
       - 'site_docs/**'
       - 'mkdocs.yml'
+      - 'scripts/mkdocs_render_hooks.py'
+      - 'scripts/check_calendar_render_contract.py'
       - 'pyproject.toml'   # docs extra version bumps
       - '.github/workflows/pages.yml'  # workflow self-update
   workflow_dispatch:
@@ -83,6 +85,10 @@ jobs:
         # config, and missing nav pages — gives us FR-006 quality
         # gating at site-build time. Output lands in ``site/``.
         run: uv run mkdocs build --strict
+
+      - name: Calendar render contract guard
+        # u174: fail before upload if raw SVG was split by Markdown processing.
+        run: uv run python scripts/check_calendar_render_contract.py
 
       - name: Configure Pages
         uses: actions/configure-pages@v6

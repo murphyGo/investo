@@ -128,9 +128,9 @@ def test_update_index_hero_inlines_segment_conclusions(tmp_path: Path) -> None:
     body = site_index.read_text(encoding="utf-8")
     assert HERO_BEGIN in body
     assert HERO_END in body
-    assert "오늘의 시황 (2026-05-07)" in body
+    assert "# 최신 발행 시황" in body and "2026-05-07" in body
     assert "코스피 단단함." in body
-    assert "S&P 강세." in body
+    assert "S&amp;P 강세." in body
     assert "BTC 횡보." in body
     assert "archive/domestic-equity/2026/05/2026-05-07.md" in body
 
@@ -154,9 +154,9 @@ def test_update_latest_index_pages_labels_missing_partial_segments(tmp_path: Pat
 
     site = site_index.read_text(encoding="utf-8")
     assert "archive/crypto/2026/05/2026-05-07.md" in site
-    assert "국내 증시: 2026-05-07 미발행" in site
+    assert 'data-segment="domestic-equity"' in site and "2026-05-07 미발행" in site
     assert "archive/domestic-equity/2026/05/2026-05-06.md" in site
-    assert "미국 증시: 2026-05-07 미발행 · 이전 발행 없음" in site
+    assert 'data-segment="us-equity"' in site and "이전 발행 없음" in site
 
     archive = archive_index.read_text(encoding="utf-8")
     assert "crypto/2026/05/2026-05-07.md" in archive
@@ -207,7 +207,7 @@ def test_update_segment_archive_index_lists_archive_files(tmp_path: Path) -> Non
     assert "# 미국 증시 시황 아카이브" in body
     # Newest first.
     assert body.index("2026-05-07") < body.index("2026-05-06")
-    assert "[전체 Archive로 돌아가기](../index.md)" in body
+    assert "[전체 아카이브로 돌아가기](../index.md)" in body
 
 
 def test_update_segment_archive_index_handles_empty_dir(tmp_path: Path) -> None:

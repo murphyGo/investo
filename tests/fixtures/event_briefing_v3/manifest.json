@@ -3,7 +3,7 @@
   "fixture_author": "AI-authored synthetic",
   "human_review": "pending",
   "input_recording": "records.json",
-  "input_recording_sha256": "47fe5d02748026384d2e9ef6f4ed2086e81f51455ad2251a6333292ed517ccd1",
+  "input_recording_sha256": "06685b0c3c01c34aff3ff57b0bac613c8216cfb7081f2cbd968a5f66090c2713",
   "scenarios": [
     {
       "scenario_id": "normal_positive"

@@ -4431,6 +4431,30 @@ def _seal_native_document(
         return tuple(sorted(codes))
 
     original_codes = hard_codes(original)
+    numeric_outcomes: tuple[NumericContainmentOutcome, ...] = ()
+    if original_codes == ("numeric.anchor_assertion",) and draft.segment == DOMESTIC_EQUITY:
+        from investo.publisher.numeric_containment import contain_event_numeric_context
+
+        contained = contain_event_numeric_context(
+            draft,
+            original,
+            scan_anchor_assertions(
+                original,
+                segment=draft.segment,
+                available_symbols=tuple(a.ticker for a in draft.market_reference.anchors),
+            ),
+        )
+        if contained is not None:
+            draft, numeric_outcomes = contained
+            draft = draft.model_copy(
+                update={
+                    "asset_impacts": match_event_assets(
+                        draft,
+                        context.event_asset_terms_by_segment.get(draft.segment, ()),
+                    )
+                }
+            )
+            original_codes = hard_codes(render_event_edition(draft, retain_invalid_digests=True))
     if original_codes:
         raise _SegmentTrustBlockedError(phase="assembled", issue_codes=original_codes)
     markdown = render_event_edition(draft)
@@ -4482,7 +4506,7 @@ def _seal_native_document(
         "staged_artifact_ids": tuple(a for v in draft.visual_inputs for a in v.artifact_ids),
         "notification_summary": EventNotificationSummaryV3(view.edition),
         "block_outcomes": (),
-        "numeric_containment_outcomes": (),
+        "numeric_containment_outcomes": numeric_outcomes,
         "surviving_event_ids": tuple(a.event_id for a in draft.articles),
         "event_identity_receipts": (),
         "watchpoint_synthesized": 0,

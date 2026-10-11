@@ -37,7 +37,9 @@ async def _build() -> tuple[str, int]:
         follow_redirects=False,
         trust_env=False,
     ) as client:
-        report = await build_public_sector(client, repository_root=_ROOT, target_date=target_date)
+        report = await build_public_sector(
+            client, repository_root=_ROOT, target_date=target_date, include_market_groups=True
+        )
     return report.model_dump_json(), report.exit_code
 
 

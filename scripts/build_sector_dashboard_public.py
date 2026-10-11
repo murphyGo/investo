@@ -19,7 +19,7 @@ from investo.sector_dashboard.public_probe import probe_public_sector, resolve_p
 from investo.sector_dashboard.yahoo_data import YAHOO_USER_AGENT
 
 
-async def _probe() -> tuple[str, int]:
+async def _probe(*, include_market_groups: bool = False) -> tuple[str, int]:
     try:
         target_date = resolve_probe_target_date(datetime.now(UTC))
     except ValueError:
@@ -31,7 +31,9 @@ async def _probe() -> tuple[str, int]:
         follow_redirects=False,
         trust_env=False,
     ) as client:
-        result = await probe_public_sector(client, target_date=target_date)
+        result = await probe_public_sector(
+            client, target_date=target_date, include_market_groups=include_market_groups
+        )
     payload = result.model_dump(mode="json")
     # Runtime metadata is closed before it reaches log/Step Summary surfaces.
     commit = os.environ.get("GITHUB_SHA", "")
@@ -45,12 +47,15 @@ async def _probe() -> tuple[str, int]:
 
 def main(argv: list[str] | None = None) -> int:
     # There is deliberately no write mode, date override, URL, ticker or key argument.
-    if (sys.argv[1:] if argv is None else argv) != ["--probe-only"]:
+    args = sys.argv[1:] if argv is None else argv
+    if args not in (["--probe-only"], ["--probe-only", "--market-groups"]):
         print('{"status":"blocked","reason_codes":["probe.arguments"]}')
         return 2
     logging.disable(logging.CRITICAL)
     try:
-        text, status = asyncio.run(_probe())
+        text, status = asyncio.run(
+            _probe(include_market_groups=True) if "--market-groups" in args else _probe()
+        )
         safe = _screen_summary(text)
         if safe is None:
             text, status = '{"status":"blocked","reason_codes":["probe.output"]}', 2

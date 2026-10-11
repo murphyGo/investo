@@ -17,7 +17,7 @@ import pytest
 import investo.sector_dashboard.public_render as public_render
 import investo.sector_dashboard.public_store as public_store
 from investo.models.market_calendar import is_trading_day
-from investo.models.sector import BENCHMARK_TICKER, SectorCoverageStatus, SectorTicker
+from investo.models.sector import BENCHMARK_TICKER, MetricValue, SectorCoverageStatus, SectorTicker
 from investo.models.sector_public import (
     PUBLIC_REQUEST_TICKERS,
     PUBLIC_SUPPORTED_SECTOR_TICKERS,
@@ -254,7 +254,7 @@ def test_zero_relative_values_do_not_generate_nan_or_infinite_bars() -> None:
         record.model_copy(
             update={
                 "metrics": record.metrics.model_copy(
-                    update={"price_excess_21d": public_render.MetricValue(value=Decimal(0))}
+                    update={"price_excess_21d": MetricValue(value=Decimal(0))}
                 )
             }
         )
@@ -276,14 +276,8 @@ def test_projection_renders_attribution_method_and_two_decimal_half_even_values(
     assert "IEX" not in markdown
     assert "거래량은 점수, 순위, 국면 및 요약에서 제외" in markdown
     assert "정보 제공용이며 투자 권유, 예측 또는 개인화된 조언이 아닙니다" in markdown
-    assert (
-        public_render._format_metric(public_render.MetricValue(value=Decimal("0.01225")), "%")
-        == "+1.22 %"
-    )
-    assert (
-        public_render._format_metric(public_render.MetricValue(value=Decimal("-0.01225")), "pp")
-        == "-1.22 pp"
-    )
+    assert public_render._format_metric(MetricValue(value=Decimal("0.01225")), "%") == "+1.22 %"
+    assert public_render._format_metric(MetricValue(value=Decimal("-0.01225")), "pp") == "-1.22 pp"
 
 
 def test_warming_projection_keeps_eleven_rows_and_hides_ranked_sections() -> None:

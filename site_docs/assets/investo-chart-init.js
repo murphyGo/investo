@@ -77,9 +77,25 @@
   }
 
   function currentColorScheme() {
-    var attr =
+    var bodyAttr = document.body
+      ? document.body.getAttribute("data-md-color-scheme") : null;
+    var attr = bodyAttr !== null ? bodyAttr :
       document.documentElement.getAttribute("data-md-color-scheme") || "default";
     return attr === "slate" ? "dark" : "light";
+  }
+
+  // u175: MkDocs adds a date directory to a Markdown page URL, while
+  // the u75 sidecar remains beside the source Markdown. Correct only
+  // that exact stem match; all other URL forms retain normal semantics.
+  function resolveSidecarUrl(src, documentUrl) {
+    var base = new URL(documentUrl);
+    var match = /^([^/?#]+)\.assets\/charts\/[^/?#]+\.json(?:[?#].*)?$/.exec(src);
+    var directory = base.pathname.replace(/index\.html$/, "");
+    if (match && directory.endsWith("/") &&
+        directory.split("/").slice(-2, -1)[0] === match[1]) {
+      base = new URL("../", base);
+    }
+    return new URL(src, base).href;
   }
 
   function chartTheme(scheme) {
@@ -225,7 +241,9 @@
     if (!src || typeof fetch !== "function") {
       return Promise.resolve([]);
     }
-    return fetch(src, { credentials: "same-origin" })
+    return Promise.resolve().then(function () {
+      return fetch(resolveSidecarUrl(src, window.location.href), { credentials: "same-origin" });
+    })
       .then(function (resp) {
         if (!resp || !resp.ok) return null;
         return resp.json();
@@ -334,19 +352,26 @@
       });
     }
 
-    // Live theme switching — observe mkdocs-material's light/dark
-    // scheme attribute on <html> and re-apply layout colors. The
-    // observer is disconnected when the div leaves the DOM (single-
-    // page nav not used here, so the page reload covers cleanup).
+    // Material owns the body palette. Observe both existing owners so
+    // legacy HTML fallback and body attribute addition/removal stay live.
+    var observedScheme = currentColorScheme();
     var observer = new MutationObserver(function () {
-      if (full !== null) {
-        applyCandlestickTheme(full.chart, full.series, currentColorScheme());
+      var scheme = currentColorScheme();
+      if (scheme !== observedScheme && full !== null) {
+        applyCandlestickTheme(full.chart, full.series, scheme);
       }
+      observedScheme = scheme;
     });
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ["data-md-color-scheme"],
     });
+    if (document.body) {
+      observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ["data-md-color-scheme"],
+      });
+    }
 
     details.addEventListener("toggle", function () {
       if (!details.open) return;

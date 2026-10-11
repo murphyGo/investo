@@ -20,8 +20,73 @@ from investo.publisher.anchor_assertion_gate import (
 )
 
 if TYPE_CHECKING:
+    from investo.models.event_document import EventEditionDraft
     from investo.publisher._public_document_policy import PublicBlockKind
     from investo.publisher.public_document import PublicDocumentLayout, PublicDocumentRegion
+
+
+def contain_event_numeric_context(
+    draft: EventEditionDraft,
+    markdown: str,
+    findings: Sequence[AnchorAssertionFinding],
+) -> tuple[EventEditionDraft, tuple[NumericContainmentOutcome, ...]] | None:
+    """Domestic-only containment of wholly owned optional meaning/reaction.
+
+    Required facts, identities, headlines, digests, story evidence and market
+    anchors stay protected. The caller must collect all original hard findings
+    before invoking this owner and must rerun terminal gates afterwards.
+    """
+    from investo._internal.event_public_text import markdown_literal
+    from investo.models.event_context import MeaningContext, ReactionContext
+
+    if draft.segment != "domestic-equity" or not findings:
+        return None
+    removed: dict[int, set[str]] = defaultdict(set)
+    outcomes: list[NumericContainmentOutcome] = []
+    for finding in findings:
+        if finding.segment != draft.segment or finding.line_kind != "prose_sentence":
+            return None
+        owners: list[tuple[int, str]] = []
+        for index, article in enumerate(draft.articles):
+            opening = f"<!-- investo:block event:{article.event_id} -->"
+            closing = f"<!-- /investo:block event:{article.event_id} -->"
+            start = markdown.find(opening)
+            end = markdown.find(closing, start)
+            if start < 0 or end < 0:
+                return None
+            fields = (
+                ("meaning", "의미: ", article.meaning.text),
+                ("reaction", "반응: ", article.reaction.text),
+            )
+            for field, prefix, text in fields:
+                if text is None:
+                    continue
+                literal = prefix + markdown_literal(text)
+                offset = markdown.find(literal, start, end)
+                if offset >= 0 and offset <= finding.start < finding.end <= offset + len(literal):
+                    owners.append((index, field))
+        if len(owners) != 1:
+            return None
+        index, field = owners[0]
+        removed[index].add(field)
+        outcomes.append(
+            _outcome(
+                draft.target_date,
+                f"event:{draft.articles[index].event_id}:{field}",
+                finding,
+                action="replaced",
+            )
+        )
+    articles = []
+    for index, article in enumerate(draft.articles):
+        updates: dict[str, object] = {}
+        if "meaning" in removed[index]:
+            updates["meaning"] = MeaningContext(mode="unavailable")
+        if "reaction" in removed[index]:
+            updates["reaction"] = ReactionContext(status="unavailable", attribution="unavailable")
+        articles.append(article.model_copy(update=updates))
+    return draft.model_copy(update={"articles": tuple(articles)}), tuple(outcomes)
+
 
 _OPTIONAL_BLOCKS = frozenset({"visual", "chart", "carryover", "cause_map"})
 _REPLACEABLE_BLOCKS = frozenset(
@@ -353,5 +418,6 @@ __all__ = [
     "NumericContainmentResult",
     "NumericRegionPlan",
     "apply_numeric_containment_plan",
+    "contain_event_numeric_context",
     "plan_numeric_containment",
 ]

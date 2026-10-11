@@ -101,6 +101,7 @@ YAHOO_ALLOWED_IMPORT_MODULES = frozenset(
         "investo._internal.redaction",
         "investo.models.sector",
         "investo.models.sector_public",
+        "investo.models.market_groups",
         "zoneinfo",
         "investo.models.market_calendar",
     }

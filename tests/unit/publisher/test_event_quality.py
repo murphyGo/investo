@@ -43,6 +43,8 @@ def _document(
 
 def _tamper(document: FinalizedPublicDocument, **changes: object) -> FinalizedPublicDocument:
     """Deliberately corrupt a seal to test the independent read-only checker."""
+    if "briefing" in changes:
+        changes["payload"] = changes.pop("briefing")
     altered = object.__new__(FinalizedPublicDocument)
     for field in fields(document):
         object.__setattr__(

@@ -23,3 +23,37 @@
     <meta name="twitter:image" content="{{ config.site_url|default('', true) }}{{ config.extra.og_image_path }}">
   {% endif %}
 {% endblock %}
+
+{% block header %}
+  {% if not page.toc %}
+    <a class="md-skip" href="#investo-content" data-testid="investo-skip">본문으로 이동</a>
+  {% endif %}
+  {{ super() }}
+  <nav class="investo-mobile-shortcuts" aria-label="빠른 이동">
+    {% for item in nav %}
+      {% if item.title in ['최신 시황', '관심 자산', '미국 섹터'] %}
+        <a href="{{ item.url | url }}"{% if item.active %} aria-current="page"{% endif %} data-testid="investo-shortcut-{{ loop.index }}">{{ item.title }}</a>
+      {% endif %}
+    {% endfor %}
+  </nav>
+  <noscript>
+    <nav class="investo-noscript-nav" aria-label="주요 메뉴">
+      {% for item in nav %}
+        {% if item.is_section %}
+          <details><summary>{{ item.title }}</summary>
+            {% for child in item.children %}<a href="{{ child.url | url }}"{% if child.active %} aria-current="page"{% endif %}>{{ child.title }}</a>{% endfor %}
+          </details>
+        {% else %}
+          <a href="{{ item.url | url }}"{% if item.active %} aria-current="page"{% endif %}>{{ item.title }}</a>
+        {% endif %}
+      {% endfor %}
+    </nav>
+  </noscript>
+{% endblock %}
+
+{% block content %}
+  {% set kind = 'home' if page.file.src_uri == 'index.md' else ('article' if page.file.src_uri.startswith('archive/') and page.file.src_uri[-13:-3].count('-') == 2 else 'reference') %}
+  <div id="investo-content" tabindex="-1" class="investo-page investo-page-{{ kind }}" data-investo-page="{{ kind }}">
+    {{ super() }}
+  </div>
+{% endblock %}

@@ -1,0 +1,130 @@
+/* u176: shared presentation; all dates/statuses come from their producers. */
+body[data-md-color-primary] {
+  --investo-bg: #f4f7f8;
+  --investo-surface: #fff;
+  --investo-ink: #153237;
+  --investo-muted: #53666b;
+  --investo-border: #c3d0d3;
+  --investo-accent: #006d68;
+  --investo-soft: #e7f3f1;
+  --investo-header: #153237;
+  --investo-radius: 16px;
+  --md-default-fg-color: var(--investo-ink);
+  --md-default-fg-color--light: var(--investo-muted);
+  --md-default-bg-color: var(--investo-surface);
+  --md-primary-fg-color: var(--investo-header);
+  --md-accent-fg-color: var(--investo-accent);
+  background: var(--investo-bg);
+}
+body[data-md-color-scheme="slate"] {
+  --investo-bg: #101b20;
+  --investo-surface: #17262c;
+  --investo-ink: #e8f2f2;
+  --investo-muted: #a9bbc0;
+  --investo-border: #526970;
+  --investo-accent: #81d9cc;
+  --investo-soft: #213c3b;
+  --investo-header: #17262c;
+}
+.md-grid { max-width: 1280px; }
+.md-main { background: var(--investo-bg); }
+.md-content { min-width: 0; }
+.md-typeset { font-size: 16px; line-height: 1.75; }
+.md-typeset h1 { color: var(--investo-ink); font-weight: 700; letter-spacing: -.03em; }
+.md-typeset a { color: var(--investo-accent); }
+.investo-page-article { max-width: 76ch; margin-inline: auto; }
+.md-content:has(.investo-page-home) { max-width: 1120px; margin-inline: auto; }
+.md-main__inner:has(.investo-page-home) .md-sidebar--secondary { display: none; }
+@media (min-width: 1220px) {
+  .md-main__inner:has(.investo-page-home) .md-sidebar--primary { display: none; }
+}
+.md-header__button { min-width: 44px; min-height: 44px; box-sizing: border-box; }
+.md-header__title { min-width: 0; position: relative; overflow: hidden; }
+.md-header__topic { max-width: 100%; }
+.md-tabs__link { min-height: 44px; margin-top: 0; display: flex; align-items: center; }
+.md-nav__link { min-height: 44px; padding-block: 8px; box-sizing: border-box; }
+.md-search__input { font-size: 16px; }
+a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visible,
+.md-header__button:focus-visible {
+  outline: 3px solid var(--investo-accent);
+  outline-offset: 3px;
+}
+.md-header .md-header__button:focus-visible { outline-color: #fff; }
+.investo-noscript-nav { display: flex; flex-wrap: wrap; gap: 12px; padding: 16px; }
+.investo-noscript-nav a, .investo-noscript-nav summary { display: block; min-height: 44px; padding: 8px; }
+.investo-mobile-shortcuts { display: none; }
+.md-nav__link--active, .md-tabs__item--active .md-tabs__link,
+.investo-mobile-shortcuts a[aria-current="page"], .investo-noscript-nav a[aria-current="page"] {
+  font-weight: 700; text-decoration: underline; text-underline-offset: 5px;
+}
+@media (max-width: 1219px) {
+  .investo-mobile-shortcuts { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 16px; background: var(--investo-surface); }
+  .investo-mobile-shortcuts a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px; font-size: 16px; }
+}
+.investo-home-quick-links { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 20px; }
+.investo-home-quick-links a, .investo-market-link {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; padding: 8px 14px; border-radius: 8px;
+  background: var(--investo-soft); font-weight: 700;
+}
+.investo-market-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.investo-market-card {
+  min-width: 0; padding: 24px; border: 1px solid var(--investo-border);
+  border-radius: var(--investo-radius); background: var(--investo-surface);
+  overflow-wrap: anywhere;
+}
+.investo-market-card h2 { margin-top: 0; font-size: 22px; font-weight: 700; }
+.investo-market-status, .investo-market-date { color: var(--investo-muted); font-size: 14px; }
+.investo-market-status { display: inline-block; padding: 3px 8px; border-radius: 6px; background: var(--investo-soft); }
+.investo-market-card p { margin-block: 12px; }
+@media (max-width: 979px) {
+  .investo-market-grid { grid-template-columns: minmax(0, 1fr); }
+  .investo-market-card { padding: 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .investo-page * { scroll-behavior: auto; }
+}
+.md-typeset .investo-data-card {
+  border: 1px solid var(--investo-border); border-radius: 12px;
+  background: var(--investo-surface); padding: 16px; margin-block: 16px;
+  font-size: 16px; overflow-wrap: anywhere; min-width: 0;
+}
+.investo-data-card h3 { margin-top: 0; font-size: 18px; }
+.investo-data-card dt { font-weight: 700; }
+.investo-data-card dd { margin-inline-start: 0; margin-block-end: 12px; }
+.investo-data-meta { color: var(--investo-muted); font-size: 14px; }
+.investo-data-table { max-width: 100%; overflow-x: auto; }
+.md-typeset .investo-data-table table { width: 100%; min-width: 680px; font-size: 16px; }
+.investo-data-table td { white-space: nowrap; }
+.investo-data-table caption { text-align: left; font-weight: 700; padding: 8px; }
+.investo-data-table[data-overflow="true"]::before {
+  content: "표를 좌우로 이동해 모든 값을 확인하세요."; display: block;
+  color: var(--investo-muted); font-size: 14px; white-space: normal;
+}
+.investo-data-card a, .investo-data-card summary, .investo-data-visual summary,
+.investo-section-nav summary { display: inline-flex; align-items: center; min-height: 44px; }
+.investo-section-nav { margin-block: 12px; }
+.investo-section-nav nav { display: flex; flex-wrap: wrap; gap: 8px; }
+.investo-section-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px; }
+.investo-watchlist-chart { max-width: 100%; margin-inline: 0; }
+.investo-watchlist-chart svg { width: 100%; max-width: 520px; height: auto; }
+
+/* u179: all static archive links stay readable without filter JavaScript. */
+.investo-archive { font-size: 16px; }
+.md-typeset .investo-archive-month-nav { font-size: 16px; margin-block: 20px; }
+.investo-archive-month-nav summary { min-height: 44px; padding: 8px 12px; cursor: pointer; }
+.investo-archive-month-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px; }
+.investo-archive-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin-block: 20px; }
+.investo-archive-controls[hidden], .investo-archive [hidden] { display: none !important; }
+.investo-archive-controls label { display: flex; flex-direction: column; flex: 1 1 180px; gap: 4px; }
+.investo-archive-controls input, .investo-archive-controls select, .investo-archive-controls button {
+  min-width: 0; max-width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--investo-border);
+  border-radius: 8px; font: inherit; color: var(--investo-ink); background: var(--investo-surface);
+}
+.investo-archive-controls button { cursor: pointer; color: var(--investo-accent); }
+.investo-archive-entry { padding: 12px 16px; margin-block: 8px; border: 1px solid var(--investo-border); border-radius: 12px; background: var(--investo-surface); overflow-wrap: anywhere; }
+.md-typeset .investo-archive-link { display: inline-flex; align-items: center; min-height: 44px; font-weight: 700; }
+.md-typeset .investo-archive-snippet, .md-typeset .investo-archive-limitation { margin-block: 8px; }
+.investo-archive-limitation, .investo-archive-result { color: var(--investo-muted); }
+.investo-archive-month h2 { scroll-margin-top: 120px; }
+select:focus-visible { outline: 3px solid var(--investo-accent); outline-offset: 3px; }

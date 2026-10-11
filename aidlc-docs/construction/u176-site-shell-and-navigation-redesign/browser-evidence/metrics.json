@@ -1,0 +1,837 @@
+{
+  "unit": "u176",
+  "method": "isolated headless Chromium, actual MkDocs built HTML",
+  "base": "http://127.0.0.1:8874/investo/",
+  "rows": [
+    {
+      "name": "home",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "light",
+      "kind": "home",
+      "overflow": 0,
+      "font": 16,
+      "inkContrast": 12.639451115685798,
+      "mutedContrast": 6.033345769569192,
+      "focusContrast": 5.758596503643152,
+      "homeWidth": 1120,
+      "primaryVisible": false,
+      "secondaryVisible": false,
+      "buttons": [
+        {
+          "id": "__palette_1",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "active": "최신 시황",
+      "actualColors": {
+        "header": "rgb(21, 50, 55)",
+        "ink": "rgb(21, 50, 55)",
+        "active": "page"
+      }
+    },
+    {
+      "name": "article",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "light",
+      "kind": "article",
+      "overflow": 0,
+      "font": 16,
+      "inkContrast": 12.639451115685798,
+      "mutedContrast": 6.033345769569192,
+      "focusContrast": 5.758596503643152,
+      "homeWidth": 796,
+      "primaryVisible": true,
+      "secondaryVisible": true,
+      "buttons": [
+        {
+          "id": "__palette_1",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "actualColors": {
+        "header": "rgb(21, 50, 55)",
+        "ink": "rgb(21, 50, 55)"
+      }
+    },
+    {
+      "name": "watchlist",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "light",
+      "kind": "reference",
+      "overflow": 0,
+      "font": 16,
+      "inkContrast": 12.639451115685798,
+      "mutedContrast": 6.033345769569192,
+      "focusContrast": 5.758596503643152,
+      "homeWidth": 796,
+      "primaryVisible": true,
+      "secondaryVisible": true,
+      "buttons": [
+        {
+          "id": "__palette_1",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "active": "관심 자산",
+      "actualColors": {
+        "header": "rgb(21, 50, 55)",
+        "ink": "rgb(21, 50, 55)",
+        "active": "page"
+      }
+    },
+    {
+      "name": "sectors",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "light",
+      "kind": "reference",
+      "overflow": 0,
+      "font": 16,
+      "inkContrast": 12.639451115685798,
+      "mutedContrast": 6.033345769569192,
+      "focusContrast": 5.758596503643152,
+      "homeWidth": 796,
+      "primaryVisible": true,
+      "secondaryVisible": true,
+      "buttons": [
+        {
+          "id": "__palette_1",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "active": "미국 섹터",
+      "actualColors": {
+        "header": "rgb(21, 50, 55)",
+        "ink": "rgb(21, 50, 55)",
+        "active": "page"
+      }
+    },
+    {
+      "name": "quality",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "light",
+      "kind": "reference",
+      "overflow": 0,
+      "font": 16,
+      "inkContrast": 12.639451115685798,
+      "mutedContrast": 6.033345769569192,
+      "focusContrast": 5.758596503643152,
+      "homeWidth": 796,
+      "primaryVisible": true,
+      "secondaryVisible": true,
+      "buttons": [
+        {
+          "id": "__palette_1",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "active": "품질 대시보드",
+      "actualColors": {
+        "header": "rgb(21, 50, 55)",
+        "ink": "rgb(21, 50, 55)",
+        "active": "page"
+      }
+    },
+    {
+      "case": "native search/drawer keyboard and focus return",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "light",
+      "result": "PASS"
+    },
+    {
+      "case": "keyboard palette round trip",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "light",
+      "result": "PASS"
+    },
+    {
+      "name": "home",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "dark",
+      "kind": "home",
+      "overflow": 0,
+      "font": 16,
+      "inkContrast": 15.34946988070081,
+      "mutedContrast": 7.819200896606948,
+      "focusContrast": 10.611734615668379,
+      "homeWidth": 1120,
+      "primaryVisible": false,
+      "secondaryVisible": false,
+      "buttons": [
+        {
+          "id": "__palette_0",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "active": "최신 시황",
+      "actualColors": {
+        "header": "rgb(23, 38, 44)",
+        "ink": "rgb(232, 242, 242)",
+        "active": "page"
+      }
+    },
+    {
+      "name": "article",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "dark",
+      "kind": "article",
+      "overflow": 0,
+      "font": 16,
+      "inkContrast": 15.34946988070081,
+      "mutedContrast": 7.819200896606948,
+      "focusContrast": 10.611734615668379,
+      "homeWidth": 796,
+      "primaryVisible": true,
+      "secondaryVisible": true,
+      "buttons": [
+        {
+          "id": "__palette_0",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "actualColors": {
+        "header": "rgb(23, 38, 44)",
+        "ink": "rgb(232, 242, 242)"
+      }
+    },
+    {
+      "name": "watchlist",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "dark",
+      "kind": "reference",
+      "overflow": 0,
+      "font": 16,
+      "inkContrast": 15.34946988070081,
+      "mutedContrast": 7.819200896606948,
+      "focusContrast": 10.611734615668379,
+      "homeWidth": 796,
+      "primaryVisible": true,
+      "secondaryVisible": true,
+      "buttons": [
+        {
+          "id": "__palette_0",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "active": "관심 자산",
+      "actualColors": {
+        "header": "rgb(23, 38, 44)",
+        "ink": "rgb(232, 242, 242)",
+        "active": "page"
+      }
+    },
+    {
+      "name": "sectors",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "dark",
+      "kind": "reference",
+      "overflow": 0,
+      "font": 16,
+      "inkContrast": 15.34946988070081,
+      "mutedContrast": 7.819200896606948,
+      "focusContrast": 10.611734615668379,
+      "homeWidth": 796,
+      "primaryVisible": true,
+      "secondaryVisible": true,
+      "buttons": [
+        {
+          "id": "__palette_0",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "active": "미국 섹터",
+      "actualColors": {
+        "header": "rgb(23, 38, 44)",
+        "ink": "rgb(232, 242, 242)",
+        "active": "page"
+      }
+    },
+    {
+      "name": "quality",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "dark",
+      "kind": "reference",
+      "overflow": 0,
+      "font": 16,
+      "inkContrast": 15.34946988070081,
+      "mutedContrast": 7.819200896606948,
+      "focusContrast": 10.611734615668379,
+      "homeWidth": 796,
+      "primaryVisible": true,
+      "secondaryVisible": true,
+      "buttons": [
+        {
+          "id": "__palette_0",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "active": "품질 대시보드",
+      "actualColors": {
+        "header": "rgb(23, 38, 44)",
+        "ink": "rgb(232, 242, 242)",
+        "active": "page"
+      }
+    },
+    {
+      "case": "native search/drawer keyboard and focus return",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "dark",
+      "result": "PASS"
+    },
+    {
+      "case": "keyboard palette round trip",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "dark",
+      "result": "PASS"
+    },
+    {
+      "name": "home",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "light",
+      "kind": "home",
+      "overflow": 0,
+      "font": 16,
+      "inkContrast": 12.639451115685798,
+      "mutedContrast": 6.033345769569192,
+      "focusContrast": 5.758596503643152,
+      "homeWidth": 390,
+      "primaryVisible": true,
+      "secondaryVisible": false,
+      "buttons": [
+        {
+          "id": "__drawer",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "id": "__palette_1",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "id": "__search",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "active": "최신 시황",
+      "actualColors": {
+        "header": "rgb(21, 50, 55)",
+        "ink": "rgb(21, 50, 55)",
+        "active": "page"
+      }
+    },
+    {
+      "name": "article",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "light",
+      "kind": "article",
+      "overflow": 0,
+      "font": 16,
+      "inkContrast": 12.639451115685798,
+      "mutedContrast": 6.033345769569192,
+      "focusContrast": 5.758596503643152,
+      "homeWidth": 390,
+      "primaryVisible": true,
+      "secondaryVisible": false,
+      "buttons": [
+        {
+          "id": "__drawer",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "id": "__palette_1",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "id": "__search",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "actualColors": {
+        "header": "rgb(21, 50, 55)",
+        "ink": "rgb(21, 50, 55)"
+      }
+    },
+    {
+      "name": "watchlist",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "light",
+      "kind": "reference",
+      "overflow": 0,
+      "font": 16,
+      "inkContrast": 12.639451115685798,
+      "mutedContrast": 6.033345769569192,
+      "focusContrast": 5.758596503643152,
+      "homeWidth": 390,
+      "primaryVisible": true,
+      "secondaryVisible": false,
+      "buttons": [
+        {
+          "id": "__drawer",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "id": "__palette_1",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "id": "__search",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "active": "관심 자산",
+      "actualColors": {
+        "header": "rgb(21, 50, 55)",
+        "ink": "rgb(21, 50, 55)",
+        "active": "page"
+      }
+    },
+    {
+      "name": "sectors",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "light",
+      "kind": "reference",
+      "overflow": 0,
+      "font": 16,
+      "inkContrast": 12.639451115685798,
+      "mutedContrast": 6.033345769569192,
+      "focusContrast": 5.758596503643152,
+      "homeWidth": 390,
+      "primaryVisible": true,
+      "secondaryVisible": false,
+      "buttons": [
+        {
+          "id": "__drawer",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "id": "__palette_1",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "id": "__search",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "active": "미국 섹터",
+      "actualColors": {
+        "header": "rgb(21, 50, 55)",
+        "ink": "rgb(21, 50, 55)",
+        "active": "page"
+      }
+    },
+    {
+      "name": "quality",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "light",
+      "kind": "reference",
+      "overflow": 0,
+      "font": 16,
+      "inkContrast": 12.639451115685798,
+      "mutedContrast": 6.033345769569192,
+      "focusContrast": 5.758596503643152,
+      "homeWidth": 390,
+      "primaryVisible": true,
+      "secondaryVisible": false,
+      "buttons": [
+        {
+          "id": "__drawer",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "id": "__palette_1",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "id": "__search",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "active": "품질 대시보드",
+      "actualColors": {
+        "header": "rgb(21, 50, 55)",
+        "ink": "rgb(21, 50, 55)",
+        "active": "page"
+      }
+    },
+    {
+      "case": "native search/drawer keyboard and focus return",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "light",
+      "result": "PASS"
+    },
+    {
+      "case": "keyboard palette round trip",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "light",
+      "result": "PASS"
+    },
+    {
+      "name": "home",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "dark",
+      "kind": "home",
+      "overflow": 0,
+      "font": 16,
+      "inkContrast": 15.34946988070081,
+      "mutedContrast": 7.819200896606948,
+      "focusContrast": 10.611734615668379,
+      "homeWidth": 390,
+      "primaryVisible": true,
+      "secondaryVisible": false,
+      "buttons": [
+        {
+          "id": "__drawer",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "id": "__palette_0",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "id": "__search",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "active": "최신 시황",
+      "actualColors": {
+        "header": "rgb(23, 38, 44)",
+        "ink": "rgb(232, 242, 242)",
+        "active": "page"
+      }
+    },
+    {
+      "name": "article",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "dark",
+      "kind": "article",
+      "overflow": 0,
+      "font": 16,
+      "inkContrast": 15.34946988070081,
+      "mutedContrast": 7.819200896606948,
+      "focusContrast": 10.611734615668379,
+      "homeWidth": 390,
+      "primaryVisible": true,
+      "secondaryVisible": false,
+      "buttons": [
+        {
+          "id": "__drawer",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "id": "__palette_0",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "id": "__search",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "actualColors": {
+        "header": "rgb(23, 38, 44)",
+        "ink": "rgb(232, 242, 242)"
+      }
+    },
+    {
+      "name": "watchlist",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "dark",
+      "kind": "reference",
+      "overflow": 0,
+      "font": 16,
+      "inkContrast": 15.34946988070081,
+      "mutedContrast": 7.819200896606948,
+      "focusContrast": 10.611734615668379,
+      "homeWidth": 390,
+      "primaryVisible": true,
+      "secondaryVisible": false,
+      "buttons": [
+        {
+          "id": "__drawer",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "id": "__palette_0",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "id": "__search",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "active": "관심 자산",
+      "actualColors": {
+        "header": "rgb(23, 38, 44)",
+        "ink": "rgb(232, 242, 242)",
+        "active": "page"
+      }
+    },
+    {
+      "name": "sectors",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "dark",
+      "kind": "reference",
+      "overflow": 0,
+      "font": 16,
+      "inkContrast": 15.34946988070081,
+      "mutedContrast": 7.819200896606948,
+      "focusContrast": 10.611734615668379,
+      "homeWidth": 390,
+      "primaryVisible": true,
+      "secondaryVisible": false,
+      "buttons": [
+        {
+          "id": "__drawer",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "id": "__palette_0",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "id": "__search",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "active": "미국 섹터",
+      "actualColors": {
+        "header": "rgb(23, 38, 44)",
+        "ink": "rgb(232, 242, 242)",
+        "active": "page"
+      }
+    },
+    {
+      "name": "quality",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "dark",
+      "kind": "reference",
+      "overflow": 0,
+      "font": 16,
+      "inkContrast": 15.34946988070081,
+      "mutedContrast": 7.819200896606948,
+      "focusContrast": 10.611734615668379,
+      "homeWidth": 390,
+      "primaryVisible": true,
+      "secondaryVisible": false,
+      "buttons": [
+        {
+          "id": "__drawer",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "id": "__palette_0",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "id": "__search",
+          "role": "button",
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "active": "품질 대시보드",
+      "actualColors": {
+        "header": "rgb(23, 38, 44)",
+        "ink": "rgb(232, 242, 242)",
+        "active": "page"
+      }
+    },
+    {
+      "case": "native search/drawer keyboard and focus return",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "dark",
+      "result": "PASS"
+    },
+    {
+      "case": "keyboard palette round trip",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "dark",
+      "result": "PASS"
+    },
+    {
+      "case": "tablet1024 search Escape visible focus",
+      "result": "PASS"
+    },
+    {
+      "case": "JS disabled native navigation",
+      "width": 390,
+      "result": "PASS"
+    },
+    {
+      "case": "200% browser CSS zoom",
+      "width": 390,
+      "overflow": 0,
+      "text": 658
+    },
+    {
+      "case": "JS disabled native navigation",
+      "width": 1440,
+      "result": "PASS"
+    },
+    {
+      "case": "200% browser CSS zoom",
+      "width": 1440,
+      "overflow": 0,
+      "text": 658
+    }
+  ]
+}

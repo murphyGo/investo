@@ -84,6 +84,8 @@ def _transport(
         assert "x-api-key" not in request.headers
         payload = json.loads(body)
         payload["chart"]["result"][0]["meta"]["symbol"] = ticker
+        if ticker in {"AAPL", "DELL", "HPQ", "HPE", "CSCO", "ANET", "NTAP", "GLW"}:
+            payload["chart"]["result"][0]["meta"]["instrumentType"] = "EQUITY"
         return httpx.Response(200, json=payload)
 
     return httpx.MockTransport(handler)
@@ -343,11 +345,13 @@ def test_escaped_configured_secret_cannot_bypass_hash_exception(
 
 
 @pytest.mark.parametrize("valid_metadata", [True, False])
+@pytest.mark.parametrize("market_groups", [False, True])
 def test_cli_executes_real_pipeline_and_emits_only_verified_summary(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
     valid_metadata: bool,
+    market_groups: bool,
 ) -> None:
     module = _cli()
     client_class = httpx.AsyncClient
@@ -373,12 +377,15 @@ def test_cli_executes_real_pipeline_and_emits_only_verified_summary(
     before = set(tmp_path.rglob("*"))
     previous = logging.root.manager.disable
     try:
-        assert module.main(["--probe-only"]) == 0
+        args = ["--probe-only", "--market-groups"] if market_groups else ["--probe-only"]
+        assert module.main(args) == 0
     finally:
         logging.disable(previous)
     captured = capsys.readouterr()
     result = json.loads(captured.out)
-    assert result["status"] == "qualified" and result["request_count"] == len(calls) == 12
+    requested = 23 if market_groups else 12
+    assert result["status"] == "qualified" and result["request_count"] == len(calls) == requested
+    assert result["available_group_count"] == (14 if market_groups else None)
     assert result["commit"] == ("a" * 40 if valid_metadata else None)
     assert result["run_id"] == ("33578785358" if valid_metadata else None)
     assert captured.out.strip() in summary.read_text()
@@ -400,7 +407,9 @@ def test_probe_workflow_is_manual_read_only_and_secret_scoped() -> None:
     secret_steps = [s for s in job["steps"] if "HF_DATA_API_KEY" in s.get("env", {})]
     assert not secret_steps
     assert any(
-        step.get("run", "").endswith("build_sector_dashboard_public.py --probe-only")
+        step.get("run", "").endswith(
+            "build_sector_dashboard_public.py --probe-only --market-groups"
+        )
         for step in job["steps"]
     )
     assert "persist-credentials: false" in text and "enable-cache: false" in text

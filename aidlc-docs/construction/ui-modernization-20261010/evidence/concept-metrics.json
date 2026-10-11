@@ -1,0 +1,56 @@
+[
+  {
+    "width": 1440,
+    "overflow": 0,
+    "cardTops": [
+      {
+        "title": "국내 증시",
+        "top": 287,
+        "bottom": 571
+      },
+      {
+        "title": "미국 증시",
+        "top": 287,
+        "bottom": 571
+      },
+      {
+        "title": "크립토",
+        "top": 287,
+        "bottom": 571
+      }
+    ],
+    "h1s": 1
+  },
+  {
+    "theme": "dark",
+    "pressed": "true",
+    "overflow": 0
+  },
+  {
+    "width": 390,
+    "overflow": 0,
+    "cardTops": [
+      {
+        "title": "국내 증시",
+        "top": 256,
+        "bottom": 402
+      },
+      {
+        "title": "미국 증시",
+        "top": 412,
+        "bottom": 581
+      },
+      {
+        "title": "크립토",
+        "top": 591,
+        "bottom": 761
+      }
+    ],
+    "h1s": 1
+  },
+  {
+    "theme": "dark",
+    "pressed": "true",
+    "overflow": 0
+  }
+]

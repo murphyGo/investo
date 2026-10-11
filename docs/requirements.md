@@ -388,6 +388,7 @@
 - 사용자 계정/PII 없음 → 별도 보안 강화 불필요 (Security extension SKIP)
 
 ### NFR-008: Public data rights and private-fixture separation
+- **u145 분야별 보기 확장 (2026-10-10)**: 사용자 승인으로 SMH·XSW·MAGS와 명시된 하드웨어 대표 8종목을 같은 Yahoo 레이더에 추가한다. 한 레이어의 14개 관찰 그룹과 기존 11개 시장 요약은 별도 순위를 계산하며, 필터는 표시만 바꾼다. 종목 중복·ETF/대표주 가격지수 차이를 표시하고, 하드웨어 한 종목 누락 시 그룹 전체를 억제한다. 기존 공개 권한 미확인 예외, raw 비공개, 단일 공급원 및 자원 상한을 유지한다. [계획](../aidlc-docs/construction/plans/u145-flat-market-groups-code-generation-plan.md).
 - **u145 operator exception (2026-10-04)**: 사용자가 Yahoo 무료 일봉의 자동 수집·공개 이용 권한 미확인 상태를 설명받은 뒤 공개용 진행을 지시했다. u145에 한해 이 불확실성을 기록하고 공개용 구현을 진행한다. 공급자 동의나 라이선스 승인으로 표시하지 않으며, 무료 운영·데이터 검증·신선도·raw 비공개·별도 배포 gate는 유지한다. 이 예외는 FR-022의 u145 공개 권한 확인 전제에만 적용하며 strict u140과 다른 공급원의 기준은 바꾸지 않는다. 근거: `aidlc-docs/construction/u145-sector-dashboard-public-hf-limited-radar/source-qualification/2026-10-04-yahoo-public-amendment.md`.
 - 공개 Pages에 데이터 또는 파생 수치를 표시하려면 provider/거래소의 public display 또는 derived redistribution 권한을 primary-source 근거로 문서화한다.
 - 개인·내부용, display-only, 재배포 금지, scraping-only source는 private fixture 검증 또는 reject로 제한한다.

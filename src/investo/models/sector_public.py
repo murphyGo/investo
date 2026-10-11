@@ -1,7 +1,7 @@
 """Typed contracts for the Yahoo daily-price public sector radar (u145).
 
 These are sibling types to the private u139 NAV contract.  Closed literals and
-cross-entity validators make the provider scope, fixed ETF identity, and
+cross-entity validators make the provider scope, fixed ETF/equity identities, and
 derived-only boundary impossible to broaden accidentally.
 """
 
@@ -21,17 +21,32 @@ from pydantic import (
     ConfigDict,
     Field,
     HttpUrl,
+    SerializerFunctionWrapHandler,
     field_serializer,
     field_validator,
+    model_serializer,
     model_validator,
 )
 
+from investo.models.market_groups import (
+    ADDITIONAL_REQUEST_TICKERS,
+    GROUP_BY_ID,
+    MARKET_GROUP_IDS,
+    AdditionalAssetTicker,
+    GroupCategory,
+    GroupKind,
+    MarketGroupId,
+    PublicAssetTicker,
+)
 from investo.models.sector import (
     BENCHMARK_TICKER,
     PRIMARY_REGIME_POLICY,
     SECTOR_TICKERS,
     SECTOR_UNIVERSE_VERSION,
+    AxisState,
+    MetricMissingReason,
     MetricValue,
+    RankHorizon,
     RegimePolicy,
     RegimeResult,
     RelativeRank,
@@ -223,7 +238,7 @@ class PublicBarSeries(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    ticker: SectorTicker
+    ticker: PublicAssetTicker
     points: tuple[PublicBarPoint, ...] = Field(min_length=2, max_length=256)
     first_date: date
     latest_date: date
@@ -236,7 +251,7 @@ class PublicBarSeries(BaseModel):
 
     @model_validator(mode="after")
     def _validate_series(self) -> Self:
-        if self.ticker not in PUBLIC_REQUEST_TICKERS:
+        if self.ticker not in (*PUBLIC_REQUEST_TICKERS, *ADDITIONAL_REQUEST_TICKERS):
             raise ValueError("public bar ticker must belong to the fixed Yahoo request set")
         dates = tuple(point.trading_date for point in self.points)
         if any(current >= following for current, following in pairwise(dates)):
@@ -251,14 +266,48 @@ class PublicSourceFailure(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    ticker: SectorTicker
+    ticker: PublicAssetTicker
     issue_code: PublicSourceIssueCode
     retryable: bool
 
     @model_validator(mode="after")
     def _validate_requested_ticker(self) -> Self:
-        if self.ticker not in PUBLIC_REQUEST_TICKERS:
+        if self.ticker not in (*PUBLIC_REQUEST_TICKERS, *ADDITIONAL_REQUEST_TICKERS):
             raise ValueError("source failures can reference only requested Yahoo tickers")
+        return self
+
+
+class AdditionalParsedSet(BaseModel):
+    """Exactly one validated outcome for each fixed additional asset."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+    assets: Mapping[AdditionalAssetTicker, PublicBarSeries] = Field(default_factory=dict)
+    failures: tuple[PublicSourceFailure, ...] = ()
+
+    @field_validator("assets")
+    @classmethod
+    def _normalize_assets(
+        cls, value: Mapping[AdditionalAssetTicker, PublicBarSeries]
+    ) -> Mapping[AdditionalAssetTicker, PublicBarSeries]:
+        if any(series.ticker is not ticker for ticker, series in value.items()):
+            raise ValueError("additional asset identities must match")
+        return MappingProxyType(
+            {ticker: value[ticker] for ticker in ADDITIONAL_REQUEST_TICKERS if ticker in value}
+        )
+
+    @field_serializer("assets")
+    def _serialize_assets(
+        self, value: Mapping[AdditionalAssetTicker, PublicBarSeries]
+    ) -> dict[AdditionalAssetTicker, PublicBarSeries]:
+        return dict(value)
+
+    @model_validator(mode="after")
+    def _validate_partition(self) -> Self:
+        failures = {failure.ticker for failure in self.failures}
+        if len(failures) != len(self.failures) or set(self.assets) & failures:
+            raise ValueError("additional outcomes must be unique and disjoint")
+        if set(self.assets) | failures != set(ADDITIONAL_REQUEST_TICKERS):
+            raise ValueError("additional outcomes must account for every fixed asset")
         return self
 
 
@@ -270,6 +319,7 @@ class PublicParsedSet(BaseModel):
     benchmark: PublicBarSeries | None = None
     sectors: Mapping[SectorTicker, PublicBarSeries] = Field(default_factory=dict)
     failures: tuple[PublicSourceFailure, ...] = ()
+    additional: AdditionalParsedSet | None = None
 
     @field_validator("sectors")
     @classmethod
@@ -294,9 +344,13 @@ class PublicParsedSet(BaseModel):
     def _normalize_failures(
         cls, value: tuple[PublicSourceFailure, ...]
     ) -> tuple[PublicSourceFailure, ...]:
+        if any(failure.ticker not in PUBLIC_REQUEST_TICKERS for failure in value):
+            raise ValueError("overview failures must use overview identities")
         if len({failure.ticker for failure in value}) != len(value):
             raise ValueError("source failures must contain unique tickers")
-        return tuple(sorted(value, key=lambda failure: _REQUEST_POSITION[failure.ticker]))
+        return tuple(
+            sorted(value, key=lambda failure: PUBLIC_REQUEST_TICKERS.index(failure.ticker))
+        )
 
     @model_validator(mode="after")
     def _validate_identity_partition(self) -> Self:
@@ -449,6 +503,14 @@ YAHOO_FINANCE_ATTRIBUTION: Final[AttributionEntry] = AttributionEntry(
     url="https://finance.yahoo.com/",
 )
 REQUIRED_PUBLIC_ATTRIBUTIONS: Final[tuple[AttributionEntry, ...]] = (YAHOO_FINANCE_ATTRIBUTION,)
+MARKET_GROUP_REQUEST_TICKERS: Final = (*PUBLIC_REQUEST_TICKERS, *ADDITIONAL_REQUEST_TICKERS)
+MARKET_GROUP_ATTRIBUTIONS: Final[tuple[AttributionEntry, ...]] = (
+    AttributionEntry(
+        attribution_id="yahoo-finance",
+        display_text="Yahoo Finance — daily ETF and equity price data",
+        url="https://finance.yahoo.com/",
+    ),
+)
 
 
 class PublicSourceProvenance(BaseModel):
@@ -461,8 +523,8 @@ class PublicSourceProvenance(BaseModel):
     market_scope: Literal[MarketScope.PROVIDER_REPORTED_US_EQUITY] = (
         MarketScope.PROVIDER_REPORTED_US_EQUITY
     )
-    requested_tickers: tuple[SectorTicker, ...] = PUBLIC_REQUEST_TICKERS
-    supported_tickers: tuple[SectorTicker, ...] = PUBLIC_REQUEST_TICKERS
+    requested_tickers: tuple[PublicAssetTicker, ...] = PUBLIC_REQUEST_TICKERS
+    supported_tickers: tuple[PublicAssetTicker, ...] = PUBLIC_REQUEST_TICKERS
     missing_tickers: tuple[SectorTicker, ...] = PUBLIC_STRUCTURALLY_MISSING_TICKERS
     adjustment: Literal[PublicAdjustmentPolicy.PROVIDER_CLOSE] = (
         PublicAdjustmentPolicy.PROVIDER_CLOSE
@@ -474,19 +536,25 @@ class PublicSourceProvenance(BaseModel):
     as_of_date: date | None = None
     license_ids: tuple[str, ...] = PUBLIC_LICENSE_IDS
     attributions: tuple[AttributionEntry, ...] = REQUIRED_PUBLIC_ATTRIBUTIONS
-    schema_version: Literal[2] = 2
+    schema_version: Literal[2, 3] = 2
 
     @model_validator(mode="after")
     def _validate_closed_provenance(self) -> Self:
-        if self.requested_tickers != PUBLIC_REQUEST_TICKERS:
+        expected = (
+            PUBLIC_REQUEST_TICKERS if self.schema_version == 2 else MARKET_GROUP_REQUEST_TICKERS
+        )
+        if self.requested_tickers != expected:
             raise ValueError("requested_tickers must equal the fixed Yahoo request set")
-        if self.supported_tickers != PUBLIC_REQUEST_TICKERS:
-            raise ValueError("supported_tickers must equal the fixed Yahoo v2 set")
+        if self.supported_tickers != expected:
+            raise ValueError("supported_tickers must equal the fixed versioned Yahoo set")
         if self.missing_tickers != PUBLIC_STRUCTURALLY_MISSING_TICKERS:
             raise ValueError("Yahoo v2 has no structurally missing ticker")
         if self.license_ids != PUBLIC_LICENSE_IDS:
             raise ValueError("Yahoo v2 must not claim a verified data license")
-        if self.attributions != REQUIRED_PUBLIC_ATTRIBUTIONS:
+        attributions = (
+            REQUIRED_PUBLIC_ATTRIBUTIONS if self.schema_version == 2 else MARKET_GROUP_ATTRIBUTIONS
+        )
+        if self.attributions != attributions:
             raise ValueError("attributions must equal the fixed Yahoo entry in display order")
         if self.as_of_date is not None and self.as_of_date > self.target_date:
             raise ValueError("source as-of date must not be after target date")
@@ -530,7 +598,9 @@ class PublicSectorSeriesBundle(BaseModel):
     ) -> tuple[PublicSourceFailure, ...]:
         if len({failure.ticker for failure in value}) != len(value):
             raise ValueError("public bundle failures must contain unique tickers")
-        return tuple(sorted(value, key=lambda failure: _REQUEST_POSITION[failure.ticker]))
+        if any(failure.ticker not in PUBLIC_REQUEST_TICKERS for failure in value):
+            raise ValueError("overview bundle failures require overview identities")
+        return tuple(sorted(value, key=lambda failure: failure.ticker.value))
 
     @model_validator(mode="after")
     def _validate_bundle(self) -> Self:
@@ -563,12 +633,11 @@ class PublicSectorSeriesBundle(BaseModel):
         return self
 
 
-class PublicSectorMetrics(BaseModel):
-    """All price metric slots for one fixed sector identity."""
+class PublicPriceMetrics(BaseModel):
+    """Source-neutral derived price metrics; no ticker or raw observations."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    ticker: SectorTicker
     price_return_1d: MetricValue
     price_return_5d: MetricValue
     price_return_21d: MetricValue
@@ -580,6 +649,12 @@ class PublicSectorMetrics(BaseModel):
     price_relative_acceleration_5d: MetricValue
     price_realized_volatility_20d: MetricValue
     price_max_drawdown_20d: MetricValue
+
+
+class PublicSectorMetrics(PublicPriceMetrics):
+    """All price metric slots for one fixed sector identity."""
+
+    ticker: SectorTicker
 
     @model_validator(mode="after")
     def _validate_ticker(self) -> Self:
@@ -636,12 +711,158 @@ class PublicSectorRecord(BaseModel):
         return self
 
 
+class PublicGroupRegime(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+    regime: SectorRegime
+    strength_state: AxisState | None = None
+    acceleration_state: AxisState | None = None
+    policy_id: Literal["sector-regime-v1"] = "sector-regime-v1"
+    missing_reason: MetricMissingReason | None = None
+
+    @model_validator(mode="after")
+    def _validate_regime(self) -> Self:
+        if self.regime is SectorRegime.INSUFFICIENT:
+            if (
+                self.missing_reason is None
+                or self.strength_state is not None
+                or self.acceleration_state is not None
+            ):
+                raise ValueError("missing group regime requires a reason and no axes")
+        else:
+            states = {
+                (AxisState.POSITIVE, AxisState.POSITIVE): SectorRegime.LEADING,
+                (AxisState.POSITIVE, AxisState.NEGATIVE): SectorRegime.WEAKENING,
+                (AxisState.NEGATIVE, AxisState.POSITIVE): SectorRegime.RECOVERING,
+                (AxisState.NEGATIVE, AxisState.NEGATIVE): SectorRegime.LAGGING,
+            }
+            if (
+                self.strength_state is None
+                or self.acceleration_state is None
+                or self.missing_reason is not None
+                or states.get((self.strength_state, self.acceleration_state)) is not self.regime
+            ):
+                raise ValueError("group regime must match its axis states")
+        return self
+
+
+class PublicGroupRank(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+    score: Decimal | None = None
+    ordinal: int | None = Field(default=None, ge=1, le=14)
+    comparable_group_count: int = Field(ge=0, le=14)
+    used_horizons: tuple[RankHorizon, ...] = ()
+    missing_reason: Literal["unavailable", "insufficient_comparables"] | None = None
+
+    @field_validator("score", mode="before")
+    @classmethod
+    def _reject_score_bool(cls, value: object) -> object:
+        return RelativeRank._reject_boolean_score(value)
+
+    @field_validator("score")
+    @classmethod
+    def _normalize_score(cls, value: Decimal | None) -> Decimal | None:
+        return RelativeRank._normalize_score(value)
+
+    @model_validator(mode="after")
+    def _validate_rank(self) -> Self:
+        if self.score is None:
+            if self.ordinal is not None or self.used_horizons or self.missing_reason is None:
+                raise ValueError("missing group rank must be suppressed")
+        elif (
+            self.ordinal is None
+            or self.ordinal > self.comparable_group_count
+            or self.comparable_group_count < 8
+            or self.used_horizons != (5, 21, 63)
+            or self.missing_reason is not None
+        ):
+            raise ValueError("group rank requires three horizons and eight comparables")
+        return self
+
+
+class PublicMarketGroupRecord(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+    group_id: MarketGroupId
+    name: str = Field(max_length=80)
+    category: GroupCategory
+    kind: GroupKind
+    members: tuple[PublicAssetTicker, ...]
+    scope: str = Field(max_length=250)
+    availability: SectorAvailability
+    metrics: PublicPriceMetrics
+    primary_regime: PublicGroupRegime
+    relative_rank: PublicGroupRank
+
+    @model_validator(mode="after")
+    def _validate_record(self) -> Self:
+        definition = GROUP_BY_ID[self.group_id]
+        if (self.name, self.category, self.kind, self.members, self.scope) != (
+            definition.name,
+            definition.category,
+            definition.kind,
+            definition.members,
+            definition.scope,
+        ):
+            raise ValueError("public group metadata must match the fixed definition")
+        values = [metric.value for _, metric in self.metrics]
+        if self.availability is SectorAvailability.AVAILABLE:
+            if (
+                any(value is None for value in values)
+                or self.primary_regime.regime is SectorRegime.INSUFFICIENT
+            ):
+                raise ValueError("available groups require every metric and regime")
+        elif (
+            any(value is not None for value in values)
+            or self.primary_regime.regime is not SectorRegime.INSUFFICIENT
+            or self.relative_rank.score is not None
+        ):
+            raise ValueError("unavailable groups must suppress metrics, regime and rank")
+        return self
+
+
+class PublicMarketGroupBundle(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+    universe_version: Literal["market-groups-v1"] = "market-groups-v1"
+    as_of_date: date
+    available_group_count: int = Field(ge=0, le=14)
+    comparable_group_count: int = Field(ge=0, le=14)
+    records: tuple[PublicMarketGroupRecord, ...]
+
+    @field_validator("records")
+    @classmethod
+    def _normalize_records(
+        cls, value: tuple[PublicMarketGroupRecord, ...]
+    ) -> tuple[PublicMarketGroupRecord, ...]:
+        if len(value) != 14 or {record.group_id for record in value} != set(MARKET_GROUP_IDS):
+            raise ValueError("flat view requires exactly fourteen fixed group identities")
+        return tuple(sorted(value, key=lambda record: MARKET_GROUP_IDS.index(record.group_id)))
+
+    @model_validator(mode="after")
+    def _validate_coverage_and_ranks(self) -> Self:
+        available = [r for r in self.records if r.availability is SectorAvailability.AVAILABLE]
+        if self.available_group_count != len(available) or self.comparable_group_count != len(
+            available
+        ):
+            raise ValueError("group coverage must match actual complete records")
+        if any(r.relative_rank.comparable_group_count != len(available) for r in self.records):
+            raise ValueError("all group rank denominators must match coverage")
+        ranked = [r for r in self.records if r.relative_rank.score is not None]
+        if len(available) >= 8:
+            expected = sorted(available, key=lambda r: -(r.relative_rank.score or Decimal(0)))
+            if len(ranked) != len(available) or [r.relative_rank.ordinal for r in expected] != list(
+                range(1, len(available) + 1)
+            ):
+                raise ValueError("group ranks must follow score and fixed tie order")
+        elif ranked:
+            raise ValueError("too few groups must suppress ranks")
+        return self
+
+
 class PublicSectorDashboardSnapshot(BaseModel):
     """Immutable, derived-only machine snapshot for the limited public radar."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    schema_version: Literal[2] = 2
+    schema_version: Literal[2, 3] = 2
     snapshot_id: str | None = Field(default=None, pattern=_SHA256_PATTERN)
     universe_version: Literal["select-sector-spdr-v1"] = SECTOR_UNIVERSE_VERSION
     input_kind: Literal["yahoo_daily_close"] = "yahoo_daily_close"
@@ -657,6 +878,14 @@ class PublicSectorDashboardSnapshot(BaseModel):
     records: tuple[PublicSectorRecord, ...]
     primary_policy: RegimePolicy = PRIMARY_REGIME_POLICY
     provenance: PublicSourceProvenance
+    market_groups: PublicMarketGroupBundle | None = None
+
+    @model_serializer(mode="wrap")
+    def _serialize_snapshot(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        data: dict[str, object] = handler(self)
+        if self.market_groups is None:
+            data.pop("market_groups", None)
+        return data
 
     @field_validator("records")
     @classmethod
@@ -669,6 +898,28 @@ class PublicSectorDashboardSnapshot(BaseModel):
 
     @model_validator(mode="after")
     def _validate_snapshot(self) -> Self:
+        if (self.schema_version == 3) != (self.market_groups is not None):
+            raise ValueError("schema3 requires groups and schema2 must omit groups")
+        if self.provenance.schema_version != self.schema_version:
+            raise ValueError("snapshot and source provenance versions must match")
+        if self.market_groups is not None:
+            if self.market_groups.as_of_date != self.as_of_date or self.coverage.status not in {
+                SectorCoverageStatus.NORMAL,
+                SectorCoverageStatus.PARTIAL,
+            }:
+                raise ValueError("groups require the same promotable market date")
+            overview = {record.ticker: record for record in self.records}
+            for group in self.market_groups.records:
+                if len(group.members) == 1 and isinstance(group.members[0], SectorTicker):
+                    original = overview[group.members[0]]
+                    if (
+                        group.availability is not original.availability
+                        or group.metrics.model_dump()
+                        != original.metrics.model_dump(exclude={"ticker"})
+                        or group.primary_regime.model_dump()
+                        != original.primary_regime.model_dump(exclude={"ticker"})
+                    ):
+                        raise ValueError("reused group metrics and regimes must match overview")
         if (
             self.freshness is not FreshnessState.FRESH
             and self.coverage.status is not SectorCoverageStatus.INSUFFICIENT

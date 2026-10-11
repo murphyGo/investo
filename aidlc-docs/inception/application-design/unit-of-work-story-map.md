@@ -452,6 +452,8 @@ Deduplicated out:
 
 ### u145 Limited Public Radar Planning Notes
 
+> 2026-10-10 user-approved extension: fourteen flat industry/theme/representative groups plus the original eleven-sector overview, with separate ranks and display-only filters. See [execution plan](../../construction/plans/u145-flat-market-groups-code-generation-plan.md). Existing US-001/003/008/010 and FR-022/NFR source, privacy and resource boundaries remain applicable; no new briefing source or numbered unit is introduced.
+
 > 2026-10-04 active-source amendment: the user selected public Yahoo implementation with an explicit exception for unverified permission. The [Yahoo contract](../../construction/u145-sector-dashboard-public-hf-limited-radar/source-qualification/2026-10-04-yahoo-public-amendment.md) supersedes the original HF-specific requirements below: no-key daily JSON, SPY plus all eleven sectors, schema 2, provider-close metrics, Yahoo attribution and tighter request/resource ceilings. HF details below are historical; u140 remains unchanged.
 
 u140 remains the record of the strict gate and stays blocked. On 2026-07-22 the product

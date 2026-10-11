@@ -98,12 +98,19 @@ def test_verifier_uses_internal_disclaimer_constant() -> None:
     from the inward owner, not from a sibling adapter and not by local
     redefinition.
     """
+    import ast
     import inspect
 
     import investo.publisher.verifier as verifier_module
 
     source = inspect.getsource(verifier_module)
-    assert "from investo._internal.disclaimer import DISCLAIMER" in source
+    imported = {
+        alias.name
+        for node in ast.walk(ast.parse(source))
+        if isinstance(node, ast.ImportFrom) and node.module == "investo._internal.disclaimer"
+        for alias in node.names
+    }
+    assert {"DISCLAIMER", "DISCLAIMER_CRYPTO"} <= imported
 
 
 # ---------------------------------------------------------------------------

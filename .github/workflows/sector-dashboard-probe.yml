@@ -33,7 +33,7 @@ jobs:
         run: uv sync --frozen --no-dev
 
       - name: Synthetic maximum-shape resource gate
-        run: uv run --frozen --no-sync python scripts/benchmark_sector_dashboard_public.py
+        run: uv run --frozen --no-sync python scripts/benchmark_sector_dashboard_public.py --market-groups
 
       - name: Qualify production adapter without publishing
-        run: uv run --frozen --no-sync python scripts/build_sector_dashboard_public.py --probe-only
+        run: uv run --frozen --no-sync python scripts/build_sector_dashboard_public.py --probe-only --market-groups

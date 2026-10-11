@@ -1,0 +1,653 @@
+{
+  "unit": "u177",
+  "method": "isolated headless Chromium, actual MkDocs built HTML",
+  "base": "http://127.0.0.1:8874/investo/",
+  "rows": [
+    {
+      "root": "investo",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "light",
+      "overflow": 0,
+      "h1": 1,
+      "cards": [
+        {
+          "segment": "domestic-equity",
+          "generated": "true",
+          "quality": "limited",
+          "text": "국내 증시¶\n\n발행 2026-10-08\n\n근거 상태: 제한\n\n코스피는 6,625.93으로 마감하며 2.6% 하락했다. 이번 문서는 수집 근거가 제한적입니다.\n\n국내 증시 2026-10-08 시황 읽기",
+          "link": "http://127.0.0.1:8874/investo/archive/domestic-equity/2026/10/2026-10-08/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "us-equity",
+          "generated": "true",
+          "quality": "partial",
+          "text": "미국 증시¶\n\n발행 2026-10-08\n\n근거 상태: 부분\n\n미국 증시는 주간 주가지수 선물의 순매도 포지션과 제공된 현물 지수 하락이 함께 관찰됩니다. 이번 문서는 수집 근거가 제한적입니다.\n\n미국 증시 2026-10-08 시황 읽기",
+          "link": "http://127.0.0.1:8874/investo/archive/us-equity/2026/10/2026-10-08/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "crypto",
+          "generated": "false",
+          "quality": "absent",
+          "text": "크립토¶\n\n2026-10-08 미발행\n\n근거 상태 해당 없음\n\n최근 발행 2026-10-07\n\n크립토 2026-10-07 이전 시황 읽기",
+          "link": "http://127.0.0.1:8874/investo/archive/crypto/2026/10/2026-10-07/",
+          "target": 44,
+          "font": 16
+        }
+      ]
+    },
+    {
+      "root": "home-all",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "light",
+      "overflow": 0,
+      "h1": 1,
+      "cards": [
+        {
+          "segment": "domestic-equity",
+          "generated": "true",
+          "quality": "normal",
+          "text": "국내 증시¶\n\n발행 2026-10-07\n\n근거 상태: 정상\n\n이미 발행된 문서 결론.\n\n국내 증시 2026-10-07 시황 읽기",
+          "link": "http://127.0.0.1:8874/home-all/archive/domestic-equity/2026/10/2026-10-07/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "us-equity",
+          "generated": "true",
+          "quality": "normal",
+          "text": "미국 증시¶\n\n발행 2026-10-07\n\n근거 상태: 정상\n\n이미 발행된 문서 결론.\n\n미국 증시 2026-10-07 시황 읽기",
+          "link": "http://127.0.0.1:8874/home-all/archive/us-equity/2026/10/2026-10-07/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "crypto",
+          "generated": "true",
+          "quality": "normal",
+          "text": "크립토¶\n\n발행 2026-10-07\n\n근거 상태: 정상\n\n이미 발행된 문서 결론.\n\n크립토 2026-10-07 시황 읽기",
+          "link": "http://127.0.0.1:8874/home-all/archive/crypto/2026/10/2026-10-07/",
+          "target": 44,
+          "font": 16
+        }
+      ]
+    },
+    {
+      "root": "home-empty",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "light",
+      "overflow": 0,
+      "h1": 1,
+      "cards": [
+        {
+          "segment": "domestic-equity",
+          "generated": "false",
+          "quality": "absent",
+          "text": "국내 증시¶\n\n2026-10-08 미발행\n\n근거 상태 해당 없음\n\n이전 발행 없음\n\n국내 증시 아카이브 보기",
+          "link": "http://127.0.0.1:8874/home-empty/archive/domestic-equity/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "us-equity",
+          "generated": "false",
+          "quality": "absent",
+          "text": "미국 증시¶\n\n2026-10-08 미발행\n\n근거 상태 해당 없음\n\n이전 발행 없음\n\n미국 증시 아카이브 보기",
+          "link": "http://127.0.0.1:8874/home-empty/archive/us-equity/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "crypto",
+          "generated": "false",
+          "quality": "absent",
+          "text": "크립토¶\n\n2026-10-08 미발행\n\n근거 상태 해당 없음\n\n이전 발행 없음\n\n크립토 아카이브 보기",
+          "link": "http://127.0.0.1:8874/home-empty/archive/crypto/",
+          "target": 44,
+          "font": 16
+        }
+      ]
+    },
+    {
+      "root": "home-long",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "light",
+      "overflow": 0,
+      "h1": 1,
+      "cards": [
+        {
+          "segment": "domestic-equity",
+          "generated": "false",
+          "quality": "absent",
+          "text": "국내 증시¶\n\n2026-10-08 미발행\n\n근거 상태 해당 없음\n\n이전 발행 없음\n\n국내 증시 아카이브 보기",
+          "link": "http://127.0.0.1:8874/home-long/archive/domestic-equity/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "us-equity",
+          "generated": "true",
+          "quality": "failed",
+          "text": "미국 증시¶\n\n발행 2026-10-08\n\n근거 상태: 실패\n\n긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다.\n\n미국 증시 2026-10-08 시황 읽기",
+          "link": "http://127.0.0.1:8874/home-long/archive/us-equity/2026/10/2026-10-08/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "crypto",
+          "generated": "false",
+          "quality": "absent",
+          "text": "크립토¶\n\n2026-10-08 미발행\n\n근거 상태 해당 없음\n\n이전 발행 없음\n\n크립토 아카이브 보기",
+          "link": "http://127.0.0.1:8874/home-long/archive/crypto/",
+          "target": 44,
+          "font": 16
+        }
+      ]
+    },
+    {
+      "root": "investo",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "dark",
+      "overflow": 0,
+      "h1": 1,
+      "cards": [
+        {
+          "segment": "domestic-equity",
+          "generated": "true",
+          "quality": "limited",
+          "text": "국내 증시¶\n\n발행 2026-10-08\n\n근거 상태: 제한\n\n코스피는 6,625.93으로 마감하며 2.6% 하락했다. 이번 문서는 수집 근거가 제한적입니다.\n\n국내 증시 2026-10-08 시황 읽기",
+          "link": "http://127.0.0.1:8874/investo/archive/domestic-equity/2026/10/2026-10-08/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "us-equity",
+          "generated": "true",
+          "quality": "partial",
+          "text": "미국 증시¶\n\n발행 2026-10-08\n\n근거 상태: 부분\n\n미국 증시는 주간 주가지수 선물의 순매도 포지션과 제공된 현물 지수 하락이 함께 관찰됩니다. 이번 문서는 수집 근거가 제한적입니다.\n\n미국 증시 2026-10-08 시황 읽기",
+          "link": "http://127.0.0.1:8874/investo/archive/us-equity/2026/10/2026-10-08/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "crypto",
+          "generated": "false",
+          "quality": "absent",
+          "text": "크립토¶\n\n2026-10-08 미발행\n\n근거 상태 해당 없음\n\n최근 발행 2026-10-07\n\n크립토 2026-10-07 이전 시황 읽기",
+          "link": "http://127.0.0.1:8874/investo/archive/crypto/2026/10/2026-10-07/",
+          "target": 44,
+          "font": 16
+        }
+      ]
+    },
+    {
+      "root": "home-all",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "dark",
+      "overflow": 0,
+      "h1": 1,
+      "cards": [
+        {
+          "segment": "domestic-equity",
+          "generated": "true",
+          "quality": "normal",
+          "text": "국내 증시¶\n\n발행 2026-10-07\n\n근거 상태: 정상\n\n이미 발행된 문서 결론.\n\n국내 증시 2026-10-07 시황 읽기",
+          "link": "http://127.0.0.1:8874/home-all/archive/domestic-equity/2026/10/2026-10-07/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "us-equity",
+          "generated": "true",
+          "quality": "normal",
+          "text": "미국 증시¶\n\n발행 2026-10-07\n\n근거 상태: 정상\n\n이미 발행된 문서 결론.\n\n미국 증시 2026-10-07 시황 읽기",
+          "link": "http://127.0.0.1:8874/home-all/archive/us-equity/2026/10/2026-10-07/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "crypto",
+          "generated": "true",
+          "quality": "normal",
+          "text": "크립토¶\n\n발행 2026-10-07\n\n근거 상태: 정상\n\n이미 발행된 문서 결론.\n\n크립토 2026-10-07 시황 읽기",
+          "link": "http://127.0.0.1:8874/home-all/archive/crypto/2026/10/2026-10-07/",
+          "target": 44,
+          "font": 16
+        }
+      ]
+    },
+    {
+      "root": "home-empty",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "dark",
+      "overflow": 0,
+      "h1": 1,
+      "cards": [
+        {
+          "segment": "domestic-equity",
+          "generated": "false",
+          "quality": "absent",
+          "text": "국내 증시¶\n\n2026-10-08 미발행\n\n근거 상태 해당 없음\n\n이전 발행 없음\n\n국내 증시 아카이브 보기",
+          "link": "http://127.0.0.1:8874/home-empty/archive/domestic-equity/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "us-equity",
+          "generated": "false",
+          "quality": "absent",
+          "text": "미국 증시¶\n\n2026-10-08 미발행\n\n근거 상태 해당 없음\n\n이전 발행 없음\n\n미국 증시 아카이브 보기",
+          "link": "http://127.0.0.1:8874/home-empty/archive/us-equity/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "crypto",
+          "generated": "false",
+          "quality": "absent",
+          "text": "크립토¶\n\n2026-10-08 미발행\n\n근거 상태 해당 없음\n\n이전 발행 없음\n\n크립토 아카이브 보기",
+          "link": "http://127.0.0.1:8874/home-empty/archive/crypto/",
+          "target": 44,
+          "font": 16
+        }
+      ]
+    },
+    {
+      "root": "home-long",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "dark",
+      "overflow": 0,
+      "h1": 1,
+      "cards": [
+        {
+          "segment": "domestic-equity",
+          "generated": "false",
+          "quality": "absent",
+          "text": "국내 증시¶\n\n2026-10-08 미발행\n\n근거 상태 해당 없음\n\n이전 발행 없음\n\n국내 증시 아카이브 보기",
+          "link": "http://127.0.0.1:8874/home-long/archive/domestic-equity/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "us-equity",
+          "generated": "true",
+          "quality": "failed",
+          "text": "미국 증시¶\n\n발행 2026-10-08\n\n근거 상태: 실패\n\n긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다.\n\n미국 증시 2026-10-08 시황 읽기",
+          "link": "http://127.0.0.1:8874/home-long/archive/us-equity/2026/10/2026-10-08/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "crypto",
+          "generated": "false",
+          "quality": "absent",
+          "text": "크립토¶\n\n2026-10-08 미발행\n\n근거 상태 해당 없음\n\n이전 발행 없음\n\n크립토 아카이브 보기",
+          "link": "http://127.0.0.1:8874/home-long/archive/crypto/",
+          "target": 44,
+          "font": 16
+        }
+      ]
+    },
+    {
+      "root": "investo",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "light",
+      "overflow": 0,
+      "h1": 1,
+      "cards": [
+        {
+          "segment": "domestic-equity",
+          "generated": "true",
+          "quality": "limited",
+          "text": "국내 증시¶\n\n발행 2026-10-08\n\n근거 상태: 제한\n\n코스피는 6,625.93으로 마감하며 2.6% 하락했다. 이번 문서는 수집 근거가 제한적입니다.\n\n국내 증시 2026-10-08 시황 읽기",
+          "link": "http://127.0.0.1:8874/investo/archive/domestic-equity/2026/10/2026-10-08/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "us-equity",
+          "generated": "true",
+          "quality": "partial",
+          "text": "미국 증시¶\n\n발행 2026-10-08\n\n근거 상태: 부분\n\n미국 증시는 주간 주가지수 선물의 순매도 포지션과 제공된 현물 지수 하락이 함께 관찰됩니다. 이번 문서는 수집 근거가 제한적입니다.\n\n미국 증시 2026-10-08 시황 읽기",
+          "link": "http://127.0.0.1:8874/investo/archive/us-equity/2026/10/2026-10-08/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "crypto",
+          "generated": "false",
+          "quality": "absent",
+          "text": "크립토¶\n\n2026-10-08 미발행\n\n근거 상태 해당 없음\n\n최근 발행 2026-10-07\n\n크립토 2026-10-07 이전 시황 읽기",
+          "link": "http://127.0.0.1:8874/investo/archive/crypto/2026/10/2026-10-07/",
+          "target": 44,
+          "font": 16
+        }
+      ]
+    },
+    {
+      "root": "home-all",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "light",
+      "overflow": 0,
+      "h1": 1,
+      "cards": [
+        {
+          "segment": "domestic-equity",
+          "generated": "true",
+          "quality": "normal",
+          "text": "국내 증시¶\n\n발행 2026-10-07\n\n근거 상태: 정상\n\n이미 발행된 문서 결론.\n\n국내 증시 2026-10-07 시황 읽기",
+          "link": "http://127.0.0.1:8874/home-all/archive/domestic-equity/2026/10/2026-10-07/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "us-equity",
+          "generated": "true",
+          "quality": "normal",
+          "text": "미국 증시¶\n\n발행 2026-10-07\n\n근거 상태: 정상\n\n이미 발행된 문서 결론.\n\n미국 증시 2026-10-07 시황 읽기",
+          "link": "http://127.0.0.1:8874/home-all/archive/us-equity/2026/10/2026-10-07/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "crypto",
+          "generated": "true",
+          "quality": "normal",
+          "text": "크립토¶\n\n발행 2026-10-07\n\n근거 상태: 정상\n\n이미 발행된 문서 결론.\n\n크립토 2026-10-07 시황 읽기",
+          "link": "http://127.0.0.1:8874/home-all/archive/crypto/2026/10/2026-10-07/",
+          "target": 44,
+          "font": 16
+        }
+      ]
+    },
+    {
+      "root": "home-empty",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "light",
+      "overflow": 0,
+      "h1": 1,
+      "cards": [
+        {
+          "segment": "domestic-equity",
+          "generated": "false",
+          "quality": "absent",
+          "text": "국내 증시¶\n\n2026-10-08 미발행\n\n근거 상태 해당 없음\n\n이전 발행 없음\n\n국내 증시 아카이브 보기",
+          "link": "http://127.0.0.1:8874/home-empty/archive/domestic-equity/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "us-equity",
+          "generated": "false",
+          "quality": "absent",
+          "text": "미국 증시¶\n\n2026-10-08 미발행\n\n근거 상태 해당 없음\n\n이전 발행 없음\n\n미국 증시 아카이브 보기",
+          "link": "http://127.0.0.1:8874/home-empty/archive/us-equity/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "crypto",
+          "generated": "false",
+          "quality": "absent",
+          "text": "크립토¶\n\n2026-10-08 미발행\n\n근거 상태 해당 없음\n\n이전 발행 없음\n\n크립토 아카이브 보기",
+          "link": "http://127.0.0.1:8874/home-empty/archive/crypto/",
+          "target": 44,
+          "font": 16
+        }
+      ]
+    },
+    {
+      "root": "home-long",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "light",
+      "overflow": 0,
+      "h1": 1,
+      "cards": [
+        {
+          "segment": "domestic-equity",
+          "generated": "false",
+          "quality": "absent",
+          "text": "국내 증시¶\n\n2026-10-08 미발행\n\n근거 상태 해당 없음\n\n이전 발행 없음\n\n국내 증시 아카이브 보기",
+          "link": "http://127.0.0.1:8874/home-long/archive/domestic-equity/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "us-equity",
+          "generated": "true",
+          "quality": "failed",
+          "text": "미국 증시¶\n\n발행 2026-10-08\n\n근거 상태: 실패\n\n긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다.\n\n미국 증시 2026-10-08 시황 읽기",
+          "link": "http://127.0.0.1:8874/home-long/archive/us-equity/2026/10/2026-10-08/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "crypto",
+          "generated": "false",
+          "quality": "absent",
+          "text": "크립토¶\n\n2026-10-08 미발행\n\n근거 상태 해당 없음\n\n이전 발행 없음\n\n크립토 아카이브 보기",
+          "link": "http://127.0.0.1:8874/home-long/archive/crypto/",
+          "target": 44,
+          "font": 16
+        }
+      ]
+    },
+    {
+      "root": "investo",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "dark",
+      "overflow": 0,
+      "h1": 1,
+      "cards": [
+        {
+          "segment": "domestic-equity",
+          "generated": "true",
+          "quality": "limited",
+          "text": "국내 증시¶\n\n발행 2026-10-08\n\n근거 상태: 제한\n\n코스피는 6,625.93으로 마감하며 2.6% 하락했다. 이번 문서는 수집 근거가 제한적입니다.\n\n국내 증시 2026-10-08 시황 읽기",
+          "link": "http://127.0.0.1:8874/investo/archive/domestic-equity/2026/10/2026-10-08/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "us-equity",
+          "generated": "true",
+          "quality": "partial",
+          "text": "미국 증시¶\n\n발행 2026-10-08\n\n근거 상태: 부분\n\n미국 증시는 주간 주가지수 선물의 순매도 포지션과 제공된 현물 지수 하락이 함께 관찰됩니다. 이번 문서는 수집 근거가 제한적입니다.\n\n미국 증시 2026-10-08 시황 읽기",
+          "link": "http://127.0.0.1:8874/investo/archive/us-equity/2026/10/2026-10-08/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "crypto",
+          "generated": "false",
+          "quality": "absent",
+          "text": "크립토¶\n\n2026-10-08 미발행\n\n근거 상태 해당 없음\n\n최근 발행 2026-10-07\n\n크립토 2026-10-07 이전 시황 읽기",
+          "link": "http://127.0.0.1:8874/investo/archive/crypto/2026/10/2026-10-07/",
+          "target": 44,
+          "font": 16
+        }
+      ]
+    },
+    {
+      "root": "home-all",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "dark",
+      "overflow": 0,
+      "h1": 1,
+      "cards": [
+        {
+          "segment": "domestic-equity",
+          "generated": "true",
+          "quality": "normal",
+          "text": "국내 증시¶\n\n발행 2026-10-07\n\n근거 상태: 정상\n\n이미 발행된 문서 결론.\n\n국내 증시 2026-10-07 시황 읽기",
+          "link": "http://127.0.0.1:8874/home-all/archive/domestic-equity/2026/10/2026-10-07/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "us-equity",
+          "generated": "true",
+          "quality": "normal",
+          "text": "미국 증시¶\n\n발행 2026-10-07\n\n근거 상태: 정상\n\n이미 발행된 문서 결론.\n\n미국 증시 2026-10-07 시황 읽기",
+          "link": "http://127.0.0.1:8874/home-all/archive/us-equity/2026/10/2026-10-07/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "crypto",
+          "generated": "true",
+          "quality": "normal",
+          "text": "크립토¶\n\n발행 2026-10-07\n\n근거 상태: 정상\n\n이미 발행된 문서 결론.\n\n크립토 2026-10-07 시황 읽기",
+          "link": "http://127.0.0.1:8874/home-all/archive/crypto/2026/10/2026-10-07/",
+          "target": 44,
+          "font": 16
+        }
+      ]
+    },
+    {
+      "root": "home-empty",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "dark",
+      "overflow": 0,
+      "h1": 1,
+      "cards": [
+        {
+          "segment": "domestic-equity",
+          "generated": "false",
+          "quality": "absent",
+          "text": "국내 증시¶\n\n2026-10-08 미발행\n\n근거 상태 해당 없음\n\n이전 발행 없음\n\n국내 증시 아카이브 보기",
+          "link": "http://127.0.0.1:8874/home-empty/archive/domestic-equity/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "us-equity",
+          "generated": "false",
+          "quality": "absent",
+          "text": "미국 증시¶\n\n2026-10-08 미발행\n\n근거 상태 해당 없음\n\n이전 발행 없음\n\n미국 증시 아카이브 보기",
+          "link": "http://127.0.0.1:8874/home-empty/archive/us-equity/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "crypto",
+          "generated": "false",
+          "quality": "absent",
+          "text": "크립토¶\n\n2026-10-08 미발행\n\n근거 상태 해당 없음\n\n이전 발행 없음\n\n크립토 아카이브 보기",
+          "link": "http://127.0.0.1:8874/home-empty/archive/crypto/",
+          "target": 44,
+          "font": 16
+        }
+      ]
+    },
+    {
+      "root": "home-long",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "dark",
+      "overflow": 0,
+      "h1": 1,
+      "cards": [
+        {
+          "segment": "domestic-equity",
+          "generated": "false",
+          "quality": "absent",
+          "text": "국내 증시¶\n\n2026-10-08 미발행\n\n근거 상태 해당 없음\n\n이전 발행 없음\n\n국내 증시 아카이브 보기",
+          "link": "http://127.0.0.1:8874/home-long/archive/domestic-equity/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "us-equity",
+          "generated": "true",
+          "quality": "failed",
+          "text": "미국 증시¶\n\n발행 2026-10-08\n\n근거 상태: 실패\n\n긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다. 긴 결론 <script> & 수집 근거가 제한적입니다.\n\n미국 증시 2026-10-08 시황 읽기",
+          "link": "http://127.0.0.1:8874/home-long/archive/us-equity/2026/10/2026-10-08/",
+          "target": 44,
+          "font": 16
+        },
+        {
+          "segment": "crypto",
+          "generated": "false",
+          "quality": "absent",
+          "text": "크립토¶\n\n2026-10-08 미발행\n\n근거 상태 해당 없음\n\n이전 발행 없음\n\n크립토 아카이브 보기",
+          "link": "http://127.0.0.1:8874/home-long/archive/crypto/",
+          "target": 44,
+          "font": 16
+        }
+      ]
+    },
+    {
+      "case": "no-JS primary read link",
+      "width": 390,
+      "result": "PASS"
+    },
+    {
+      "case": "200% long summary preserved",
+      "width": 390,
+      "overflow": 0,
+      "notices": 70
+    },
+    {
+      "case": "no-JS primary read link",
+      "width": 1440,
+      "result": "PASS"
+    },
+    {
+      "case": "200% long summary preserved",
+      "width": 1440,
+      "overflow": 0,
+      "notices": 70
+    }
+  ]
+}

@@ -1,0 +1,577 @@
+{
+  "unit": "u178",
+  "method": "isolated headless Chromium, actual MkDocs built HTML",
+  "base": "http://127.0.0.1:8876/investo/",
+  "rows": [
+    {
+      "segment": "domestic-equity",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "light",
+      "overflow": 0,
+      "font": 16,
+      "meta": 14,
+      "rows": 12,
+      "table": {
+        "width": 641,
+        "scroll": 657,
+        "hint": "true"
+      },
+      "price": "국내 증시 가격 스냅샷 — 입력 값과 출처\n종목·기준\t가격\t등락\t거래량\t고가\t저가\t출처\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price",
+      "targets": [
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44
+      ],
+      "initial": [
+        {
+          "visible": true,
+          "src": "http://127.0.0.1:8876/reader/archive/domestic-equity/2026/10/2026-10-07.assets/data-confidence.svg#gh-light-mode-only",
+          "loaded": true
+        },
+        {
+          "visible": false,
+          "src": "http://127.0.0.1:8876/reader/archive/domestic-equity/2026/10/2026-10-07.assets/data-confidence-dark.svg#gh-dark-mode-only",
+          "loaded": true
+        }
+      ]
+    },
+    {
+      "segment": "us-equity",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "light",
+      "overflow": 0,
+      "font": 16,
+      "meta": 14,
+      "rows": 12,
+      "table": {
+        "width": 641,
+        "scroll": 657,
+        "hint": "true"
+      },
+      "price": "미국 증시 가격 스냅샷 — 입력 값과 출처\n종목·기준\t가격\t등락\t거래량\t고가\t저가\t출처\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price",
+      "targets": [
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44
+      ],
+      "initial": [
+        {
+          "visible": true,
+          "src": "http://127.0.0.1:8876/reader/archive/us-equity/2026/10/2026-10-07.assets/data-confidence.svg#gh-light-mode-only",
+          "loaded": true
+        },
+        {
+          "visible": false,
+          "src": "http://127.0.0.1:8876/reader/archive/us-equity/2026/10/2026-10-07.assets/data-confidence-dark.svg#gh-dark-mode-only",
+          "loaded": true
+        }
+      ]
+    },
+    {
+      "segment": "crypto",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "light",
+      "overflow": 0,
+      "font": 16,
+      "meta": 14,
+      "rows": 12,
+      "table": {
+        "width": 641,
+        "scroll": 657,
+        "hint": "true"
+      },
+      "price": "크립토 가격 스냅샷 — 입력 값과 출처\n종목·기준\t가격\t등락\t거래량\t고가\t저가\t출처\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price",
+      "targets": [
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44
+      ],
+      "initial": [
+        {
+          "visible": true,
+          "src": "http://127.0.0.1:8876/reader/archive/crypto/2026/10/2026-10-07.assets/data-confidence.svg#gh-light-mode-only",
+          "loaded": true
+        },
+        {
+          "visible": false,
+          "src": "http://127.0.0.1:8876/reader/archive/crypto/2026/10/2026-10-07.assets/data-confidence-dark.svg#gh-dark-mode-only",
+          "loaded": true
+        }
+      ]
+    },
+    {
+      "case": "actual watchlist scoped SVG and full table",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "light",
+      "namespace": true,
+      "texts": 18,
+      "fill": "rgb(83, 102, 107)",
+      "background": "rgb(244, 247, 248)",
+      "overflow": 0,
+      "alternative": "종목 / 자산\t매칭 수\t누적 페이지\nAAPL\t94\tAAPL.md\nAMZN\t90\tAMZN.md\nBTC\t98\tBTC.md\nETH\t96\tETH.md\nGOOGL\t90\tGOOGL.md\nMETA\t88\tMETA.md\nMSFT\t89\tMSFT.md\nNVDA\t98\tNVDA.md\nSOL\t98\tSOL.md\nTSLA\t88\tTSLA.md",
+      "textContrast": 5.604227563577349
+    },
+    {
+      "segment": "domestic-equity",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "dark",
+      "overflow": 0,
+      "font": 16,
+      "meta": 14,
+      "rows": 12,
+      "table": {
+        "width": 641,
+        "scroll": 657,
+        "hint": "true"
+      },
+      "price": "국내 증시 가격 스냅샷 — 입력 값과 출처\n종목·기준\t가격\t등락\t거래량\t고가\t저가\t출처\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price",
+      "targets": [
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44
+      ],
+      "initial": [
+        {
+          "visible": false,
+          "src": "http://127.0.0.1:8876/reader/archive/domestic-equity/2026/10/2026-10-07.assets/data-confidence.svg#gh-light-mode-only",
+          "loaded": true
+        },
+        {
+          "visible": true,
+          "src": "http://127.0.0.1:8876/reader/archive/domestic-equity/2026/10/2026-10-07.assets/data-confidence-dark.svg#gh-dark-mode-only",
+          "loaded": true
+        }
+      ]
+    },
+    {
+      "segment": "us-equity",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "dark",
+      "overflow": 0,
+      "font": 16,
+      "meta": 14,
+      "rows": 12,
+      "table": {
+        "width": 641,
+        "scroll": 657,
+        "hint": "true"
+      },
+      "price": "미국 증시 가격 스냅샷 — 입력 값과 출처\n종목·기준\t가격\t등락\t거래량\t고가\t저가\t출처\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price",
+      "targets": [
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44
+      ],
+      "initial": [
+        {
+          "visible": false,
+          "src": "http://127.0.0.1:8876/reader/archive/us-equity/2026/10/2026-10-07.assets/data-confidence.svg#gh-light-mode-only",
+          "loaded": true
+        },
+        {
+          "visible": true,
+          "src": "http://127.0.0.1:8876/reader/archive/us-equity/2026/10/2026-10-07.assets/data-confidence-dark.svg#gh-dark-mode-only",
+          "loaded": true
+        }
+      ]
+    },
+    {
+      "segment": "crypto",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "dark",
+      "overflow": 0,
+      "font": 16,
+      "meta": 14,
+      "rows": 12,
+      "table": {
+        "width": 641,
+        "scroll": 657,
+        "hint": "true"
+      },
+      "price": "크립토 가격 스냅샷 — 입력 값과 출처\n종목·기준\t가격\t등락\t거래량\t고가\t저가\t출처\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price",
+      "targets": [
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44
+      ],
+      "initial": [
+        {
+          "visible": false,
+          "src": "http://127.0.0.1:8876/reader/archive/crypto/2026/10/2026-10-07.assets/data-confidence.svg#gh-light-mode-only",
+          "loaded": true
+        },
+        {
+          "visible": true,
+          "src": "http://127.0.0.1:8876/reader/archive/crypto/2026/10/2026-10-07.assets/data-confidence-dark.svg#gh-dark-mode-only",
+          "loaded": true
+        }
+      ]
+    },
+    {
+      "case": "actual watchlist scoped SVG and full table",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "dark",
+      "namespace": true,
+      "texts": 18,
+      "fill": "rgb(169, 187, 192)",
+      "background": "rgb(16, 27, 32)",
+      "overflow": 0,
+      "alternative": "종목 / 자산\t매칭 수\t누적 페이지\nAAPL\t94\tAAPL.md\nAMZN\t90\tAMZN.md\nBTC\t98\tBTC.md\nETH\t96\tETH.md\nGOOGL\t90\tGOOGL.md\nMETA\t88\tMETA.md\nMSFT\t89\tMSFT.md\nNVDA\t98\tNVDA.md\nSOL\t98\tSOL.md\nTSLA\t88\tTSLA.md",
+      "textContrast": 8.799385068515068
+    },
+    {
+      "segment": "domestic-equity",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "light",
+      "overflow": 0,
+      "font": 16,
+      "meta": 14,
+      "rows": 12,
+      "table": {
+        "width": 324,
+        "scroll": 340,
+        "hint": "true"
+      },
+      "price": "국내 증시 가격 스냅샷 — 입력 값과 출처\n종목·기준\t가격\t등락\t거래량\t고가\t저가\t출처\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price",
+      "targets": [
+        72,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44
+      ],
+      "initial": [
+        {
+          "visible": true,
+          "src": "http://127.0.0.1:8876/reader/archive/domestic-equity/2026/10/2026-10-07.assets/data-confidence.svg#gh-light-mode-only",
+          "loaded": true
+        },
+        {
+          "visible": false,
+          "src": "http://127.0.0.1:8876/reader/archive/domestic-equity/2026/10/2026-10-07.assets/data-confidence-dark.svg#gh-dark-mode-only",
+          "loaded": true
+        }
+      ]
+    },
+    {
+      "segment": "us-equity",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "light",
+      "overflow": 0,
+      "font": 16,
+      "meta": 14,
+      "rows": 12,
+      "table": {
+        "width": 324,
+        "scroll": 340,
+        "hint": "true"
+      },
+      "price": "미국 증시 가격 스냅샷 — 입력 값과 출처\n종목·기준\t가격\t등락\t거래량\t고가\t저가\t출처\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price",
+      "targets": [
+        72,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44
+      ],
+      "initial": [
+        {
+          "visible": true,
+          "src": "http://127.0.0.1:8876/reader/archive/us-equity/2026/10/2026-10-07.assets/data-confidence.svg#gh-light-mode-only",
+          "loaded": true
+        },
+        {
+          "visible": false,
+          "src": "http://127.0.0.1:8876/reader/archive/us-equity/2026/10/2026-10-07.assets/data-confidence-dark.svg#gh-dark-mode-only",
+          "loaded": true
+        }
+      ]
+    },
+    {
+      "segment": "crypto",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "light",
+      "overflow": 0,
+      "font": 16,
+      "meta": 14,
+      "rows": 12,
+      "table": {
+        "width": 324,
+        "scroll": 340,
+        "hint": "true"
+      },
+      "price": "크립토 가격 스냅샷 — 입력 값과 출처\n종목·기준\t가격\t등락\t거래량\t고가\t저가\t출처\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price",
+      "targets": [
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44
+      ],
+      "initial": [
+        {
+          "visible": true,
+          "src": "http://127.0.0.1:8876/reader/archive/crypto/2026/10/2026-10-07.assets/data-confidence.svg#gh-light-mode-only",
+          "loaded": true
+        },
+        {
+          "visible": false,
+          "src": "http://127.0.0.1:8876/reader/archive/crypto/2026/10/2026-10-07.assets/data-confidence-dark.svg#gh-dark-mode-only",
+          "loaded": true
+        }
+      ]
+    },
+    {
+      "case": "actual watchlist scoped SVG and full table",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "light",
+      "namespace": true,
+      "texts": 18,
+      "fill": "rgb(83, 102, 107)",
+      "background": "rgb(244, 247, 248)",
+      "overflow": 0,
+      "alternative": "종목 / 자산\t매칭 수\t누적 페이지\nAAPL\t94\tAAPL.md\nAMZN\t90\tAMZN.md\nBTC\t98\tBTC.md\nETH\t96\tETH.md\nGOOGL\t90\tGOOGL.md\nMETA\t88\tMETA.md\nMSFT\t89\tMSFT.md\nNVDA\t98\tNVDA.md\nSOL\t98\tSOL.md\nTSLA\t88\tTSLA.md",
+      "textContrast": 5.604227563577349
+    },
+    {
+      "segment": "domestic-equity",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "dark",
+      "overflow": 0,
+      "font": 16,
+      "meta": 14,
+      "rows": 12,
+      "table": {
+        "width": 324,
+        "scroll": 340,
+        "hint": "true"
+      },
+      "price": "국내 증시 가격 스냅샷 — 입력 값과 출처\n종목·기준\t가격\t등락\t거래량\t고가\t저가\t출처\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^KOSPI · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price",
+      "targets": [
+        72,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44
+      ],
+      "initial": [
+        {
+          "visible": false,
+          "src": "http://127.0.0.1:8876/reader/archive/domestic-equity/2026/10/2026-10-07.assets/data-confidence.svg#gh-light-mode-only",
+          "loaded": true
+        },
+        {
+          "visible": true,
+          "src": "http://127.0.0.1:8876/reader/archive/domestic-equity/2026/10/2026-10-07.assets/data-confidence-dark.svg#gh-dark-mode-only",
+          "loaded": true
+        }
+      ]
+    },
+    {
+      "segment": "us-equity",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "dark",
+      "overflow": 0,
+      "font": 16,
+      "meta": 14,
+      "rows": 12,
+      "table": {
+        "width": 324,
+        "scroll": 340,
+        "hint": "true"
+      },
+      "price": "미국 증시 가격 스냅샷 — 입력 값과 출처\n종목·기준\t가격\t등락\t거래량\t고가\t저가\t출처\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price\n^GSPC · 조회시점(UTC)\t100.00\t+1.01%\t미확인\t미확인\t미확인\tyfinance-price",
+      "targets": [
+        72,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44
+      ],
+      "initial": [
+        {
+          "visible": false,
+          "src": "http://127.0.0.1:8876/reader/archive/us-equity/2026/10/2026-10-07.assets/data-confidence.svg#gh-light-mode-only",
+          "loaded": true
+        },
+        {
+          "visible": true,
+          "src": "http://127.0.0.1:8876/reader/archive/us-equity/2026/10/2026-10-07.assets/data-confidence-dark.svg#gh-dark-mode-only",
+          "loaded": true
+        }
+      ]
+    },
+    {
+      "segment": "crypto",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "dark",
+      "overflow": 0,
+      "font": 16,
+      "meta": 14,
+      "rows": 12,
+      "table": {
+        "width": 324,
+        "scroll": 340,
+        "hint": "true"
+      },
+      "price": "크립토 가격 스냅샷 — 입력 값과 출처\n종목·기준\t가격\t등락\t거래량\t고가\t저가\t출처\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price\nBTC · 조회시점(UTC)\t$100.00\t+1.01%\t미확인\t미확인\t미확인\tcoingecko-price",
+      "targets": [
+        44,
+        44,
+        44,
+        44,
+        44,
+        44,
+        44
+      ],
+      "initial": [
+        {
+          "visible": false,
+          "src": "http://127.0.0.1:8876/reader/archive/crypto/2026/10/2026-10-07.assets/data-confidence.svg#gh-light-mode-only",
+          "loaded": true
+        },
+        {
+          "visible": true,
+          "src": "http://127.0.0.1:8876/reader/archive/crypto/2026/10/2026-10-07.assets/data-confidence-dark.svg#gh-dark-mode-only",
+          "loaded": true
+        }
+      ]
+    },
+    {
+      "case": "actual watchlist scoped SVG and full table",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "dark",
+      "namespace": true,
+      "texts": 18,
+      "fill": "rgb(169, 187, 192)",
+      "background": "rgb(16, 27, 32)",
+      "overflow": 0,
+      "alternative": "종목 / 자산\t매칭 수\t누적 페이지\nAAPL\t94\tAAPL.md\nAMZN\t90\tAMZN.md\nBTC\t98\tBTC.md\nETH\t96\tETH.md\nGOOGL\t90\tGOOGL.md\nMETA\t88\tMETA.md\nMSFT\t89\tMSFT.md\nNVDA\t98\tNVDA.md\nSOL\t98\tSOL.md\nTSLA\t88\tTSLA.md",
+      "textContrast": 8.799385068515068
+    },
+    {
+      "case": "no-JS native details and 200% maximum rows",
+      "width": 390,
+      "segment": "domestic-equity",
+      "overflow": 0,
+      "rows": 12
+    },
+    {
+      "case": "no-JS native details and 200% maximum rows",
+      "width": 390,
+      "segment": "us-equity",
+      "overflow": 0,
+      "rows": 12
+    },
+    {
+      "case": "no-JS native details and 200% maximum rows",
+      "width": 390,
+      "segment": "crypto",
+      "overflow": 0,
+      "rows": 12
+    },
+    {
+      "case": "no-JS native details and 200% maximum rows",
+      "width": 1440,
+      "segment": "domestic-equity",
+      "overflow": 0,
+      "rows": 12
+    },
+    {
+      "case": "no-JS native details and 200% maximum rows",
+      "width": 1440,
+      "segment": "us-equity",
+      "overflow": 0,
+      "rows": 12
+    },
+    {
+      "case": "no-JS native details and 200% maximum rows",
+      "width": 1440,
+      "segment": "crypto",
+      "overflow": 0,
+      "rows": 12
+    }
+  ]
+}

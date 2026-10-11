@@ -2507,13 +2507,17 @@
     "canonical_baseline": [],
     "story_baseline": [],
     "expectation": {
-      "outcome": "trust_blocked",
+      "outcome": "normal",
       "calls": 2,
-      "event_ids": [],
-      "fact_ids": [],
+      "event_ids": [
+        "515a895d17d0358a8d90bb06"
+      ],
+      "fact_ids": [
+        "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+      ],
       "digest_count": 0,
       "reference_count": 0,
-      "story_state": null
+      "story_state": "announced"
     }
   },
   {

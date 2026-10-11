@@ -1,0 +1,627 @@
+{
+  "base": "http://127.0.0.1:8878/",
+  "method": "actual merged/live MkDocs Chromium",
+  "cases": 30,
+  "rows": [
+    {
+      "name": "home",
+      "width": 1440,
+      "colorScheme": "light",
+      "overflow": 0,
+      "scheme": "default",
+      "font": 16,
+      "h1": 1,
+      "styles": [
+        "http://127.0.0.1:8878/assets/stylesheets/main.484c7ddc.min.css",
+        "http://127.0.0.1:8878/assets/stylesheets/palette.ab4e12ef.min.css",
+        "https://fonts.googleapis.com/css?family=Noto+Sans+KR:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback",
+        "http://127.0.0.1:8878/assets/u29.css",
+        "http://127.0.0.1:8878/assets/investo-ui.css",
+        "http://127.0.0.1:8878/assets/sector-radar.css"
+      ],
+      "header": "rgb(21, 50, 55)",
+      "links": [
+        {
+          "href": "http://127.0.0.1:8878/archive/domestic-equity/2026/10/2026-10-08/",
+          "height": 44,
+          "generated": "false"
+        },
+        {
+          "href": "http://127.0.0.1:8878/archive/us-equity/2026/10/2026-10-08/",
+          "height": 44,
+          "generated": "false"
+        },
+        {
+          "href": "http://127.0.0.1:8878/archive/crypto/2026/10/2026-10-09/",
+          "height": 44,
+          "generated": "true"
+        }
+      ],
+      "result": "PASS"
+    },
+    {
+      "name": "calendar",
+      "width": 1440,
+      "colorScheme": "light",
+      "overflow": 0,
+      "scheme": "default",
+      "font": 16,
+      "h1": 1,
+      "styles": [
+        "http://127.0.0.1:8878/assets/stylesheets/main.484c7ddc.min.css",
+        "http://127.0.0.1:8878/assets/stylesheets/palette.ab4e12ef.min.css",
+        "https://fonts.googleapis.com/css?family=Noto+Sans+KR:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback",
+        "http://127.0.0.1:8878/assets/u29.css",
+        "http://127.0.0.1:8878/assets/investo-ui.css",
+        "http://127.0.0.1:8878/assets/sector-radar.css"
+      ],
+      "header": "rgb(21, 50, 55)",
+      "svg": {
+        "children": 173,
+        "rects": 161,
+        "namespace": true
+      },
+      "result": "PASS"
+    },
+    {
+      "name": "sectors",
+      "width": 1440,
+      "colorScheme": "light",
+      "overflow": 0,
+      "scheme": "default",
+      "font": 16,
+      "h1": 1,
+      "styles": [
+        "http://127.0.0.1:8878/assets/stylesheets/main.484c7ddc.min.css",
+        "http://127.0.0.1:8878/assets/stylesheets/palette.ab4e12ef.min.css",
+        "https://fonts.googleapis.com/css?family=Noto+Sans+KR:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback",
+        "http://127.0.0.1:8878/assets/u29.css",
+        "http://127.0.0.1:8878/assets/investo-ui.css",
+        "http://127.0.0.1:8878/assets/sector-radar.css"
+      ],
+      "header": "rgb(21, 50, 55)",
+      "snapshot": {
+        "id": "sha256:8a1e76ae65b4c8514a7c541ac31acdba69bb55556fd6a9dad0fe2b7b0fe3604a",
+        "date": "2026-10-09",
+        "records": 11
+      },
+      "result": "PASS"
+    },
+    {
+      "name": "watchlist",
+      "width": 1440,
+      "colorScheme": "light",
+      "overflow": 0,
+      "scheme": "default",
+      "font": 16,
+      "h1": 1,
+      "styles": [
+        "http://127.0.0.1:8878/assets/stylesheets/main.484c7ddc.min.css",
+        "http://127.0.0.1:8878/assets/stylesheets/palette.ab4e12ef.min.css",
+        "https://fonts.googleapis.com/css?family=Noto+Sans+KR:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback",
+        "http://127.0.0.1:8878/assets/u29.css",
+        "http://127.0.0.1:8878/assets/investo-ui.css",
+        "http://127.0.0.1:8878/assets/sector-radar.css"
+      ],
+      "header": "rgb(21, 50, 55)",
+      "result": "PASS"
+    },
+    {
+      "name": "market-archive",
+      "width": 1440,
+      "colorScheme": "light",
+      "overflow": 0,
+      "scheme": "default",
+      "font": 16,
+      "h1": 1,
+      "styles": [
+        "http://127.0.0.1:8878/assets/stylesheets/main.484c7ddc.min.css",
+        "http://127.0.0.1:8878/assets/stylesheets/palette.ab4e12ef.min.css",
+        "https://fonts.googleapis.com/css?family=Noto+Sans+KR:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback",
+        "http://127.0.0.1:8878/assets/u29.css",
+        "http://127.0.0.1:8878/assets/investo-ui.css",
+        "http://127.0.0.1:8878/assets/sector-radar.css"
+      ],
+      "header": "rgb(21, 50, 55)",
+      "entries": 98,
+      "result": "PASS"
+    },
+    {
+      "name": "article",
+      "width": 1440,
+      "colorScheme": "light",
+      "overflow": 0,
+      "scheme": "default",
+      "font": 16,
+      "h1": 2,
+      "styles": [
+        "http://127.0.0.1:8878/assets/stylesheets/main.484c7ddc.min.css",
+        "http://127.0.0.1:8878/assets/stylesheets/palette.ab4e12ef.min.css",
+        "https://fonts.googleapis.com/css?family=Noto+Sans+KR:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback",
+        "http://127.0.0.1:8878/assets/u29.css",
+        "http://127.0.0.1:8878/assets/investo-ui.css",
+        "http://127.0.0.1:8878/assets/sector-radar.css"
+      ],
+      "header": "rgb(21, 50, 55)",
+      "chart": {
+        "url": "http://127.0.0.1:8878/archive/us-equity/2026/10/2026-10-08.assets/charts/us-equity-gspc.json",
+        "status": 200
+      },
+      "result": "PASS"
+    },
+    {
+      "name": "home",
+      "width": 1440,
+      "colorScheme": "dark",
+      "overflow": 0,
+      "scheme": "slate",
+      "font": 16,
+      "h1": 1,
+      "styles": [
+        "http://127.0.0.1:8878/assets/stylesheets/main.484c7ddc.min.css",
+        "http://127.0.0.1:8878/assets/stylesheets/palette.ab4e12ef.min.css",
+        "https://fonts.googleapis.com/css?family=Noto+Sans+KR:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback",
+        "http://127.0.0.1:8878/assets/u29.css",
+        "http://127.0.0.1:8878/assets/investo-ui.css",
+        "http://127.0.0.1:8878/assets/sector-radar.css"
+      ],
+      "header": "rgb(23, 38, 44)",
+      "links": [
+        {
+          "href": "http://127.0.0.1:8878/archive/domestic-equity/2026/10/2026-10-08/",
+          "height": 44,
+          "generated": "false"
+        },
+        {
+          "href": "http://127.0.0.1:8878/archive/us-equity/2026/10/2026-10-08/",
+          "height": 44,
+          "generated": "false"
+        },
+        {
+          "href": "http://127.0.0.1:8878/archive/crypto/2026/10/2026-10-09/",
+          "height": 44,
+          "generated": "true"
+        }
+      ],
+      "result": "PASS"
+    },
+    {
+      "name": "calendar",
+      "width": 1440,
+      "colorScheme": "dark",
+      "overflow": 0,
+      "scheme": "slate",
+      "font": 16,
+      "h1": 1,
+      "styles": [
+        "http://127.0.0.1:8878/assets/stylesheets/main.484c7ddc.min.css",
+        "http://127.0.0.1:8878/assets/stylesheets/palette.ab4e12ef.min.css",
+        "https://fonts.googleapis.com/css?family=Noto+Sans+KR:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback",
+        "http://127.0.0.1:8878/assets/u29.css",
+        "http://127.0.0.1:8878/assets/investo-ui.css",
+        "http://127.0.0.1:8878/assets/sector-radar.css"
+      ],
+      "header": "rgb(23, 38, 44)",
+      "svg": {
+        "children": 173,
+        "rects": 161,
+        "namespace": true
+      },
+      "result": "PASS"
+    },
+    {
+      "name": "sectors",
+      "width": 1440,
+      "colorScheme": "dark",
+      "overflow": 0,
+      "scheme": "slate",
+      "font": 16,
+      "h1": 1,
+      "styles": [
+        "http://127.0.0.1:8878/assets/stylesheets/main.484c7ddc.min.css",
+        "http://127.0.0.1:8878/assets/stylesheets/palette.ab4e12ef.min.css",
+        "https://fonts.googleapis.com/css?family=Noto+Sans+KR:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback",
+        "http://127.0.0.1:8878/assets/u29.css",
+        "http://127.0.0.1:8878/assets/investo-ui.css",
+        "http://127.0.0.1:8878/assets/sector-radar.css"
+      ],
+      "header": "rgb(23, 38, 44)",
+      "snapshot": {
+        "id": "sha256:8a1e76ae65b4c8514a7c541ac31acdba69bb55556fd6a9dad0fe2b7b0fe3604a",
+        "date": "2026-10-09",
+        "records": 11
+      },
+      "result": "PASS"
+    },
+    {
+      "name": "watchlist",
+      "width": 1440,
+      "colorScheme": "dark",
+      "overflow": 0,
+      "scheme": "slate",
+      "font": 16,
+      "h1": 1,
+      "styles": [
+        "http://127.0.0.1:8878/assets/stylesheets/main.484c7ddc.min.css",
+        "http://127.0.0.1:8878/assets/stylesheets/palette.ab4e12ef.min.css",
+        "https://fonts.googleapis.com/css?family=Noto+Sans+KR:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback",
+        "http://127.0.0.1:8878/assets/u29.css",
+        "http://127.0.0.1:8878/assets/investo-ui.css",
+        "http://127.0.0.1:8878/assets/sector-radar.css"
+      ],
+      "header": "rgb(23, 38, 44)",
+      "result": "PASS"
+    },
+    {
+      "name": "market-archive",
+      "width": 1440,
+      "colorScheme": "dark",
+      "overflow": 0,
+      "scheme": "slate",
+      "font": 16,
+      "h1": 1,
+      "styles": [
+        "http://127.0.0.1:8878/assets/stylesheets/main.484c7ddc.min.css",
+        "http://127.0.0.1:8878/assets/stylesheets/palette.ab4e12ef.min.css",
+        "https://fonts.googleapis.com/css?family=Noto+Sans+KR:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback",
+        "http://127.0.0.1:8878/assets/u29.css",
+        "http://127.0.0.1:8878/assets/investo-ui.css",
+        "http://127.0.0.1:8878/assets/sector-radar.css"
+      ],
+      "header": "rgb(23, 38, 44)",
+      "entries": 98,
+      "result": "PASS"
+    },
+    {
+      "name": "article",
+      "width": 1440,
+      "colorScheme": "dark",
+      "overflow": 0,
+      "scheme": "slate",
+      "font": 16,
+      "h1": 2,
+      "styles": [
+        "http://127.0.0.1:8878/assets/stylesheets/main.484c7ddc.min.css",
+        "http://127.0.0.1:8878/assets/stylesheets/palette.ab4e12ef.min.css",
+        "https://fonts.googleapis.com/css?family=Noto+Sans+KR:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback",
+        "http://127.0.0.1:8878/assets/u29.css",
+        "http://127.0.0.1:8878/assets/investo-ui.css",
+        "http://127.0.0.1:8878/assets/sector-radar.css"
+      ],
+      "header": "rgb(23, 38, 44)",
+      "chart": {
+        "url": "http://127.0.0.1:8878/archive/us-equity/2026/10/2026-10-08.assets/charts/us-equity-gspc.json",
+        "status": 200
+      },
+      "result": "PASS"
+    },
+    {
+      "name": "home",
+      "width": 390,
+      "colorScheme": "light",
+      "overflow": 0,
+      "scheme": "default",
+      "font": 16,
+      "h1": 1,
+      "styles": [
+        "http://127.0.0.1:8878/assets/stylesheets/main.484c7ddc.min.css",
+        "http://127.0.0.1:8878/assets/stylesheets/palette.ab4e12ef.min.css",
+        "https://fonts.googleapis.com/css?family=Noto+Sans+KR:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback",
+        "http://127.0.0.1:8878/assets/u29.css",
+        "http://127.0.0.1:8878/assets/investo-ui.css",
+        "http://127.0.0.1:8878/assets/sector-radar.css"
+      ],
+      "header": "rgb(21, 50, 55)",
+      "links": [
+        {
+          "href": "http://127.0.0.1:8878/archive/domestic-equity/2026/10/2026-10-08/",
+          "height": 44,
+          "generated": "false"
+        },
+        {
+          "href": "http://127.0.0.1:8878/archive/us-equity/2026/10/2026-10-08/",
+          "height": 44,
+          "generated": "false"
+        },
+        {
+          "href": "http://127.0.0.1:8878/archive/crypto/2026/10/2026-10-09/",
+          "height": 44,
+          "generated": "true"
+        }
+      ],
+      "result": "PASS"
+    },
+    {
+      "name": "calendar",
+      "width": 390,
+      "colorScheme": "light",
+      "overflow": 0,
+      "scheme": "default",
+      "font": 16,
+      "h1": 1,
+      "styles": [
+        "http://127.0.0.1:8878/assets/stylesheets/main.484c7ddc.min.css",
+        "http://127.0.0.1:8878/assets/stylesheets/palette.ab4e12ef.min.css",
+        "https://fonts.googleapis.com/css?family=Noto+Sans+KR:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback",
+        "http://127.0.0.1:8878/assets/u29.css",
+        "http://127.0.0.1:8878/assets/investo-ui.css",
+        "http://127.0.0.1:8878/assets/sector-radar.css"
+      ],
+      "header": "rgb(21, 50, 55)",
+      "svg": {
+        "children": 173,
+        "rects": 161,
+        "namespace": true
+      },
+      "result": "PASS"
+    },
+    {
+      "name": "sectors",
+      "width": 390,
+      "colorScheme": "light",
+      "overflow": 0,
+      "scheme": "default",
+      "font": 16,
+      "h1": 1,
+      "styles": [
+        "http://127.0.0.1:8878/assets/stylesheets/main.484c7ddc.min.css",
+        "http://127.0.0.1:8878/assets/stylesheets/palette.ab4e12ef.min.css",
+        "https://fonts.googleapis.com/css?family=Noto+Sans+KR:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback",
+        "http://127.0.0.1:8878/assets/u29.css",
+        "http://127.0.0.1:8878/assets/investo-ui.css",
+        "http://127.0.0.1:8878/assets/sector-radar.css"
+      ],
+      "header": "rgb(21, 50, 55)",
+      "snapshot": {
+        "id": "sha256:8a1e76ae65b4c8514a7c541ac31acdba69bb55556fd6a9dad0fe2b7b0fe3604a",
+        "date": "2026-10-09",
+        "records": 11
+      },
+      "result": "PASS"
+    },
+    {
+      "name": "watchlist",
+      "width": 390,
+      "colorScheme": "light",
+      "overflow": 0,
+      "scheme": "default",
+      "font": 16,
+      "h1": 1,
+      "styles": [
+        "http://127.0.0.1:8878/assets/stylesheets/main.484c7ddc.min.css",
+        "http://127.0.0.1:8878/assets/stylesheets/palette.ab4e12ef.min.css",
+        "https://fonts.googleapis.com/css?family=Noto+Sans+KR:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback",
+        "http://127.0.0.1:8878/assets/u29.css",
+        "http://127.0.0.1:8878/assets/investo-ui.css",
+        "http://127.0.0.1:8878/assets/sector-radar.css"
+      ],
+      "header": "rgb(21, 50, 55)",
+      "result": "PASS"
+    },
+    {
+      "name": "market-archive",
+      "width": 390,
+      "colorScheme": "light",
+      "overflow": 0,
+      "scheme": "default",
+      "font": 16,
+      "h1": 1,
+      "styles": [
+        "http://127.0.0.1:8878/assets/stylesheets/main.484c7ddc.min.css",
+        "http://127.0.0.1:8878/assets/stylesheets/palette.ab4e12ef.min.css",
+        "https://fonts.googleapis.com/css?family=Noto+Sans+KR:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback",
+        "http://127.0.0.1:8878/assets/u29.css",
+        "http://127.0.0.1:8878/assets/investo-ui.css",
+        "http://127.0.0.1:8878/assets/sector-radar.css"
+      ],
+      "header": "rgb(21, 50, 55)",
+      "entries": 98,
+      "result": "PASS"
+    },
+    {
+      "name": "article",
+      "width": 390,
+      "colorScheme": "light",
+      "overflow": 0,
+      "scheme": "default",
+      "font": 16,
+      "h1": 2,
+      "styles": [
+        "http://127.0.0.1:8878/assets/stylesheets/main.484c7ddc.min.css",
+        "http://127.0.0.1:8878/assets/stylesheets/palette.ab4e12ef.min.css",
+        "https://fonts.googleapis.com/css?family=Noto+Sans+KR:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback",
+        "http://127.0.0.1:8878/assets/u29.css",
+        "http://127.0.0.1:8878/assets/investo-ui.css",
+        "http://127.0.0.1:8878/assets/sector-radar.css"
+      ],
+      "header": "rgb(21, 50, 55)",
+      "chart": {
+        "url": "http://127.0.0.1:8878/archive/us-equity/2026/10/2026-10-08.assets/charts/us-equity-gspc.json",
+        "status": 200
+      },
+      "result": "PASS"
+    },
+    {
+      "name": "home",
+      "width": 390,
+      "colorScheme": "dark",
+      "overflow": 0,
+      "scheme": "slate",
+      "font": 16,
+      "h1": 1,
+      "styles": [
+        "http://127.0.0.1:8878/assets/stylesheets/main.484c7ddc.min.css",
+        "http://127.0.0.1:8878/assets/stylesheets/palette.ab4e12ef.min.css",
+        "https://fonts.googleapis.com/css?family=Noto+Sans+KR:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback",
+        "http://127.0.0.1:8878/assets/u29.css",
+        "http://127.0.0.1:8878/assets/investo-ui.css",
+        "http://127.0.0.1:8878/assets/sector-radar.css"
+      ],
+      "header": "rgb(23, 38, 44)",
+      "links": [
+        {
+          "href": "http://127.0.0.1:8878/archive/domestic-equity/2026/10/2026-10-08/",
+          "height": 44,
+          "generated": "false"
+        },
+        {
+          "href": "http://127.0.0.1:8878/archive/us-equity/2026/10/2026-10-08/",
+          "height": 44,
+          "generated": "false"
+        },
+        {
+          "href": "http://127.0.0.1:8878/archive/crypto/2026/10/2026-10-09/",
+          "height": 44,
+          "generated": "true"
+        }
+      ],
+      "result": "PASS"
+    },
+    {
+      "name": "calendar",
+      "width": 390,
+      "colorScheme": "dark",
+      "overflow": 0,
+      "scheme": "slate",
+      "font": 16,
+      "h1": 1,
+      "styles": [
+        "http://127.0.0.1:8878/assets/stylesheets/main.484c7ddc.min.css",
+        "http://127.0.0.1:8878/assets/stylesheets/palette.ab4e12ef.min.css",
+        "https://fonts.googleapis.com/css?family=Noto+Sans+KR:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback",
+        "http://127.0.0.1:8878/assets/u29.css",
+        "http://127.0.0.1:8878/assets/investo-ui.css",
+        "http://127.0.0.1:8878/assets/sector-radar.css"
+      ],
+      "header": "rgb(23, 38, 44)",
+      "svg": {
+        "children": 173,
+        "rects": 161,
+        "namespace": true
+      },
+      "result": "PASS"
+    },
+    {
+      "name": "sectors",
+      "width": 390,
+      "colorScheme": "dark",
+      "overflow": 0,
+      "scheme": "slate",
+      "font": 16,
+      "h1": 1,
+      "styles": [
+        "http://127.0.0.1:8878/assets/stylesheets/main.484c7ddc.min.css",
+        "http://127.0.0.1:8878/assets/stylesheets/palette.ab4e12ef.min.css",
+        "https://fonts.googleapis.com/css?family=Noto+Sans+KR:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback",
+        "http://127.0.0.1:8878/assets/u29.css",
+        "http://127.0.0.1:8878/assets/investo-ui.css",
+        "http://127.0.0.1:8878/assets/sector-radar.css"
+      ],
+      "header": "rgb(23, 38, 44)",
+      "snapshot": {
+        "id": "sha256:8a1e76ae65b4c8514a7c541ac31acdba69bb55556fd6a9dad0fe2b7b0fe3604a",
+        "date": "2026-10-09",
+        "records": 11
+      },
+      "result": "PASS"
+    },
+    {
+      "name": "watchlist",
+      "width": 390,
+      "colorScheme": "dark",
+      "overflow": 0,
+      "scheme": "slate",
+      "font": 16,
+      "h1": 1,
+      "styles": [
+        "http://127.0.0.1:8878/assets/stylesheets/main.484c7ddc.min.css",
+        "http://127.0.0.1:8878/assets/stylesheets/palette.ab4e12ef.min.css",
+        "https://fonts.googleapis.com/css?family=Noto+Sans+KR:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback",
+        "http://127.0.0.1:8878/assets/u29.css",
+        "http://127.0.0.1:8878/assets/investo-ui.css",
+        "http://127.0.0.1:8878/assets/sector-radar.css"
+      ],
+      "header": "rgb(23, 38, 44)",
+      "result": "PASS"
+    },
+    {
+      "name": "market-archive",
+      "width": 390,
+      "colorScheme": "dark",
+      "overflow": 0,
+      "scheme": "slate",
+      "font": 16,
+      "h1": 1,
+      "styles": [
+        "http://127.0.0.1:8878/assets/stylesheets/main.484c7ddc.min.css",
+        "http://127.0.0.1:8878/assets/stylesheets/palette.ab4e12ef.min.css",
+        "https://fonts.googleapis.com/css?family=Noto+Sans+KR:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback",
+        "http://127.0.0.1:8878/assets/u29.css",
+        "http://127.0.0.1:8878/assets/investo-ui.css",
+        "http://127.0.0.1:8878/assets/sector-radar.css"
+      ],
+      "header": "rgb(23, 38, 44)",
+      "entries": 98,
+      "result": "PASS"
+    },
+    {
+      "name": "article",
+      "width": 390,
+      "colorScheme": "dark",
+      "overflow": 0,
+      "scheme": "slate",
+      "font": 16,
+      "h1": 2,
+      "styles": [
+        "http://127.0.0.1:8878/assets/stylesheets/main.484c7ddc.min.css",
+        "http://127.0.0.1:8878/assets/stylesheets/palette.ab4e12ef.min.css",
+        "https://fonts.googleapis.com/css?family=Noto+Sans+KR:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback",
+        "http://127.0.0.1:8878/assets/u29.css",
+        "http://127.0.0.1:8878/assets/investo-ui.css",
+        "http://127.0.0.1:8878/assets/sector-radar.css"
+      ],
+      "header": "rgb(23, 38, 44)",
+      "chart": {
+        "url": "http://127.0.0.1:8878/archive/us-equity/2026/10/2026-10-08.assets/charts/us-equity-gspc.json",
+        "status": 200
+      },
+      "result": "PASS"
+    },
+    {
+      "name": "no-JS200%",
+      "relative": "",
+      "width": 390,
+      "result": "PASS"
+    },
+    {
+      "name": "no-JS200%",
+      "relative": "archive/us-equity/",
+      "width": 390,
+      "result": "PASS"
+    },
+    {
+      "name": "no-JS200%",
+      "relative": "sectors/",
+      "width": 390,
+      "result": "PASS"
+    },
+    {
+      "name": "no-JS200%",
+      "relative": "",
+      "width": 1440,
+      "result": "PASS"
+    },
+    {
+      "name": "no-JS200%",
+      "relative": "archive/us-equity/",
+      "width": 1440,
+      "result": "PASS"
+    },
+    {
+      "name": "no-JS200%",
+      "relative": "sectors/",
+      "width": 1440,
+      "result": "PASS"
+    }
+  ]
+}

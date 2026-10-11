@@ -1,4 +1,48 @@
+## 2026-10-10 — u179 and UI program local construction complete
+
+All6 UI units developed in isolated codex/ui-development-20261010; per-unit local commits. u179 FD/NFR/6steps complete: single safe error-propagating scanner, static monthly exact links, progressive filters/current-sealed-only plain legacy/exact terminal seam. Three indexes regenerated, historical bytes preserved. Full6774/1024.93s + post-small-diff25/2.12s, Node29, Ruff/format/mypy303/policy4/strict docs/Material/calendar; independent APPROVE/P1-P2zero; actual Chromium36/5000budgetsPASS. No push/deploy/private activation. [Program summary](construction/ui-modernization-20261010/development-summary.md).
+
+## 2026-10-10 — u178 local construction complete
+
+FD/focused NFR and7 construction steps completed under all-unit development/per-unit commit authorization. Same immutable inputs render before E2; exact values, public projection, whole trust gates and surviving artifact seals preserved. Independent findings corrected. Focused197 and final148 passed; actual Chromium22-case evidence includes exact cells/no-JS200% and themes. Final program regression follows u179. No archived briefing backfill, new data/source/service, push or deployment.
+
+## 2026-10-10 — u177 local construction complete
+
+User all-UI-development/unit commit authorization. FD/NFR, same-run3-market cards, actual hrefs, one atomic migration and mandatory canonical gate/rollback implemented. Python192 + final35, Chromium20, static/type/docs/theme/calendar passes; independent review APPROVE/P1-P2zero. No archive rewrite, push or deployment.
+
+## 2026-10-10 — u176 local construction complete
+
+FD/NFR authored under all-UI-development authorization, Korean navigation/token/scope/keyboard/no-JS/current-page implementation. Python30, strict/Material/Ruff/format and actual Chromium33 cases. Reviewer corrections applied; final review recorded in summary. Scoped local commit authorized; no push/deployment.
+
 # AI-DLC Audit Log
+
+## 2026-10-10 — u175 local construction complete
+
+**Result**: Exact-stem sidecar URL and Material body/HTML palette adapter repaired; lazy one-fetch/error isolation/financial inputs/seal/legacy fallback unchanged. Node22 actual-client gate added before Python integration in Quality.
+**Evidence**: Node29, Python51, actual-config directory/flat strict builds, Chromium10 cases, Ruff/format711; independent review APPROVE/P1-P2zero. Archive/bundle/license bytes unchanged. [Summary](construction/u175-chart-sidecar-url-and-theme-repair/code/summary.md).
+**Boundary**: Local per-unit commit follows. DEBT-077/078, event-v3 and u145 operational gates are separate; no push/deploy.
+
+## 2026-10-10 — u174 local construction complete
+
+**Result**: Raw wrapper + archive-only build compatibility hook + built SVG guard + Pages/Quality wiring completed. Historical archive bytes/runtime dependencies/seal unchanged.
+**Evidence**: Full 6711 passed; final review-hardening focused 25 passed; Ruff/format/mypy302/strict MkDocs/Material/calendar/four policy guards passed; actual headless Chromium12 cases. Independent review APPROVE after two P2 fixes, residual P1/P2 zero. [Summary](construction/u174-calendar-svg-render-integrity/code/summary.md).
+**Authorization**: User's all-UI-development/unit-per-commit instruction remains active. Scoped local commit follows; public deployment and push not performed.
+
+## 2026-10-10 — UI u174–u179 개발 및 유닛별 커밋 승인
+
+**User response**: “모든 유닛 개발 진행해줘, 각 유닛 완료할때마다 커밋 진행해줘 현재 워크트리가 작업중이면 별도 워크트리에서 진행해줘”.
+**Authorized scope**: 직전 등록한 UI u174–u179 전체의 필요한 FD/NFR 결정·구현·테스트·독립 리뷰·단위별 로컬 커밋. 별도 개발 작업 트리 `/private/tmp/investo-ui-development-20261010`, 브랜치 `codex/ui-development-20261010` 사용. 기존 루트와 문서화 작업 트리의 dirty 작업은 보존한다.
+**Stage policy**: 필요한 설계 산출물을 먼저 구체화하고 검토한 뒤 구현한다. 사용자의 전체 개발 지시에 따라 각 단계와 커밋마다 재승인을 요청하지 않는다. 설계 결정은 개발자가 선택한 것으로 기록하며 사용자가 개별 답변을 제공했다고 기록하지 않는다. push/공개 배포/운영 활성화는 이번 지시의 완료 조건이 아니다.
+
+## 2026-10-10 — Web UI 개선 유닛 문서화 요청
+
+**User response**: “굿 일단 유닛 문서화부터 진행해줘”.
+**Action**: 현재 웹 UI 분석 후 u174–u179의 계획을 최초 코드 기준 원격 main `48762793`의 격리 작업 트리에 작성한다. 초안 작성과 독립 리뷰는 `aidlc-refactor-unit-planner` 절차로 분리한다.
+**Scope**: u174 캘린더 SVG 렌더 복구, u175 chart sidecar URL/테마 복구, u176 공통 shell/탐색, u177 날짜·상태를 명확히 하는 홈 카드, u178 본문 데이터 가독성/접근성, u179 월별 아카이브 탐색. u176–u179의 FD/NFR는 REQUIRED/PENDING이며 구현 허가나 승인 완료로 기록하지 않는다.
+**Deduplication**: u154의 H1/TLDR/뉴스 우선/숫자 panel, u143 light/dark 규약, u144 seal/asset/DTO 경계, u63 partial/fallback 상태를 재사용한다. 최신 u145의 미국 섹터 메뉴·데이터·출판·운영 경계는 보존한다.
+**Evidence boundary**: 2026-10-10 01:12–01:17 KST 공개 화면 관측과 정적 홈 시안은 유닛 인수/운영 활성화 증거가 아니다. Browser 초기화 실패 후 사용자 승인된 headless 관측이며 u145의 Browser 인수/waiver를 변경하지 않는다.
+**Delivery**: `aidlc-docs/construction/ui-modernization-20261010/README.md`와 여섯 code-generation plan. 상세 리뷰 결과 및 문서 검증은 `review-record.md`에 기록한다. 기존 루트의 dirty 작업을 유지하며 애플리케이션 코드·runtime·배포·커밋/푸시를 변경하지 않는다.
+**Final synchronization**: 최종 문서 기준은 원격 main `838bed60`이다. 동시 등록된 사건·뉴스 v3 u167–u173과 u145 완료 기록을 보존했다. 번호 충돌을 피해 UI 계획을 u174–u179로 옮겼으며, v3 문서/reader 의미는 u169/u171, semantic·운영 전환은 u172가 소유하도록 버전별 경계를 명시했다. 두 기준 사이 애플리케이션 코드 변경은 없다.
 
 ## Construction — u145 Step 4 post-restart Browser recovery still blocked
 
@@ -7981,6 +8025,20 @@ ordering and byte-identical CSS/JSON. Refresh37966083788 SUCCESS:12/12, normal11
 fresh2026-10-08, unchanged6ac61b30, CPU1189ms. Presentation follow-up complete;
 this closeout changes evidence documents only. Browser waiver/source exception remain.
 
+## 2026-10-10 — u145 flat market groups approved implementation
+
+User “네 제안대로 진행해줘” approves the proposed flat industry/theme view and retained
+market overview; earlier publication authorization persists. FD/NFR and closed schema3
+contracts recorded before implementation, with source-neutral price math, representative
+hardware8 index,14-group independent ranks, bounded23-asset collector and DOM-only filters.
+Source research rejects liquidated XTH and chooses SMH/XSW/MAGS plus disclosed hardware
+basket; optional software preference remains unanswered, with routine XSW choice recorded.
+Root dirty work and unrelated site units are preserved in a separate worktree.
+Static/policy/docs/resource/supplemental UI checks pass; corrected affected test cases pass.
+Full regression, independent review, five exact-commit runner probes and live publication
+remain pending. No completed expanded deployment is inferred. Session:
+`docs/sessions/2026-10-10-u145-flat-market-groups.md`.
+
 ## 2026-10-10 — Event/news v3 개발 지시
 
 사용자: “개발도 진행해줘 / 현재 워크트리가 작업중이면 별도 워크트리에서 해줘”. 앞서 작성·검토한 u167–u173 공통 Functional/NFR 설계와 실행 계획을 개발 기준으로 승인한 지시로 적용한다. 새 worktree codex/news-event-v3-dev-20261010에서 의존 순서대로 구현하며 반복 확인은 하지 않는다. 커밋·푸시 지시도 현재 작업에 적용한다. 사람 의미 수용·source/HTTP/cursor·실제 운영 활성화·첫3/10회와 구형 제거 gate는 별도이며 개발 지시로 완료되지 않는다. 문서는838bed60으로main푸시/원격확인 완료.
@@ -7999,3 +8057,25 @@ this closeout changes evidence documents only. Browser waiver/source exception r
 ### 2026-10-10 — Foundation final integrated validation
 
 정확한 코드0de9d9d2857ca0bd77d10fa5a750a30286caec15 (main ea402465 통합)에서 전체6774PASS873.04s, focused170PASS215.07s, independent81PASS/remainingP1-P2=0. Ruff/format719/mypy307,4policyguards,strictMkDocs7.64s,Material/builtHTML PASS. u167foundation8/8, u168foundation5/8이며 native u169/finalizer-CAS 연결·u170reducer·u171reader·u172실제수용·u173sourcequalification은 미완료다. 기본schema2와v3preview/activeFalse를 유지했다. 후속 closeout은 증거 문서만 변경한다.
+
+## 2026-10-10 — u174–u179 deployment preparation
+
+User requested push and deployment. Isolated integration preserves origin/main8ff7abde, concurrent v3/sector groups, Oct9 crypto-only partial publication and both append-only histories. Latest public pair and archived bodies are unchanged. Generated discovery surfaces use current archived bytes; independent final review APPROVE, noP1/P2. Current local28 real-build regressions and30 browser cases pass. Bounded runtime35ea6c6e exact Quality38035946859 passes6322/289.46s. Main and pin promotion await exact candidate Quality and live Pages evidence; the original dirty root is untouched. See UI deployment checkpoint.
+
+## 2026-10-10 — u145 flat groups operational closeout
+
+Approved one-layer14group view + retained11overview is implemented and public. Independent
+review resolves provenanceP2 and same-hash navigation; no unresolved finding/debt. Exact
+integration25eb9220 quality38025047604 PASS6,836583.37s and all checks; five exact-commit
+runner probes all23/11/14fresh2026-10-09, resourcePASS. Concurrent newsfoundation/briefing
+commits preserved; dashboard source/config/assets unchanged by those commits.
+Refresh38036114019 promotes canonical schema3pair8ff7abde; Pages38036145271 SUCCESS.
+Live8a1e76ae matches JSON/HTML; JSON/CSS/JS byte-exact. Desktop/mobile light/dark actual
+public-page tabs/filters/keyboard/anchors/noJS pass without overflow/JSerrors. Cross-check
+11/11. Browser waiver and Yahoo unverified-permission exception remain explicit. Final
+closeout changes evidence docs only; root dirty work preserved. Session:
+`docs/sessions/2026-10-10-u145-flat-market-groups.md`.
+
+## 2026-10-10 — u174–u179 verified public and runtime delivery
+
+Exact main application24ad770d Quality38044175630 SUCCESS6921/470.87s,1 known migrated-dataset skip, Node29 and all guards. Pages38044709772 build/deploy SUCCESS. Actual HTTPS30cases PASS;8CSS/JS/JSON assets byte-match. Bounded runtime35ea6c6e Quality38035946859 SUCCESS6322/289.46s; REVIEWED_CODE_SHA promoted at10:26:29UTC with exact immediate readback and zero queued/running private jobs. Production1/eventactive/news-shadow/enrichmentoff and original daily workflow unchanged. No manual briefing/Telegram or historical-body rewrite. First scheduled new-UI publication remains unobserved; v3/source/event operational acceptance stays separate. Final closeout docs only; all991 frozen application/test/workflow/config/index inputs unchanged and original dirty root preserved. Full evidence: `construction/ui-modernization-20261010/deployment-closeout.md`.

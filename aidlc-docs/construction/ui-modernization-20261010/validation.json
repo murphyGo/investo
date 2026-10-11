@@ -1,0 +1,29 @@
+{
+  "recorded_utc": "2026-10-10T04:13:33.616407+00:00",
+  "baseline": "838bed607e1e170893de8f9230634a1f8568a06e",
+  "branch": "codex/ui-development-20261010",
+  "full_python": {
+    "passed": 6774,
+    "seconds": 1024.93,
+    "scope": "before final unresolvable-path and canonical legacy-summary tiny changes"
+  },
+  "post_diff_python": {
+    "passed": 25,
+    "seconds": 2.12
+  },
+  "independent_archive_final": 11,
+  "node22": {
+    "passed": 29
+  },
+  "browser_cases": {
+    "u174": 12,
+    "u175": 10,
+    "u176": 33,
+    "u177": 20,
+    "u178": 22,
+    "u179": 36
+  },
+  "static": "Ruff/format/strict Mypy303; strict MkDocs directory/flat; Material/calendar; four policy guards PASS",
+  "push": false,
+  "deploy": false
+}

@@ -1,0 +1,13 @@
+{
+  "src/investo/publisher/site_index/segment_archives.py": "0ffcd8f424c546bec897eaa506413c2411b8f5ba612c9599a7dd57e0ff97b481",
+  "src/investo/publisher/site_index/archive_sections.py": "8784c831da7d7e1d3daf538836afd6517bd141cf6fd381aa6e97575945f2b087",
+  "src/investo/publisher/site_index/__init__.py": "727c4af674c8524f25d5618365097b57ee3e010ac03045dc2f7e323fff1d0c67",
+  "src/investo/orchestrator/pipeline.py": "ca0a0ebe397e6bd2ba8b6c38adb515692539234ad79417071d4b602eca0275ea",
+  "src/investo/_internal/public_summary_extract.py": "33d5859bfbf819ff21847bd04da2e09e0a6909f56f807647c74650ec6c2f95ff",
+  "site_docs/assets/investo-archive.js": "26e97e1474b3eb5a64da7cd48707d299a9f9ae7bc5ce0b1b7f751fc8dc34b4f3",
+  "site_docs/assets/investo-ui.css": "df49b6d7589cada69a7ae3231ea682545105c3aa5bab348c287da4e51509dfa5",
+  "mkdocs.yml": "9a4eedec14b91281ddd450473e5cb5d7f608d1f040e0df4b4a01fdf329a16d29",
+  "archive/domestic-equity/index.md": "d766852be007f58403a67e71f42a01da7fb0d4815df0934dca571c130b531bed",
+  "archive/us-equity/index.md": "4c9062f6dd7449cf9d39bde544fdc93bbe8212ae8ffcb70e39f2f4cd9ff91c0d",
+  "archive/crypto/index.md": "29b76c1917fb30622a2ff10da2b5f9cc22bb6fa8ead7bfe4c9401f41f8c6f254"
+}

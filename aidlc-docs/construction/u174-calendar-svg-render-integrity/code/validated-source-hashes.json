@@ -1,0 +1,8 @@
+{
+  "src/investo/publisher/site_index/archive_sections.py": "40f51c4aa4d07ebfeda316f97a747b65a3682fdc56c904973765b59c96465828",
+  "scripts/mkdocs_render_hooks.py": "eea8879297110dffe9156b9e8c7d0cf122524e30b6eb8694e94bc08dd5178e59",
+  "scripts/check_calendar_render_contract.py": "1657952ad06e9de7cc9e71f19f9fcc1c91f855437dabf60d2768e2238c6143e1",
+  "mkdocs.yml": "379a27ee4a4e8df39646559d5ffdadaae5811ed59435145062070639d3bc3946",
+  ".github/workflows/pages.yml": "a0fb4fdc429f7f8f141d3a88dcd969344c85ea2521f27f6fb14bfb9378d29193",
+  ".github/workflows/quality.yml": "c083c9d731f4d9076360fb8b8f20ccb9aa80d029e3f9b61babe3638a8e3fc91b"
+}

@@ -24,10 +24,17 @@ import httpx
 
 from investo._internal.redaction import install_secret_log_filters
 from investo.models.market_calendar import is_trading_day
+from investo.models.market_groups import (
+    ADDITIONAL_REQUEST_TICKERS,
+    AdditionalAssetTicker,
+    PublicAssetTicker,
+    expected_asset_type,
+)
 from investo.models.sector import BENCHMARK_TICKER, SectorTicker
 from investo.models.sector_public import (
     PUBLIC_REQUEST_TICKERS,
     PUBLIC_SUPPORTED_SECTOR_TICKERS,
+    AdditionalParsedSet,
     PublicBarPoint,
     PublicBarSeries,
     PublicParsedSet,
@@ -244,7 +251,7 @@ def _retry_after_seconds(header: str | None, config: YahooAdapterConfig) -> floa
 
 
 def _failure_for(
-    ticker: SectorTicker,
+    ticker: PublicAssetTicker,
     failure: _AdapterError,
 ) -> PublicSourceFailure:
     return PublicSourceFailure(
@@ -254,13 +261,22 @@ def _failure_for(
     )
 
 
-def _all_failures(failure: _AdapterError) -> PublicParsedSet:
+def _all_failures(
+    failure: _AdapterError, *, include_market_groups: bool = False
+) -> PublicParsedSet:
     return PublicParsedSet(
-        failures=tuple(_failure_for(ticker, failure) for ticker in PUBLIC_REQUEST_TICKERS)
+        failures=tuple(_failure_for(ticker, failure) for ticker in PUBLIC_REQUEST_TICKERS),
+        additional=AdditionalParsedSet(
+            failures=tuple(_failure_for(ticker, failure) for ticker in ADDITIONAL_REQUEST_TICKERS)
+        )
+        if include_market_groups
+        else None,
     )
 
 
-def _chart_url(ticker: SectorTicker, target_date: date) -> str:
+def _chart_url(ticker: PublicAssetTicker, target_date: date) -> str:
+    if not isinstance(ticker, (SectorTicker, AdditionalAssetTicker)):
+        raise ValueError("chart identity must belong to the fixed public asset set")
     zone = ZoneInfo("America/New_York")
     start = datetime.combine(target_date - timedelta(days=200), datetime_time.min, zone)
     end = datetime.combine(target_date + timedelta(days=1), datetime_time.min, zone)
@@ -427,7 +443,7 @@ async def _request_bounded(
 
 def _decode_public_json(
     body: bytes,
-    ticker: SectorTicker,
+    ticker: PublicAssetTicker,
     target_date: date,
     config: YahooAdapterConfig,
 ) -> PublicBarSeries:
@@ -446,7 +462,7 @@ def _decode_public_json(
             for key, expected in (
                 ("symbol", ticker.value),
                 ("currency", "USD"),
-                ("instrumentType", "ETF"),
+                ("instrumentType", expected_asset_type(ticker)),
                 ("exchangeTimezoneName", "America/New_York"),
                 ("dataGranularity", "1d"),
             )
@@ -521,7 +537,7 @@ def _decode_public_json(
 async def _fetch_ticker_once(
     client: httpx.AsyncClient,
     *,
-    ticker: SectorTicker,
+    ticker: PublicAssetTicker,
     target_date: date,
     budget: YahooRequestBudget,
     config: YahooAdapterConfig,
@@ -541,7 +557,7 @@ async def _fetch_ticker_once(
 async def _fetch_ticker(
     client: httpx.AsyncClient,
     *,
-    ticker: SectorTicker,
+    ticker: PublicAssetTicker,
     target_date: date,
     budget: YahooRequestBudget,
     config: YahooAdapterConfig,
@@ -603,6 +619,7 @@ async def collect_public_bars(
     config: YahooAdapterConfig = DEFAULT_YAHOO_ADAPTER_CONFIG,
     budget: YahooRequestBudget | None = None,
     sleep: Sleep = asyncio.sleep,
+    include_market_groups: bool = False,
 ) -> PublicParsedSet:
     """Collect SPY first, then eleven sectors, returning only normalized types.
 
@@ -622,13 +639,16 @@ async def collect_public_bars(
         ):
             raise _AdapterError(PublicSourceIssueCode.AUTH_CONFIGURATION, retryable=False)
     except _AdapterError as failure:
-        return _all_failures(failure)
+        return _all_failures(failure, include_market_groups=include_market_groups)
 
     shared_budget = budget or YahooRequestBudget(config, sleep=sleep)
-    results: dict[SectorTicker, PublicBarSeries | PublicSourceFailure] = {}
+    extra_tickers = ADDITIONAL_REQUEST_TICKERS if include_market_groups else ()
+    requested: tuple[PublicAssetTicker, ...] = (*PUBLIC_REQUEST_TICKERS, *extra_tickers)
+    fanout: tuple[PublicAssetTicker, ...] = (*PUBLIC_SUPPORTED_SECTOR_TICKERS, *extra_tickers)
+    results: dict[PublicAssetTicker, PublicBarSeries | PublicSourceFailure] = {}
     benchmark_dates: frozenset[date] | None = None
 
-    async def fetch_and_record(ticker: SectorTicker) -> None:
+    async def fetch_and_record(ticker: PublicAssetTicker) -> None:
         try:
             result = await _fetch_ticker(
                 client,
@@ -660,7 +680,7 @@ async def collect_public_bars(
             await fetch_and_record(BENCHMARK_TICKER)
             benchmark_result = results[BENCHMARK_TICKER]
             if isinstance(benchmark_result, PublicSourceFailure):
-                for ticker in PUBLIC_SUPPORTED_SECTOR_TICKERS:
+                for ticker in fanout:
                     results[ticker] = PublicSourceFailure(
                         ticker=ticker,
                         issue_code=benchmark_result.issue_code,
@@ -670,14 +690,11 @@ async def collect_public_bars(
                 benchmark_dates = frozenset(point.trading_date for point in benchmark_result.points)
                 semaphore = asyncio.Semaphore(config.concurrency)
 
-                async def bounded_fetch(ticker: SectorTicker) -> None:
+                async def bounded_fetch(ticker: PublicAssetTicker) -> None:
                     async with semaphore:
                         await fetch_and_record(ticker)
 
-                tasks = [
-                    asyncio.create_task(bounded_fetch(ticker))
-                    for ticker in PUBLIC_SUPPORTED_SECTOR_TICKERS
-                ]
+                tasks = [asyncio.create_task(bounded_fetch(ticker)) for ticker in fanout]
                 try:
                     # A child-only CancelledError is a ticker failure, not a
                     # reason to abandon live siblings. Parent cancellation
@@ -691,7 +708,7 @@ async def collect_public_bars(
     except TimeoutError:
         pass
 
-    for ticker in PUBLIC_REQUEST_TICKERS:
+    for ticker in requested:
         if ticker not in results:
             results[ticker] = PublicSourceFailure(
                 ticker=ticker,
@@ -714,6 +731,20 @@ async def collect_public_bars(
         benchmark=benchmark if isinstance(benchmark, PublicBarSeries) else None,
         sectors=sectors,
         failures=failures,
+        additional=AdditionalParsedSet(
+            assets={
+                ticker: result
+                for ticker in extra_tickers
+                if isinstance((result := results[ticker]), PublicBarSeries)
+            },
+            failures=tuple(
+                result
+                for ticker in extra_tickers
+                if isinstance((result := results[ticker]), PublicSourceFailure)
+            ),
+        )
+        if include_market_groups
+        else None,
     )
 
 
