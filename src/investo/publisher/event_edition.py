@@ -191,9 +191,19 @@ def render_event_edition(draft: EventEditionDraft, *, retain_invalid_digests: bo
         if limits:
             lines.extend(("확인 한계: " + " · ".join(limits), ""))
         links = sorted(
-            href
-            for r in article.source_refs
-            if (href := source_receipt(r, draft.documents).source_href) is not None
+            {
+                href
+                for r in dict.fromkeys(
+                    (
+                        *article.source_refs,
+                        *article.background_refs,
+                        *article.meaning.refs,
+                        *article.reaction.refs,
+                        *(r for c in binding.delta.correction_claims for r in c.source_refs),
+                    )
+                )
+                if (href := source_receipt(r, draft.documents).source_href) is not None
+            }
         )
         lines.extend(
             (
@@ -217,6 +227,14 @@ def render_event_edition(draft: EventEditionDraft, *, retain_invalid_digests: bo
         lines.extend((f"<!-- /investo:block event:{article.event_id} -->", ""))
     for panel in draft.context_panels:
         lines.extend((f"### 관련 {panel.kind}", "", _plain(panel.text), ""))
+        hrefs = sorted(
+            {
+                receipt.source_href
+                for ref in panel.source_refs
+                if (receipt := source_receipt(ref, draft.documents)).source_href is not None
+            }
+        )
+        lines.extend(("출처: " + " · ".join(f"[원문]({_link(href)})" for href in hrefs), ""))
     if draft.asset_impacts:
         lines.extend(("## 연결된 자산", ""))
         for impact in draft.asset_impacts:
@@ -273,7 +291,15 @@ def render_event_edition(draft: EventEditionDraft, *, retain_invalid_digests: bo
                 )
             lines.append("")
     if draft.reference_panels:
-        lines.extend(("## 사건 참고 자료", ""))
+        lines.extend(
+            (
+                "## 사건 참고 자료",
+                "",
+                '<details markdown="1">',
+                "<summary>검증된 사건 참고 자료 펼치기</summary>",
+                "",
+            )
+        )
         for reference in draft.reference_panels:
             binding = bindings[reference.event_id]
             fact_sources = fact_source_map(
@@ -307,14 +333,24 @@ def render_event_edition(draft: EventEditionDraft, *, retain_invalid_digests: bo
             )
             lines.append("출처: " + " · ".join(f"[원문]({_link(href)})" for href in hrefs))
             lines.append("")
+        lines.extend(("</details>", ""))
     if draft.market_reference.anchors:
-        lines.extend(("## 시장 기준 자료", ""))
+        lines.extend(
+            (
+                "## 시장 기준 자료",
+                "",
+                '<details markdown="1">',
+                "<summary>시장 기준 자료 펼치기</summary>",
+                "",
+            )
+        )
         for anchor in draft.market_reference.anchors:
             lines.append(
                 f"- {_plain(anchor.ticker)}: {anchor.close}"
                 + (f" · {anchor.pct}%" if anchor.pct is not None else "")
             )
         lines.append("")
+        lines.extend(("</details>", ""))
     lines.extend((DISCLAIMER_CRYPTO_V3 if draft.segment == "crypto" else DISCLAIMER_V3, ""))
     return "\n".join(lines)
 
