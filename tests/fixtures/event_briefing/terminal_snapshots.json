@@ -1,0 +1,1108 @@
+{
+  "basis": "historical_output",
+  "cases": [
+    {
+      "case_id": "rate-sep",
+      "documents": [
+        {
+          "html": "<h1>2026-09-21 미국 증시 시황</h1>\n<blockquote>\n<p>정보 제공용 자동 시황이며 매매 권유가 아닙니다.</p>\n</blockquote>\n<p><strong>기준 시각</strong>: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)</p>\n<p><strong>세그먼트</strong>: 국내 증시(미발행) | <a href=\"2026-09-21.md\">미국 증시</a> | 크립토(미발행)</p>\n<h2>한눈에 보기</h2>\n<ul>\n<li>가상중앙은행은 정책금리를 <strong>2.75%</strong>로 유지했습니다.</li>\n<li>시장 반응은 확인하지 못했습니다.</li>\n<li>일부 사건의 시장 반응은 확인하지 못했습니다.</li>\n</ul>\n<blockquote>\n<p><strong>내 관심 자산 영향</strong>: 관심 목록 미설정 — <code>config/watchlist.json</code>을 추가하면 보유 종목 영향이 표시됩니다.</p>\n<p><strong>오늘의 결론</strong>: 가상중앙은행은 정책금리를 <strong>2.75%</strong>로 유지했습니다.</p>\n<p><strong>핵심 동인</strong>: 시장 반응은 확인하지 못했습니다.</p>\n<p><strong>주의할 점</strong>: 일부 사건의 시장 반응은 확인하지 못했습니다.</p>\n</blockquote>\n<h2>① 요약</h2>\n<p>수집된 합성 자료에서 확인한 발표를 정리했습니다.</p>\n<h2>② 전일 핵심 이슈</h2>\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:ab2d6aaf4fdf7ee61cc606e4 -->\n<h3>가상중앙은행 금리 결정</h3>\n<ul>\n<li>시점: 2026-09-21 10:00 UTC (출처 시각)</li>\n<li>주체: 가상중앙은행</li>\n<li>무슨 일이 있었나: 가상중앙은행은 정책금리를 <strong>2.75%</strong>로 유지했습니다.</li>\n<li>결정/실적/발표 내용: [예상, 단위 %] SEP의 내년 정책금리 예상은 <strong>3.00%</strong>입니다.; [실제, 단위 %] 정책금리를 <strong>2.75%</strong>로 유지했습니다.</li>\n<li>의미: 예상 경로가 유지된다면 자금 조달 여건에 영향을 줄 수 있습니다.</li>\n<li>시장 반응: 시장 반응은 확인하지 못했습니다.</li>\n<li>출처: <a href=\"https://example.invalid/synthetic/rate-sep\">fixture-rate-sep</a></li>\n</ul>\n<!-- /investo:block event:ab2d6aaf4fdf7ee61cc606e4 -->\n\n<h2>③ 섹터/수급 동향</h2>\n<p>전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.</p>\n<h2>④ 지표·이벤트</h2>\n<p>다음 공식 발표 시각은 자료에서 확인하지 못했습니다.</p>\n<h2>⑤ 주요 종목</h2>\n<p>개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.</p>\n<h2>⑥ 오늘의 관전 포인트</h2>\n<!-- investo:watch event:ab2d6aaf4fdf7ee61cc606e4 -->\n<h4>관찰 신호: 가상중앙은행 금리 결정</h4>\n<ul>\n<li>출처: <a href=\"https://example.invalid/synthetic/rate-sep\">fixture-rate-sep</a></li>\n<li>현재 상태: [실제] 정책금리를 <strong>2.75%</strong>로 유지했습니다.</li>\n<li>기준 시점: 사건 기준 2026-09-21 10:00 UTC (출처 시각)</li>\n<li>다음 확인: [관찰 항목] 정책 당국의 공식 결정과 후속 발언을 확인합니다.</li>\n<li>관심 영향: 예상 경로가 유지된다면 자금 조달 여건에 영향을 줄 수 있습니다.</li>\n</ul>\n<!-- /investo:watch event:ab2d6aaf4fdf7ee61cc606e4 -->\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n<h2>⑦ 면책조항</h2>\n<p>본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.</p>",
+          "html_sha256": "dd697eb5fa9b114186b4a3482f2f7344697004127426e21ae658b9ec8312f6f3",
+          "markdown": "# 2026-09-21 미국 증시 시황\n\n> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.\n\n**기준 시각**: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)\n\n**세그먼트**: 국내 증시(미발행) | [미국 증시](2026-09-21.md) | 크립토(미발행)\n\n## 한눈에 보기\n\n- 가상중앙은행은 정책금리를 **2.75%**로 유지했습니다.\n- 시장 반응은 확인하지 못했습니다.\n- 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n> **내 관심 자산 영향**: 관심 목록 미설정 — `config/watchlist.json`을 추가하면 보유 종목 영향이 표시됩니다.\n\n> **오늘의 결론**: 가상중앙은행은 정책금리를 **2.75%**로 유지했습니다.\n\n> **핵심 동인**: 시장 반응은 확인하지 못했습니다.\n\n> **주의할 점**: 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n## ① 요약\n\n수집된 합성 자료에서 확인한 발표를 정리했습니다.\n\n## ② 전일 핵심 이슈\n\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:ab2d6aaf4fdf7ee61cc606e4 -->\n### 가상중앙은행 금리 결정\n- 시점: 2026-09-21 10:00 UTC (출처 시각)\n- 주체: 가상중앙은행\n- 무슨 일이 있었나: 가상중앙은행은 정책금리를 **2.75%**로 유지했습니다.\n- 결정/실적/발표 내용: [예상, 단위 %] SEP의 내년 정책금리 예상은 **3.00%**입니다.; [실제, 단위 %] 정책금리를 **2.75%**로 유지했습니다.\n- 의미: 예상 경로가 유지된다면 자금 조달 여건에 영향을 줄 수 있습니다.\n- 시장 반응: 시장 반응은 확인하지 못했습니다.\n- 출처: [fixture-rate-sep](https://example.invalid/synthetic/rate-sep)\n<!-- /investo:block event:ab2d6aaf4fdf7ee61cc606e4 -->\n\n## ③ 섹터/수급 동향\n\n전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\n\n## ④ 지표·이벤트\n\n다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\n\n## ⑤ 주요 종목\n\n개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\n\n## ⑥ 오늘의 관전 포인트\n\n<!-- investo:watch event:ab2d6aaf4fdf7ee61cc606e4 -->\n#### 관찰 신호: 가상중앙은행 금리 결정\n\n- 출처: [fixture-rate-sep](https://example.invalid/synthetic/rate-sep)\n- 현재 상태: [실제] 정책금리를 **2.75%**로 유지했습니다.\n- 기준 시점: 사건 기준 2026-09-21 10:00 UTC (출처 시각)\n- 다음 확인: [관찰 항목] 정책 당국의 공식 결정과 후속 발언을 확인합니다.\n- 관심 영향: 예상 경로가 유지된다면 자금 조달 여건에 영향을 줄 수 있습니다.\n<!-- /investo:watch event:ab2d6aaf4fdf7ee61cc606e4 -->\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n## ⑦ 면책조항\n본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.",
+          "markdown_sha256": "c1849a4b2a033333547581bfa55be744b2997c697c5db114dcd97ff5c510140b",
+          "notification_summary": {
+            "conclusion": "가상중앙은행은 정책금리를 2.75%로 유지했습니다.",
+            "coverage_label": "부분",
+            "coverage_status": "partial",
+            "events": [
+              {
+                "coverage": "supported",
+                "event_id": "ab2d6aaf4fdf7ee61cc606e4",
+                "fact_summary": "가상중앙은행은 정책금리를 2.75%로 유지했습니다.",
+                "headline": "가상중앙은행 금리 결정"
+              }
+            ],
+            "segment": "us-equity",
+            "target_date": "2026-09-21",
+            "watchlist": null
+          },
+          "segment": "us-equity",
+          "surviving_event_ids": [
+            "ab2d6aaf4fdf7ee61cc606e4"
+          ],
+          "target_date": "2026-09-21"
+        }
+      ],
+      "outcomes": [
+        {
+          "calls": 2,
+          "codes": [],
+          "qualified": 1,
+          "segment": "us-equity",
+          "selected": 1,
+          "state": "qualified",
+          "summary": 1,
+          "terminal": 1
+        }
+      ],
+      "scenario_id": "s01"
+    },
+    {
+      "case_id": "geopolitical-unknown-reaction",
+      "documents": [
+        {
+          "html": "<h1>2026-09-21 미국 증시 시황</h1>\n<blockquote>\n<p>정보 제공용 자동 시황이며 매매 권유가 아닙니다.</p>\n</blockquote>\n<p><strong>기준 시각</strong>: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)</p>\n<p><strong>세그먼트</strong>: 국내 증시(미발행) | <a href=\"2026-09-21.md\">미국 증시</a> | 크립토(미발행)</p>\n<h2>한눈에 보기</h2>\n<ul>\n<li>가상국A와 가상국B는 국경 통행 재개에 합의했습니다.</li>\n<li>시장 반응은 확인하지 못했습니다.</li>\n<li>일부 사건의 시장 반응은 확인하지 못했습니다.</li>\n</ul>\n<blockquote>\n<p><strong>내 관심 자산 영향</strong>: 관심 목록 미설정 — <code>config/watchlist.json</code>을 추가하면 보유 종목 영향이 표시됩니다.</p>\n<p><strong>오늘의 결론</strong>: 가상국A와 가상국B는 국경 통행 재개에 합의했습니다.</p>\n<p><strong>핵심 동인</strong>: 시장 반응은 확인하지 못했습니다.</p>\n<p><strong>주의할 점</strong>: 일부 사건의 시장 반응은 확인하지 못했습니다.</p>\n</blockquote>\n<h2>① 요약</h2>\n<p>수집된 합성 자료에서 확인한 발표를 정리했습니다.</p>\n<h2>② 전일 핵심 이슈</h2>\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:8c88b3960c3a5c6c9846225f -->\n<h3>가상국A와 가상국B 통행 재개 합의</h3>\n<ul>\n<li>시점: 2026-09-21 10:00 UTC (출처 시각)</li>\n<li>주체: 가상국A와 가상국B</li>\n<li>무슨 일이 있었나: 가상국A와 가상국B는 국경 통행 재개에 합의했습니다.</li>\n<li>결정/실적/발표 내용: [실제] 국경 통행을 다시 허용하기로 합의했습니다.</li>\n<li>의미: 통행이 재개된다면 물류 회복에 도움이 될 수 있습니다.</li>\n<li>시장 반응: 시장 반응은 확인하지 못했습니다.</li>\n<li>출처: <a href=\"https://example.invalid/synthetic/geopolitical\">fixture-geopolitical</a></li>\n</ul>\n<!-- /investo:block event:8c88b3960c3a5c6c9846225f -->\n\n<h2>③ 섹터/수급 동향</h2>\n<p>전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.</p>\n<h2>④ 지표·이벤트</h2>\n<p>다음 공식 발표 시각은 자료에서 확인하지 못했습니다.</p>\n<h2>⑤ 주요 종목</h2>\n<p>개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.</p>\n<h2>⑥ 오늘의 관전 포인트</h2>\n<!-- investo:watch event:8c88b3960c3a5c6c9846225f -->\n<h4>관찰 신호: 가상국A와 가상국B 통행 재개 합의</h4>\n<ul>\n<li>출처: <a href=\"https://example.invalid/synthetic/geopolitical\">fixture-geopolitical</a></li>\n<li>현재 상태: [실제] 국경 통행을 다시 허용하기로 합의했습니다.</li>\n<li>기준 시점: 사건 기준 2026-09-21 10:00 UTC (출처 시각)</li>\n<li>다음 확인: [관찰 항목] 관련 당국의 공식 결정과 후속 발표를 확인합니다.</li>\n<li>관심 영향: 통행이 재개된다면 물류 회복에 도움이 될 수 있습니다.</li>\n</ul>\n<!-- /investo:watch event:8c88b3960c3a5c6c9846225f -->\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n<h2>⑦ 면책조항</h2>\n<p>본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.</p>",
+          "html_sha256": "b062835c3480e07150773dfb47d172fefe21280d2d137a342778621f66188cdb",
+          "markdown": "# 2026-09-21 미국 증시 시황\n\n> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.\n\n**기준 시각**: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)\n\n**세그먼트**: 국내 증시(미발행) | [미국 증시](2026-09-21.md) | 크립토(미발행)\n\n## 한눈에 보기\n\n- 가상국A와 가상국B는 국경 통행 재개에 합의했습니다.\n- 시장 반응은 확인하지 못했습니다.\n- 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n> **내 관심 자산 영향**: 관심 목록 미설정 — `config/watchlist.json`을 추가하면 보유 종목 영향이 표시됩니다.\n\n> **오늘의 결론**: 가상국A와 가상국B는 국경 통행 재개에 합의했습니다.\n\n> **핵심 동인**: 시장 반응은 확인하지 못했습니다.\n\n> **주의할 점**: 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n## ① 요약\n\n수집된 합성 자료에서 확인한 발표를 정리했습니다.\n\n## ② 전일 핵심 이슈\n\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:8c88b3960c3a5c6c9846225f -->\n### 가상국A와 가상국B 통행 재개 합의\n- 시점: 2026-09-21 10:00 UTC (출처 시각)\n- 주체: 가상국A와 가상국B\n- 무슨 일이 있었나: 가상국A와 가상국B는 국경 통행 재개에 합의했습니다.\n- 결정/실적/발표 내용: [실제] 국경 통행을 다시 허용하기로 합의했습니다.\n- 의미: 통행이 재개된다면 물류 회복에 도움이 될 수 있습니다.\n- 시장 반응: 시장 반응은 확인하지 못했습니다.\n- 출처: [fixture-geopolitical](https://example.invalid/synthetic/geopolitical)\n<!-- /investo:block event:8c88b3960c3a5c6c9846225f -->\n\n## ③ 섹터/수급 동향\n\n전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\n\n## ④ 지표·이벤트\n\n다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\n\n## ⑤ 주요 종목\n\n개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\n\n## ⑥ 오늘의 관전 포인트\n\n<!-- investo:watch event:8c88b3960c3a5c6c9846225f -->\n#### 관찰 신호: 가상국A와 가상국B 통행 재개 합의\n\n- 출처: [fixture-geopolitical](https://example.invalid/synthetic/geopolitical)\n- 현재 상태: [실제] 국경 통행을 다시 허용하기로 합의했습니다.\n- 기준 시점: 사건 기준 2026-09-21 10:00 UTC (출처 시각)\n- 다음 확인: [관찰 항목] 관련 당국의 공식 결정과 후속 발표를 확인합니다.\n- 관심 영향: 통행이 재개된다면 물류 회복에 도움이 될 수 있습니다.\n<!-- /investo:watch event:8c88b3960c3a5c6c9846225f -->\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n## ⑦ 면책조항\n본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.",
+          "markdown_sha256": "dac3b8eb173cc827a67d4022d7d1c30736dcadd8ad98c5c92738ce46d6cba883",
+          "notification_summary": {
+            "conclusion": "가상국A와 가상국B는 국경 통행 재개에 합의했습니다.",
+            "coverage_label": "부분",
+            "coverage_status": "partial",
+            "events": [
+              {
+                "coverage": "supported",
+                "event_id": "8c88b3960c3a5c6c9846225f",
+                "fact_summary": "가상국A와 가상국B는 국경 통행 재개에 합의했습니다.",
+                "headline": "가상국A와 가상국B 통행 재개 합의"
+              }
+            ],
+            "segment": "us-equity",
+            "target_date": "2026-09-21",
+            "watchlist": null
+          },
+          "segment": "us-equity",
+          "surviving_event_ids": [
+            "8c88b3960c3a5c6c9846225f"
+          ],
+          "target_date": "2026-09-21"
+        }
+      ],
+      "outcomes": [
+        {
+          "calls": 2,
+          "codes": [],
+          "qualified": 1,
+          "segment": "us-equity",
+          "selected": 1,
+          "state": "qualified",
+          "summary": 1,
+          "terminal": 1
+        }
+      ],
+      "scenario_id": "s02"
+    },
+    {
+      "case_id": "earnings-actual-estimate-guidance",
+      "documents": [
+        {
+          "html": "<h1>2026-09-21 미국 증시 시황</h1>\n<blockquote>\n<p>정보 제공용 자동 시황이며 매매 권유가 아닙니다.</p>\n</blockquote>\n<p><strong>기준 시각</strong>: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)</p>\n<p><strong>세그먼트</strong>: 국내 증시(미발행) | <a href=\"2026-09-21.md\">미국 증시</a> | 크립토(미발행)</p>\n<h2>한눈에 보기</h2>\n<ul>\n<li>가상기업은 실제 매출 10억 달러와 예상 매출 12억 달러의 가이던스를 발표했습니다.</li>\n<li>시장 반응은 확인하지 못했습니다.</li>\n<li>일부 사건의 시장 반응은 확인하지 못했습니다.</li>\n</ul>\n<blockquote>\n<p><strong>내 관심 자산 영향</strong>: 관심 목록 미설정 — <code>config/watchlist.json</code>을 추가하면 보유 종목 영향이 표시됩니다.</p>\n<p><strong>오늘의 결론</strong>: 가상기업은 실제 매출 10억 달러와 예상 매출 12억 달러의 가이던스를 발표했습니다.</p>\n<p><strong>핵심 동인</strong>: 시장 반응은 확인하지 못했습니다.</p>\n<p><strong>주의할 점</strong>: 일부 사건의 시장 반응은 확인하지 못했습니다.</p>\n</blockquote>\n<h2>① 요약</h2>\n<p>수집된 합성 자료에서 확인한 발표를 정리했습니다.</p>\n<h2>② 전일 핵심 이슈</h2>\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:3c4e725fb56d6b303b740787 -->\n<h3>가상기업 실적 발표</h3>\n<ul>\n<li>시점: 2026-09-21 10:00 UTC (출처 시각)</li>\n<li>주체: 가상기업</li>\n<li>무슨 일이 있었나: 가상기업은 실제 매출 10억 달러와 예상 매출 12억 달러의 가이던스를 발표했습니다.</li>\n<li>결정/실적/발표 내용: [실제, 기간 2026년 3분기, 단위 달러] 2026년 3분기 실제 매출은 10억 달러입니다.; [예상, 단위 달러] 다음 분기 가이던스는 예상 매출 12억 달러입니다.; [예상, 기간 3분기, 단위 달러] 같은 분기 시장 예상 매출은 9억 달러입니다.</li>\n<li>의미: 시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>시장 반응: 시장 반응은 확인하지 못했습니다.</li>\n<li>출처: <a href=\"https://example.invalid/synthetic/earnings\">fixture-earnings</a></li>\n</ul>\n<!-- /investo:block event:3c4e725fb56d6b303b740787 -->\n\n<h2>③ 섹터/수급 동향</h2>\n<p>전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.</p>\n<h2>④ 지표·이벤트</h2>\n<p>다음 공식 발표 시각은 자료에서 확인하지 못했습니다.</p>\n<h2>⑤ 주요 종목</h2>\n<p>개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.</p>\n<h2>⑥ 오늘의 관전 포인트</h2>\n<p>후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.</p>\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `f21e62fe6a62`\n- `stage1_hash`: `2b7bf30c318f`\n- `stage2_hash`: `691e7bf17942`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-earnings | news | — | 가상기업 실적 발표 |\n\n</details>\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n<h2>⑦ 면책조항</h2>\n<p>본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.</p>",
+          "html_sha256": "2b4bae73a3b630fbfc07286eef7e2e835ad8b2e6e2b52f5f95fddce39eac839a",
+          "markdown": "# 2026-09-21 미국 증시 시황\n\n> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.\n\n**기준 시각**: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)\n\n**세그먼트**: 국내 증시(미발행) | [미국 증시](2026-09-21.md) | 크립토(미발행)\n\n## 한눈에 보기\n\n- 가상기업은 실제 매출 10억 달러와 예상 매출 12억 달러의 가이던스를 발표했습니다.\n- 시장 반응은 확인하지 못했습니다.\n- 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n> **내 관심 자산 영향**: 관심 목록 미설정 — `config/watchlist.json`을 추가하면 보유 종목 영향이 표시됩니다.\n\n> **오늘의 결론**: 가상기업은 실제 매출 10억 달러와 예상 매출 12억 달러의 가이던스를 발표했습니다.\n\n> **핵심 동인**: 시장 반응은 확인하지 못했습니다.\n\n> **주의할 점**: 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n## ① 요약\n\n수집된 합성 자료에서 확인한 발표를 정리했습니다.\n\n## ② 전일 핵심 이슈\n\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:3c4e725fb56d6b303b740787 -->\n### 가상기업 실적 발표\n- 시점: 2026-09-21 10:00 UTC (출처 시각)\n- 주체: 가상기업\n- 무슨 일이 있었나: 가상기업은 실제 매출 10억 달러와 예상 매출 12억 달러의 가이던스를 발표했습니다.\n- 결정/실적/발표 내용: [실제, 기간 2026년 3분기, 단위 달러] 2026년 3분기 실제 매출은 10억 달러입니다.; [예상, 단위 달러] 다음 분기 가이던스는 예상 매출 12억 달러입니다.; [예상, 기간 3분기, 단위 달러] 같은 분기 시장 예상 매출은 9억 달러입니다.\n- 의미: 시장에 미치는 의미는 확인하지 못했습니다.\n- 시장 반응: 시장 반응은 확인하지 못했습니다.\n- 출처: [fixture-earnings](https://example.invalid/synthetic/earnings)\n<!-- /investo:block event:3c4e725fb56d6b303b740787 -->\n\n## ③ 섹터/수급 동향\n\n전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\n\n## ④ 지표·이벤트\n\n다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\n\n## ⑤ 주요 종목\n\n개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\n\n## ⑥ 오늘의 관전 포인트\n\n후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `f21e62fe6a62`\n- `stage1_hash`: `2b7bf30c318f`\n- `stage2_hash`: `691e7bf17942`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-earnings | news | — | 가상기업 실적 발표 |\n\n</details>\n\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n## ⑦ 면책조항\n본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.",
+          "markdown_sha256": "02169eafab1c82fa842a5328e28ad2b208dae8d75c7b89d5e219deda965005ac",
+          "notification_summary": {
+            "conclusion": "가상기업은 실제 매출 10억 달러와 예상 매출 12억 달러의 가이던스를 발표했습니다.",
+            "coverage_label": "부분",
+            "coverage_status": "partial",
+            "events": [
+              {
+                "coverage": "supported",
+                "event_id": "3c4e725fb56d6b303b740787",
+                "fact_summary": "가상기업은 실제 매출 10억 달러와 예상 매출 12억 달러의 가이던스를 발표했습니다.",
+                "headline": "가상기업 실적 발표"
+              }
+            ],
+            "segment": "us-equity",
+            "target_date": "2026-09-21",
+            "watchlist": null
+          },
+          "segment": "us-equity",
+          "surviving_event_ids": [
+            "3c4e725fb56d6b303b740787"
+          ],
+          "target_date": "2026-09-21"
+        }
+      ],
+      "outcomes": [
+        {
+          "calls": 2,
+          "codes": [],
+          "qualified": 1,
+          "segment": "us-equity",
+          "selected": 1,
+          "state": "qualified",
+          "summary": 1,
+          "terminal": 1
+        }
+      ],
+      "scenario_id": "s03"
+    },
+    {
+      "case_id": "services-1",
+      "documents": [
+        {
+          "html": "<h1>2026-09-21 미국 증시 시황</h1>\n<blockquote>\n<p>정보 제공용 자동 시황이며 매매 권유가 아닙니다.</p>\n</blockquote>\n<p><strong>기준 시각</strong>: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)</p>\n<p><strong>세그먼트</strong>: 국내 증시(미발행) | <a href=\"2026-09-21.md\">미국 증시</a> | 크립토(미발행)</p>\n<h2>한눈에 보기</h2>\n<ul>\n<li>가상사는 서비스 가를 정식 출시했습니다.</li>\n<li>시장 반응은 확인하지 못했습니다.</li>\n<li>일부 사건의 시장 반응은 확인하지 못했습니다.</li>\n</ul>\n<blockquote>\n<p><strong>내 관심 자산 영향</strong>: 관심 목록 미설정 — <code>config/watchlist.json</code>을 추가하면 보유 종목 영향이 표시됩니다.</p>\n<p><strong>오늘의 결론</strong>: 가상사는 서비스 가를 정식 출시했습니다.</p>\n<p><strong>핵심 동인</strong>: 시장 반응은 확인하지 못했습니다.</p>\n<p><strong>주의할 점</strong>: 일부 사건의 시장 반응은 확인하지 못했습니다.</p>\n</blockquote>\n<h2>① 요약</h2>\n<p>수집된 합성 자료에서 확인한 발표를 정리했습니다.</p>\n<h2>② 전일 핵심 이슈</h2>\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:7bf3a833d629e7ec52fb1841 -->\n<h3>가상사 출시 서비스 가</h3>\n<ul>\n<li>시점: 2026-09-21 10:00 UTC (출처 시각)</li>\n<li>주체: 가상사; 대상: 서비스 가</li>\n<li>무슨 일이 있었나: 가상사는 서비스 가를 정식 출시했습니다.</li>\n<li>결정/실적/발표 내용: [실제] 서비스 가가 정식 출시됐습니다.</li>\n<li>의미: 시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>시장 반응: 시장 반응은 확인하지 못했습니다.</li>\n<li>출처: <a href=\"https://example.invalid/synthetic/service-1\">fixture-service-1</a></li>\n</ul>\n<!-- /investo:block event:7bf3a833d629e7ec52fb1841 -->\n\n<h2>③ 섹터/수급 동향</h2>\n<p>전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.</p>\n<h2>④ 지표·이벤트</h2>\n<p>다음 공식 발표 시각은 자료에서 확인하지 못했습니다.</p>\n<h2>⑤ 주요 종목</h2>\n<p>개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.</p>\n<h2>⑥ 오늘의 관전 포인트</h2>\n<p>후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.</p>\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `96d6f9c94d39`\n- `stage1_hash`: `d09aac2924db`\n- `stage2_hash`: `e6a6ce92bb32`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-service-1 | news | — | 가상사 출시 서비스 가 |\n\n</details>\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n<h2>⑦ 면책조항</h2>\n<p>본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.</p>",
+          "html_sha256": "9213d45d74c115777c30d6bc11e7d18b0898d315c609e93d1734c8a5276cb570",
+          "markdown": "# 2026-09-21 미국 증시 시황\n\n> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.\n\n**기준 시각**: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)\n\n**세그먼트**: 국내 증시(미발행) | [미국 증시](2026-09-21.md) | 크립토(미발행)\n\n## 한눈에 보기\n\n- 가상사는 서비스 가를 정식 출시했습니다.\n- 시장 반응은 확인하지 못했습니다.\n- 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n> **내 관심 자산 영향**: 관심 목록 미설정 — `config/watchlist.json`을 추가하면 보유 종목 영향이 표시됩니다.\n\n> **오늘의 결론**: 가상사는 서비스 가를 정식 출시했습니다.\n\n> **핵심 동인**: 시장 반응은 확인하지 못했습니다.\n\n> **주의할 점**: 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n## ① 요약\n\n수집된 합성 자료에서 확인한 발표를 정리했습니다.\n\n## ② 전일 핵심 이슈\n\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:7bf3a833d629e7ec52fb1841 -->\n### 가상사 출시 서비스 가\n- 시점: 2026-09-21 10:00 UTC (출처 시각)\n- 주체: 가상사; 대상: 서비스 가\n- 무슨 일이 있었나: 가상사는 서비스 가를 정식 출시했습니다.\n- 결정/실적/발표 내용: [실제] 서비스 가가 정식 출시됐습니다.\n- 의미: 시장에 미치는 의미는 확인하지 못했습니다.\n- 시장 반응: 시장 반응은 확인하지 못했습니다.\n- 출처: [fixture-service-1](https://example.invalid/synthetic/service-1)\n<!-- /investo:block event:7bf3a833d629e7ec52fb1841 -->\n\n## ③ 섹터/수급 동향\n\n전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\n\n## ④ 지표·이벤트\n\n다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\n\n## ⑤ 주요 종목\n\n개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\n\n## ⑥ 오늘의 관전 포인트\n\n후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `96d6f9c94d39`\n- `stage1_hash`: `d09aac2924db`\n- `stage2_hash`: `e6a6ce92bb32`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-service-1 | news | — | 가상사 출시 서비스 가 |\n\n</details>\n\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n## ⑦ 면책조항\n본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.",
+          "markdown_sha256": "b6ef9e9a11696160207799362bdfafe0c4186b9bac0cdcf5cb98320e38f308e3",
+          "notification_summary": {
+            "conclusion": "가상사는 서비스 가를 정식 출시했습니다.",
+            "coverage_label": "부분",
+            "coverage_status": "partial",
+            "events": [
+              {
+                "coverage": "supported",
+                "event_id": "7bf3a833d629e7ec52fb1841",
+                "fact_summary": "가상사는 서비스 가를 정식 출시했습니다.",
+                "headline": "가상사 출시 서비스 가"
+              }
+            ],
+            "segment": "us-equity",
+            "target_date": "2026-09-21",
+            "watchlist": null
+          },
+          "segment": "us-equity",
+          "surviving_event_ids": [
+            "7bf3a833d629e7ec52fb1841"
+          ],
+          "target_date": "2026-09-21"
+        }
+      ],
+      "outcomes": [
+        {
+          "calls": 2,
+          "codes": [],
+          "qualified": 1,
+          "segment": "us-equity",
+          "selected": 1,
+          "state": "qualified",
+          "summary": 1,
+          "terminal": 1
+        }
+      ],
+      "scenario_id": "s04"
+    },
+    {
+      "case_id": "services-4",
+      "documents": [
+        {
+          "html": "<h1>2026-09-21 미국 증시 시황</h1>\n<blockquote>\n<p>정보 제공용 자동 시황이며 매매 권유가 아닙니다.</p>\n</blockquote>\n<p><strong>기준 시각</strong>: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)</p>\n<p><strong>세그먼트</strong>: 국내 증시(미발행) | <a href=\"2026-09-21.md\">미국 증시</a> | 크립토(미발행)</p>\n<h2>한눈에 보기</h2>\n<ul>\n<li>가상사는 서비스 가를 정식 출시했습니다.</li>\n<li>가상사는 서비스 다를 정식 출시했습니다.</li>\n<li>일부 사건의 시장 반응은 확인하지 못했습니다.</li>\n</ul>\n<blockquote>\n<p><strong>내 관심 자산 영향</strong>: 관심 목록 미설정 — <code>config/watchlist.json</code>을 추가하면 보유 종목 영향이 표시됩니다.</p>\n<p><strong>오늘의 결론</strong>: 가상사는 서비스 가를 정식 출시했습니다.</p>\n<p><strong>핵심 동인</strong>: 가상사는 서비스 다를 정식 출시했습니다.</p>\n<p><strong>주의할 점</strong>: 일부 사건의 시장 반응은 확인하지 못했습니다.</p>\n</blockquote>\n<h2>① 요약</h2>\n<p>수집된 합성 자료에서 확인한 발표를 정리했습니다.</p>\n<h2>② 전일 핵심 이슈</h2>\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:7bf3a833d629e7ec52fb1841 -->\n<h3>가상사 출시 서비스 가</h3>\n<ul>\n<li>시점: 2026-09-21 10:00 UTC (출처 시각)</li>\n<li>주체: 가상사; 대상: 서비스 가</li>\n<li>무슨 일이 있었나: 가상사는 서비스 가를 정식 출시했습니다.</li>\n<li>결정/실적/발표 내용: [실제] 서비스 가가 정식 출시됐습니다.</li>\n<li>의미: 시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>시장 반응: 시장 반응은 확인하지 못했습니다.</li>\n<li>출처: <a href=\"https://example.invalid/synthetic/service-1\">fixture-service-1</a></li>\n</ul>\n<!-- /investo:block event:7bf3a833d629e7ec52fb1841 -->\n\n<!-- investo:block event:97c9f81f5b65b8b8ffe793ed -->\n<h3>가상사 출시 서비스 다</h3>\n<ul>\n<li>시점: 2026-09-21 10:00 UTC (출처 시각)</li>\n<li>주체: 가상사; 대상: 서비스 다</li>\n<li>무슨 일이 있었나: 가상사는 서비스 다를 정식 출시했습니다.</li>\n<li>결정/실적/발표 내용: [실제] 서비스 다가 정식 출시됐습니다.</li>\n<li>의미: 시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>시장 반응: 시장 반응은 확인하지 못했습니다.</li>\n<li>출처: <a href=\"https://example.invalid/synthetic/service-3\">fixture-service-3</a></li>\n</ul>\n<!-- /investo:block event:97c9f81f5b65b8b8ffe793ed -->\n\n<!-- investo:block event:ac71f8b0b00ea06876160119 -->\n<h3>가상사 출시 서비스 라</h3>\n<ul>\n<li>시점: 2026-09-21 10:00 UTC (출처 시각)</li>\n<li>주체: 가상사; 대상: 서비스 라</li>\n<li>무슨 일이 있었나: 가상사는 서비스 라를 정식 출시했습니다.</li>\n<li>결정/실적/발표 내용: [실제] 서비스 라가 정식 출시됐습니다.</li>\n<li>의미: 시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>시장 반응: 시장 반응은 확인하지 못했습니다.</li>\n<li>출처: <a href=\"https://example.invalid/synthetic/service-4\">fixture-service-4</a></li>\n</ul>\n<!-- /investo:block event:ac71f8b0b00ea06876160119 -->\n\n<!-- investo:block event:aeab0e4a9e3c7559513ea422 -->\n<h3>가상사 출시 서비스 나</h3>\n<ul>\n<li>시점: 2026-09-21 10:00 UTC (출처 시각)</li>\n<li>주체: 가상사; 대상: 서비스 나</li>\n<li>무슨 일이 있었나: 가상사는 서비스 나를 정식 출시했습니다.</li>\n<li>결정/실적/발표 내용: [실제] 서비스 나가 정식 출시됐습니다.</li>\n<li>의미: 시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>시장 반응: 시장 반응은 확인하지 못했습니다.</li>\n<li>출처: <a href=\"https://example.invalid/synthetic/service-2\">fixture-service-2</a></li>\n</ul>\n<!-- /investo:block event:aeab0e4a9e3c7559513ea422 -->\n\n<h2>③ 섹터/수급 동향</h2>\n<p>전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.</p>\n<h2>④ 지표·이벤트</h2>\n<p>다음 공식 발표 시각은 자료에서 확인하지 못했습니다.</p>\n<h2>⑤ 주요 종목</h2>\n<p>개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.</p>\n<h2>⑥ 오늘의 관전 포인트</h2>\n<p>후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.</p>\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `7b475bf896d3`\n- `stage1_hash`: `26a0efdcf4f0`\n- `stage2_hash`: `3db657964393`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-service-1 | news | — | 가상사 출시 서비스 가 |\n| 1 | fixture-service-2 | news | 2 | 가상사 출시 서비스 나 |\n| 2 | fixture-service-3 | news | 2 | 가상사 출시 서비스 다 |\n| 3 | fixture-service-4 | news | 2 | 가상사 출시 서비스 라 |\n\n</details>\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 4건 / 소스 4개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 가격 카테고리 누락\n\n</details>\n\n<h2>⑦ 면책조항</h2>\n<p>본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.</p>",
+          "html_sha256": "8b78911ffe7b32e7ccc091376add738efadf504056c85815060acc8c1987651d",
+          "markdown": "# 2026-09-21 미국 증시 시황\n\n> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.\n\n**기준 시각**: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)\n\n**세그먼트**: 국내 증시(미발행) | [미국 증시](2026-09-21.md) | 크립토(미발행)\n\n## 한눈에 보기\n\n- 가상사는 서비스 가를 정식 출시했습니다.\n- 가상사는 서비스 다를 정식 출시했습니다.\n- 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n> **내 관심 자산 영향**: 관심 목록 미설정 — `config/watchlist.json`을 추가하면 보유 종목 영향이 표시됩니다.\n\n> **오늘의 결론**: 가상사는 서비스 가를 정식 출시했습니다.\n\n> **핵심 동인**: 가상사는 서비스 다를 정식 출시했습니다.\n\n> **주의할 점**: 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n## ① 요약\n\n수집된 합성 자료에서 확인한 발표를 정리했습니다.\n\n## ② 전일 핵심 이슈\n\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:7bf3a833d629e7ec52fb1841 -->\n### 가상사 출시 서비스 가\n- 시점: 2026-09-21 10:00 UTC (출처 시각)\n- 주체: 가상사; 대상: 서비스 가\n- 무슨 일이 있었나: 가상사는 서비스 가를 정식 출시했습니다.\n- 결정/실적/발표 내용: [실제] 서비스 가가 정식 출시됐습니다.\n- 의미: 시장에 미치는 의미는 확인하지 못했습니다.\n- 시장 반응: 시장 반응은 확인하지 못했습니다.\n- 출처: [fixture-service-1](https://example.invalid/synthetic/service-1)\n<!-- /investo:block event:7bf3a833d629e7ec52fb1841 -->\n\n<!-- investo:block event:97c9f81f5b65b8b8ffe793ed -->\n### 가상사 출시 서비스 다\n- 시점: 2026-09-21 10:00 UTC (출처 시각)\n- 주체: 가상사; 대상: 서비스 다\n- 무슨 일이 있었나: 가상사는 서비스 다를 정식 출시했습니다.\n- 결정/실적/발표 내용: [실제] 서비스 다가 정식 출시됐습니다.\n- 의미: 시장에 미치는 의미는 확인하지 못했습니다.\n- 시장 반응: 시장 반응은 확인하지 못했습니다.\n- 출처: [fixture-service-3](https://example.invalid/synthetic/service-3)\n<!-- /investo:block event:97c9f81f5b65b8b8ffe793ed -->\n\n<!-- investo:block event:ac71f8b0b00ea06876160119 -->\n### 가상사 출시 서비스 라\n- 시점: 2026-09-21 10:00 UTC (출처 시각)\n- 주체: 가상사; 대상: 서비스 라\n- 무슨 일이 있었나: 가상사는 서비스 라를 정식 출시했습니다.\n- 결정/실적/발표 내용: [실제] 서비스 라가 정식 출시됐습니다.\n- 의미: 시장에 미치는 의미는 확인하지 못했습니다.\n- 시장 반응: 시장 반응은 확인하지 못했습니다.\n- 출처: [fixture-service-4](https://example.invalid/synthetic/service-4)\n<!-- /investo:block event:ac71f8b0b00ea06876160119 -->\n\n<!-- investo:block event:aeab0e4a9e3c7559513ea422 -->\n### 가상사 출시 서비스 나\n- 시점: 2026-09-21 10:00 UTC (출처 시각)\n- 주체: 가상사; 대상: 서비스 나\n- 무슨 일이 있었나: 가상사는 서비스 나를 정식 출시했습니다.\n- 결정/실적/발표 내용: [실제] 서비스 나가 정식 출시됐습니다.\n- 의미: 시장에 미치는 의미는 확인하지 못했습니다.\n- 시장 반응: 시장 반응은 확인하지 못했습니다.\n- 출처: [fixture-service-2](https://example.invalid/synthetic/service-2)\n<!-- /investo:block event:aeab0e4a9e3c7559513ea422 -->\n\n## ③ 섹터/수급 동향\n\n전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\n\n## ④ 지표·이벤트\n\n다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\n\n## ⑤ 주요 종목\n\n개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\n\n## ⑥ 오늘의 관전 포인트\n\n후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `7b475bf896d3`\n- `stage1_hash`: `26a0efdcf4f0`\n- `stage2_hash`: `3db657964393`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-service-1 | news | — | 가상사 출시 서비스 가 |\n| 1 | fixture-service-2 | news | 2 | 가상사 출시 서비스 나 |\n| 2 | fixture-service-3 | news | 2 | 가상사 출시 서비스 다 |\n| 3 | fixture-service-4 | news | 2 | 가상사 출시 서비스 라 |\n\n</details>\n\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 4건 / 소스 4개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 가격 카테고리 누락\n\n</details>\n\n## ⑦ 면책조항\n본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.",
+          "markdown_sha256": "14bd7df0290504e03bd6b9f056c51c750e1823051dab7eb12858b83a8486506c",
+          "notification_summary": {
+            "conclusion": "가상사는 서비스 가를 정식 출시했습니다.",
+            "coverage_label": "부분",
+            "coverage_status": "partial",
+            "events": [
+              {
+                "coverage": "supported",
+                "event_id": "7bf3a833d629e7ec52fb1841",
+                "fact_summary": "가상사는 서비스 가를 정식 출시했습니다.",
+                "headline": "가상사 출시 서비스 가"
+              },
+              {
+                "coverage": "supported",
+                "event_id": "97c9f81f5b65b8b8ffe793ed",
+                "fact_summary": "가상사는 서비스 다를 정식 출시했습니다.",
+                "headline": "가상사 출시 서비스 다"
+              },
+              {
+                "coverage": "supported",
+                "event_id": "ac71f8b0b00ea06876160119",
+                "fact_summary": "가상사는 서비스 라를 정식 출시했습니다.",
+                "headline": "가상사 출시 서비스 라"
+              }
+            ],
+            "segment": "us-equity",
+            "target_date": "2026-09-21",
+            "watchlist": null
+          },
+          "segment": "us-equity",
+          "surviving_event_ids": [
+            "7bf3a833d629e7ec52fb1841",
+            "97c9f81f5b65b8b8ffe793ed",
+            "ac71f8b0b00ea06876160119",
+            "aeab0e4a9e3c7559513ea422"
+          ],
+          "target_date": "2026-09-21"
+        }
+      ],
+      "outcomes": [
+        {
+          "calls": 2,
+          "codes": [],
+          "qualified": 4,
+          "segment": "us-equity",
+          "selected": 4,
+          "state": "qualified",
+          "summary": 3,
+          "terminal": 4
+        }
+      ],
+      "scenario_id": "s04"
+    },
+    {
+      "case_id": "services-5",
+      "documents": [
+        {
+          "html": "<h1>2026-09-21 미국 증시 시황</h1>\n<blockquote>\n<p>정보 제공용 자동 시황이며 매매 권유가 아닙니다.</p>\n</blockquote>\n<p><strong>기준 시각</strong>: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)</p>\n<p><strong>세그먼트</strong>: 국내 증시(미발행) | <a href=\"2026-09-21.md\">미국 증시</a> | 크립토(미발행)</p>\n<h2>한눈에 보기</h2>\n<ul>\n<li>가상사는 서비스 마를 정식 출시했습니다.</li>\n<li>가상사는 서비스 가를 정식 출시했습니다.</li>\n<li>일부 사건의 시장 반응은 확인하지 못했습니다.</li>\n</ul>\n<blockquote>\n<p><strong>내 관심 자산 영향</strong>: 관심 목록 미설정 — <code>config/watchlist.json</code>을 추가하면 보유 종목 영향이 표시됩니다.</p>\n<p><strong>오늘의 결론</strong>: 가상사는 서비스 마를 정식 출시했습니다.</p>\n<p><strong>핵심 동인</strong>: 가상사는 서비스 가를 정식 출시했습니다.</p>\n<p><strong>주의할 점</strong>: 일부 사건의 시장 반응은 확인하지 못했습니다.</p>\n</blockquote>\n<h2>① 요약</h2>\n<p>수집된 합성 자료에서 확인한 발표를 정리했습니다.</p>\n<h2>② 전일 핵심 이슈</h2>\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:10a92334f4034f4a9ccf2db1 -->\n<h3>가상사 출시 서비스 마</h3>\n<ul>\n<li>시점: 2026-09-21 10:00 UTC (출처 시각)</li>\n<li>주체: 가상사; 대상: 서비스 마</li>\n<li>무슨 일이 있었나: 가상사는 서비스 마를 정식 출시했습니다.</li>\n<li>결정/실적/발표 내용: [실제] 서비스 마가 정식 출시됐습니다.</li>\n<li>의미: 시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>시장 반응: 시장 반응은 확인하지 못했습니다.</li>\n<li>출처: <a href=\"https://example.invalid/synthetic/service-5\">fixture-service-5</a></li>\n</ul>\n<!-- /investo:block event:10a92334f4034f4a9ccf2db1 -->\n\n<!-- investo:block event:7bf3a833d629e7ec52fb1841 -->\n<h3>가상사 출시 서비스 가</h3>\n<ul>\n<li>시점: 2026-09-21 10:00 UTC (출처 시각)</li>\n<li>주체: 가상사; 대상: 서비스 가</li>\n<li>무슨 일이 있었나: 가상사는 서비스 가를 정식 출시했습니다.</li>\n<li>결정/실적/발표 내용: [실제] 서비스 가가 정식 출시됐습니다.</li>\n<li>의미: 시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>시장 반응: 시장 반응은 확인하지 못했습니다.</li>\n<li>출처: <a href=\"https://example.invalid/synthetic/service-1\">fixture-service-1</a></li>\n</ul>\n<!-- /investo:block event:7bf3a833d629e7ec52fb1841 -->\n\n<!-- investo:block event:97c9f81f5b65b8b8ffe793ed -->\n<h3>가상사 출시 서비스 다</h3>\n<ul>\n<li>시점: 2026-09-21 10:00 UTC (출처 시각)</li>\n<li>주체: 가상사; 대상: 서비스 다</li>\n<li>무슨 일이 있었나: 가상사는 서비스 다를 정식 출시했습니다.</li>\n<li>결정/실적/발표 내용: [실제] 서비스 다가 정식 출시됐습니다.</li>\n<li>의미: 시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>시장 반응: 시장 반응은 확인하지 못했습니다.</li>\n<li>출처: <a href=\"https://example.invalid/synthetic/service-3\">fixture-service-3</a></li>\n</ul>\n<!-- /investo:block event:97c9f81f5b65b8b8ffe793ed -->\n\n<!-- investo:block event:ac71f8b0b00ea06876160119 -->\n<h3>가상사 출시 서비스 라</h3>\n<ul>\n<li>시점: 2026-09-21 10:00 UTC (출처 시각)</li>\n<li>주체: 가상사; 대상: 서비스 라</li>\n<li>무슨 일이 있었나: 가상사는 서비스 라를 정식 출시했습니다.</li>\n<li>결정/실적/발표 내용: [실제] 서비스 라가 정식 출시됐습니다.</li>\n<li>의미: 시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>시장 반응: 시장 반응은 확인하지 못했습니다.</li>\n<li>출처: <a href=\"https://example.invalid/synthetic/service-4\">fixture-service-4</a></li>\n</ul>\n<!-- /investo:block event:ac71f8b0b00ea06876160119 -->\n\n<!-- investo:block event:aeab0e4a9e3c7559513ea422 -->\n<h3>가상사 출시 서비스 나</h3>\n<ul>\n<li>시점: 2026-09-21 10:00 UTC (출처 시각)</li>\n<li>주체: 가상사; 대상: 서비스 나</li>\n<li>무슨 일이 있었나: 가상사는 서비스 나를 정식 출시했습니다.</li>\n<li>결정/실적/발표 내용: [실제] 서비스 나가 정식 출시됐습니다.</li>\n<li>의미: 시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>시장 반응: 시장 반응은 확인하지 못했습니다.</li>\n<li>출처: <a href=\"https://example.invalid/synthetic/service-2\">fixture-service-2</a></li>\n</ul>\n<!-- /investo:block event:aeab0e4a9e3c7559513ea422 -->\n\n<h2>③ 섹터/수급 동향</h2>\n<p>전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.</p>\n<h2>④ 지표·이벤트</h2>\n<p>다음 공식 발표 시각은 자료에서 확인하지 못했습니다.</p>\n<h2>⑤ 주요 종목</h2>\n<p>개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.</p>\n<h2>⑥ 오늘의 관전 포인트</h2>\n<p>후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.</p>\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `30658c61e78e`\n- `stage1_hash`: `25058edcb120`\n- `stage2_hash`: `0442a589b8fa`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-service-1 | news | — | 가상사 출시 서비스 가 |\n| 1 | fixture-service-2 | news | 2 | 가상사 출시 서비스 나 |\n| 2 | fixture-service-3 | news | 2 | 가상사 출시 서비스 다 |\n| 3 | fixture-service-4 | news | 2 | 가상사 출시 서비스 라 |\n| 4 | fixture-service-5 | news | 2 | 가상사 출시 서비스 마 |\n\n</details>\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 5건 / 소스 5개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 가격 카테고리 누락\n\n</details>\n\n<h2>⑦ 면책조항</h2>\n<p>본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.</p>",
+          "html_sha256": "9a8139f5f966ff4f60d7ca8dab31614148125a5beebaca1efe342df53bfe27a6",
+          "markdown": "# 2026-09-21 미국 증시 시황\n\n> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.\n\n**기준 시각**: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)\n\n**세그먼트**: 국내 증시(미발행) | [미국 증시](2026-09-21.md) | 크립토(미발행)\n\n## 한눈에 보기\n\n- 가상사는 서비스 마를 정식 출시했습니다.\n- 가상사는 서비스 가를 정식 출시했습니다.\n- 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n> **내 관심 자산 영향**: 관심 목록 미설정 — `config/watchlist.json`을 추가하면 보유 종목 영향이 표시됩니다.\n\n> **오늘의 결론**: 가상사는 서비스 마를 정식 출시했습니다.\n\n> **핵심 동인**: 가상사는 서비스 가를 정식 출시했습니다.\n\n> **주의할 점**: 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n## ① 요약\n\n수집된 합성 자료에서 확인한 발표를 정리했습니다.\n\n## ② 전일 핵심 이슈\n\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:10a92334f4034f4a9ccf2db1 -->\n### 가상사 출시 서비스 마\n- 시점: 2026-09-21 10:00 UTC (출처 시각)\n- 주체: 가상사; 대상: 서비스 마\n- 무슨 일이 있었나: 가상사는 서비스 마를 정식 출시했습니다.\n- 결정/실적/발표 내용: [실제] 서비스 마가 정식 출시됐습니다.\n- 의미: 시장에 미치는 의미는 확인하지 못했습니다.\n- 시장 반응: 시장 반응은 확인하지 못했습니다.\n- 출처: [fixture-service-5](https://example.invalid/synthetic/service-5)\n<!-- /investo:block event:10a92334f4034f4a9ccf2db1 -->\n\n<!-- investo:block event:7bf3a833d629e7ec52fb1841 -->\n### 가상사 출시 서비스 가\n- 시점: 2026-09-21 10:00 UTC (출처 시각)\n- 주체: 가상사; 대상: 서비스 가\n- 무슨 일이 있었나: 가상사는 서비스 가를 정식 출시했습니다.\n- 결정/실적/발표 내용: [실제] 서비스 가가 정식 출시됐습니다.\n- 의미: 시장에 미치는 의미는 확인하지 못했습니다.\n- 시장 반응: 시장 반응은 확인하지 못했습니다.\n- 출처: [fixture-service-1](https://example.invalid/synthetic/service-1)\n<!-- /investo:block event:7bf3a833d629e7ec52fb1841 -->\n\n<!-- investo:block event:97c9f81f5b65b8b8ffe793ed -->\n### 가상사 출시 서비스 다\n- 시점: 2026-09-21 10:00 UTC (출처 시각)\n- 주체: 가상사; 대상: 서비스 다\n- 무슨 일이 있었나: 가상사는 서비스 다를 정식 출시했습니다.\n- 결정/실적/발표 내용: [실제] 서비스 다가 정식 출시됐습니다.\n- 의미: 시장에 미치는 의미는 확인하지 못했습니다.\n- 시장 반응: 시장 반응은 확인하지 못했습니다.\n- 출처: [fixture-service-3](https://example.invalid/synthetic/service-3)\n<!-- /investo:block event:97c9f81f5b65b8b8ffe793ed -->\n\n<!-- investo:block event:ac71f8b0b00ea06876160119 -->\n### 가상사 출시 서비스 라\n- 시점: 2026-09-21 10:00 UTC (출처 시각)\n- 주체: 가상사; 대상: 서비스 라\n- 무슨 일이 있었나: 가상사는 서비스 라를 정식 출시했습니다.\n- 결정/실적/발표 내용: [실제] 서비스 라가 정식 출시됐습니다.\n- 의미: 시장에 미치는 의미는 확인하지 못했습니다.\n- 시장 반응: 시장 반응은 확인하지 못했습니다.\n- 출처: [fixture-service-4](https://example.invalid/synthetic/service-4)\n<!-- /investo:block event:ac71f8b0b00ea06876160119 -->\n\n<!-- investo:block event:aeab0e4a9e3c7559513ea422 -->\n### 가상사 출시 서비스 나\n- 시점: 2026-09-21 10:00 UTC (출처 시각)\n- 주체: 가상사; 대상: 서비스 나\n- 무슨 일이 있었나: 가상사는 서비스 나를 정식 출시했습니다.\n- 결정/실적/발표 내용: [실제] 서비스 나가 정식 출시됐습니다.\n- 의미: 시장에 미치는 의미는 확인하지 못했습니다.\n- 시장 반응: 시장 반응은 확인하지 못했습니다.\n- 출처: [fixture-service-2](https://example.invalid/synthetic/service-2)\n<!-- /investo:block event:aeab0e4a9e3c7559513ea422 -->\n\n## ③ 섹터/수급 동향\n\n전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\n\n## ④ 지표·이벤트\n\n다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\n\n## ⑤ 주요 종목\n\n개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\n\n## ⑥ 오늘의 관전 포인트\n\n후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `30658c61e78e`\n- `stage1_hash`: `25058edcb120`\n- `stage2_hash`: `0442a589b8fa`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-service-1 | news | — | 가상사 출시 서비스 가 |\n| 1 | fixture-service-2 | news | 2 | 가상사 출시 서비스 나 |\n| 2 | fixture-service-3 | news | 2 | 가상사 출시 서비스 다 |\n| 3 | fixture-service-4 | news | 2 | 가상사 출시 서비스 라 |\n| 4 | fixture-service-5 | news | 2 | 가상사 출시 서비스 마 |\n\n</details>\n\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 5건 / 소스 5개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 가격 카테고리 누락\n\n</details>\n\n## ⑦ 면책조항\n본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.",
+          "markdown_sha256": "b3497278a42cb9283fe71f7f8146c642249edd769a2c4909ea43bcb275596ff9",
+          "notification_summary": {
+            "conclusion": "가상사는 서비스 마를 정식 출시했습니다.",
+            "coverage_label": "부분",
+            "coverage_status": "partial",
+            "events": [
+              {
+                "coverage": "supported",
+                "event_id": "10a92334f4034f4a9ccf2db1",
+                "fact_summary": "가상사는 서비스 마를 정식 출시했습니다.",
+                "headline": "가상사 출시 서비스 마"
+              },
+              {
+                "coverage": "supported",
+                "event_id": "7bf3a833d629e7ec52fb1841",
+                "fact_summary": "가상사는 서비스 가를 정식 출시했습니다.",
+                "headline": "가상사 출시 서비스 가"
+              },
+              {
+                "coverage": "supported",
+                "event_id": "97c9f81f5b65b8b8ffe793ed",
+                "fact_summary": "가상사는 서비스 다를 정식 출시했습니다.",
+                "headline": "가상사 출시 서비스 다"
+              }
+            ],
+            "segment": "us-equity",
+            "target_date": "2026-09-21",
+            "watchlist": null
+          },
+          "segment": "us-equity",
+          "surviving_event_ids": [
+            "10a92334f4034f4a9ccf2db1",
+            "7bf3a833d629e7ec52fb1841",
+            "97c9f81f5b65b8b8ffe793ed",
+            "ac71f8b0b00ea06876160119",
+            "aeab0e4a9e3c7559513ea422"
+          ],
+          "target_date": "2026-09-21"
+        }
+      ],
+      "outcomes": [
+        {
+          "calls": 2,
+          "codes": [],
+          "qualified": 5,
+          "segment": "us-equity",
+          "selected": 5,
+          "state": "qualified",
+          "summary": 3,
+          "terminal": 5
+        }
+      ],
+      "scenario_id": "s04"
+    },
+    {
+      "case_id": "statement-actor",
+      "documents": [
+        {
+          "html": "<h1>2026-09-21 미국 증시 시황</h1>\n<blockquote>\n<p>정보 제공용 자동 시황이며 매매 권유가 아닙니다.</p>\n</blockquote>\n<p><strong>기준 시각</strong>: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)</p>\n<p><strong>세그먼트</strong>: 국내 증시(미발행) | <a href=\"2026-09-21.md\">미국 증시</a> | 크립토(미발행)</p>\n<h2>한눈에 보기</h2>\n<ul>\n<li>가상총재는 물가 안정이 우선이라고 밝혔습니다.</li>\n<li>시장 반응은 확인하지 못했습니다.</li>\n<li>일부 사건의 시장 반응은 확인하지 못했습니다.</li>\n</ul>\n<blockquote>\n<p><strong>내 관심 자산 영향</strong>: 관심 목록 미설정 — <code>config/watchlist.json</code>을 추가하면 보유 종목 영향이 표시됩니다.</p>\n<p><strong>오늘의 결론</strong>: 가상총재는 물가 안정이 우선이라고 밝혔습니다.</p>\n<p><strong>핵심 동인</strong>: 시장 반응은 확인하지 못했습니다.</p>\n<p><strong>주의할 점</strong>: 일부 사건의 시장 반응은 확인하지 못했습니다.</p>\n</blockquote>\n<h2>① 요약</h2>\n<p>수집된 합성 자료에서 확인한 발표를 정리했습니다.</p>\n<h2>② 전일 핵심 이슈</h2>\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:ce05c23a89cbdc408e630252 -->\n<h3>가상총재 정책 발언</h3>\n<ul>\n<li>시점: 2026-09-21 10:00 UTC (출처 시각)</li>\n<li>주체: 가상총재</li>\n<li>무슨 일이 있었나: 가상총재는 물가 안정이 우선이라고 밝혔습니다.</li>\n<li>결정/실적/발표 내용: [인용 발언] 물가 안정이 우선이라고 밝혔습니다.</li>\n<li>의미: 시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>시장 반응: 시장 반응은 확인하지 못했습니다.</li>\n<li>출처: <a href=\"https://example.invalid/synthetic/statement\">fixture-statement</a></li>\n</ul>\n<!-- /investo:block event:ce05c23a89cbdc408e630252 -->\n\n<h2>③ 섹터/수급 동향</h2>\n<p>전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.</p>\n<h2>④ 지표·이벤트</h2>\n<p>다음 공식 발표 시각은 자료에서 확인하지 못했습니다.</p>\n<h2>⑤ 주요 종목</h2>\n<p>개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.</p>\n<h2>⑥ 오늘의 관전 포인트</h2>\n<p>후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.</p>\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `777d8adab6c7`\n- `stage1_hash`: `91bc8f8f0e31`\n- `stage2_hash`: `4467ee7c02e6`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-statement | news | — | 가상총재 정책 발언 |\n\n</details>\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n<h2>⑦ 면책조항</h2>\n<p>본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.</p>",
+          "html_sha256": "24f57751e6f93e010f1b65d028a300d94f06b254271c35c6f9ec825f6d47ba49",
+          "markdown": "# 2026-09-21 미국 증시 시황\n\n> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.\n\n**기준 시각**: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)\n\n**세그먼트**: 국내 증시(미발행) | [미국 증시](2026-09-21.md) | 크립토(미발행)\n\n## 한눈에 보기\n\n- 가상총재는 물가 안정이 우선이라고 밝혔습니다.\n- 시장 반응은 확인하지 못했습니다.\n- 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n> **내 관심 자산 영향**: 관심 목록 미설정 — `config/watchlist.json`을 추가하면 보유 종목 영향이 표시됩니다.\n\n> **오늘의 결론**: 가상총재는 물가 안정이 우선이라고 밝혔습니다.\n\n> **핵심 동인**: 시장 반응은 확인하지 못했습니다.\n\n> **주의할 점**: 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n## ① 요약\n\n수집된 합성 자료에서 확인한 발표를 정리했습니다.\n\n## ② 전일 핵심 이슈\n\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:ce05c23a89cbdc408e630252 -->\n### 가상총재 정책 발언\n- 시점: 2026-09-21 10:00 UTC (출처 시각)\n- 주체: 가상총재\n- 무슨 일이 있었나: 가상총재는 물가 안정이 우선이라고 밝혔습니다.\n- 결정/실적/발표 내용: [인용 발언] 물가 안정이 우선이라고 밝혔습니다.\n- 의미: 시장에 미치는 의미는 확인하지 못했습니다.\n- 시장 반응: 시장 반응은 확인하지 못했습니다.\n- 출처: [fixture-statement](https://example.invalid/synthetic/statement)\n<!-- /investo:block event:ce05c23a89cbdc408e630252 -->\n\n## ③ 섹터/수급 동향\n\n전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\n\n## ④ 지표·이벤트\n\n다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\n\n## ⑤ 주요 종목\n\n개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\n\n## ⑥ 오늘의 관전 포인트\n\n후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `777d8adab6c7`\n- `stage1_hash`: `91bc8f8f0e31`\n- `stage2_hash`: `4467ee7c02e6`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-statement | news | — | 가상총재 정책 발언 |\n\n</details>\n\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n## ⑦ 면책조항\n본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.",
+          "markdown_sha256": "05eef1177b6f5a9c3d214e974d25ff9f11cc05bd3deb592c980bd5dada94a063",
+          "notification_summary": {
+            "conclusion": "가상총재는 물가 안정이 우선이라고 밝혔습니다.",
+            "coverage_label": "부분",
+            "coverage_status": "partial",
+            "events": [
+              {
+                "coverage": "supported",
+                "event_id": "ce05c23a89cbdc408e630252",
+                "fact_summary": "가상총재는 물가 안정이 우선이라고 밝혔습니다.",
+                "headline": "가상총재 정책 발언"
+              }
+            ],
+            "segment": "us-equity",
+            "target_date": "2026-09-21",
+            "watchlist": null
+          },
+          "segment": "us-equity",
+          "surviving_event_ids": [
+            "ce05c23a89cbdc408e630252"
+          ],
+          "target_date": "2026-09-21"
+        }
+      ],
+      "outcomes": [
+        {
+          "calls": 2,
+          "codes": [],
+          "qualified": 1,
+          "segment": "us-equity",
+          "selected": 1,
+          "state": "qualified",
+          "summary": 1,
+          "terminal": 1
+        }
+      ],
+      "scenario_id": "s05"
+    },
+    {
+      "case_id": "unchanged-monthly-cot",
+      "documents": [
+        {
+          "html": "<h1>2026-09-21 미국 증시 시황</h1>\n<blockquote>\n<p>정보 제공용 자동 시황이며 매매 권유가 아닙니다.</p>\n</blockquote>\n<p><strong>기준 시각</strong>: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)</p>\n<p><strong>세그먼트</strong>: 국내 증시(미발행) | <a href=\"2026-09-21.md\">미국 증시</a> | 크립토(미발행)</p>\n<h2>한눈에 보기</h2>\n<ul>\n<li>수집된 근거에서 주요 사건을 선정하지 못했습니다.</li>\n<li>시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>추가 발표 여부는 공식 자료에서 확인이 필요합니다.</li>\n</ul>\n<blockquote>\n<p><strong>내 관심 자산 영향</strong>: 관심 목록 미설정 — <code>config/watchlist.json</code>을 추가하면 보유 종목 영향이 표시됩니다.</p>\n<p><strong>오늘의 결론</strong>: 수집된 근거에서 주요 사건을 선정하지 못했습니다.</p>\n<p><strong>핵심 동인</strong>: 시장에 미치는 의미는 확인하지 못했습니다.</p>\n<p><strong>주의할 점</strong>: 추가 발표 여부는 공식 자료에서 확인이 필요합니다.</p>\n</blockquote>\n<h2>① 요약</h2>\n<p>수집된 합성 자료에서 확인한 발표를 정리했습니다.</p>\n<h2>② 전일 핵심 이슈</h2>\n<!-- investo:events version=2 -->\n<p>수집된 근거에서 주요 사건을 선정하지 못했습니다.</p>\n<h2>③ 섹터/수급 동향</h2>\n<p>전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.</p>\n<h2>④ 지표·이벤트</h2>\n<p>다음 공식 발표 시각은 자료에서 확인하지 못했습니다.</p>\n<h2>⑤ 주요 종목</h2>\n<p>개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.</p>\n<h2>⑥ 오늘의 관전 포인트</h2>\n<p>후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.</p>\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `195e37422d89`\n- `stage1_hash`: `dd9f36dfd064`\n- `stage2_hash`: `1eac52b71163`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-cot | news | — | 주간 COT 잔고 배경자료 |\n| 1 | fixture-monthly | macro | 4 | 변화 없는 월간 물가지수 334.131 |\n\n</details>\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 2건 / 소스 2개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n<h2>⑦ 면책조항</h2>\n<p>본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.</p>",
+          "html_sha256": "e0cb00e01ac8f184edb020233f2cbe6587c2d3c763d2c6f946206f039949c4e8",
+          "markdown": "# 2026-09-21 미국 증시 시황\n\n> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.\n\n**기준 시각**: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)\n\n**세그먼트**: 국내 증시(미발행) | [미국 증시](2026-09-21.md) | 크립토(미발행)\n\n## 한눈에 보기\n\n- 수집된 근거에서 주요 사건을 선정하지 못했습니다.\n- 시장에 미치는 의미는 확인하지 못했습니다.\n- 추가 발표 여부는 공식 자료에서 확인이 필요합니다.\n\n> **내 관심 자산 영향**: 관심 목록 미설정 — `config/watchlist.json`을 추가하면 보유 종목 영향이 표시됩니다.\n\n> **오늘의 결론**: 수집된 근거에서 주요 사건을 선정하지 못했습니다.\n\n> **핵심 동인**: 시장에 미치는 의미는 확인하지 못했습니다.\n\n> **주의할 점**: 추가 발표 여부는 공식 자료에서 확인이 필요합니다.\n\n## ① 요약\n\n수집된 합성 자료에서 확인한 발표를 정리했습니다.\n\n## ② 전일 핵심 이슈\n\n<!-- investo:events version=2 -->\n수집된 근거에서 주요 사건을 선정하지 못했습니다.\n\n## ③ 섹터/수급 동향\n\n전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\n\n## ④ 지표·이벤트\n\n다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\n\n## ⑤ 주요 종목\n\n개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\n\n## ⑥ 오늘의 관전 포인트\n\n후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `195e37422d89`\n- `stage1_hash`: `dd9f36dfd064`\n- `stage2_hash`: `1eac52b71163`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-cot | news | — | 주간 COT 잔고 배경자료 |\n| 1 | fixture-monthly | macro | 4 | 변화 없는 월간 물가지수 334.131 |\n\n</details>\n\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 2건 / 소스 2개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n## ⑦ 면책조항\n본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.",
+          "markdown_sha256": "f0903ae425cad5fa44cd061c2a94097692fd65037357fdf0bd144b98a2ecce10",
+          "notification_summary": {
+            "conclusion": "수집된 근거에서 주요 사건을 선정하지 못했습니다.",
+            "coverage_label": "부분",
+            "coverage_status": "partial",
+            "events": [],
+            "segment": "us-equity",
+            "target_date": "2026-09-21",
+            "watchlist": null
+          },
+          "segment": "us-equity",
+          "surviving_event_ids": [],
+          "target_date": "2026-09-21"
+        }
+      ],
+      "outcomes": [
+        {
+          "calls": 2,
+          "codes": [],
+          "qualified": 0,
+          "segment": "us-equity",
+          "selected": 0,
+          "state": "no_qualifying_event",
+          "summary": 0,
+          "terminal": 0
+        }
+      ],
+      "scenario_id": "s06"
+    },
+    {
+      "case_id": "duplicate-report",
+      "documents": [
+        {
+          "html": "<h1>2026-09-21 미국 증시 시황</h1>\n<blockquote>\n<p>정보 제공용 자동 시황이며 매매 권유가 아닙니다.</p>\n</blockquote>\n<p><strong>기준 시각</strong>: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)</p>\n<p><strong>세그먼트</strong>: 국내 증시(미발행) | <a href=\"2026-09-21.md\">미국 증시</a> | 크립토(미발행)</p>\n<h2>한눈에 보기</h2>\n<ul>\n<li>가상사는 서비스 가를 정식 출시했습니다.</li>\n<li>시장 반응은 확인하지 못했습니다.</li>\n<li>일부 사건의 시장 반응은 확인하지 못했습니다.</li>\n</ul>\n<blockquote>\n<p><strong>내 관심 자산 영향</strong>: 관심 목록 미설정 — <code>config/watchlist.json</code>을 추가하면 보유 종목 영향이 표시됩니다.</p>\n<p><strong>오늘의 결론</strong>: 가상사는 서비스 가를 정식 출시했습니다.</p>\n<p><strong>핵심 동인</strong>: 시장 반응은 확인하지 못했습니다.</p>\n<p><strong>주의할 점</strong>: 일부 사건의 시장 반응은 확인하지 못했습니다.</p>\n</blockquote>\n<h2>① 요약</h2>\n<p>수집된 합성 자료에서 확인한 발표를 정리했습니다.</p>\n<h2>② 전일 핵심 이슈</h2>\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:7bf3a833d629e7ec52fb1841 -->\n<h3>가상사 출시 서비스 가</h3>\n<ul>\n<li>시점: 2026-09-21 10:00 UTC (출처 시각)</li>\n<li>주체: 가상사; 대상: 서비스 가</li>\n<li>무슨 일이 있었나: 가상사는 서비스 가를 정식 출시했습니다.</li>\n<li>결정/실적/발표 내용: [실제] 서비스 가가 정식 출시됐습니다.; [실제] 서비스 가가 정식 출시됐습니다.</li>\n<li>의미: 시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>시장 반응: 시장 반응은 확인하지 못했습니다.</li>\n<li>출처: <a href=\"https://example.invalid/synthetic/duplicate-b\">fixture-duplicate-b</a>, <a href=\"https://example.invalid/synthetic/duplicate-a\">fixture-duplicate-a</a></li>\n</ul>\n<!-- /investo:block event:7bf3a833d629e7ec52fb1841 -->\n\n<h2>③ 섹터/수급 동향</h2>\n<p>전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.</p>\n<h2>④ 지표·이벤트</h2>\n<p>다음 공식 발표 시각은 자료에서 확인하지 못했습니다.</p>\n<h2>⑤ 주요 종목</h2>\n<p>개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.</p>\n<h2>⑥ 오늘의 관전 포인트</h2>\n<p>후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.</p>\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `9f2b6df78292`\n- `stage1_hash`: `ab7a2c3c4b8f`\n- `stage2_hash`: `4ec96b06f147`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-duplicate-a | news | — | 가상사 출시 서비스 가 |\n| 1 | fixture-duplicate-b | news | 2 | 가상사 출시 서비스 가 |\n\n</details>\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 2건 / 소스 2개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n<h2>⑦ 면책조항</h2>\n<p>본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.</p>",
+          "html_sha256": "907e01f847f0179bc8a4926ebbf3a6a6ec2a3dadb7fec63af54fbb8fce804cf7",
+          "markdown": "# 2026-09-21 미국 증시 시황\n\n> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.\n\n**기준 시각**: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)\n\n**세그먼트**: 국내 증시(미발행) | [미국 증시](2026-09-21.md) | 크립토(미발행)\n\n## 한눈에 보기\n\n- 가상사는 서비스 가를 정식 출시했습니다.\n- 시장 반응은 확인하지 못했습니다.\n- 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n> **내 관심 자산 영향**: 관심 목록 미설정 — `config/watchlist.json`을 추가하면 보유 종목 영향이 표시됩니다.\n\n> **오늘의 결론**: 가상사는 서비스 가를 정식 출시했습니다.\n\n> **핵심 동인**: 시장 반응은 확인하지 못했습니다.\n\n> **주의할 점**: 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n## ① 요약\n\n수집된 합성 자료에서 확인한 발표를 정리했습니다.\n\n## ② 전일 핵심 이슈\n\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:7bf3a833d629e7ec52fb1841 -->\n### 가상사 출시 서비스 가\n- 시점: 2026-09-21 10:00 UTC (출처 시각)\n- 주체: 가상사; 대상: 서비스 가\n- 무슨 일이 있었나: 가상사는 서비스 가를 정식 출시했습니다.\n- 결정/실적/발표 내용: [실제] 서비스 가가 정식 출시됐습니다.; [실제] 서비스 가가 정식 출시됐습니다.\n- 의미: 시장에 미치는 의미는 확인하지 못했습니다.\n- 시장 반응: 시장 반응은 확인하지 못했습니다.\n- 출처: [fixture-duplicate-b](https://example.invalid/synthetic/duplicate-b), [fixture-duplicate-a](https://example.invalid/synthetic/duplicate-a)\n<!-- /investo:block event:7bf3a833d629e7ec52fb1841 -->\n\n## ③ 섹터/수급 동향\n\n전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\n\n## ④ 지표·이벤트\n\n다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\n\n## ⑤ 주요 종목\n\n개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\n\n## ⑥ 오늘의 관전 포인트\n\n후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `9f2b6df78292`\n- `stage1_hash`: `ab7a2c3c4b8f`\n- `stage2_hash`: `4ec96b06f147`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-duplicate-a | news | — | 가상사 출시 서비스 가 |\n| 1 | fixture-duplicate-b | news | 2 | 가상사 출시 서비스 가 |\n\n</details>\n\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 2건 / 소스 2개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n## ⑦ 면책조항\n본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.",
+          "markdown_sha256": "7954838ae373c776c11459859f1e7aa0746bde339bfc59df4ee72f5adf71980e",
+          "notification_summary": {
+            "conclusion": "가상사는 서비스 가를 정식 출시했습니다.",
+            "coverage_label": "부분",
+            "coverage_status": "partial",
+            "events": [
+              {
+                "coverage": "supported",
+                "event_id": "7bf3a833d629e7ec52fb1841",
+                "fact_summary": "가상사는 서비스 가를 정식 출시했습니다.",
+                "headline": "가상사 출시 서비스 가"
+              }
+            ],
+            "segment": "us-equity",
+            "target_date": "2026-09-21",
+            "watchlist": null
+          },
+          "segment": "us-equity",
+          "surviving_event_ids": [
+            "7bf3a833d629e7ec52fb1841"
+          ],
+          "target_date": "2026-09-21"
+        }
+      ],
+      "outcomes": [
+        {
+          "calls": 2,
+          "codes": [],
+          "qualified": 1,
+          "segment": "us-equity",
+          "selected": 1,
+          "state": "qualified",
+          "summary": 1,
+          "terminal": 1
+        }
+      ],
+      "scenario_id": "s07"
+    },
+    {
+      "case_id": "revised-article",
+      "documents": [
+        {
+          "html": "<h1>2026-09-21 미국 증시 시황</h1>\n<blockquote>\n<p>정보 제공용 자동 시황이며 매매 권유가 아닙니다.</p>\n</blockquote>\n<p><strong>기준 시각</strong>: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)</p>\n<p><strong>세그먼트</strong>: 국내 증시(미발행) | <a href=\"2026-09-21.md\">미국 증시</a> | 크립토(미발행)</p>\n<h2>한눈에 보기</h2>\n<ul>\n<li>가상사는 서비스 가를 전 지역에 정식 출시했습니다.</li>\n<li>시장 반응은 확인하지 못했습니다.</li>\n<li>일부 사건의 시장 반응은 확인하지 못했습니다.</li>\n</ul>\n<blockquote>\n<p><strong>내 관심 자산 영향</strong>: 관심 목록 미설정 — <code>config/watchlist.json</code>을 추가하면 보유 종목 영향이 표시됩니다.</p>\n<p><strong>오늘의 결론</strong>: 가상사는 서비스 가를 전 지역에 정식 출시했습니다.</p>\n<p><strong>핵심 동인</strong>: 시장 반응은 확인하지 못했습니다.</p>\n<p><strong>주의할 점</strong>: 일부 사건의 시장 반응은 확인하지 못했습니다.</p>\n</blockquote>\n<h2>① 요약</h2>\n<p>수집된 합성 자료에서 확인한 발표를 정리했습니다.</p>\n<h2>② 전일 핵심 이슈</h2>\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:8da735b9a4b3736dcd7bd2a9 -->\n<h3>가상사 출시 서비스 가</h3>\n<ul>\n<li>시점: 2026-09-20 10:00 UTC (출처 시각)</li>\n<li>주체: 가상사; 대상: 서비스 가</li>\n<li>무슨 일이 있었나: 가상사는 서비스 가를 전 지역에 정식 출시했습니다.</li>\n<li>결정/실적/발표 내용: [실제] 서비스 가가 전 지역에 정식 출시됐습니다.</li>\n<li>의미: 시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>시장 반응: 시장 반응은 확인하지 못했습니다.</li>\n<li>출처: <a href=\"https://example.invalid/synthetic/revision\">fixture-revision</a></li>\n</ul>\n<!-- /investo:block event:8da735b9a4b3736dcd7bd2a9 -->\n\n<h2>③ 섹터/수급 동향</h2>\n<p>전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.</p>\n<h2>④ 지표·이벤트</h2>\n<p>다음 공식 발표 시각은 자료에서 확인하지 못했습니다.</p>\n<h2>⑤ 주요 종목</h2>\n<p>개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.</p>\n<h2>⑥ 오늘의 관전 포인트</h2>\n<p>후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.</p>\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `785dcadadf9b`\n- `stage1_hash`: `01bd45998b02`\n- `stage2_hash`: `51daaf2924b3`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-revision | news | — | 가상사 출시 서비스 가 |\n\n</details>\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n<h2>⑦ 면책조항</h2>\n<p>본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.</p>",
+          "html_sha256": "6903ef52f6ec06ef2045e3dad42523cfd4a08923d53016888f5be61088408cd0",
+          "markdown": "# 2026-09-21 미국 증시 시황\n\n> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.\n\n**기준 시각**: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)\n\n**세그먼트**: 국내 증시(미발행) | [미국 증시](2026-09-21.md) | 크립토(미발행)\n\n## 한눈에 보기\n\n- 가상사는 서비스 가를 전 지역에 정식 출시했습니다.\n- 시장 반응은 확인하지 못했습니다.\n- 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n> **내 관심 자산 영향**: 관심 목록 미설정 — `config/watchlist.json`을 추가하면 보유 종목 영향이 표시됩니다.\n\n> **오늘의 결론**: 가상사는 서비스 가를 전 지역에 정식 출시했습니다.\n\n> **핵심 동인**: 시장 반응은 확인하지 못했습니다.\n\n> **주의할 점**: 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n## ① 요약\n\n수집된 합성 자료에서 확인한 발표를 정리했습니다.\n\n## ② 전일 핵심 이슈\n\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:8da735b9a4b3736dcd7bd2a9 -->\n### 가상사 출시 서비스 가\n- 시점: 2026-09-20 10:00 UTC (출처 시각)\n- 주체: 가상사; 대상: 서비스 가\n- 무슨 일이 있었나: 가상사는 서비스 가를 전 지역에 정식 출시했습니다.\n- 결정/실적/발표 내용: [실제] 서비스 가가 전 지역에 정식 출시됐습니다.\n- 의미: 시장에 미치는 의미는 확인하지 못했습니다.\n- 시장 반응: 시장 반응은 확인하지 못했습니다.\n- 출처: [fixture-revision](https://example.invalid/synthetic/revision)\n<!-- /investo:block event:8da735b9a4b3736dcd7bd2a9 -->\n\n## ③ 섹터/수급 동향\n\n전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\n\n## ④ 지표·이벤트\n\n다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\n\n## ⑤ 주요 종목\n\n개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\n\n## ⑥ 오늘의 관전 포인트\n\n후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `785dcadadf9b`\n- `stage1_hash`: `01bd45998b02`\n- `stage2_hash`: `51daaf2924b3`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-revision | news | — | 가상사 출시 서비스 가 |\n\n</details>\n\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n## ⑦ 면책조항\n본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.",
+          "markdown_sha256": "30e08feb911eeda85ed4a6542839420644245c6e09d74b8dca04aa49980d9c56",
+          "notification_summary": {
+            "conclusion": "가상사는 서비스 가를 전 지역에 정식 출시했습니다.",
+            "coverage_label": "부분",
+            "coverage_status": "partial",
+            "events": [
+              {
+                "coverage": "supported",
+                "event_id": "8da735b9a4b3736dcd7bd2a9",
+                "fact_summary": "가상사는 서비스 가를 전 지역에 정식 출시했습니다.",
+                "headline": "가상사 출시 서비스 가"
+              }
+            ],
+            "segment": "us-equity",
+            "target_date": "2026-09-21",
+            "watchlist": null
+          },
+          "segment": "us-equity",
+          "surviving_event_ids": [
+            "8da735b9a4b3736dcd7bd2a9"
+          ],
+          "target_date": "2026-09-21"
+        }
+      ],
+      "outcomes": [
+        {
+          "calls": 2,
+          "codes": [],
+          "qualified": 1,
+          "segment": "us-equity",
+          "selected": 1,
+          "state": "qualified",
+          "summary": 1,
+          "terminal": 1
+        }
+      ],
+      "scenario_id": "s07"
+    },
+    {
+      "case_id": "few-news-no-qualifying-event",
+      "documents": [
+        {
+          "html": "<h1>2026-09-21 미국 증시 시황</h1>\n<blockquote>\n<p>정보 제공용 자동 시황이며 매매 권유가 아닙니다.</p>\n</blockquote>\n<p><strong>기준 시각</strong>: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)</p>\n<p><strong>세그먼트</strong>: 국내 증시(미발행) | <a href=\"2026-09-21.md\">미국 증시</a> | 크립토(미발행)</p>\n<h2>한눈에 보기</h2>\n<ul>\n<li>수집된 근거에서 주요 사건을 선정하지 못했습니다.</li>\n<li>시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>추가 발표 여부는 공식 자료에서 확인이 필요합니다.</li>\n</ul>\n<blockquote>\n<p><strong>내 관심 자산 영향</strong>: 관심 목록 미설정 — <code>config/watchlist.json</code>을 추가하면 보유 종목 영향이 표시됩니다.</p>\n<p><strong>오늘의 결론</strong>: 수집된 근거에서 주요 사건을 선정하지 못했습니다.</p>\n<p><strong>핵심 동인</strong>: 시장에 미치는 의미는 확인하지 못했습니다.</p>\n<p><strong>주의할 점</strong>: 추가 발표 여부는 공식 자료에서 확인이 필요합니다.</p>\n</blockquote>\n<h2>① 요약</h2>\n<p>수집된 합성 자료에서 확인한 발표를 정리했습니다.</p>\n<h2>② 전일 핵심 이슈</h2>\n<!-- investo:events version=2 -->\n<p>수집된 근거에서 주요 사건을 선정하지 못했습니다.</p>\n<h2>③ 섹터/수급 동향</h2>\n<p>전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.</p>\n<h2>④ 지표·이벤트</h2>\n<p>다음 공식 발표 시각은 자료에서 확인하지 못했습니다.</p>\n<h2>⑤ 주요 종목</h2>\n<p>개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.</p>\n<h2>⑥ 오늘의 관전 포인트</h2>\n<p>후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.</p>\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `afb4dc6e1941`\n- `stage1_hash`: `a124bf453fa2`\n- `stage2_hash`: `1eac52b71163`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-quiet | news | — | 정기 안내 자료 |\n\n</details>\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n<h2>⑦ 면책조항</h2>\n<p>본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.</p>",
+          "html_sha256": "760425377d4ecaa05b958d23f7b44a1d8b93918af8362e51deaca93d2fb41721",
+          "markdown": "# 2026-09-21 미국 증시 시황\n\n> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.\n\n**기준 시각**: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)\n\n**세그먼트**: 국내 증시(미발행) | [미국 증시](2026-09-21.md) | 크립토(미발행)\n\n## 한눈에 보기\n\n- 수집된 근거에서 주요 사건을 선정하지 못했습니다.\n- 시장에 미치는 의미는 확인하지 못했습니다.\n- 추가 발표 여부는 공식 자료에서 확인이 필요합니다.\n\n> **내 관심 자산 영향**: 관심 목록 미설정 — `config/watchlist.json`을 추가하면 보유 종목 영향이 표시됩니다.\n\n> **오늘의 결론**: 수집된 근거에서 주요 사건을 선정하지 못했습니다.\n\n> **핵심 동인**: 시장에 미치는 의미는 확인하지 못했습니다.\n\n> **주의할 점**: 추가 발표 여부는 공식 자료에서 확인이 필요합니다.\n\n## ① 요약\n\n수집된 합성 자료에서 확인한 발표를 정리했습니다.\n\n## ② 전일 핵심 이슈\n\n<!-- investo:events version=2 -->\n수집된 근거에서 주요 사건을 선정하지 못했습니다.\n\n## ③ 섹터/수급 동향\n\n전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\n\n## ④ 지표·이벤트\n\n다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\n\n## ⑤ 주요 종목\n\n개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\n\n## ⑥ 오늘의 관전 포인트\n\n후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `afb4dc6e1941`\n- `stage1_hash`: `a124bf453fa2`\n- `stage2_hash`: `1eac52b71163`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-quiet | news | — | 정기 안내 자료 |\n\n</details>\n\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n## ⑦ 면책조항\n본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.",
+          "markdown_sha256": "2d29bc6b1325cfe71783f5249e5a581b9f39e6421459b49449670ce7b6cf270c",
+          "notification_summary": {
+            "conclusion": "수집된 근거에서 주요 사건을 선정하지 못했습니다.",
+            "coverage_label": "부분",
+            "coverage_status": "partial",
+            "events": [],
+            "segment": "us-equity",
+            "target_date": "2026-09-21",
+            "watchlist": null
+          },
+          "segment": "us-equity",
+          "surviving_event_ids": [],
+          "target_date": "2026-09-21"
+        }
+      ],
+      "outcomes": [
+        {
+          "calls": 2,
+          "codes": [],
+          "qualified": 0,
+          "segment": "us-equity",
+          "selected": 0,
+          "state": "no_qualifying_event",
+          "summary": 0,
+          "terminal": 0
+        }
+      ],
+      "scenario_id": "s08"
+    },
+    {
+      "case_id": "few-news-supported-service",
+      "documents": [
+        {
+          "html": "<h1>2026-09-21 미국 증시 시황</h1>\n<blockquote>\n<p>정보 제공용 자동 시황이며 매매 권유가 아닙니다.</p>\n</blockquote>\n<p><strong>기준 시각</strong>: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)</p>\n<p><strong>세그먼트</strong>: 국내 증시(미발행) | <a href=\"2026-09-21.md\">미국 증시</a> | 크립토(미발행)</p>\n<h2>한눈에 보기</h2>\n<ul>\n<li>가상사는 서비스 가를 정식 출시했습니다.</li>\n<li>시장 반응은 확인하지 못했습니다.</li>\n<li>일부 사건의 시장 반응은 확인하지 못했습니다.</li>\n</ul>\n<blockquote>\n<p><strong>내 관심 자산 영향</strong>: 관심 목록 미설정 — <code>config/watchlist.json</code>을 추가하면 보유 종목 영향이 표시됩니다.</p>\n<p><strong>오늘의 결론</strong>: 가상사는 서비스 가를 정식 출시했습니다.</p>\n<p><strong>핵심 동인</strong>: 시장 반응은 확인하지 못했습니다.</p>\n<p><strong>주의할 점</strong>: 일부 사건의 시장 반응은 확인하지 못했습니다.</p>\n</blockquote>\n<h2>① 요약</h2>\n<p>수집된 합성 자료에서 확인한 발표를 정리했습니다.</p>\n<h2>② 전일 핵심 이슈</h2>\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:7bf3a833d629e7ec52fb1841 -->\n<h3>가상사 출시 서비스 가</h3>\n<ul>\n<li>시점: 2026-09-21 10:00 UTC (출처 시각)</li>\n<li>주체: 가상사; 대상: 서비스 가</li>\n<li>무슨 일이 있었나: 가상사는 서비스 가를 정식 출시했습니다.</li>\n<li>결정/실적/발표 내용: [실제] 서비스 가가 정식 출시됐습니다.</li>\n<li>의미: 시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>시장 반응: 시장 반응은 확인하지 못했습니다.</li>\n<li>출처: <a href=\"https://example.invalid/synthetic/service-1\">fixture-service-1</a></li>\n</ul>\n<!-- /investo:block event:7bf3a833d629e7ec52fb1841 -->\n\n<h2>③ 섹터/수급 동향</h2>\n<p>전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.</p>\n<h2>④ 지표·이벤트</h2>\n<p>다음 공식 발표 시각은 자료에서 확인하지 못했습니다.</p>\n<h2>⑤ 주요 종목</h2>\n<p>개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.</p>\n<h2>⑥ 오늘의 관전 포인트</h2>\n<p>후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.</p>\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `96d6f9c94d39`\n- `stage1_hash`: `d09aac2924db`\n- `stage2_hash`: `e6a6ce92bb32`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-service-1 | news | — | 가상사 출시 서비스 가 |\n\n</details>\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n<h2>⑦ 면책조항</h2>\n<p>본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.</p>",
+          "html_sha256": "9213d45d74c115777c30d6bc11e7d18b0898d315c609e93d1734c8a5276cb570",
+          "markdown": "# 2026-09-21 미국 증시 시황\n\n> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.\n\n**기준 시각**: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)\n\n**세그먼트**: 국내 증시(미발행) | [미국 증시](2026-09-21.md) | 크립토(미발행)\n\n## 한눈에 보기\n\n- 가상사는 서비스 가를 정식 출시했습니다.\n- 시장 반응은 확인하지 못했습니다.\n- 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n> **내 관심 자산 영향**: 관심 목록 미설정 — `config/watchlist.json`을 추가하면 보유 종목 영향이 표시됩니다.\n\n> **오늘의 결론**: 가상사는 서비스 가를 정식 출시했습니다.\n\n> **핵심 동인**: 시장 반응은 확인하지 못했습니다.\n\n> **주의할 점**: 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n## ① 요약\n\n수집된 합성 자료에서 확인한 발표를 정리했습니다.\n\n## ② 전일 핵심 이슈\n\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:7bf3a833d629e7ec52fb1841 -->\n### 가상사 출시 서비스 가\n- 시점: 2026-09-21 10:00 UTC (출처 시각)\n- 주체: 가상사; 대상: 서비스 가\n- 무슨 일이 있었나: 가상사는 서비스 가를 정식 출시했습니다.\n- 결정/실적/발표 내용: [실제] 서비스 가가 정식 출시됐습니다.\n- 의미: 시장에 미치는 의미는 확인하지 못했습니다.\n- 시장 반응: 시장 반응은 확인하지 못했습니다.\n- 출처: [fixture-service-1](https://example.invalid/synthetic/service-1)\n<!-- /investo:block event:7bf3a833d629e7ec52fb1841 -->\n\n## ③ 섹터/수급 동향\n\n전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\n\n## ④ 지표·이벤트\n\n다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\n\n## ⑤ 주요 종목\n\n개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\n\n## ⑥ 오늘의 관전 포인트\n\n후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `96d6f9c94d39`\n- `stage1_hash`: `d09aac2924db`\n- `stage2_hash`: `e6a6ce92bb32`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-service-1 | news | — | 가상사 출시 서비스 가 |\n\n</details>\n\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n## ⑦ 면책조항\n본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.",
+          "markdown_sha256": "b6ef9e9a11696160207799362bdfafe0c4186b9bac0cdcf5cb98320e38f308e3",
+          "notification_summary": {
+            "conclusion": "가상사는 서비스 가를 정식 출시했습니다.",
+            "coverage_label": "부분",
+            "coverage_status": "partial",
+            "events": [
+              {
+                "coverage": "supported",
+                "event_id": "7bf3a833d629e7ec52fb1841",
+                "fact_summary": "가상사는 서비스 가를 정식 출시했습니다.",
+                "headline": "가상사 출시 서비스 가"
+              }
+            ],
+            "segment": "us-equity",
+            "target_date": "2026-09-21",
+            "watchlist": null
+          },
+          "segment": "us-equity",
+          "surviving_event_ids": [
+            "7bf3a833d629e7ec52fb1841"
+          ],
+          "target_date": "2026-09-21"
+        }
+      ],
+      "outcomes": [
+        {
+          "calls": 2,
+          "codes": [],
+          "qualified": 1,
+          "segment": "us-equity",
+          "selected": 1,
+          "state": "qualified",
+          "summary": 1,
+          "terminal": 1
+        }
+      ],
+      "scenario_id": "s08"
+    },
+    {
+      "case_id": "classification-unavailable",
+      "documents": [],
+      "outcomes": [
+        {
+          "calls": 1,
+          "codes": [],
+          "qualified": null,
+          "segment": "us-equity",
+          "selected": null,
+          "state": "classification_unavailable",
+          "summary": null,
+          "terminal": null
+        }
+      ],
+      "scenario_id": "s08"
+    },
+    {
+      "case_id": "all-sources-failed",
+      "documents": [
+        {
+          "html": "<h1>2026-09-21 미국 증시 시황</h1>\n<blockquote>\n<p>정보 제공용 자동 시황이며 매매 권유가 아닙니다.</p>\n</blockquote>\n<p><strong>기준 시각</strong>: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)</p>\n<p><strong>세그먼트</strong>: 국내 증시(미발행) | <a href=\"2026-09-21.md\">미국 증시</a> | 크립토(미발행)</p>\n<h2>한눈에 보기</h2>\n<ul>\n<li>뉴스 수집이 제한되어 중요 사건을 판단하기 어렵습니다.</li>\n<li>시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>추가 발표 여부는 공식 자료에서 확인이 필요합니다.</li>\n</ul>\n<blockquote>\n<p><strong>내 관심 자산 영향</strong>: 관심 목록 미설정 — <code>config/watchlist.json</code>을 추가하면 보유 종목 영향이 표시됩니다.</p>\n<p><strong>오늘의 결론</strong>: 뉴스 수집이 제한되어 중요 사건을 판단하기 어렵습니다.</p>\n<p><strong>핵심 동인</strong>: 시장에 미치는 의미는 확인하지 못했습니다.</p>\n<p><strong>주의할 점</strong>: 추가 발표 여부는 공식 자료에서 확인이 필요합니다.</p>\n<p><strong>수치 검증 경고</strong>: 입력에서 확인되지 않은 수치 — 2026</p>\n</blockquote>\n<h2>① 요약</h2>\n<p>2026-09-21 미국 증시 세그먼트는 정식 시황을 만들 만큼 검증된 입력 데이터가 수집되지 않았습니다. 오늘 문서는 시장 방향을 단정하지 않고, 수집 공백과 확인할 항목만 짧게 남깁니다.</p>\n<h2>② 전일 핵심 이슈</h2>\n<!-- investo:events version=2 -->\n<p>뉴스 수집이 제한되어 중요 사건을 판단하기 어렵습니다.</p>\n<h2>③ 섹터/수급 동향</h2>\n<p>가격·수급 데이터 미확인 — 섹터, 자금 흐름, 상대강도 판단은 다음 정상 수집 이후로 보류합니다.</p>\n<h2>④ 지표·이벤트</h2>\n<p>일정·거시 이벤트 미확인 — 세그먼트에 직접 연결되는 지표와 이벤트 근거가 부족합니다.</p>\n<h2>⑤ 주요 종목</h2>\n<p>개별 종목·자산 선별 보류 — 충분한 가격/뉴스 근거 없이 티커를 나열하지 않습니다.</p>\n<h2>⑥ 오늘의 관전 포인트</h2>\n<ol>\n<li>데이터 수집 로그에서 실패한 소스와 성공했지만 0건을 반환한 소스를 구분합니다.</li>\n<li>해당 시장의 대표 가격 지표와 주요 뉴스 소스가 회복됐는지 확인합니다.</li>\n<li>다음 발행 전까지는 공신력 있는 원천 데이터로 가격과 이벤트를 별도 확인합니다.</li>\n</ol>\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 실패 — 수집 0건 / 소스 0개 / 누락: 뉴스, 가격 · 실패 — 핵심 소스 전부 실패 또는 수집 항목 0건\n> **소스 카운트**: 수집 대상 1 / 성공 0 / 0건 0 / 실패 1 / 본문 사용 0\n> **상세 사유**: 수집 항목 0건, 뉴스 카테고리 누락, 가격 카테고리 누락, 일부 소스 수집 실패\n> **소스별 상태**: cnbc-top-news 실패 (수집 불가)\n\n</details>\n\n<h2>⑦ 면책조항</h2>\n<p>본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.</p>",
+          "html_sha256": "f76a273ee2d4481d55133eada9d0e6bf28907ca0cb32bb297a4018dac2b1d05c",
+          "markdown": "# 2026-09-21 미국 증시 시황\n\n> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.\n\n**기준 시각**: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)\n\n**세그먼트**: 국내 증시(미발행) | [미국 증시](2026-09-21.md) | 크립토(미발행)\n\n## 한눈에 보기\n\n- 뉴스 수집이 제한되어 중요 사건을 판단하기 어렵습니다.\n- 시장에 미치는 의미는 확인하지 못했습니다.\n- 추가 발표 여부는 공식 자료에서 확인이 필요합니다.\n\n> **내 관심 자산 영향**: 관심 목록 미설정 — `config/watchlist.json`을 추가하면 보유 종목 영향이 표시됩니다.\n\n> **오늘의 결론**: 뉴스 수집이 제한되어 중요 사건을 판단하기 어렵습니다.\n\n> **핵심 동인**: 시장에 미치는 의미는 확인하지 못했습니다.\n\n> **주의할 점**: 추가 발표 여부는 공식 자료에서 확인이 필요합니다.\n\n> **수치 검증 경고**: 입력에서 확인되지 않은 수치 — 2026\n\n## ① 요약\n2026-09-21 미국 증시 세그먼트는 정식 시황을 만들 만큼 검증된 입력 데이터가 수집되지 않았습니다. 오늘 문서는 시장 방향을 단정하지 않고, 수집 공백과 확인할 항목만 짧게 남깁니다.\n\n## ② 전일 핵심 이슈\n\n<!-- investo:events version=2 -->\n뉴스 수집이 제한되어 중요 사건을 판단하기 어렵습니다.\n\n## ③ 섹터/수급 동향\n가격·수급 데이터 미확인 — 섹터, 자금 흐름, 상대강도 판단은 다음 정상 수집 이후로 보류합니다.\n\n## ④ 지표·이벤트\n일정·거시 이벤트 미확인 — 세그먼트에 직접 연결되는 지표와 이벤트 근거가 부족합니다.\n\n## ⑤ 주요 종목\n개별 종목·자산 선별 보류 — 충분한 가격/뉴스 근거 없이 티커를 나열하지 않습니다.\n\n## ⑥ 오늘의 관전 포인트\n1. 데이터 수집 로그에서 실패한 소스와 성공했지만 0건을 반환한 소스를 구분합니다.\n2. 해당 시장의 대표 가격 지표와 주요 뉴스 소스가 회복됐는지 확인합니다.\n3. 다음 발행 전까지는 공신력 있는 원천 데이터로 가격과 이벤트를 별도 확인합니다.\n\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 실패 — 수집 0건 / 소스 0개 / 누락: 뉴스, 가격 · 실패 — 핵심 소스 전부 실패 또는 수집 항목 0건\n> **소스 카운트**: 수집 대상 1 / 성공 0 / 0건 0 / 실패 1 / 본문 사용 0\n> **상세 사유**: 수집 항목 0건, 뉴스 카테고리 누락, 가격 카테고리 누락, 일부 소스 수집 실패\n> **소스별 상태**: cnbc-top-news 실패 (수집 불가)\n\n</details>\n\n## ⑦ 면책조항\n본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.",
+          "markdown_sha256": "b45277e1861e1dd2a233454b151008244c2d48afb98028e522af421ab29dc76b",
+          "notification_summary": {
+            "conclusion": "뉴스 수집이 제한되어 중요 사건을 판단하기 어렵습니다.",
+            "coverage_label": "실패",
+            "coverage_status": "failed",
+            "events": [],
+            "segment": "us-equity",
+            "target_date": "2026-09-21",
+            "watchlist": null
+          },
+          "segment": "us-equity",
+          "surviving_event_ids": [],
+          "target_date": "2026-09-21"
+        }
+      ],
+      "outcomes": [
+        {
+          "calls": 0,
+          "codes": [],
+          "qualified": 0,
+          "segment": "us-equity",
+          "selected": null,
+          "state": "classification_unavailable",
+          "summary": 0,
+          "terminal": 0
+        }
+      ],
+      "scenario_id": "s09"
+    },
+    {
+      "case_id": "successful-empty-collection",
+      "documents": [
+        {
+          "html": "<h1>2026-09-21 미국 증시 시황</h1>\n<blockquote>\n<p>정보 제공용 자동 시황이며 매매 권유가 아닙니다.</p>\n</blockquote>\n<p><strong>기준 시각</strong>: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)</p>\n<p><strong>세그먼트</strong>: 국내 증시(미발행) | <a href=\"2026-09-21.md\">미국 증시</a> | 크립토(미발행)</p>\n<h2>한눈에 보기</h2>\n<ul>\n<li>수집된 근거에서 주요 사건을 선정하지 못했습니다.</li>\n<li>시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>추가 발표 여부는 공식 자료에서 확인이 필요합니다.</li>\n</ul>\n<blockquote>\n<p><strong>내 관심 자산 영향</strong>: 관심 목록 미설정 — <code>config/watchlist.json</code>을 추가하면 보유 종목 영향이 표시됩니다.</p>\n<p><strong>오늘의 결론</strong>: 수집된 근거에서 주요 사건을 선정하지 못했습니다.</p>\n<p><strong>핵심 동인</strong>: 시장에 미치는 의미는 확인하지 못했습니다.</p>\n<p><strong>주의할 점</strong>: 추가 발표 여부는 공식 자료에서 확인이 필요합니다.</p>\n<p><strong>수치 검증 경고</strong>: 입력에서 확인되지 않은 수치 — 2026</p>\n</blockquote>\n<h2>① 요약</h2>\n<p>2026-09-21 미국 증시 세그먼트는 정식 시황을 만들 만큼 검증된 입력 데이터가 수집되지 않았습니다. 오늘 문서는 시장 방향을 단정하지 않고, 수집 공백과 확인할 항목만 짧게 남깁니다.</p>\n<h2>② 전일 핵심 이슈</h2>\n<!-- investo:events version=2 -->\n<p>수집된 근거에서 주요 사건을 선정하지 못했습니다.</p>\n<h2>③ 섹터/수급 동향</h2>\n<p>가격·수급 데이터 미확인 — 섹터, 자금 흐름, 상대강도 판단은 다음 정상 수집 이후로 보류합니다.</p>\n<h2>④ 지표·이벤트</h2>\n<p>일정·거시 이벤트 미확인 — 세그먼트에 직접 연결되는 지표와 이벤트 근거가 부족합니다.</p>\n<h2>⑤ 주요 종목</h2>\n<p>개별 종목·자산 선별 보류 — 충분한 가격/뉴스 근거 없이 티커를 나열하지 않습니다.</p>\n<h2>⑥ 오늘의 관전 포인트</h2>\n<ol>\n<li>데이터 수집 로그에서 실패한 소스와 성공했지만 0건을 반환한 소스를 구분합니다.</li>\n<li>해당 시장의 대표 가격 지표와 주요 뉴스 소스가 회복됐는지 확인합니다.</li>\n<li>다음 발행 전까지는 공신력 있는 원천 데이터로 가격과 이벤트를 별도 확인합니다.</li>\n</ol>\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 실패 — 수집 0건 / 소스 0개 / 누락: 뉴스, 가격 · 실패 — 핵심 소스 전부 실패 또는 수집 항목 0건\n> **소스 카운트**: 수집 대상 1 / 성공 0 / 0건 1 / 실패 0 / 본문 사용 0\n> **상세 사유**: 수집 항목 0건, 뉴스 카테고리 누락, 가격 카테고리 누락, 일부 소스 0건 반환\n> **소스별 상태**: cnbc-top-news 0건\n\n</details>\n\n<h2>⑦ 면책조항</h2>\n<p>본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.</p>",
+          "html_sha256": "2ae2690a559caf00bbdde0de83b8d99fa0e9a343fdf05c40ecc9512c3b34d9de",
+          "markdown": "# 2026-09-21 미국 증시 시황\n\n> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.\n\n**기준 시각**: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)\n\n**세그먼트**: 국내 증시(미발행) | [미국 증시](2026-09-21.md) | 크립토(미발행)\n\n## 한눈에 보기\n\n- 수집된 근거에서 주요 사건을 선정하지 못했습니다.\n- 시장에 미치는 의미는 확인하지 못했습니다.\n- 추가 발표 여부는 공식 자료에서 확인이 필요합니다.\n\n> **내 관심 자산 영향**: 관심 목록 미설정 — `config/watchlist.json`을 추가하면 보유 종목 영향이 표시됩니다.\n\n> **오늘의 결론**: 수집된 근거에서 주요 사건을 선정하지 못했습니다.\n\n> **핵심 동인**: 시장에 미치는 의미는 확인하지 못했습니다.\n\n> **주의할 점**: 추가 발표 여부는 공식 자료에서 확인이 필요합니다.\n\n> **수치 검증 경고**: 입력에서 확인되지 않은 수치 — 2026\n\n## ① 요약\n2026-09-21 미국 증시 세그먼트는 정식 시황을 만들 만큼 검증된 입력 데이터가 수집되지 않았습니다. 오늘 문서는 시장 방향을 단정하지 않고, 수집 공백과 확인할 항목만 짧게 남깁니다.\n\n## ② 전일 핵심 이슈\n\n<!-- investo:events version=2 -->\n수집된 근거에서 주요 사건을 선정하지 못했습니다.\n\n## ③ 섹터/수급 동향\n가격·수급 데이터 미확인 — 섹터, 자금 흐름, 상대강도 판단은 다음 정상 수집 이후로 보류합니다.\n\n## ④ 지표·이벤트\n일정·거시 이벤트 미확인 — 세그먼트에 직접 연결되는 지표와 이벤트 근거가 부족합니다.\n\n## ⑤ 주요 종목\n개별 종목·자산 선별 보류 — 충분한 가격/뉴스 근거 없이 티커를 나열하지 않습니다.\n\n## ⑥ 오늘의 관전 포인트\n1. 데이터 수집 로그에서 실패한 소스와 성공했지만 0건을 반환한 소스를 구분합니다.\n2. 해당 시장의 대표 가격 지표와 주요 뉴스 소스가 회복됐는지 확인합니다.\n3. 다음 발행 전까지는 공신력 있는 원천 데이터로 가격과 이벤트를 별도 확인합니다.\n\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 실패 — 수집 0건 / 소스 0개 / 누락: 뉴스, 가격 · 실패 — 핵심 소스 전부 실패 또는 수집 항목 0건\n> **소스 카운트**: 수집 대상 1 / 성공 0 / 0건 1 / 실패 0 / 본문 사용 0\n> **상세 사유**: 수집 항목 0건, 뉴스 카테고리 누락, 가격 카테고리 누락, 일부 소스 0건 반환\n> **소스별 상태**: cnbc-top-news 0건\n\n</details>\n\n## ⑦ 면책조항\n본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.",
+          "markdown_sha256": "8d7b46bf5c5b499cf37fd043401987c04b9e5467c2b756e7eec87e6b03507948",
+          "notification_summary": {
+            "conclusion": "수집된 근거에서 주요 사건을 선정하지 못했습니다.",
+            "coverage_label": "실패",
+            "coverage_status": "failed",
+            "events": [],
+            "segment": "us-equity",
+            "target_date": "2026-09-21",
+            "watchlist": null
+          },
+          "segment": "us-equity",
+          "surviving_event_ids": [],
+          "target_date": "2026-09-21"
+        }
+      ],
+      "outcomes": [
+        {
+          "calls": 0,
+          "codes": [],
+          "qualified": 0,
+          "segment": "us-equity",
+          "selected": 0,
+          "state": "no_qualifying_event",
+          "summary": 0,
+          "terminal": 0
+        }
+      ],
+      "scenario_id": "s09"
+    },
+    {
+      "case_id": "weekend-outside-calendar-day",
+      "documents": [
+        {
+          "html": "<h1>2026-09-21 미국 증시 시황</h1>\n<blockquote>\n<p>정보 제공용 자동 시황이며 매매 권유가 아닙니다.</p>\n</blockquote>\n<p><strong>기준 시각</strong>: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)</p>\n<p><strong>세그먼트</strong>: 국내 증시(미발행) | <a href=\"2026-09-21.md\">미국 증시</a> | 크립토(미발행)</p>\n<h2>한눈에 보기</h2>\n<ul>\n<li>수집된 근거에서 주요 사건을 선정하지 못했습니다.</li>\n<li>시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>추가 발표 여부는 공식 자료에서 확인이 필요합니다.</li>\n</ul>\n<blockquote>\n<p><strong>내 관심 자산 영향</strong>: 관심 목록 미설정 — <code>config/watchlist.json</code>을 추가하면 보유 종목 영향이 표시됩니다.</p>\n<p><strong>오늘의 결론</strong>: 수집된 근거에서 주요 사건을 선정하지 못했습니다.</p>\n<p><strong>핵심 동인</strong>: 시장에 미치는 의미는 확인하지 못했습니다.</p>\n<p><strong>주의할 점</strong>: 추가 발표 여부는 공식 자료에서 확인이 필요합니다.</p>\n</blockquote>\n<h2>① 요약</h2>\n<p>수집된 합성 자료에서 확인한 발표를 정리했습니다.</p>\n<h2>② 전일 핵심 이슈</h2>\n<!-- investo:events version=2 -->\n<p>수집된 근거에서 주요 사건을 선정하지 못했습니다.</p>\n<h2>③ 섹터/수급 동향</h2>\n<p>전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.</p>\n<h2>④ 지표·이벤트</h2>\n<p>다음 공식 발표 시각은 자료에서 확인하지 못했습니다.</p>\n<h2>⑤ 주요 종목</h2>\n<p>개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.</p>\n<h2>⑥ 오늘의 관전 포인트</h2>\n<p>후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.</p>\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `7bf7f1471cb4`\n- `stage1_hash`: `c39376a3e4d1`\n- `stage2_hash`: `1eac52b71163`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-weekend | news | — | 가상사 출시 서비스 가 |\n\n</details>\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n<h2>⑦ 면책조항</h2>\n<p>본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.</p>",
+          "html_sha256": "cbd43cf1b152773c932a9dc2334faceb4f2afdfa1c6df99d7e7be2e9b149534d",
+          "markdown": "# 2026-09-21 미국 증시 시황\n\n> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.\n\n**기준 시각**: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)\n\n**세그먼트**: 국내 증시(미발행) | [미국 증시](2026-09-21.md) | 크립토(미발행)\n\n## 한눈에 보기\n\n- 수집된 근거에서 주요 사건을 선정하지 못했습니다.\n- 시장에 미치는 의미는 확인하지 못했습니다.\n- 추가 발표 여부는 공식 자료에서 확인이 필요합니다.\n\n> **내 관심 자산 영향**: 관심 목록 미설정 — `config/watchlist.json`을 추가하면 보유 종목 영향이 표시됩니다.\n\n> **오늘의 결론**: 수집된 근거에서 주요 사건을 선정하지 못했습니다.\n\n> **핵심 동인**: 시장에 미치는 의미는 확인하지 못했습니다.\n\n> **주의할 점**: 추가 발표 여부는 공식 자료에서 확인이 필요합니다.\n\n## ① 요약\n\n수집된 합성 자료에서 확인한 발표를 정리했습니다.\n\n## ② 전일 핵심 이슈\n\n<!-- investo:events version=2 -->\n수집된 근거에서 주요 사건을 선정하지 못했습니다.\n\n## ③ 섹터/수급 동향\n\n전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\n\n## ④ 지표·이벤트\n\n다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\n\n## ⑤ 주요 종목\n\n개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\n\n## ⑥ 오늘의 관전 포인트\n\n후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `7bf7f1471cb4`\n- `stage1_hash`: `c39376a3e4d1`\n- `stage2_hash`: `1eac52b71163`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-weekend | news | — | 가상사 출시 서비스 가 |\n\n</details>\n\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n## ⑦ 면책조항\n본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.",
+          "markdown_sha256": "1ca06791884ecf0f2a6f9f12e3def0c2990a2e0483478caeadadc697dc1c6eae",
+          "notification_summary": {
+            "conclusion": "수집된 근거에서 주요 사건을 선정하지 못했습니다.",
+            "coverage_label": "부분",
+            "coverage_status": "partial",
+            "events": [],
+            "segment": "us-equity",
+            "target_date": "2026-09-21",
+            "watchlist": null
+          },
+          "segment": "us-equity",
+          "surviving_event_ids": [],
+          "target_date": "2026-09-21"
+        }
+      ],
+      "outcomes": [
+        {
+          "calls": 2,
+          "codes": [],
+          "qualified": 0,
+          "segment": "us-equity",
+          "selected": 0,
+          "state": "no_qualifying_event",
+          "summary": 0,
+          "terminal": 0
+        }
+      ],
+      "scenario_id": "s10"
+    },
+    {
+      "case_id": "dst-spring-boundaries",
+      "documents": [
+        {
+          "html": "<h1>2026-03-08 미국 증시 시황</h1>\n<blockquote>\n<p>정보 제공용 자동 시황이며 매매 권유가 아닙니다.</p>\n</blockquote>\n<p><strong>기준 시각</strong>: 2026-03-08 NY · 수집창 2026-03-08T05:00Z ~ 2026-03-09T04:00Z (종료 미포함)</p>\n<p><strong>세그먼트</strong>: 국내 증시(미발행) | <a href=\"2026-03-08.md\">미국 증시</a> | 크립토(미발행)</p>\n<h2>한눈에 보기</h2>\n<ul>\n<li>가상사는 서비스 다를 정식 출시했습니다.</li>\n<li>가상사는 서비스 나를 정식 출시했습니다.</li>\n<li>일부 사건의 시장 반응은 확인하지 못했습니다.</li>\n</ul>\n<blockquote>\n<p><strong>내 관심 자산 영향</strong>: 관심 목록 미설정 — <code>config/watchlist.json</code>을 추가하면 보유 종목 영향이 표시됩니다.</p>\n<p><strong>오늘의 결론</strong>: 가상사는 서비스 다를 정식 출시했습니다.</p>\n<p><strong>핵심 동인</strong>: 가상사는 서비스 나를 정식 출시했습니다.</p>\n<p><strong>주의할 점</strong>: 일부 사건의 시장 반응은 확인하지 못했습니다.</p>\n</blockquote>\n<h2>① 요약</h2>\n<p>수집된 합성 자료에서 확인한 발표를 정리했습니다.</p>\n<h2>② 전일 핵심 이슈</h2>\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:d60ffdb9edbf3f1b8aa27945 -->\n<h3>가상사 출시 서비스 다</h3>\n<ul>\n<li>시점: 2026-03-09 03:59 UTC (출처 시각)</li>\n<li>주체: 가상사; 대상: 서비스 다</li>\n<li>무슨 일이 있었나: 가상사는 서비스 다를 정식 출시했습니다.</li>\n<li>결정/실적/발표 내용: [실제] 서비스 다가 정식 출시됐습니다.</li>\n<li>의미: 시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>시장 반응: 시장 반응은 확인하지 못했습니다.</li>\n<li>출처: <a href=\"https://example.invalid/synthetic/dst-spring-3\">fixture-dst-spring-3</a></li>\n</ul>\n<!-- /investo:block event:d60ffdb9edbf3f1b8aa27945 -->\n\n<!-- investo:block event:45da5c0fcd9bf405cb517b56 -->\n<h3>가상사 출시 서비스 나</h3>\n<ul>\n<li>시점: 2026-03-08 05:00 UTC (출처 시각)</li>\n<li>주체: 가상사; 대상: 서비스 나</li>\n<li>무슨 일이 있었나: 가상사는 서비스 나를 정식 출시했습니다.</li>\n<li>결정/실적/발표 내용: [실제] 서비스 나가 정식 출시됐습니다.</li>\n<li>의미: 시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>시장 반응: 시장 반응은 확인하지 못했습니다.</li>\n<li>출처: <a href=\"https://example.invalid/synthetic/dst-spring-2\">fixture-dst-spring-2</a></li>\n</ul>\n<!-- /investo:block event:45da5c0fcd9bf405cb517b56 -->\n\n<h2>③ 섹터/수급 동향</h2>\n<p>전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.</p>\n<h2>④ 지표·이벤트</h2>\n<p>다음 공식 발표 시각은 자료에서 확인하지 못했습니다.</p>\n<h2>⑤ 주요 종목</h2>\n<p>개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.</p>\n<h2>⑥ 오늘의 관전 포인트</h2>\n<p>후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.</p>\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `35c91cb0167b`\n- `stage1_hash`: `2ec5fcfc4ea9`\n- `stage2_hash`: `1867c65dc68e`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-dst-spring-1 | news | — | 가상사 출시 서비스 가 |\n| 1 | fixture-dst-spring-2 | news | 2 | 가상사 출시 서비스 나 |\n| 2 | fixture-dst-spring-3 | news | 2 | 가상사 출시 서비스 다 |\n| 3 | fixture-dst-spring-4 | news | 2 | 가상사 출시 서비스 라 |\n\n</details>\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 4건 / 소스 4개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 가격 카테고리 누락\n\n</details>\n\n<h2>⑦ 면책조항</h2>\n<p>본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.</p>",
+          "html_sha256": "276eea3040f0d1ff4dabc9ec45593dab490b342dc7ae55df3c38503c252f5e3c",
+          "markdown": "# 2026-03-08 미국 증시 시황\n\n> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.\n\n**기준 시각**: 2026-03-08 NY · 수집창 2026-03-08T05:00Z ~ 2026-03-09T04:00Z (종료 미포함)\n\n**세그먼트**: 국내 증시(미발행) | [미국 증시](2026-03-08.md) | 크립토(미발행)\n\n## 한눈에 보기\n\n- 가상사는 서비스 다를 정식 출시했습니다.\n- 가상사는 서비스 나를 정식 출시했습니다.\n- 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n> **내 관심 자산 영향**: 관심 목록 미설정 — `config/watchlist.json`을 추가하면 보유 종목 영향이 표시됩니다.\n\n> **오늘의 결론**: 가상사는 서비스 다를 정식 출시했습니다.\n\n> **핵심 동인**: 가상사는 서비스 나를 정식 출시했습니다.\n\n> **주의할 점**: 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n## ① 요약\n\n수집된 합성 자료에서 확인한 발표를 정리했습니다.\n\n## ② 전일 핵심 이슈\n\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:d60ffdb9edbf3f1b8aa27945 -->\n### 가상사 출시 서비스 다\n- 시점: 2026-03-09 03:59 UTC (출처 시각)\n- 주체: 가상사; 대상: 서비스 다\n- 무슨 일이 있었나: 가상사는 서비스 다를 정식 출시했습니다.\n- 결정/실적/발표 내용: [실제] 서비스 다가 정식 출시됐습니다.\n- 의미: 시장에 미치는 의미는 확인하지 못했습니다.\n- 시장 반응: 시장 반응은 확인하지 못했습니다.\n- 출처: [fixture-dst-spring-3](https://example.invalid/synthetic/dst-spring-3)\n<!-- /investo:block event:d60ffdb9edbf3f1b8aa27945 -->\n\n<!-- investo:block event:45da5c0fcd9bf405cb517b56 -->\n### 가상사 출시 서비스 나\n- 시점: 2026-03-08 05:00 UTC (출처 시각)\n- 주체: 가상사; 대상: 서비스 나\n- 무슨 일이 있었나: 가상사는 서비스 나를 정식 출시했습니다.\n- 결정/실적/발표 내용: [실제] 서비스 나가 정식 출시됐습니다.\n- 의미: 시장에 미치는 의미는 확인하지 못했습니다.\n- 시장 반응: 시장 반응은 확인하지 못했습니다.\n- 출처: [fixture-dst-spring-2](https://example.invalid/synthetic/dst-spring-2)\n<!-- /investo:block event:45da5c0fcd9bf405cb517b56 -->\n\n## ③ 섹터/수급 동향\n\n전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\n\n## ④ 지표·이벤트\n\n다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\n\n## ⑤ 주요 종목\n\n개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\n\n## ⑥ 오늘의 관전 포인트\n\n후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `35c91cb0167b`\n- `stage1_hash`: `2ec5fcfc4ea9`\n- `stage2_hash`: `1867c65dc68e`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-dst-spring-1 | news | — | 가상사 출시 서비스 가 |\n| 1 | fixture-dst-spring-2 | news | 2 | 가상사 출시 서비스 나 |\n| 2 | fixture-dst-spring-3 | news | 2 | 가상사 출시 서비스 다 |\n| 3 | fixture-dst-spring-4 | news | 2 | 가상사 출시 서비스 라 |\n\n</details>\n\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 4건 / 소스 4개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 가격 카테고리 누락\n\n</details>\n\n## ⑦ 면책조항\n본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.",
+          "markdown_sha256": "4f9e7d0c1882e32806c5b52d280d4c10a3c2ac98ac7108c4c982f7b4b925971a",
+          "notification_summary": {
+            "conclusion": "가상사는 서비스 다를 정식 출시했습니다.",
+            "coverage_label": "부분",
+            "coverage_status": "partial",
+            "events": [
+              {
+                "coverage": "supported",
+                "event_id": "d60ffdb9edbf3f1b8aa27945",
+                "fact_summary": "가상사는 서비스 다를 정식 출시했습니다.",
+                "headline": "가상사 출시 서비스 다"
+              },
+              {
+                "coverage": "supported",
+                "event_id": "45da5c0fcd9bf405cb517b56",
+                "fact_summary": "가상사는 서비스 나를 정식 출시했습니다.",
+                "headline": "가상사 출시 서비스 나"
+              }
+            ],
+            "segment": "us-equity",
+            "target_date": "2026-03-08",
+            "watchlist": null
+          },
+          "segment": "us-equity",
+          "surviving_event_ids": [
+            "d60ffdb9edbf3f1b8aa27945",
+            "45da5c0fcd9bf405cb517b56"
+          ],
+          "target_date": "2026-03-08"
+        }
+      ],
+      "outcomes": [
+        {
+          "calls": 2,
+          "codes": [],
+          "qualified": 2,
+          "segment": "us-equity",
+          "selected": 2,
+          "state": "qualified",
+          "summary": 2,
+          "terminal": 2
+        }
+      ],
+      "scenario_id": "s10"
+    },
+    {
+      "case_id": "dst-fall-boundaries",
+      "documents": [
+        {
+          "html": "<h1>2026-11-01 미국 증시 시황</h1>\n<blockquote>\n<p>정보 제공용 자동 시황이며 매매 권유가 아닙니다.</p>\n</blockquote>\n<p><strong>기준 시각</strong>: 2026-11-01 NY · 수집창 2026-11-01T04:00Z ~ 2026-11-02T05:00Z (종료 미포함)</p>\n<p><strong>세그먼트</strong>: 국내 증시(미발행) | <a href=\"2026-11-01.md\">미국 증시</a> | 크립토(미발행)</p>\n<h2>한눈에 보기</h2>\n<ul>\n<li>가상사는 서비스 다를 정식 출시했습니다.</li>\n<li>가상사는 서비스 나를 정식 출시했습니다.</li>\n<li>일부 사건의 시장 반응은 확인하지 못했습니다.</li>\n</ul>\n<blockquote>\n<p><strong>내 관심 자산 영향</strong>: 관심 목록 미설정 — <code>config/watchlist.json</code>을 추가하면 보유 종목 영향이 표시됩니다.</p>\n<p><strong>오늘의 결론</strong>: 가상사는 서비스 다를 정식 출시했습니다.</p>\n<p><strong>핵심 동인</strong>: 가상사는 서비스 나를 정식 출시했습니다.</p>\n<p><strong>주의할 점</strong>: 일부 사건의 시장 반응은 확인하지 못했습니다.</p>\n</blockquote>\n<h2>① 요약</h2>\n<p>수집된 합성 자료에서 확인한 발표를 정리했습니다.</p>\n<h2>② 전일 핵심 이슈</h2>\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:408cb5cb9255191607abe143 -->\n<h3>가상사 출시 서비스 다</h3>\n<ul>\n<li>시점: 2026-11-02 04:59 UTC (출처 시각)</li>\n<li>주체: 가상사; 대상: 서비스 다</li>\n<li>무슨 일이 있었나: 가상사는 서비스 다를 정식 출시했습니다.</li>\n<li>결정/실적/발표 내용: [실제] 서비스 다가 정식 출시됐습니다.</li>\n<li>의미: 시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>시장 반응: 시장 반응은 확인하지 못했습니다.</li>\n<li>출처: <a href=\"https://example.invalid/synthetic/dst-fall-3\">fixture-dst-fall-3</a></li>\n</ul>\n<!-- /investo:block event:408cb5cb9255191607abe143 -->\n\n<!-- investo:block event:5ce8166ec9cc9bc9dd855182 -->\n<h3>가상사 출시 서비스 나</h3>\n<ul>\n<li>시점: 2026-11-01 04:00 UTC (출처 시각)</li>\n<li>주체: 가상사; 대상: 서비스 나</li>\n<li>무슨 일이 있었나: 가상사는 서비스 나를 정식 출시했습니다.</li>\n<li>결정/실적/발표 내용: [실제] 서비스 나가 정식 출시됐습니다.</li>\n<li>의미: 시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>시장 반응: 시장 반응은 확인하지 못했습니다.</li>\n<li>출처: <a href=\"https://example.invalid/synthetic/dst-fall-2\">fixture-dst-fall-2</a></li>\n</ul>\n<!-- /investo:block event:5ce8166ec9cc9bc9dd855182 -->\n\n<h2>③ 섹터/수급 동향</h2>\n<p>전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.</p>\n<h2>④ 지표·이벤트</h2>\n<p>다음 공식 발표 시각은 자료에서 확인하지 못했습니다.</p>\n<h2>⑤ 주요 종목</h2>\n<p>개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.</p>\n<h2>⑥ 오늘의 관전 포인트</h2>\n<p>후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.</p>\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `1ba28d2d0602`\n- `stage1_hash`: `835a1b032499`\n- `stage2_hash`: `648eb5c7e85b`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-dst-fall-1 | news | — | 가상사 출시 서비스 가 |\n| 1 | fixture-dst-fall-2 | news | 2 | 가상사 출시 서비스 나 |\n| 2 | fixture-dst-fall-3 | news | 2 | 가상사 출시 서비스 다 |\n| 3 | fixture-dst-fall-4 | news | 2 | 가상사 출시 서비스 라 |\n\n</details>\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 4건 / 소스 4개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 가격 카테고리 누락\n\n</details>\n\n<h2>⑦ 면책조항</h2>\n<p>본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.</p>",
+          "html_sha256": "510a5690ac4454ccbd5aa279b20b257e5e106c12ea35d7bebc07ac6dc697904c",
+          "markdown": "# 2026-11-01 미국 증시 시황\n\n> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.\n\n**기준 시각**: 2026-11-01 NY · 수집창 2026-11-01T04:00Z ~ 2026-11-02T05:00Z (종료 미포함)\n\n**세그먼트**: 국내 증시(미발행) | [미국 증시](2026-11-01.md) | 크립토(미발행)\n\n## 한눈에 보기\n\n- 가상사는 서비스 다를 정식 출시했습니다.\n- 가상사는 서비스 나를 정식 출시했습니다.\n- 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n> **내 관심 자산 영향**: 관심 목록 미설정 — `config/watchlist.json`을 추가하면 보유 종목 영향이 표시됩니다.\n\n> **오늘의 결론**: 가상사는 서비스 다를 정식 출시했습니다.\n\n> **핵심 동인**: 가상사는 서비스 나를 정식 출시했습니다.\n\n> **주의할 점**: 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n## ① 요약\n\n수집된 합성 자료에서 확인한 발표를 정리했습니다.\n\n## ② 전일 핵심 이슈\n\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:408cb5cb9255191607abe143 -->\n### 가상사 출시 서비스 다\n- 시점: 2026-11-02 04:59 UTC (출처 시각)\n- 주체: 가상사; 대상: 서비스 다\n- 무슨 일이 있었나: 가상사는 서비스 다를 정식 출시했습니다.\n- 결정/실적/발표 내용: [실제] 서비스 다가 정식 출시됐습니다.\n- 의미: 시장에 미치는 의미는 확인하지 못했습니다.\n- 시장 반응: 시장 반응은 확인하지 못했습니다.\n- 출처: [fixture-dst-fall-3](https://example.invalid/synthetic/dst-fall-3)\n<!-- /investo:block event:408cb5cb9255191607abe143 -->\n\n<!-- investo:block event:5ce8166ec9cc9bc9dd855182 -->\n### 가상사 출시 서비스 나\n- 시점: 2026-11-01 04:00 UTC (출처 시각)\n- 주체: 가상사; 대상: 서비스 나\n- 무슨 일이 있었나: 가상사는 서비스 나를 정식 출시했습니다.\n- 결정/실적/발표 내용: [실제] 서비스 나가 정식 출시됐습니다.\n- 의미: 시장에 미치는 의미는 확인하지 못했습니다.\n- 시장 반응: 시장 반응은 확인하지 못했습니다.\n- 출처: [fixture-dst-fall-2](https://example.invalid/synthetic/dst-fall-2)\n<!-- /investo:block event:5ce8166ec9cc9bc9dd855182 -->\n\n## ③ 섹터/수급 동향\n\n전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\n\n## ④ 지표·이벤트\n\n다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\n\n## ⑤ 주요 종목\n\n개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\n\n## ⑥ 오늘의 관전 포인트\n\n후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `1ba28d2d0602`\n- `stage1_hash`: `835a1b032499`\n- `stage2_hash`: `648eb5c7e85b`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-dst-fall-1 | news | — | 가상사 출시 서비스 가 |\n| 1 | fixture-dst-fall-2 | news | 2 | 가상사 출시 서비스 나 |\n| 2 | fixture-dst-fall-3 | news | 2 | 가상사 출시 서비스 다 |\n| 3 | fixture-dst-fall-4 | news | 2 | 가상사 출시 서비스 라 |\n\n</details>\n\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 4건 / 소스 4개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 가격 카테고리 누락\n\n</details>\n\n## ⑦ 면책조항\n본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.",
+          "markdown_sha256": "2a8b40e38caf7e1697c71b87f087954b29ab666e2c84f0b7ebaa1bb716bdc1cb",
+          "notification_summary": {
+            "conclusion": "가상사는 서비스 다를 정식 출시했습니다.",
+            "coverage_label": "부분",
+            "coverage_status": "partial",
+            "events": [
+              {
+                "coverage": "supported",
+                "event_id": "408cb5cb9255191607abe143",
+                "fact_summary": "가상사는 서비스 다를 정식 출시했습니다.",
+                "headline": "가상사 출시 서비스 다"
+              },
+              {
+                "coverage": "supported",
+                "event_id": "5ce8166ec9cc9bc9dd855182",
+                "fact_summary": "가상사는 서비스 나를 정식 출시했습니다.",
+                "headline": "가상사 출시 서비스 나"
+              }
+            ],
+            "segment": "us-equity",
+            "target_date": "2026-11-01",
+            "watchlist": null
+          },
+          "segment": "us-equity",
+          "surviving_event_ids": [
+            "408cb5cb9255191607abe143",
+            "5ce8166ec9cc9bc9dd855182"
+          ],
+          "target_date": "2026-11-01"
+        }
+      ],
+      "outcomes": [
+        {
+          "calls": 2,
+          "codes": [],
+          "qualified": 2,
+          "segment": "us-equity",
+          "selected": 2,
+          "state": "qualified",
+          "summary": 2,
+          "terminal": 2
+        }
+      ],
+      "scenario_id": "s10"
+    },
+    {
+      "case_id": "afterhours-release",
+      "documents": [
+        {
+          "html": "<h1>2026-09-21 미국 증시 시황</h1>\n<blockquote>\n<p>정보 제공용 자동 시황이며 매매 권유가 아닙니다.</p>\n</blockquote>\n<p><strong>기준 시각</strong>: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)</p>\n<p><strong>세그먼트</strong>: 국내 증시(미발행) | <a href=\"2026-09-21.md\">미국 증시</a> | 크립토(미발행)</p>\n<h2>한눈에 보기</h2>\n<ul>\n<li>가상사는 서비스 가를 정식 출시했습니다.</li>\n<li>시장 반응은 확인하지 못했습니다.</li>\n<li>일부 사건의 시장 반응은 확인하지 못했습니다.</li>\n</ul>\n<blockquote>\n<p><strong>내 관심 자산 영향</strong>: 관심 목록 미설정 — <code>config/watchlist.json</code>을 추가하면 보유 종목 영향이 표시됩니다.</p>\n<p><strong>오늘의 결론</strong>: 가상사는 서비스 가를 정식 출시했습니다.</p>\n<p><strong>핵심 동인</strong>: 시장 반응은 확인하지 못했습니다.</p>\n<p><strong>주의할 점</strong>: 일부 사건의 시장 반응은 확인하지 못했습니다.</p>\n</blockquote>\n<h2>① 요약</h2>\n<p>수집된 합성 자료에서 확인한 발표를 정리했습니다.</p>\n<h2>② 전일 핵심 이슈</h2>\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:7bf3a833d629e7ec52fb1841 -->\n<h3>가상사 출시 서비스 가</h3>\n<ul>\n<li>시점: 2026-09-21 23:30 UTC (출처 시각)</li>\n<li>주체: 가상사; 대상: 서비스 가</li>\n<li>무슨 일이 있었나: 가상사는 서비스 가를 정식 출시했습니다.</li>\n<li>결정/실적/발표 내용: [실제] 서비스 가가 정식 출시됐습니다.</li>\n<li>의미: 시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>시장 반응: 시장 반응은 확인하지 못했습니다.</li>\n<li>출처: <a href=\"https://example.invalid/synthetic/afterhours\">fixture-afterhours</a></li>\n</ul>\n<!-- /investo:block event:7bf3a833d629e7ec52fb1841 -->\n\n<h2>③ 섹터/수급 동향</h2>\n<p>전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.</p>\n<h2>④ 지표·이벤트</h2>\n<p>다음 공식 발표 시각은 자료에서 확인하지 못했습니다.</p>\n<h2>⑤ 주요 종목</h2>\n<p>개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.</p>\n<h2>⑥ 오늘의 관전 포인트</h2>\n<p>후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.</p>\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `40727e7af7db`\n- `stage1_hash`: `4f357343d2fe`\n- `stage2_hash`: `9ab75cf47c05`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-afterhours | news | — | 가상사 출시 서비스 가 |\n\n</details>\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n<h2>⑦ 면책조항</h2>\n<p>본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.</p>",
+          "html_sha256": "2ae88c6daa77583cffbb12f40a0216bfcc8fe1b48dc084cce36d6b686396e271",
+          "markdown": "# 2026-09-21 미국 증시 시황\n\n> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.\n\n**기준 시각**: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)\n\n**세그먼트**: 국내 증시(미발행) | [미국 증시](2026-09-21.md) | 크립토(미발행)\n\n## 한눈에 보기\n\n- 가상사는 서비스 가를 정식 출시했습니다.\n- 시장 반응은 확인하지 못했습니다.\n- 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n> **내 관심 자산 영향**: 관심 목록 미설정 — `config/watchlist.json`을 추가하면 보유 종목 영향이 표시됩니다.\n\n> **오늘의 결론**: 가상사는 서비스 가를 정식 출시했습니다.\n\n> **핵심 동인**: 시장 반응은 확인하지 못했습니다.\n\n> **주의할 점**: 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n## ① 요약\n\n수집된 합성 자료에서 확인한 발표를 정리했습니다.\n\n## ② 전일 핵심 이슈\n\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:7bf3a833d629e7ec52fb1841 -->\n### 가상사 출시 서비스 가\n- 시점: 2026-09-21 23:30 UTC (출처 시각)\n- 주체: 가상사; 대상: 서비스 가\n- 무슨 일이 있었나: 가상사는 서비스 가를 정식 출시했습니다.\n- 결정/실적/발표 내용: [실제] 서비스 가가 정식 출시됐습니다.\n- 의미: 시장에 미치는 의미는 확인하지 못했습니다.\n- 시장 반응: 시장 반응은 확인하지 못했습니다.\n- 출처: [fixture-afterhours](https://example.invalid/synthetic/afterhours)\n<!-- /investo:block event:7bf3a833d629e7ec52fb1841 -->\n\n## ③ 섹터/수급 동향\n\n전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\n\n## ④ 지표·이벤트\n\n다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\n\n## ⑤ 주요 종목\n\n개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\n\n## ⑥ 오늘의 관전 포인트\n\n후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `40727e7af7db`\n- `stage1_hash`: `4f357343d2fe`\n- `stage2_hash`: `9ab75cf47c05`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-afterhours | news | — | 가상사 출시 서비스 가 |\n\n</details>\n\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n## ⑦ 면책조항\n본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.",
+          "markdown_sha256": "0d8954772d96e5e436345566ef221bf8eba32015e010e9a10d67997c1ac2038f",
+          "notification_summary": {
+            "conclusion": "가상사는 서비스 가를 정식 출시했습니다.",
+            "coverage_label": "부분",
+            "coverage_status": "partial",
+            "events": [
+              {
+                "coverage": "supported",
+                "event_id": "7bf3a833d629e7ec52fb1841",
+                "fact_summary": "가상사는 서비스 가를 정식 출시했습니다.",
+                "headline": "가상사 출시 서비스 가"
+              }
+            ],
+            "segment": "us-equity",
+            "target_date": "2026-09-21",
+            "watchlist": null
+          },
+          "segment": "us-equity",
+          "surviving_event_ids": [
+            "7bf3a833d629e7ec52fb1841"
+          ],
+          "target_date": "2026-09-21"
+        }
+      ],
+      "outcomes": [
+        {
+          "calls": 2,
+          "codes": [],
+          "qualified": 1,
+          "segment": "us-equity",
+          "selected": 1,
+          "state": "qualified",
+          "summary": 1,
+          "terminal": 1
+        }
+      ],
+      "scenario_id": "s10"
+    },
+    {
+      "case_id": "containment-remove-fact",
+      "documents": [
+        {
+          "html": "<h1>2026-09-21 미국 증시 시황</h1>\n<blockquote>\n<p>정보 제공용 자동 시황이며 매매 권유가 아닙니다.</p>\n</blockquote>\n<p><strong>기준 시각</strong>: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)</p>\n<p><strong>세그먼트</strong>: 국내 증시(미발행) | <a href=\"2026-09-21.md\">미국 증시</a> | 크립토(미발행)</p>\n<h2>한눈에 보기</h2>\n<ul>\n<li>가상사는 서비스 나를 정식 출시했습니다.</li>\n<li>시장 반응은 확인하지 못했습니다.</li>\n<li>일부 사건의 시장 반응은 확인하지 못했습니다.</li>\n</ul>\n<blockquote>\n<p><strong>내 관심 자산 영향</strong>: 관심 목록 미설정 — <code>config/watchlist.json</code>을 추가하면 보유 종목 영향이 표시됩니다.</p>\n<p><strong>오늘의 결론</strong>: 가상사는 서비스 나를 정식 출시했습니다.</p>\n<p><strong>핵심 동인</strong>: 시장 반응은 확인하지 못했습니다.</p>\n<p><strong>주의할 점</strong>: 일부 사건의 시장 반응은 확인하지 못했습니다.</p>\n</blockquote>\n<h2>① 요약</h2>\n<p>수집된 합성 자료에서 확인한 발표를 정리했습니다.</p>\n<h2>② 전일 핵심 이슈</h2>\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:aeab0e4a9e3c7559513ea422 -->\n<h3>가상사 출시 서비스 나</h3>\n<ul>\n<li>시점: 2026-09-21 10:00 UTC (출처 시각)</li>\n<li>주체: 가상사; 대상: 서비스 나</li>\n<li>무슨 일이 있었나: 가상사는 서비스 나를 정식 출시했습니다.</li>\n<li>결정/실적/발표 내용: [실제] 서비스 나가 정식 출시됐습니다.</li>\n<li>의미: 시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>시장 반응: 시장 반응은 확인하지 못했습니다.</li>\n<li>출처: <a href=\"https://example.invalid/synthetic/service-2\">fixture-service-2</a></li>\n</ul>\n<!-- /investo:block event:aeab0e4a9e3c7559513ea422 -->\n\n<h2>③ 섹터/수급 동향</h2>\n<p>전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.</p>\n<h2>④ 지표·이벤트</h2>\n<p>다음 공식 발표 시각은 자료에서 확인하지 못했습니다.</p>\n<h2>⑤ 주요 종목</h2>\n<p>개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.</p>\n<h2>⑥ 오늘의 관전 포인트</h2>\n<p>후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.</p>\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `aa9241e6145d`\n- `stage1_hash`: `4a24d35405a5`\n- `stage2_hash`: `795f2044fce2`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-service-1 | news | — | 가상사 출시 서비스 가 |\n| 1 | fixture-service-2 | news | 2 | 가상사 출시 서비스 나 |\n\n</details>\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 2건 / 소스 2개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n<h2>⑦ 면책조항</h2>\n<p>본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.</p>",
+          "html_sha256": "bd67b161e7f9f2b2c08d661bbcee5ccae2f4a28e4206268b490a0374890b178c",
+          "markdown": "# 2026-09-21 미국 증시 시황\n\n> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.\n\n**기준 시각**: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)\n\n**세그먼트**: 국내 증시(미발행) | [미국 증시](2026-09-21.md) | 크립토(미발행)\n\n## 한눈에 보기\n\n- 가상사는 서비스 나를 정식 출시했습니다.\n- 시장 반응은 확인하지 못했습니다.\n- 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n> **내 관심 자산 영향**: 관심 목록 미설정 — `config/watchlist.json`을 추가하면 보유 종목 영향이 표시됩니다.\n\n> **오늘의 결론**: 가상사는 서비스 나를 정식 출시했습니다.\n\n> **핵심 동인**: 시장 반응은 확인하지 못했습니다.\n\n> **주의할 점**: 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n## ① 요약\n\n수집된 합성 자료에서 확인한 발표를 정리했습니다.\n\n## ② 전일 핵심 이슈\n\n<!-- investo:events version=2 -->\n\n\n\n<!-- investo:block event:aeab0e4a9e3c7559513ea422 -->\n### 가상사 출시 서비스 나\n- 시점: 2026-09-21 10:00 UTC (출처 시각)\n- 주체: 가상사; 대상: 서비스 나\n- 무슨 일이 있었나: 가상사는 서비스 나를 정식 출시했습니다.\n- 결정/실적/발표 내용: [실제] 서비스 나가 정식 출시됐습니다.\n- 의미: 시장에 미치는 의미는 확인하지 못했습니다.\n- 시장 반응: 시장 반응은 확인하지 못했습니다.\n- 출처: [fixture-service-2](https://example.invalid/synthetic/service-2)\n<!-- /investo:block event:aeab0e4a9e3c7559513ea422 -->\n\n## ③ 섹터/수급 동향\n\n전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\n\n## ④ 지표·이벤트\n\n다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\n\n## ⑤ 주요 종목\n\n개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\n\n## ⑥ 오늘의 관전 포인트\n\n후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `aa9241e6145d`\n- `stage1_hash`: `4a24d35405a5`\n- `stage2_hash`: `795f2044fce2`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-service-1 | news | — | 가상사 출시 서비스 가 |\n| 1 | fixture-service-2 | news | 2 | 가상사 출시 서비스 나 |\n\n</details>\n\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 2건 / 소스 2개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n## ⑦ 면책조항\n본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.",
+          "markdown_sha256": "b60a19feab2402dee2d6faa14a776a29c6ac8906109a6cb96aa91d248a1c6372",
+          "notification_summary": {
+            "conclusion": "가상사는 서비스 나를 정식 출시했습니다.",
+            "coverage_label": "부분",
+            "coverage_status": "partial",
+            "events": [
+              {
+                "coverage": "supported",
+                "event_id": "aeab0e4a9e3c7559513ea422",
+                "fact_summary": "가상사는 서비스 나를 정식 출시했습니다.",
+                "headline": "가상사 출시 서비스 나"
+              }
+            ],
+            "segment": "us-equity",
+            "target_date": "2026-09-21",
+            "watchlist": null
+          },
+          "segment": "us-equity",
+          "surviving_event_ids": [
+            "aeab0e4a9e3c7559513ea422"
+          ],
+          "target_date": "2026-09-21"
+        }
+      ],
+      "outcomes": [
+        {
+          "calls": 2,
+          "codes": [],
+          "qualified": 1,
+          "segment": "us-equity",
+          "selected": 2,
+          "state": "qualified",
+          "summary": 1,
+          "terminal": 1
+        }
+      ],
+      "scenario_id": "s11"
+    },
+    {
+      "case_id": "containment-remove-link",
+      "documents": [
+        {
+          "html": "<h1>2026-09-21 미국 증시 시황</h1>\n<blockquote>\n<p>정보 제공용 자동 시황이며 매매 권유가 아닙니다.</p>\n</blockquote>\n<p><strong>기준 시각</strong>: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)</p>\n<p><strong>세그먼트</strong>: 국내 증시(미발행) | <a href=\"2026-09-21.md\">미국 증시</a> | 크립토(미발행)</p>\n<h2>한눈에 보기</h2>\n<ul>\n<li>가상사는 서비스 가를 정식 출시했습니다.</li>\n<li>시장 반응은 확인하지 못했습니다.</li>\n<li>일부 사건의 시장 반응은 확인하지 못했습니다.</li>\n</ul>\n<blockquote>\n<p><strong>내 관심 자산 영향</strong>: 관심 목록 미설정 — <code>config/watchlist.json</code>을 추가하면 보유 종목 영향이 표시됩니다.</p>\n<p><strong>오늘의 결론</strong>: 가상사는 서비스 가를 정식 출시했습니다.</p>\n<p><strong>핵심 동인</strong>: 시장 반응은 확인하지 못했습니다.</p>\n<p><strong>주의할 점</strong>: 일부 사건의 시장 반응은 확인하지 못했습니다.</p>\n</blockquote>\n<h2>① 요약</h2>\n<p>수집된 합성 자료에서 확인한 발표를 정리했습니다.</p>\n<h2>② 전일 핵심 이슈</h2>\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:7bf3a833d629e7ec52fb1841 -->\n<h3>가상사 출시 서비스 가</h3>\n<ul>\n<li>시점: 2026-09-21 10:00 UTC (출처 시각)</li>\n<li>주체: 가상사; 대상: 서비스 가</li>\n<li>무슨 일이 있었나: 가상사는 서비스 가를 정식 출시했습니다.</li>\n<li>결정/실적/발표 내용: [실제] 서비스 가가 정식 출시됐습니다.</li>\n<li>의미: 시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>시장 반응: 시장 반응은 확인하지 못했습니다.</li>\n</ul>\n<!-- /investo:block event:7bf3a833d629e7ec52fb1841 -->\n\n<h2>③ 섹터/수급 동향</h2>\n<p>전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.</p>\n<h2>④ 지표·이벤트</h2>\n<p>다음 공식 발표 시각은 자료에서 확인하지 못했습니다.</p>\n<h2>⑤ 주요 종목</h2>\n<p>개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.</p>\n<h2>⑥ 오늘의 관전 포인트</h2>\n<p>후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.</p>\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `96d6f9c94d39`\n- `stage1_hash`: `d09aac2924db`\n- `stage2_hash`: `e6a6ce92bb32`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-service-1 | news | — | 가상사 출시 서비스 가 |\n\n</details>\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n<h2>⑦ 면책조항</h2>\n<p>본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.</p>",
+          "html_sha256": "2c687f335241bbdcdbfbd6ddbe0d57aacedb3ad0e6df5b4d50b491507b8500b8",
+          "markdown": "# 2026-09-21 미국 증시 시황\n\n> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.\n\n**기준 시각**: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)\n\n**세그먼트**: 국내 증시(미발행) | [미국 증시](2026-09-21.md) | 크립토(미발행)\n\n## 한눈에 보기\n\n- 가상사는 서비스 가를 정식 출시했습니다.\n- 시장 반응은 확인하지 못했습니다.\n- 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n> **내 관심 자산 영향**: 관심 목록 미설정 — `config/watchlist.json`을 추가하면 보유 종목 영향이 표시됩니다.\n\n> **오늘의 결론**: 가상사는 서비스 가를 정식 출시했습니다.\n\n> **핵심 동인**: 시장 반응은 확인하지 못했습니다.\n\n> **주의할 점**: 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n## ① 요약\n\n수집된 합성 자료에서 확인한 발표를 정리했습니다.\n\n## ② 전일 핵심 이슈\n\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:7bf3a833d629e7ec52fb1841 -->\n### 가상사 출시 서비스 가\n- 시점: 2026-09-21 10:00 UTC (출처 시각)\n- 주체: 가상사; 대상: 서비스 가\n- 무슨 일이 있었나: 가상사는 서비스 가를 정식 출시했습니다.\n- 결정/실적/발표 내용: [실제] 서비스 가가 정식 출시됐습니다.\n- 의미: 시장에 미치는 의미는 확인하지 못했습니다.\n- 시장 반응: 시장 반응은 확인하지 못했습니다.\n<!-- /investo:block event:7bf3a833d629e7ec52fb1841 -->\n\n## ③ 섹터/수급 동향\n\n전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\n\n## ④ 지표·이벤트\n\n다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\n\n## ⑤ 주요 종목\n\n개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\n\n## ⑥ 오늘의 관전 포인트\n\n후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `96d6f9c94d39`\n- `stage1_hash`: `d09aac2924db`\n- `stage2_hash`: `e6a6ce92bb32`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-service-1 | news | — | 가상사 출시 서비스 가 |\n\n</details>\n\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n## ⑦ 면책조항\n본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.",
+          "markdown_sha256": "ed0698c01f79911a1999bad8b68a0e8bc64442c98dab17269887452edfb2919d",
+          "notification_summary": {
+            "conclusion": "가상사는 서비스 가를 정식 출시했습니다.",
+            "coverage_label": "부분",
+            "coverage_status": "partial",
+            "events": [
+              {
+                "coverage": "detail_limited",
+                "event_id": "7bf3a833d629e7ec52fb1841",
+                "fact_summary": "가상사는 서비스 가를 정식 출시했습니다.",
+                "headline": "가상사 출시 서비스 가"
+              }
+            ],
+            "segment": "us-equity",
+            "target_date": "2026-09-21",
+            "watchlist": null
+          },
+          "segment": "us-equity",
+          "surviving_event_ids": [
+            "7bf3a833d629e7ec52fb1841"
+          ],
+          "target_date": "2026-09-21"
+        }
+      ],
+      "outcomes": [
+        {
+          "calls": 2,
+          "codes": [],
+          "qualified": 0,
+          "segment": "us-equity",
+          "selected": 1,
+          "state": "detail_limited",
+          "summary": 1,
+          "terminal": 1
+        }
+      ],
+      "scenario_id": "s11"
+    },
+    {
+      "case_id": "containment-marker-only",
+      "documents": [
+        {
+          "html": "<h1>2026-09-21 미국 증시 시황</h1>\n<blockquote>\n<p>정보 제공용 자동 시황이며 매매 권유가 아닙니다.</p>\n</blockquote>\n<p><strong>기준 시각</strong>: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)</p>\n<p><strong>세그먼트</strong>: 국내 증시(미발행) | <a href=\"2026-09-21.md\">미국 증시</a> | 크립토(미발행)</p>\n<h2>한눈에 보기</h2>\n<ul>\n<li>검증을 통과한 사건 설명을 제공하지 못했습니다.</li>\n<li>시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>추가 발표 여부는 공식 자료에서 확인이 필요합니다.</li>\n</ul>\n<blockquote>\n<p><strong>내 관심 자산 영향</strong>: 관심 목록 미설정 — <code>config/watchlist.json</code>을 추가하면 보유 종목 영향이 표시됩니다.</p>\n<p><strong>오늘의 결론</strong>: 검증을 통과한 사건 설명을 제공하지 못했습니다.</p>\n<p><strong>핵심 동인</strong>: 시장에 미치는 의미는 확인하지 못했습니다.</p>\n<p><strong>주의할 점</strong>: 추가 발표 여부는 공식 자료에서 확인이 필요합니다.</p>\n</blockquote>\n<h2>① 요약</h2>\n<p>수집된 합성 자료에서 확인한 발표를 정리했습니다.</p>\n<h2>② 전일 핵심 이슈</h2>\n<!-- investo:events version=2 -->\n<p>검증을 통과한 사건 설명을 제공하지 못했습니다.</p>\n<h2>③ 섹터/수급 동향</h2>\n<p>전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.</p>\n<h2>④ 지표·이벤트</h2>\n<p>다음 공식 발표 시각은 자료에서 확인하지 못했습니다.</p>\n<h2>⑤ 주요 종목</h2>\n<p>개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.</p>\n<h2>⑥ 오늘의 관전 포인트</h2>\n<p>후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.</p>\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `96d6f9c94d39`\n- `stage1_hash`: `d09aac2924db`\n- `stage2_hash`: `e6a6ce92bb32`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-service-1 | news | — | 가상사 출시 서비스 가 |\n\n</details>\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n<h2>⑦ 면책조항</h2>\n<p>본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.</p>",
+          "html_sha256": "b5f1e71064d32e0db67e7e4af1da2bce4b0ec988f906655161ee9f1b842920d1",
+          "markdown": "# 2026-09-21 미국 증시 시황\n\n> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.\n\n**기준 시각**: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)\n\n**세그먼트**: 국내 증시(미발행) | [미국 증시](2026-09-21.md) | 크립토(미발행)\n\n## 한눈에 보기\n\n- 검증을 통과한 사건 설명을 제공하지 못했습니다.\n- 시장에 미치는 의미는 확인하지 못했습니다.\n- 추가 발표 여부는 공식 자료에서 확인이 필요합니다.\n\n> **내 관심 자산 영향**: 관심 목록 미설정 — `config/watchlist.json`을 추가하면 보유 종목 영향이 표시됩니다.\n\n> **오늘의 결론**: 검증을 통과한 사건 설명을 제공하지 못했습니다.\n\n> **핵심 동인**: 시장에 미치는 의미는 확인하지 못했습니다.\n\n> **주의할 점**: 추가 발표 여부는 공식 자료에서 확인이 필요합니다.\n\n## ① 요약\n\n수집된 합성 자료에서 확인한 발표를 정리했습니다.\n\n## ② 전일 핵심 이슈\n\n<!-- investo:events version=2 -->\n검증을 통과한 사건 설명을 제공하지 못했습니다.\n\n## ③ 섹터/수급 동향\n\n전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\n\n## ④ 지표·이벤트\n\n다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\n\n## ⑤ 주요 종목\n\n개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\n\n## ⑥ 오늘의 관전 포인트\n\n후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `96d6f9c94d39`\n- `stage1_hash`: `d09aac2924db`\n- `stage2_hash`: `e6a6ce92bb32`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-service-1 | news | — | 가상사 출시 서비스 가 |\n\n</details>\n\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n## ⑦ 면책조항\n본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.",
+          "markdown_sha256": "0535c5f60cf621d5600209cd7088b692aad75eaec7a2035f89efa399c1a0d038",
+          "notification_summary": {
+            "conclusion": "검증을 통과한 사건 설명을 제공하지 못했습니다.",
+            "coverage_label": "부분",
+            "coverage_status": "partial",
+            "events": [],
+            "segment": "us-equity",
+            "target_date": "2026-09-21",
+            "watchlist": null
+          },
+          "segment": "us-equity",
+          "surviving_event_ids": [],
+          "target_date": "2026-09-21"
+        }
+      ],
+      "outcomes": [
+        {
+          "calls": 2,
+          "codes": [],
+          "qualified": 0,
+          "segment": "us-equity",
+          "selected": 1,
+          "state": "no_qualifying_event",
+          "summary": 0,
+          "terminal": 0
+        }
+      ],
+      "scenario_id": "s11"
+    },
+    {
+      "case_id": "containment-url-only",
+      "documents": [
+        {
+          "html": "<h1>2026-09-21 미국 증시 시황</h1>\n<blockquote>\n<p>정보 제공용 자동 시황이며 매매 권유가 아닙니다.</p>\n</blockquote>\n<p><strong>기준 시각</strong>: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)</p>\n<p><strong>세그먼트</strong>: 국내 증시(미발행) | <a href=\"2026-09-21.md\">미국 증시</a> | 크립토(미발행)</p>\n<h2>한눈에 보기</h2>\n<ul>\n<li>검증을 통과한 사건 설명을 제공하지 못했습니다.</li>\n<li>시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>추가 발표 여부는 공식 자료에서 확인이 필요합니다.</li>\n</ul>\n<blockquote>\n<p><strong>내 관심 자산 영향</strong>: 관심 목록 미설정 — <code>config/watchlist.json</code>을 추가하면 보유 종목 영향이 표시됩니다.</p>\n<p><strong>오늘의 결론</strong>: 검증을 통과한 사건 설명을 제공하지 못했습니다.</p>\n<p><strong>핵심 동인</strong>: 시장에 미치는 의미는 확인하지 못했습니다.</p>\n<p><strong>주의할 점</strong>: 추가 발표 여부는 공식 자료에서 확인이 필요합니다.</p>\n</blockquote>\n<h2>① 요약</h2>\n<p>수집된 합성 자료에서 확인한 발표를 정리했습니다.</p>\n<h2>② 전일 핵심 이슈</h2>\n<!-- investo:events version=2 -->\n<p>검증을 통과한 사건 설명을 제공하지 못했습니다.</p>\n<h2>③ 섹터/수급 동향</h2>\n<p>전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.</p>\n<h2>④ 지표·이벤트</h2>\n<p>다음 공식 발표 시각은 자료에서 확인하지 못했습니다.</p>\n<h2>⑤ 주요 종목</h2>\n<p>개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.</p>\n<h2>⑥ 오늘의 관전 포인트</h2>\n<p>후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.</p>\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `96d6f9c94d39`\n- `stage1_hash`: `d09aac2924db`\n- `stage2_hash`: `e6a6ce92bb32`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-service-1 | news | — | 가상사 출시 서비스 가 |\n\n</details>\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n<h2>⑦ 면책조항</h2>\n<p>본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.</p>",
+          "html_sha256": "b5f1e71064d32e0db67e7e4af1da2bce4b0ec988f906655161ee9f1b842920d1",
+          "markdown": "# 2026-09-21 미국 증시 시황\n\n> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.\n\n**기준 시각**: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)\n\n**세그먼트**: 국내 증시(미발행) | [미국 증시](2026-09-21.md) | 크립토(미발행)\n\n## 한눈에 보기\n\n- 검증을 통과한 사건 설명을 제공하지 못했습니다.\n- 시장에 미치는 의미는 확인하지 못했습니다.\n- 추가 발표 여부는 공식 자료에서 확인이 필요합니다.\n\n> **내 관심 자산 영향**: 관심 목록 미설정 — `config/watchlist.json`을 추가하면 보유 종목 영향이 표시됩니다.\n\n> **오늘의 결론**: 검증을 통과한 사건 설명을 제공하지 못했습니다.\n\n> **핵심 동인**: 시장에 미치는 의미는 확인하지 못했습니다.\n\n> **주의할 점**: 추가 발표 여부는 공식 자료에서 확인이 필요합니다.\n\n## ① 요약\n\n수집된 합성 자료에서 확인한 발표를 정리했습니다.\n\n## ② 전일 핵심 이슈\n\n<!-- investo:events version=2 -->\n검증을 통과한 사건 설명을 제공하지 못했습니다.\n\n## ③ 섹터/수급 동향\n\n전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\n\n## ④ 지표·이벤트\n\n다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\n\n## ⑤ 주요 종목\n\n개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\n\n## ⑥ 오늘의 관전 포인트\n\n후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `96d6f9c94d39`\n- `stage1_hash`: `d09aac2924db`\n- `stage2_hash`: `e6a6ce92bb32`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-service-1 | news | — | 가상사 출시 서비스 가 |\n\n</details>\n\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n## ⑦ 면책조항\n본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.",
+          "markdown_sha256": "0535c5f60cf621d5600209cd7088b692aad75eaec7a2035f89efa399c1a0d038",
+          "notification_summary": {
+            "conclusion": "검증을 통과한 사건 설명을 제공하지 못했습니다.",
+            "coverage_label": "부분",
+            "coverage_status": "partial",
+            "events": [],
+            "segment": "us-equity",
+            "target_date": "2026-09-21",
+            "watchlist": null
+          },
+          "segment": "us-equity",
+          "surviving_event_ids": [],
+          "target_date": "2026-09-21"
+        }
+      ],
+      "outcomes": [
+        {
+          "calls": 2,
+          "codes": [],
+          "qualified": 0,
+          "segment": "us-equity",
+          "selected": 1,
+          "state": "no_qualifying_event",
+          "summary": 0,
+          "terminal": 0
+        }
+      ],
+      "scenario_id": "s11"
+    },
+    {
+      "case_id": "forbidden-with-valid-sibling",
+      "documents": [
+        {
+          "html": "<h1>2026-09-21 미국 증시 시황</h1>\n<blockquote>\n<p>정보 제공용 자동 시황이며 매매 권유가 아닙니다.</p>\n</blockquote>\n<p><strong>기준 시각</strong>: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)</p>\n<p><strong>세그먼트</strong>: 국내 증시(미발행) | <a href=\"2026-09-21.md\">미국 증시</a> | 크립토(미발행)</p>\n<h2>한눈에 보기</h2>\n<ul>\n<li>가상사는 서비스 가를 정식 출시했습니다.</li>\n<li>시장 반응은 확인하지 못했습니다.</li>\n<li>일부 사건의 시장 반응은 확인하지 못했습니다.</li>\n</ul>\n<blockquote>\n<p><strong>내 관심 자산 영향</strong>: 관심 목록 미설정 — <code>config/watchlist.json</code>을 추가하면 보유 종목 영향이 표시됩니다.</p>\n<p><strong>오늘의 결론</strong>: 가상사는 서비스 가를 정식 출시했습니다.</p>\n<p><strong>핵심 동인</strong>: 시장 반응은 확인하지 못했습니다.</p>\n<p><strong>주의할 점</strong>: 일부 사건의 시장 반응은 확인하지 못했습니다.</p>\n</blockquote>\n<h2>① 요약</h2>\n<p>수집된 합성 자료에서 확인한 발표를 정리했습니다.</p>\n<h2>② 전일 핵심 이슈</h2>\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:7bf3a833d629e7ec52fb1841 -->\n<h3>가상사 출시 서비스 가</h3>\n<ul>\n<li>시점: 2026-09-21 10:00 UTC (출처 시각)</li>\n<li>주체: 가상사; 대상: 서비스 가</li>\n<li>무슨 일이 있었나: 가상사는 서비스 가를 정식 출시했습니다.</li>\n<li>결정/실적/발표 내용: [실제] 서비스 가가 정식 출시됐습니다.</li>\n<li>의미: 시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>시장 반응: 시장 반응은 확인하지 못했습니다.</li>\n<li>출처: <a href=\"https://example.invalid/synthetic/service-1\">fixture-service-1</a></li>\n</ul>\n<!-- /investo:block event:7bf3a833d629e7ec52fb1841 -->\n\n<h2>③ 섹터/수급 동향</h2>\n<p>전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.</p>\n<h2>④ 지표·이벤트</h2>\n<p>다음 공식 발표 시각은 자료에서 확인하지 못했습니다.</p>\n<h2>⑤ 주요 종목</h2>\n<p>개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.</p>\n<h2>⑥ 오늘의 관전 포인트</h2>\n<p>후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.</p>\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `96d6f9c94d39`\n- `stage1_hash`: `d09aac2924db`\n- `stage2_hash`: `e6a6ce92bb32`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-service-1 | news | — | 가상사 출시 서비스 가 |\n\n</details>\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n<h2>⑦ 면책조항</h2>\n<p>본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.</p>",
+          "html_sha256": "9213d45d74c115777c30d6bc11e7d18b0898d315c609e93d1734c8a5276cb570",
+          "markdown": "# 2026-09-21 미국 증시 시황\n\n> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.\n\n**기준 시각**: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)\n\n**세그먼트**: 국내 증시(미발행) | [미국 증시](2026-09-21.md) | 크립토(미발행)\n\n## 한눈에 보기\n\n- 가상사는 서비스 가를 정식 출시했습니다.\n- 시장 반응은 확인하지 못했습니다.\n- 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n> **내 관심 자산 영향**: 관심 목록 미설정 — `config/watchlist.json`을 추가하면 보유 종목 영향이 표시됩니다.\n\n> **오늘의 결론**: 가상사는 서비스 가를 정식 출시했습니다.\n\n> **핵심 동인**: 시장 반응은 확인하지 못했습니다.\n\n> **주의할 점**: 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n## ① 요약\n\n수집된 합성 자료에서 확인한 발표를 정리했습니다.\n\n## ② 전일 핵심 이슈\n\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:7bf3a833d629e7ec52fb1841 -->\n### 가상사 출시 서비스 가\n- 시점: 2026-09-21 10:00 UTC (출처 시각)\n- 주체: 가상사; 대상: 서비스 가\n- 무슨 일이 있었나: 가상사는 서비스 가를 정식 출시했습니다.\n- 결정/실적/발표 내용: [실제] 서비스 가가 정식 출시됐습니다.\n- 의미: 시장에 미치는 의미는 확인하지 못했습니다.\n- 시장 반응: 시장 반응은 확인하지 못했습니다.\n- 출처: [fixture-service-1](https://example.invalid/synthetic/service-1)\n<!-- /investo:block event:7bf3a833d629e7ec52fb1841 -->\n\n## ③ 섹터/수급 동향\n\n전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\n\n## ④ 지표·이벤트\n\n다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\n\n## ⑤ 주요 종목\n\n개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\n\n## ⑥ 오늘의 관전 포인트\n\n후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `96d6f9c94d39`\n- `stage1_hash`: `d09aac2924db`\n- `stage2_hash`: `e6a6ce92bb32`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-service-1 | news | — | 가상사 출시 서비스 가 |\n\n</details>\n\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n## ⑦ 면책조항\n본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.",
+          "markdown_sha256": "b6ef9e9a11696160207799362bdfafe0c4186b9bac0cdcf5cb98320e38f308e3",
+          "notification_summary": {
+            "conclusion": "가상사는 서비스 가를 정식 출시했습니다.",
+            "coverage_label": "부분",
+            "coverage_status": "partial",
+            "events": [
+              {
+                "coverage": "supported",
+                "event_id": "7bf3a833d629e7ec52fb1841",
+                "fact_summary": "가상사는 서비스 가를 정식 출시했습니다.",
+                "headline": "가상사 출시 서비스 가"
+              }
+            ],
+            "segment": "us-equity",
+            "target_date": "2026-09-21",
+            "watchlist": null
+          },
+          "segment": "us-equity",
+          "surviving_event_ids": [
+            "7bf3a833d629e7ec52fb1841"
+          ],
+          "target_date": "2026-09-21"
+        }
+      ],
+      "outcomes": [
+        {
+          "calls": 2,
+          "codes": [],
+          "qualified": null,
+          "segment": "domestic-equity",
+          "selected": 1,
+          "state": "hard_trust_blocked",
+          "summary": null,
+          "terminal": null
+        },
+        {
+          "calls": 2,
+          "codes": [],
+          "qualified": 1,
+          "segment": "us-equity",
+          "selected": 1,
+          "state": "qualified",
+          "summary": 1,
+          "terminal": 1
+        }
+      ],
+      "scenario_id": "s12"
+    },
+    {
+      "case_id": "numeric-with-valid-sibling",
+      "documents": [
+        {
+          "html": "<h1>2026-09-21 미국 증시 시황</h1>\n<blockquote>\n<p>정보 제공용 자동 시황이며 매매 권유가 아닙니다.</p>\n</blockquote>\n<p><strong>기준 시각</strong>: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)</p>\n<p><strong>세그먼트</strong>: 국내 증시(미발행) | <a href=\"2026-09-21.md\">미국 증시</a> | 크립토(미발행)</p>\n<h2>한눈에 보기</h2>\n<ul>\n<li>가상사는 서비스 가를 정식 출시했습니다.</li>\n<li>시장 반응은 확인하지 못했습니다.</li>\n<li>일부 사건의 시장 반응은 확인하지 못했습니다.</li>\n</ul>\n<blockquote>\n<p><strong>내 관심 자산 영향</strong>: 관심 목록 미설정 — <code>config/watchlist.json</code>을 추가하면 보유 종목 영향이 표시됩니다.</p>\n<p><strong>오늘의 결론</strong>: 가상사는 서비스 가를 정식 출시했습니다.</p>\n<p><strong>핵심 동인</strong>: 시장 반응은 확인하지 못했습니다.</p>\n<p><strong>주의할 점</strong>: 일부 사건의 시장 반응은 확인하지 못했습니다.</p>\n</blockquote>\n<h2>① 요약</h2>\n<p>수집된 합성 자료에서 확인한 발표를 정리했습니다.</p>\n<h2>② 전일 핵심 이슈</h2>\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:7bf3a833d629e7ec52fb1841 -->\n<h3>가상사 출시 서비스 가</h3>\n<ul>\n<li>시점: 2026-09-21 10:00 UTC (출처 시각)</li>\n<li>주체: 가상사; 대상: 서비스 가</li>\n<li>무슨 일이 있었나: 가상사는 서비스 가를 정식 출시했습니다.</li>\n<li>결정/실적/발표 내용: [실제] 서비스 가가 정식 출시됐습니다.</li>\n<li>의미: 시장에 미치는 의미는 확인하지 못했습니다.</li>\n<li>시장 반응: 시장 반응은 확인하지 못했습니다.</li>\n<li>출처: <a href=\"https://example.invalid/synthetic/service-1\">fixture-service-1</a></li>\n</ul>\n<!-- /investo:block event:7bf3a833d629e7ec52fb1841 -->\n\n<h2>③ 섹터/수급 동향</h2>\n<p>전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.</p>\n<h2>④ 지표·이벤트</h2>\n<p>다음 공식 발표 시각은 자료에서 확인하지 못했습니다.</p>\n<h2>⑤ 주요 종목</h2>\n<p>개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.</p>\n<h2>⑥ 오늘의 관전 포인트</h2>\n<p>후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.</p>\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `96d6f9c94d39`\n- `stage1_hash`: `d09aac2924db`\n- `stage2_hash`: `e6a6ce92bb32`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-service-1 | news | — | 가상사 출시 서비스 가 |\n\n</details>\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n<h2>⑦ 면책조항</h2>\n<p>본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.</p>",
+          "html_sha256": "9213d45d74c115777c30d6bc11e7d18b0898d315c609e93d1734c8a5276cb570",
+          "markdown": "# 2026-09-21 미국 증시 시황\n\n> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.\n\n**기준 시각**: 2026-09-21 NY · 수집창 2026-09-21T04:00Z ~ 2026-09-22T04:00Z (종료 미포함)\n\n**세그먼트**: 국내 증시(미발행) | [미국 증시](2026-09-21.md) | 크립토(미발행)\n\n## 한눈에 보기\n\n- 가상사는 서비스 가를 정식 출시했습니다.\n- 시장 반응은 확인하지 못했습니다.\n- 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n> **내 관심 자산 영향**: 관심 목록 미설정 — `config/watchlist.json`을 추가하면 보유 종목 영향이 표시됩니다.\n\n> **오늘의 결론**: 가상사는 서비스 가를 정식 출시했습니다.\n\n> **핵심 동인**: 시장 반응은 확인하지 못했습니다.\n\n> **주의할 점**: 일부 사건의 시장 반응은 확인하지 못했습니다.\n\n## ① 요약\n\n수집된 합성 자료에서 확인한 발표를 정리했습니다.\n\n## ② 전일 핵심 이슈\n\n<!-- investo:events version=2 -->\n\n<!-- investo:block event:7bf3a833d629e7ec52fb1841 -->\n### 가상사 출시 서비스 가\n- 시점: 2026-09-21 10:00 UTC (출처 시각)\n- 주체: 가상사; 대상: 서비스 가\n- 무슨 일이 있었나: 가상사는 서비스 가를 정식 출시했습니다.\n- 결정/실적/발표 내용: [실제] 서비스 가가 정식 출시됐습니다.\n- 의미: 시장에 미치는 의미는 확인하지 못했습니다.\n- 시장 반응: 시장 반응은 확인하지 못했습니다.\n- 출처: [fixture-service-1](https://example.invalid/synthetic/service-1)\n<!-- /investo:block event:7bf3a833d629e7ec52fb1841 -->\n\n## ③ 섹터/수급 동향\n\n전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\n\n## ④ 지표·이벤트\n\n다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\n\n## ⑤ 주요 종목\n\n개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\n\n## ⑥ 오늘의 관전 포인트\n\n후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\n<details>\n<summary>📑 트레이스 + 서명 (Stage 1/2)</summary>\n\n- `input_hash`: `96d6f9c94d39`\n- `stage1_hash`: `d09aac2924db`\n- `stage2_hash`: `e6a6ce92bb32`\n\n| 항목 ID | 소스 | 카테고리 | 섹션 | 제목 |\n|---------|------|----------|------|------|\n| 0 | fixture-service-1 | news | — | 가상사 출시 서비스 가 |\n\n</details>\n\n\n<details><summary>수집/품질 진단</summary>\n\n> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 가격 · 부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요\n> **상세 사유**: 최소 수집 기준 미달, 가격 카테고리 누락\n\n</details>\n\n## ⑦ 면책조항\n본 시황은 일반 정보 제공을 목적으로 자동 생성된 자료이며,\n특정 종목·자산에 대한 매매 권유나 투자 자문이 아닙니다.\n투자 결정과 그 결과에 대한 책임은 전적으로 본인에게 있으며,\n본 시황의 내용에 따라 발생한 손실에 대해 작성자는 일체의 책임을 지지 않습니다.",
+          "markdown_sha256": "b6ef9e9a11696160207799362bdfafe0c4186b9bac0cdcf5cb98320e38f308e3",
+          "notification_summary": {
+            "conclusion": "가상사는 서비스 가를 정식 출시했습니다.",
+            "coverage_label": "부분",
+            "coverage_status": "partial",
+            "events": [
+              {
+                "coverage": "supported",
+                "event_id": "7bf3a833d629e7ec52fb1841",
+                "fact_summary": "가상사는 서비스 가를 정식 출시했습니다.",
+                "headline": "가상사 출시 서비스 가"
+              }
+            ],
+            "segment": "us-equity",
+            "target_date": "2026-09-21",
+            "watchlist": null
+          },
+          "segment": "us-equity",
+          "surviving_event_ids": [
+            "7bf3a833d629e7ec52fb1841"
+          ],
+          "target_date": "2026-09-21"
+        }
+      ],
+      "outcomes": [
+        {
+          "calls": 2,
+          "codes": [],
+          "qualified": null,
+          "segment": "domestic-equity",
+          "selected": 1,
+          "state": "hard_trust_blocked",
+          "summary": null,
+          "terminal": null
+        },
+        {
+          "calls": 2,
+          "codes": [],
+          "qualified": 1,
+          "segment": "us-equity",
+          "selected": 1,
+          "state": "qualified",
+          "summary": 1,
+          "terminal": 1
+        }
+      ],
+      "scenario_id": "s12"
+    }
+  ],
+  "document_schema": 2,
+  "fixture_author": "AI-authored synthetic",
+  "generated_on_code_sha": "ca631e245d0341c09ea1671c32c4286dbd2c9c3a",
+  "human_review": "pending"
+}

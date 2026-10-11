@@ -1,0 +1,147 @@
+{
+  "date": "2026-10-12",
+  "unit": "u170",
+  "implementation_code_sha": "ca631e245d0341c09ea1671c32c4286dbd2c9c3a",
+  "integrated_remote_base": "55c00fc85e2828f62cd69d5583afd3761ef86d45",
+  "status": "Complete — 8/8 implementation",
+  "acceptance": {
+    "AC-170.1": {
+      "status": "Complete",
+      "evidence": "`test_event_story_semantics_v3.py`, `test_event_story_contract_v3.py`, `test_native_story_retention_v3.py`, `test_event_publication_v3.py`",
+      "limitation": null
+    },
+    "AC-170.2": {
+      "status": "Complete",
+      "evidence": "`test_event_story_semantics_v3.py`, `test_event_story_contract_v3.py`, `test_native_story_retention_v3.py`, `test_event_publication_v3.py`",
+      "limitation": null
+    },
+    "AC-170.3": {
+      "status": "Complete",
+      "evidence": "`test_event_story_semantics_v3.py`, `test_event_story_contract_v3.py`, `test_native_story_retention_v3.py`, `test_event_publication_v3.py`",
+      "limitation": null
+    },
+    "AC-170.4": {
+      "status": "Complete",
+      "evidence": "`test_event_story_semantics_v3.py`, `test_event_story_contract_v3.py`, `test_native_story_retention_v3.py`, `test_event_publication_v3.py`",
+      "limitation": null
+    },
+    "AC-170.5": {
+      "status": "Complete",
+      "evidence": "`test_event_story_semantics_v3.py`, `test_event_story_contract_v3.py`, `test_native_story_retention_v3.py`, `test_event_publication_v3.py`",
+      "limitation": null
+    },
+    "AC-170.6": {
+      "status": "Complete",
+      "evidence": "`test_event_story_semantics_v3.py`, `test_event_story_contract_v3.py`, `test_native_story_retention_v3.py`, `test_event_publication_v3.py`",
+      "limitation": null
+    },
+    "AC-170.7": {
+      "status": "Complete",
+      "evidence": "`test_event_story_semantics_v3.py`, `test_event_story_contract_v3.py`, `test_native_story_retention_v3.py`, `test_event_publication_v3.py`",
+      "limitation": null
+    },
+    "AC-170.8": {
+      "status": "Complete",
+      "evidence": "`test_event_story_semantics_v3.py`, `test_event_story_contract_v3.py`, `test_native_story_retention_v3.py`, `test_event_publication_v3.py`",
+      "limitation": null
+    },
+    "AC-170.9": {
+      "status": "Complete",
+      "evidence": "`test_event_story_semantics_v3.py`, `test_event_story_contract_v3.py`, `test_native_story_retention_v3.py`, `test_event_publication_v3.py`",
+      "limitation": null
+    },
+    "AC-170.10": {
+      "status": "Complete",
+      "evidence": "`test_event_story_semantics_v3.py`, `test_event_story_contract_v3.py`, `test_native_story_retention_v3.py`, `test_event_publication_v3.py`",
+      "limitation": null
+    },
+    "AC-170.11": {
+      "status": "Complete",
+      "evidence": "`test_event_story_semantics_v3.py`, `test_event_story_contract_v3.py`, `test_native_story_retention_v3.py`, `test_event_publication_v3.py`",
+      "limitation": null
+    },
+    "AC-170.12": {
+      "status": "Partial",
+      "evidence": "`test_event_story_semantics_v3.py`, `test_event_story_contract_v3.py`, `test_native_story_retention_v3.py`, `test_event_publication_v3.py`",
+      "limitation": "200active/5MiB 경계·offline 시간 완료; end-to-end pending"
+    }
+  },
+  "full_regression": {
+    "status": "passed",
+    "code_sha": "ca631e245d0341c09ea1671c32c4286dbd2c9c3a",
+    "passed": 7066,
+    "skipped": 1,
+    "warnings": 0,
+    "seconds": 1166.32,
+    "command": ".venv/bin/python -m pytest -q --tb=short",
+    "scope": "full repository suite on final native source commit; closeout changes are documentation and bounded evidence only"
+  },
+  "independent_review": {
+    "status": "all_clear_scoped",
+    "focused_passed": 166,
+    "unresolved_p1_p2": 0,
+    "final_renderer_regressions_passed": 61,
+    "actual_html_probes_passed": 3,
+    "final_renderer_code_sha": "ca631e245d0341c09ea1671c32c4286dbd2c9c3a"
+  },
+  "benchmark": {
+    "scope": "offline selection, source preparation and Stage1 serialization only",
+    "input_items": 1000,
+    "warm_iterations": 10,
+    "timing_ms": [
+      37.029,
+      37.244,
+      38.631,
+      37.519,
+      37.117,
+      37.151,
+      37.107,
+      36.934,
+      36.987,
+      36.971
+    ],
+    "p95_ms_nearest_rank": 38.631,
+    "median_ms": 37.112,
+    "candidate_items": 24,
+    "stage1_retained_documents": 19,
+    "stage1_utf8_bytes": 24553,
+    "stage2_utf8_bytes": 4625,
+    "end_to_end_p95": null,
+    "end_to_end_baseline": null,
+    "DEBT-090": "unchanged",
+    "story_ledger": {
+      "active_records": 200,
+      "iterations": 10,
+      "serialized_bytes": 184033,
+      "p95_ms_nearest_rank": 19.789,
+      "median_ms": 4.546,
+      "scope": "offline bounded serializer"
+    },
+    "four_documents_eight_facts_stage2_utf8_bytes": 15588
+  },
+  "runtime": {
+    "default_schema": 2,
+    "v3_preview_ready": true,
+    "v3_active_ready": false,
+    "actual_corpus_count": 0,
+    "human_review_count": 0,
+    "genuine_v3_scheduled_runs": 0,
+    "verified_source_slots": 0,
+    "source_slots": 8,
+    "DEBT-090": "unchanged"
+  },
+  "local_guards": {
+    "ruff": "passed",
+    "format_files": 775,
+    "mypy_source_files": 328,
+    "paid_api": "passed",
+    "anthropic_sdk": "passed",
+    "curated_assets": "passed",
+    "image_store": "passed",
+    "calendar_render_contract": "passed",
+    "strict_mkdocs": "passed",
+    "material_theme_and_built_html_contract": "passed",
+    "node_client_tests_passed": 29,
+    "diff_check": "passed"
+  }
+}

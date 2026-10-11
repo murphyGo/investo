@@ -204,3 +204,7 @@ The project is ready to proceed to **Operations**. Operator action items (in ord
 6. **Monitor the operator 1:1 chat** for failure alerts in the first week.
 
 If failures occur in the first week, the operator runbook in `CONTRIBUTING.md` walks through the most likely operator interventions (US-holiday recovery via `workflow_dispatch + target_date`; misconfigured secret via re-set; transient LLM/Telegram errors that auto-recover).
+
+## 2026-10-12 — Event/news v3 native development
+
+Native generation/seal/identity-story publication/reader surfaces and offline acceptance/source qualification tooling are implemented at `ca631e24` with current UI/sector integration. Final validation is recorded in [implementation evidence](../event-news-v3/implementation-evidence.md). This entry does not authorize v3 active: actual human corpus, native viewport, end-to-end runtime performance, source qualification/runtime, reviewed release and genuine scheduled/cleanup remain pending.

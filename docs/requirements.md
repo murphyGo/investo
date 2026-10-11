@@ -312,15 +312,15 @@
 
 ### FR-024: 사건이 조직하는 전체 시황 문서와 독자 표면 (u167–u173)
 
-- **Status**: 2026-10-10 사용자 문서화·구조변경 지시에 따라 target design 작성. 구현0이며 unchecked criteria는 현재 운영 보장이 아니다.
+- **Status**: 2026-10-12 native 구현 완료; 실제 사람/viewport/source/runtime 수용 pending. checked criteria는 구현 회귀이며 현재 production 전환 보장이 아니다.
 - **Description**: 문서 전체를 지난 발행 이후의 새 변화·확인된 사실·시장 관련성·반응·다음 확인으로 조직한다. v3는 고정7섹션과6개freebody,anchor-first,정확히3요약채우기,중복topcallout,80자본문첫문장,price-onlynews영향을 폐기한다. 정상 사건0건과수집/생성/신뢰한계를구별한다. 숫자 자체가 뉴스인 정책/실적은 충분히 설명한다.
 - **Acceptance Criteria**:
-  - [ ] actor/fact와별도인background/comparison/meaning/reaction/follow_upchunk가같은사건의sourceownership/정확한span/예산을통해실제모델입력과최종본문에전달된다. u167.
-  - [ ] 발생/발표/보도/수집시각·통계기준기간과precision을구분하고,내용/time/history/locator/meaning/reaction품질을독립계측한다. source없는시각·actual/forecast/단위를발명하지않는다. u167/u173.
-  - [ ] source-backedentity/fact/occurrence를정규화하고새URL/표현만의변경을materialupdate로판정하지않는다. 불확실한duplicate는합치지않는다. u168.
-  - [ ] EventEditionDraftschema3하나에서요약0~3/사건0~5/후속/관련자산/접힌참고를렌더한다. 빈7sectionbridge와별도Markdown원본은0개다. 필수actual/fact를보호한다. u169.
-  - [ ] u144같은finalizer의schema별requiredregion/hardgates/survivorreconciliation/seal/writer/asset/remote/partial계약을유지하고삭제사건을요약/관전/자산/ledger에재등장시키지않는다. u169/u170.
-  - [ ] 웹·알림·홈·회고·OG·관심자산이같은sealed사건을소비한다. source-backed자산mechanism을표시하고price/ticker만으로news영향을확정하지않는다. u171.
+  - [x] actor/fact와별도인background/comparison/meaning/reaction/follow_upchunk가같은사건의sourceownership/정확한span/예산을통해실제모델입력과최종본문에전달된다. u167.
+  - [x] 발생/발표/보도/수집시각·통계기준기간과precision을구분하고,내용/time/history/locator/meaning/reaction품질을독립계측한다. source없는시각·actual/forecast/단위를발명하지않는다. u167/u173.
+  - [x] source-backedentity/fact/occurrence를정규화하고새URL/표현만의변경을materialupdate로판정하지않는다. 불확실한duplicate는합치지않는다. u168.
+  - [x] EventEditionDraftschema3하나에서요약0~3/사건0~5/후속/관련자산/접힌참고를렌더한다. 빈7sectionbridge와별도Markdown원본은0개다. 필수actual/fact를보호한다. u169.
+  - [x] u144같은finalizer의schema별requiredregion/hardgates/survivorreconciliation/seal/writer/asset/remote/partial계약을유지하고삭제사건을요약/관전/자산/ledger에재등장시키지않는다. u169/u170.
+  - [x] 웹·알림·홈·회고·OG·관심자산이같은sealed사건을소비한다. source-backed자산mechanism을표시하고price/ticker만으로news영향을확정하지않는다. u171.
   - [ ] 세시장×12scenario최소36합성과실제12문서(시장별4/발행일2이상/뉴스-rich)의사람5/5/fact100%/근거없는사건·인과0및실제표면·예산·source범위를수용한다. 내부생존률과외부포착률을분리한다. u172.
   - [ ] 시장별최초3회active예약수용과세시장accepted/전체10회v3관찰후별도reviewedcleanup으로legacygenerator/free6sections/활성rewrite를defaultruntime에서제거한다. historicalreader/과거URL/priorcommitrollback을보존한다. u172.
 - **Normative design**: [event-news-v3](../aidlc-docs/construction/event-news-v3/README.md)의C1~C8/F1~F6/B1~B12/N1~N8과유닛AC. 기존production의현재상태는aidlc-state와liveevidence로별도확인한다.
@@ -328,16 +328,18 @@
 
 ### FR-025: 사건의 실제 변화와 장기 진행 상태 (u168/u170/u171/u172)
 
-- **Status**: target design 작성; 구현 미착수.
+- **Status**: 2026-10-12 identity/story/reader 구현; 실제 원문·사람 검수 pending.
 - **Description**: document·단일event·장기story를구분한다. 이전확인상태·이번source-backeddelta·열린질문·다음확인·해결근거를제공하고ticker재등장/시간경과를해결로간주하지않는다.
 - **Acceptance Criteria**:
-  - [ ] unit/period/status를보존한canonicalfactdelta와30일remote-confirmedhashhistory를사용한다. history불완전은unknown/limited다. u168.
-  - [ ] source-backed종류별state전이와cancel/resolutionevidence를사용하고date-onlyeventtime과UTCpublication/retentionclock을구별한다. u170.
-  - [ ] 실제terminalarticle/follow_up의typedproposal/next_record/hash/ref를봉인하고같은publicationtransaction의priorhash/CAS/remote확인으로storyledger를확정한다. preview/shadow/미게시proposal은쓰기0회다. u169/u170.
-  - [ ] 예정일이없으면구체적인observationquestion을표시하며,stale/TTL은archived_unknown이고resolved가아니다. 기존numeric/eventfamily검증을재사용한다. u170/u171.
+  - [x] unit/period/status를보존한canonicalfactdelta와30일remote-confirmedhashhistory를사용한다. history불완전은unknown/limited다. u168.
+  - [x] source-backed종류별state전이와cancel/resolutionevidence를사용하고date-onlyeventtime과UTCpublication/retentionclock을구별한다. u170.
+  - [x] 실제terminalarticle/follow_up의typedproposal/next_record/hash/ref를봉인하고같은publicationtransaction의priorhash/CAS/remote확인으로storyledger를확정한다. preview/shadow/미게시proposal은쓰기0회다. u169/u170.
+  - [x] 예정일이없으면구체적인observationquestion을표시하며,stale/TTL은archived_unknown이고resolved가아니다. 기존numeric/eventfamily검증을재사용한다. u170/u171.
   - [ ] 동일story의후속과회고가중복보도·oldstate·삭제event를새변화로승격하지않는다. 실제원문과사람검수로수용한다. u171/u172.
 - **Normative design**: [contracts C3/C5/C6](../aidlc-docs/construction/event-news-v3/contracts.md), [u170](../aidlc-docs/construction/u170-story-state-and-follow-up-ledger/design-brief.md).
 - **Priority**: P1 continuity; 기존FR-020lookahead/carryover의v3확장.
+
+2026-10-12 검증과 제한: [AC 대조](cross-checks/2026-10-12-event-news-v3.md), [구현 증거](../aidlc-docs/construction/event-news-v3/implementation-evidence.md).
 
 ### FR-007: 운영자 실패 알림
 - **Description**: 시황 생성 파이프라인 실패 시 **운영자 본인 1:1 chat**으로 알림한다. 공개 시황 채널(FR-004)과 분리하여 일반 구독자에게 노이즈를 주지 않는다.

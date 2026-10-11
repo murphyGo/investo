@@ -1,6 +1,6 @@
 # 이벤트·뉴스 중심 시황 v3
 
-**Date**: 2026-10-10. **Status**: 설계 작성, 구현 미착수. 설계 승인·운영 수용은 별도 기록한다.
+**Date**: 2026-10-10. **Status**: 2026-10-12 native 구현과 비게시 preview 완료. 실제 사람/viewport/source/runtime 수용은 pending이다.
 
 ## 목표
 
@@ -76,3 +76,7 @@ flowchart LR
 ## 완료의 의미
 
 설계 작성, 코드 구현, 원격 CI, 실제 사람 수용, 시장별 운영 전환, 최초 3회 예약 발행, 최종 구형 제거는 각각 다른 완료조건이다. 7개 유닛의 구현 단계는 모두 0이며 문서 작성으로 운영 합격을 만들지 않는다.
+
+## Native 구현과 남은 수용
+
+[구현 증거](implementation-evidence.md), [private 수용·전환 절차](private-acceptance-and-cutover-runbook.md), [AC 대조](../../../docs/cross-checks/2026-10-12-event-news-v3.md), [source-slot 결론](../u173-official-event-source-slot-qualification/qualification-conclusions.md). default2/preview3/activefalse를 유지한다.

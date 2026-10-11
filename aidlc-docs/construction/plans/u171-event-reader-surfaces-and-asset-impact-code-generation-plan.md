@@ -2,8 +2,8 @@
 
 **Date**: 2026-10-10
 **Unit**: u171 event-reader-surfaces-and-asset-impact
-**Stage**: Code Generation — 계획
-**Status**: 설계 작성; 구현0/8
+**Stage**: Code Generation — native implementation and acceptance handoff
+**Status**: In progress — 7/8; viewport pending (2026-10-12)
 **Source**: 사용자 사건 중심 전체 독자 경험; [근거](../event-news-v3/evidence.md)
 **Estimated Effort**: 20–28h
 **Dependencies**: u169 PublicEditionView/terminal DTO, u170 story projection. u156의currentref/owner확인은통합작업이며새Telegramengine선행조건이아니다.
@@ -29,14 +29,14 @@ NFR Requirements: REQUIRED — UTF-16budget/terminal모델/provenance/원자성/
 [C4/C5](../event-news-v3/contracts.md)와 설계의 표면별 계약을 소비한다. 이벤트 모델·summary DTO·EventAssetImpact 선언은 u169의 canonical owner를 재사용한다. u171은 봉인 전 matcher·EventVisualInput 기반 E1 staging과 봉인 후 formatting을 소유한다. 관찰 가격과 news 영향을 구별한다. Telegram은 필수 상태/링크/면책을 예약한 후 완성된 digest를 추가하고 후순위 항목 전체를 제외한다.
 
 ## Implementation Steps
-- [ ] 1. currentmain/u154/u156과grep으로surfaceconsumerinventory를고정하고GeneratedBriefing/callout/7H2의존을 분류한다. 공유타입은models만통과한다.
-- [ ] 2. u169의 EventAssetImpact를 소비하는 relevance engine extension을 구현한다. 봉인 전 source-backed 직접/간접 mechanism과 condition, fact/ref 소유권을 검증해 draft로 전달하고 uncertain/rejected는 private diagnostic으로 분리한다.
-- [ ] 3. notifier에EventNotificationSummaryV3formatting을 추가하고UTF-16budget/whole-event제외/partial/면책/retry/채널분리를유지한다.
-- [ ] 4. 홈·시장 index에 digest→terminal headline→사건 0일 때 availability 순서를 적용한다. event_archive_reader.py에서 C5a sidecar/Markdown hash를 검증하고 missing/mismatch를 제한으로 표시한다. historical reader와 v3 current reader를 분리한다.
-- [ ] 5. 주간/월간/관심자산페이지에서event/storyID와 검증된delta·출처를사용하고price-onlynews영향표시를제거한다.
-- [ ] 6. 본문 visual의 E1 preparation을 EventVisualInput으로 전환하고 finalizer가 survivor에 맞는 used-only 후보를 선택하게 한다. OG는 기존 post-seal write_og_card에서 sealed public view로 생성하여 같은 publication transaction에 포함한다. 기본 hero 없음·가격 참고 영역과 본문 post-seal rewrite 금지를 적용한다.
+- [x] 1. currentmain/u154/u156과grep으로surfaceconsumerinventory를고정하고GeneratedBriefing/callout/7H2의존을 분류한다. 공유타입은models만통과한다.
+- [x] 2. u169의 EventAssetImpact를 소비하는 relevance engine extension을 구현한다. 봉인 전 source-backed 직접/간접 mechanism과 condition, fact/ref 소유권을 검증해 draft로 전달하고 uncertain/rejected는 private diagnostic으로 분리한다.
+- [x] 3. notifier에EventNotificationSummaryV3formatting을 추가하고UTF-16budget/whole-event제외/partial/면책/retry/채널분리를유지한다.
+- [x] 4. 홈·시장 index에 digest→terminal headline→사건 0일 때 availability 순서를 적용한다. event_archive_reader.py에서 C5a sidecar/Markdown hash를 검증하고 missing/mismatch를 제한으로 표시한다. historical reader와 v3 current reader를 분리한다.
+- [x] 5. 주간/월간/관심자산페이지에서event/storyID와 검증된delta·출처를사용하고price-onlynews영향표시를제거한다.
+- [x] 6. 본문 visual의 E1 preparation을 EventVisualInput으로 전환하고 finalizer가 survivor에 맞는 used-only 후보를 선택하게 한다. OG는 기존 post-seal write_og_card에서 sealed public view로 생성하여 같은 publication transaction에 포함한다. 기본 hero 없음·가격 참고 영역과 본문 post-seal rewrite 금지를 적용한다.
 - [ ] 7. 최종본문·DTO·홈·회고·시각·asset영향의 같은ID/statefixture와390×844/1440×900render를확인한다.
-- [ ] 8. targeted/full/static/policy/strictMkDocs검증와 독립review를완료하고u172에actualsurface/corpushandoff를전달한다.
+- [x] 8. targeted/full/static/policy/strictMkDocs검증와 독립review를완료하고u172에actualsurface/corpushandoff를전달한다.
 
 ## Acceptance Criteria
 1. AC-171.1: 웹/알림/홈/회고/OG/watchlist의모든v3readerfact가같은terminalevent/state에서파생되고생성초안을사실원본으로읽지않는다.
@@ -67,3 +67,9 @@ viewport기록은render된finalHTML과exactcodeSHA에 연결한다. browser불�
 
 ## Non-Goals
 새bot/dispatcher,가격데이터만의투자영향추론,unsealed재요약,기존source/secret/asset/채널gate완화,역사archive의일괄rewrite.
+
+## 2026-10-12 실행 증거
+
+사용자의 개발·계속 진행·커밋/푸시 지시를 적용했다. native 구현 SHA `ca631e245d0341c09ea1671c32c4286dbd2c9c3a`, 원격 UI/섹터 통합 기준 `55c00fc85e2828f62cd69d5583afd3761ef86d45`.
+
+In progress — 7/8; viewport pending. [공통 검증](../event-news-v3/implementation-evidence.md), [번호별 AC 대조](../../../docs/cross-checks/2026-10-12-event-news-v3.md), [private 수용·전환 handoff](../event-news-v3/private-acceptance-and-cutover-runbook.md). 구현과 실제 사람/운영 수용을 구별하며 v3 active는 false다.

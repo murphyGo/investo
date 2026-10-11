@@ -1,6 +1,6 @@
 # Code Generation Plan: u173 official-event-source-slot-qualification
 
-**Date**: 2026-10-10 KST. **Unit**: u173. **Stage**: Functional Design / NFR Requirements 초안; Code Generation 미착수. **Status**: Planned — 0/7; qualification 결과에 따라 source 확보는 blocked일 수 있음. **Priority**: P1. **Estimated Effort**: 8–16h + 접근/권리/현재 schema 확인.
+**Date**: 2026-10-10 KST. **Unit**: u173. **Stage**: Code Generation — native implementation and acceptance handoff. **Status**: In progress — 6/7; private parser capture pending (2026-10-12)
 
 **Source**: 2026-10-10 사건 중심 이상향 분석, u161 official evidence와 source reliability 검토. **Dependencies**: u167 typed chunk 출력. 공식 증거 탐색/기존 파서 진단은 독립 가능. [설계 및 AC](../u173-official-event-source-slot-qualification/design-brief.md), [공통 계약 C2/C7](../event-news-v3/contracts.md).
 
@@ -32,13 +32,13 @@ Functional Design / NFR Requirements는 **REQUIRED**다. design-brief의 schema,
 
 ## Implementation Steps
 
-- [ ] **Step 1 — Current evidence와 matrix**: 8개 named slot의 source/path/actual data/rights/precision을 조사한다. Fed/CFTC의 과거 scoped qualification, SEC body 403/commercial blocked, FSC 수리와 upstream 503, API/feed와 새 body를 분리한다. 현재 조회가 없으면 blocked/access.not_verified다.
-- [ ] **Step 2 — Qualification DTO**: `models/enrichment.py`에 `SourceSlotQualification/SourceSlotQualificationSet`과 evidence/slot/source/path/hash/precision validation을 추가한다. runtime/GHA probe와 activation readiness를 별도 필드로 둔다. 기존 EnrichmentPolicy와 SourceQualification bytes/제한은 유지한다.
-- [ ] **Step 3 — 독립 offline checker**: `scripts/check_event_source_slots.py --manifest ops/event_source_slot_qualification.json`을 만들고 bounded loader, duplicate, forged verified, verified의 missing rights, unknown slot, path mismatch를 검사한다. 미확인 정보를 정확하게 나타낸 정상 blocked row는 허용한다. script는 network/LLM/archive/notify/ledger/cursor I/O를 하지 않는다. 출력은 source/slot/status/closed code/count뿐이다.
+- [x] **Step 1 — Current evidence와 matrix**: 8개 named slot의 source/path/actual data/rights/precision을 조사한다. Fed/CFTC의 과거 scoped qualification, SEC body 403/commercial blocked, FSC 수리와 upstream 503, API/feed와 새 body를 분리한다. 현재 조회가 없으면 blocked/access.not_verified다.
+- [x] **Step 2 — Qualification DTO**: `models/enrichment.py`에 `SourceSlotQualification/SourceSlotQualificationSet`과 evidence/slot/source/path/hash/precision validation을 추가한다. runtime/GHA probe와 activation readiness를 별도 필드로 둔다. 기존 EnrichmentPolicy와 SourceQualification bytes/제한은 유지한다.
+- [x] **Step 3 — 독립 offline checker**: `scripts/check_event_source_slots.py --manifest ops/event_source_slot_qualification.json`을 만들고 bounded loader, duplicate, forged verified, verified의 missing rights, unknown slot, path mismatch를 검사한다. 미확인 정보를 정확하게 나타낸 정상 blocked row는 허용한다. script는 network/LLM/archive/notify/ledger/cursor I/O를 하지 않는다. 출력은 source/slot/status/closed code/count뿐이다.
 - [ ] **Step 4 — u167 mapping과 fixture**: 실제로 존재하는 parser output을 C2 typedchunk로 매핑한다. facts/comparison/time과meaning/reaction/follow-up을 독립 검증하고 없는 내용을 만들지 않는다. 합성 양성/음성과 허용된 private capture 재생을 분리한다.
-- [ ] **Step 5 — Qualification conclusions**: 정책/실적/국내 공시별 verified/blocked, useful slot, unsupported slot, 현재 접근/권리/schema와 runtime probe 상태를 공개 요약한다. 신규 source/path/provider가 필요한 경우 별도 등록/인증/비용/권리/window/consumer 설계를 handoff한다. 전부 blocked도 유효한 판정이며 운영 복구는 별도다.
-- [ ] **Step 6 — 코드/문서 검증**: focused/full/static/policy/docs와 44개 source parity, v2 compatibility, private fixture, budget negative를 통과한다. independent review와 AC-173.1–8을 대조한다. source 준비와 qualification tooling 완료를 별도 상태로 기록한다.
-- [ ] **Step 7 — 후속 운영 handoff**: 현재 reviewed runtime에서 GHA access/parser/useful rows/권리를 확인해야 하는 목록, u161 body capability와 u160 cursor의 별도 승인, u172가 소비할 source 상태를 인계한다. 실제 adapter/activation/예약 회복을 이 계획의 자동 완료로 만들지 않는다.
+- [x] **Step 5 — Qualification conclusions**: 정책/실적/국내 공시별 verified/blocked, useful slot, unsupported slot, 현재 접근/권리/schema와 runtime probe 상태를 공개 요약한다. 신규 source/path/provider가 필요한 경우 별도 등록/인증/비용/권리/window/consumer 설계를 handoff한다. 전부 blocked도 유효한 판정이며 운영 복구는 별도다.
+- [x] **Step 6 — 코드/문서 검증**: focused/full/static/policy/docs와 44개 source parity, v2 compatibility, private fixture, budget negative를 통과한다. independent review와 AC-173.1–8을 대조한다. source 준비와 qualification tooling 완료를 별도 상태로 기록한다.
+- [x] **Step 7 — 후속 운영 handoff**: 현재 reviewed runtime에서 GHA access/parser/useful rows/권리를 확인해야 하는 목록, u161 body capability와 u160 cursor의 별도 승인, u172가 소비할 source 상태를 인계한다. 실제 adapter/activation/예약 회복을 이 계획의 자동 완료로 만들지 않는다.
 
 ## Acceptance Criteria
 
@@ -72,3 +72,9 @@ git diff --check
 ## Non-Goals / Handoff
 
 세계 뉴스 포착률 보장, source 수 늘리기, blocked 접근 우회, 타 언론 대체, 사람 점수 발급, 공개 기사 원문 저장과 현재 운영 변경은 범위 밖이다. Handoff는 8개 slot 판정 matrix, evidence hash/official rights/path, parser/typed chunk mapping, blocked exact reason, verified scope와 미완료 runtime/adapter owner다. 현재 문서는 설계 초안이며 새로운 source qualification이나 실제 복구를 선언하지 않는다.
+
+## 2026-10-12 실행 증거
+
+사용자의 개발·계속 진행·커밋/푸시 지시를 적용했다. native 구현 SHA `ca631e245d0341c09ea1671c32c4286dbd2c9c3a`, 원격 UI/섹터 통합 기준 `55c00fc85e2828f62cd69d5583afd3761ef86d45`.
+
+In progress — 6/7; private parser capture pending. [공통 검증](../event-news-v3/implementation-evidence.md), [번호별 AC 대조](../../../docs/cross-checks/2026-10-12-event-news-v3.md), [private 수용·전환 handoff](../event-news-v3/private-acceptance-and-cutover-runbook.md). 구현과 실제 사람/운영 수용을 구별하며 v3 active는 false다.

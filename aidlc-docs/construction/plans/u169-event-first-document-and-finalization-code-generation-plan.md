@@ -2,8 +2,8 @@
 
 **Date**: 2026-10-10
 **Unit**: u169 event-first-document-and-finalization
-**Stage**: Code Generation — 계획
-**Status**: 설계 작성; 구현0/9
+**Stage**: Code Generation — native implementation
+**Status**: Complete — 9/9 implementation (2026-10-12)
 **Source**: 사용자 이벤트·뉴스 중심 문서 전체 구조 개편; [근거](../event-news-v3/evidence.md)
 **Estimated Effort**: 36–48h
 **Dependencies**: u167 context/quality, u168 identity/sharedstoryDTO. u170 semanticlogic/u171surface는후속consumer며역방향harddependency가아니다.
@@ -29,15 +29,15 @@ NFR Requirements: REQUIRED — 모든finalizer/validator/writerseam와typedbudge
 [C1/C4/C5/C7](../event-news-v3/contracts.md),[기능설계](../event-news-v3/functional-design.md),[처리규칙](../event-news-v3/business-rules.md)이normative다. 순환의존성을피해models/event_story.pyDTO는u168이선언한다. PublicEditionView는frozen이고mutablemapping/검증전Briefing을소비자원본으로허용하지않는다.
 
 ## Implementation Steps
-- [ ] 1. EventVisualInput·EventAssetImpact·public projection 타입과 price/news-window metadata, EventEditionDraft/EditorialPlan/article/digest/panel/availability/PublicEditionView와schema3terminalnotificationmodel을추가한다. 모델serialization/union은한variant만허용한다.
-- [ ] 2. briefing/editorial_plan.py에서parent-ownedorderedIDs/facts/placement를고정한다. requiredactual은보호하고repeat/background는reference로배치한다.
-- [ ] 3. Stage1/2schema3prompt/parser/retry를현재2단계runner에연결한다. provider별동일입력에서callstage수가늘지않게한다.
-- [ ] 4. pure event_v3_contract validator로 refs/facts/entities/time/meaning/reaction/selection을 검증하고 본문600자와 요약140자를 독립적으로 처리한다.
-- [ ] 5. publisher/event_edition.py의 결정론적 renderer와 schema3 region expectation을 추가한다. 기존 reflow/7H2/callout/hero 강제 producer를 v3에 적용하지 않는다.
-- [ ] 6. u144 finalize_public_bundle에 typed variant를 연결하고 original hard gates→bounded reconciliation→reindex→read-only terminal validation→SHA seal 순서를 유지한다. hidden7section bridge는0개다.
-- [ ] 7. FinalizedPublicDocument와 writer에 공통 sealed text accessor를 추가한다. 기존 타입 검사와 exact bytes/disclaimer/hash 검증을 유지하고 typed story proposal/delta도 확인한다. C5a PublishedEventEdition sidecar의 exact bytes/hash writer를 추가하고 archive와 같은 publication transaction/CAS/rollback에 묶는다.
-- [ ] 8. orchestrator의 variant/context handoff와 terminal notification projection을 통합한다. valid partial, source-limited/quiet, assets, remote-confirmed receipts를 회귀 검증한다.
-- [ ] 9. 실제 finalizer/HTML/provider replay/full/static/policy 검증과 독립 review를 완료하고 u170/u171에 sealed view/delta seam을 인계한다. active는 u172 전환 gate 전 false다.
+- [x] 1. EventVisualInput·EventAssetImpact·public projection 타입과 price/news-window metadata, EventEditionDraft/EditorialPlan/article/digest/panel/availability/PublicEditionView와schema3terminalnotificationmodel을추가한다. 모델serialization/union은한variant만허용한다.
+- [x] 2. briefing/editorial_plan.py에서parent-ownedorderedIDs/facts/placement를고정한다. requiredactual은보호하고repeat/background는reference로배치한다.
+- [x] 3. Stage1/2schema3prompt/parser/retry를현재2단계runner에연결한다. provider별동일입력에서callstage수가늘지않게한다.
+- [x] 4. pure event_v3_contract validator로 refs/facts/entities/time/meaning/reaction/selection을 검증하고 본문600자와 요약140자를 독립적으로 처리한다.
+- [x] 5. publisher/event_edition.py의 결정론적 renderer와 schema3 region expectation을 추가한다. 기존 reflow/7H2/callout/hero 강제 producer를 v3에 적용하지 않는다.
+- [x] 6. u144 finalize_public_bundle에 typed variant를 연결하고 original hard gates→bounded reconciliation→reindex→read-only terminal validation→SHA seal 순서를 유지한다. hidden7section bridge는0개다.
+- [x] 7. FinalizedPublicDocument와 writer에 공통 sealed text accessor를 추가한다. 기존 타입 검사와 exact bytes/disclaimer/hash 검증을 유지하고 typed story proposal/delta도 확인한다. C5a PublishedEventEdition sidecar의 exact bytes/hash writer를 추가하고 archive와 같은 publication transaction/CAS/rollback에 묶는다.
+- [x] 8. orchestrator의 variant/context handoff와 terminal notification projection을 통합한다. valid partial, source-limited/quiet, assets, remote-confirmed receipts를 회귀 검증한다.
+- [x] 9. 실제 finalizer/HTML/provider replay/full/static/policy 검증과 독립 review를 완료하고 u170/u171에 sealed view/delta seam을 인계한다. active는 u172 전환 gate 전 false다.
 
 ## Acceptance Criteria
 1. AC-169.1: schema3 JSON에6개 free body/별도 Markdown이 없고 신규 문서에①~⑦ dummy heading/field bridge가 없다.
@@ -68,3 +68,9 @@ git diff --check
 
 ## Non-Goals
 legacy 섹션을 유지하는 숨겨진 dual 원본, 새 finalizer, 새 LLM 단계, source HTTP 권한 완화, hard trust 우회, 누락 사건 재추론, 전체 과거 archive 재작성.
+
+## 2026-10-12 실행 증거
+
+사용자의 개발·계속 진행·커밋/푸시 지시를 적용했다. native 구현 SHA `ca631e245d0341c09ea1671c32c4286dbd2c9c3a`, 원격 UI/섹터 통합 기준 `55c00fc85e2828f62cd69d5583afd3761ef86d45`.
+
+Complete — 9/9 implementation. [공통 검증](../event-news-v3/implementation-evidence.md), [번호별 AC 대조](../../../docs/cross-checks/2026-10-12-event-news-v3.md), [private 수용·전환 handoff](../event-news-v3/private-acceptance-and-cutover-runbook.md). 구현과 실제 사람/운영 수용을 구별하며 v3 active는 false다.

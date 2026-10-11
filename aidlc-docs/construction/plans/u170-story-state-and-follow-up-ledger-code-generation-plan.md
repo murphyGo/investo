@@ -2,8 +2,8 @@
 
 **Date**: 2026-10-10
 **Unit**: u170 story-state-and-follow-up-ledger
-**Stage**: Functional Design/NFR Required → Code Generation planned
-**Status**: 문서 초안 작성; 구현 0/8; 승인·시험·commit/push·운영 활성화 미완료
+**Stage**: Code Generation — native implementation and acceptance handoff
+**Status**: Complete — 8/8 implementation (2026-10-12)
 **Source**: 사용자 event/news 이상향 및 구조 변경 허용 문서화 요청; frozen `19c89b92`의 실제 carryover/watchpoint/publication 경로
 **Estimated Effort**: 24–36 h; state fixture/CAS/finalizer integration에 따라 조정
 **Dependencies**: u168 canonical-event-identity-and-fact-delta와 u169 event-first-document-and-finalization. u167 follow_up chunks/ContextRef/time를 입력으로 재사용한다.
@@ -36,7 +36,7 @@ Out of scope: 다른 renderer·새 section 구조·Telegram/OG/Pages·surface ga
 
 ## Stage Decision
 
-**Functional Design REQUIRED**: family-specific transition과 state-vs-disposition, source-backed next check, closure의 독자 의미가 새롭다. 현재 design brief는 draft이며 승인 기록이 없다. **NFR Requirements REQUIRED**: remote public reader-state ledger,180일 inactivity/90일 closed retention/segment200active/5MiB와 CAS/TTL/public-private provenance가 바뀐다. 기존 NFR-001/002/003/004/005/006/007·R13·DEBT-090 재사용. 데이터 수명이 바뀌므로 새 I/O가 없다는 이유로 NFR를 skip하지 않는다. docs-only 요청만으로 code generation/activation을 시작하지 않는다.
+**Functional Design REQUIRED**: family-specific transition과 state-vs-disposition, source-backed next check, closure의 독자 의미가 새롭다. 현재 design brief는 2026-10-10 사용자 개발 지시로 승인된 구현 기준이다. **NFR Requirements REQUIRED**: remote public reader-state ledger,180일 inactivity/90일 closed retention/segment200active/5MiB와 CAS/TTL/public-private provenance가 바뀐다. 기존 NFR-001/002/003/004/005/006/007·R13·DEBT-090 재사용. 데이터 수명이 바뀌므로 새 I/O가 없다는 이유로 NFR를 skip하지 않는다. docs-only 요청만으로 code generation/activation을 시작하지 않는다.
 
 ## Fixed Contracts
 
@@ -53,14 +53,14 @@ Out of scope: 다른 renderer·새 section 구조·Telegram/OG/Pages·surface ga
 
 ## Implementation Steps
 
-- [ ] **Step 1 — FD/NFR·모델 확정**: S170-1~3/transition table/closed+archived retention/모듈 소유권과 승인 기록을 확정한다. u168 foundation의 전체 공유 DTO와 u169 standalone typed record 검증/empty tuple seam을 확인한다. 모델을 재선언하지 않고 private ContextRef 구별·date precision·typed proposal/record/hash 결속 tests를 만든다.
-- [ ] **Step 2 — Source-backed linking과 reducer**: u168 hint/bindings/delta와 prior record로 deterministic story linking을 구현한다. family별 signal/allowed edge/required refs/resolve conditions·no-new-evidence·conflict 결과를 pure functions로 구현한다. 회사명/ticker matching을 사용하지 않는다.
-- [ ] **Step 3 — Concrete question/next check**: explicit open question, scheduled fact/time/ref, observation_question을 검증하고 FollowUpEntry용 proposals를 선택한다. editorial owner의 priority를 소비하고 max3·stable ordering·zero/no-evidence distinction을 확인한다.
-- [ ] **Step 4 — Fixed remote ledger/retention**: u168의 같은 baseline SHA에서 story ledger를 읽고 stable exact-byte serialization,200active/5MiB·180일 disposition/90일 closed cutoff·overflow errors를 구현한다. private input과 public sealed provenance를 분리한다.
-- [ ] **Step 5 — Generation/u162 handoff**: 기존 두 단계 안에 typed story input/proposal을 연결한다. NextCheck→existing tagged event input adapter를 구현하고 numeric current validation을 유지한다. schema3에서 archive substring/generic template 기반 success inference를 제거한다.
-- [ ] **Step 6 — u169 E5 survivor/transaction integration**: 기존 u169 hook에 source-backed frozen record proposal/next_record_hash 검증을 연결하고 실제 finalizer가 article/followup/claim removal을 반영한 StoryPublicationDelta를 생성·봉인하게 한다. orchestrator는 frozen delta와 prior hash·next_record_hash로 동일 record를 검사해 combined metadata transaction을 준비한다. visible state와 ledger state 일치·no post-seal rewrite를 검증한다.
-- [ ] **Step 7 — Negative/compatibility/clock verification**: 아래 negative matrix, actual finalizer partial removal/omission, CAS competing writers, push-response loss, replay/shadow write0, retention boundary와 state-table PBT를 통과한다. v2 carryover/watchpoint bytes와 imports를 유지한다.
-- [ ] **Step 8 — Full gate·review·handoff**: focused/full regression, type/architecture/privacy check,200active/5MiB serialized/time 측정, independent review 및 AC cross-check를 기록한다. 완료 시에도 runtime activation은 u172 acceptance와 분리한다.
+- [x] **Step 1 — FD/NFR·모델 확정**: S170-1~3/transition table/closed+archived retention/모듈 소유권과 승인 기록을 확정한다. u168 foundation의 전체 공유 DTO와 u169 standalone typed record 검증/empty tuple seam을 확인한다. 모델을 재선언하지 않고 private ContextRef 구별·date precision·typed proposal/record/hash 결속 tests를 만든다.
+- [x] **Step 2 — Source-backed linking과 reducer**: u168 hint/bindings/delta와 prior record로 deterministic story linking을 구현한다. family별 signal/allowed edge/required refs/resolve conditions·no-new-evidence·conflict 결과를 pure functions로 구현한다. 회사명/ticker matching을 사용하지 않는다.
+- [x] **Step 3 — Concrete question/next check**: explicit open question, scheduled fact/time/ref, observation_question을 검증하고 FollowUpEntry용 proposals를 선택한다. editorial owner의 priority를 소비하고 max3·stable ordering·zero/no-evidence distinction을 확인한다.
+- [x] **Step 4 — Fixed remote ledger/retention**: u168의 같은 baseline SHA에서 story ledger를 읽고 stable exact-byte serialization,200active/5MiB·180일 disposition/90일 closed cutoff·overflow errors를 구현한다. private input과 public sealed provenance를 분리한다.
+- [x] **Step 5 — Generation/u162 handoff**: 기존 두 단계 안에 typed story input/proposal을 연결한다. NextCheck→existing tagged event input adapter를 구현하고 numeric current validation을 유지한다. schema3에서 archive substring/generic template 기반 success inference를 제거한다.
+- [x] **Step 6 — u169 E5 survivor/transaction integration**: 기존 u169 hook에 source-backed frozen record proposal/next_record_hash 검증을 연결하고 실제 finalizer가 article/followup/claim removal을 반영한 StoryPublicationDelta를 생성·봉인하게 한다. orchestrator는 frozen delta와 prior hash·next_record_hash로 동일 record를 검사해 combined metadata transaction을 준비한다. visible state와 ledger state 일치·no post-seal rewrite를 검증한다.
+- [x] **Step 7 — Negative/compatibility/clock verification**: 아래 negative matrix, actual finalizer partial removal/omission, CAS competing writers, push-response loss, replay/shadow write0, retention boundary와 state-table PBT를 통과한다. v2 carryover/watchpoint bytes와 imports를 유지한다.
+- [x] **Step 8 — Full gate·review·handoff**: focused/full regression, type/architecture/privacy check,200active/5MiB serialized/time 측정, independent review 및 AC cross-check를 기록한다. 완료 시에도 runtime activation은 u172 acceptance와 분리한다.
 
 ## Acceptance Criteria
 
@@ -123,3 +123,9 @@ actual finalizer integration은 u169의 실제 EventEditionDraft와 frozen seale
 schema3가 `briefing/carryover_parser.py`의 substring/ticker resolved inference와 generic event-kind next check를 fresh state authority로 사용하지 않도록 제거한다. legacy API/archives는 historical read-only parsing/schema2 rollback에서만 남긴다. old archive의 §⑥ text를 scan하여 v3 story ledger를 채우거나 closure를 발명하지 않는다. live v3 ledger missing은 available empty bootstrap이며 migration은 explicit frozen replay inspection뿐이다.
 
 follow-up는 u169 본문 typed region에서 한 번 렌더링한다. 새 event card layout/종합 watchpoint engine/semantic grader/source registry/activation workflow는 범위 밖이다. docs-only 완료, code validation 완료, remote delivery, runtime cutover를 따로 보고한다.
+
+## 2026-10-12 실행 증거
+
+사용자의 개발·계속 진행·커밋/푸시 지시를 적용했다. native 구현 SHA `ca631e245d0341c09ea1671c32c4286dbd2c9c3a`, 원격 UI/섹터 통합 기준 `55c00fc85e2828f62cd69d5583afd3761ef86d45`.
+
+Complete — 8/8 implementation. [공통 검증](../event-news-v3/implementation-evidence.md), [번호별 AC 대조](../../../docs/cross-checks/2026-10-12-event-news-v3.md), [private 수용·전환 handoff](../event-news-v3/private-acceptance-and-cutover-runbook.md). 구현과 실제 사람/운영 수용을 구별하며 v3 active는 false다.
