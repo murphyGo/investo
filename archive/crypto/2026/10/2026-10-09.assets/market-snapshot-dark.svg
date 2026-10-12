@@ -5,12 +5,13 @@
 <text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">크립토 시장 스냅샷</text>
 <text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-10-09 · 데이터 limited</text>
 <text class="card-label" x="80" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">오늘의 결론</text>
-<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">BTC(비트코인)·ETH(이더)의 주간 선물 포지션과 시장 규모에서 하락 쪽 신호가 관찰됐습니다. 이번</text>
-<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">문서는 수집 근거가 제한적입니다.</text>
+<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">전체 가상자산 시가총액은 $2.82T로 구간 내 -2.61% 하락했고, BTC(비트코인) 도미넌스(시장</text>
+<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">점유율)는 59.61%로 확인됐다. 이번 문서는 수집 근거가 제한적입니다.</text>
 <text class="card-label" x="80" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">핵심 동인</text>
-<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">BTC·ETH 선물 포지션과 시장 규모 감소 — 최근 브리핑에서 관찰한 시장 규모 감소와 선물 순매도</text>
-<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">우위 흐름의 연장입니다.</text>
+<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">BTC·ETH 선물의 하락 방향 계약 우세 — 최근 문서에서 관찰한 시장 규모 하락과 선물 계약 구성의</text>
+<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">흐름이 이어졌다.</text>
 <text class="card-label" x="80" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">주의할 점</text>
-<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">시장 지표와 확인 범위 이번 문서는 수집 근거가 제한적입니다.</text>
+<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">시장 규모와 주간 계약 변화 전체 시장 규모 자료의 현재 $2.82T를 비교 기준으로, 후속 스냅샷에서</text>
+<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">이를 웃돌면 시장 규모 회복 신호, 밑돌면 감소 지속 신호로 구분하되 개별 관심 자산에 대한 영향은</text>
 <text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
 </svg>
