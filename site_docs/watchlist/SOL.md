@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-12 begin -->
+
+## 2026-10-12
+
+- [defillama-market-structure] **ticker**: DeFi TVL $90.3B; leader Ethereum
+- [theblock-crypto] **ticker**: DeFi Development grows SOL holdings 12% as CHAD hits record highs
+- [theblock-crypto] **ticker**: StoneX raises Securitize price target 50% as tokenized stock platform opens new revenue stream
+
+<!-- u33 entry 2026-10-12 end -->
 <!-- u33 entry 2026-10-09 begin -->
 
 ## 2026-10-09

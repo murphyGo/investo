@@ -25,7 +25,6 @@
 
 [2026-10-09](2026/10/2026-10-09.md){ .investo-archive-link }
 
-<p class="investo-archive-snippet" markdown="0">SEC는 Securities Eligible for Cross Trading by Registered Funds 확대를 제안했습니다.</p>
 </div>
 <div class="investo-archive-entry" data-date="2026-10-08" markdown="1">
 

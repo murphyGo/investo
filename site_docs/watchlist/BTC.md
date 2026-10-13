@@ -2,6 +2,17 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-12 begin -->
+
+## 2026-10-12
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6852 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,796,180,176,115; BTC dominance 59.37%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $604,581,710 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: ‘There’s always room for more orange’: Michael Saylor’s Strategy scoops up another 250 bitcoin for $21.5 million as h…
+
+<!-- u33 entry 2026-10-12 end -->
 <!-- u33 entry 2026-10-09 begin -->
 
 ## 2026-10-09
