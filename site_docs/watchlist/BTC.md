@@ -2,6 +2,20 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-13 begin -->
+
+## 2026-10-13
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6852 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,823,948,356,729; BTC dominance 59.22%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $592,594,370 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 -0.0000641805147997 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin slides below $82,000 as crypto liquidations surge past $770 million
+- [theblock-crypto] **ticker**: Bitcoin whale moves $378 million in BTC after six years of dormancy: onchain data
+- [theblock-crypto] **ticker**: Strive buys 3,311 bitcoin for $280 million in largest acquisition since January
+- [theblock-crypto] **ticker**: UK High Court rules Chinese law governs claims over $5 billion in seized bitcoin
+
+<!-- u33 entry 2026-10-13 end -->
 <!-- u33 entry 2026-10-12 begin -->
 
 ## 2026-10-12

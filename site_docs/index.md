@@ -1,36 +1,36 @@
 <!-- u29 hero begin -->
 # 최신 발행 시황
 
-묶음 기준일 **2026-10-12** · 국내 증시 · 미국 증시 · 크립토
+묶음 기준일 **2026-10-13** · 국내 증시 · 미국 증시 · 크립토
 
 <section class="investo-home" aria-label="최신 발행 시장별 시황" markdown="1">
 <nav class="investo-home-quick-links" aria-label="시장 바로가기"><a href="#domestic-equity">국내 증시</a><a href="#us-equity">미국 증시</a><a href="#crypto">크립토</a></nav>
 <div class="investo-market-grid" markdown="1">
-<article id="domestic-equity" markdown="1" class="investo-market-card" data-segment="domestic-equity" data-target-date="2026-10-12" data-generated="false" data-quality="absent">
+<article id="domestic-equity" markdown="1" class="investo-market-card" data-segment="domestic-equity" data-target-date="2026-10-13" data-generated="false" data-quality="absent">
 <h2 data-investo-field="market" markdown="0">국내 증시</h2>
-<p class="investo-market-date" data-investo-field="date" markdown="0">2026-10-12 미발행</p>
+<p class="investo-market-date" data-investo-field="date" markdown="0">2026-10-13 미발행</p>
 <p class="investo-market-status" data-investo-field="quality" markdown="0">근거 상태 해당 없음</p>
 <p markdown="0">최근 발행 2026-10-09</p>
 
 [국내 증시 2026-10-09 이전 시황 읽기](archive/domestic-equity/2026/10/2026-10-09.md){ .investo-market-link }
 
 </article>
-<article id="us-equity" markdown="1" class="investo-market-card" data-segment="us-equity" data-target-date="2026-10-12" data-generated="false" data-quality="absent">
+<article id="us-equity" markdown="1" class="investo-market-card" data-segment="us-equity" data-target-date="2026-10-13" data-generated="true" data-quality="partial">
 <h2 data-investo-field="market" markdown="0">미국 증시</h2>
-<p class="investo-market-date" data-investo-field="date" markdown="0">2026-10-12 미발행</p>
-<p class="investo-market-status" data-investo-field="quality" markdown="0">근거 상태 해당 없음</p>
-<p markdown="0">최근 발행 2026-10-09</p>
+<p class="investo-market-date" data-investo-field="date" markdown="0">발행 2026-10-13</p>
+<p class="investo-market-status" data-investo-field="quality" markdown="0">근거 상태: 부분</p>
+<p class="investo-market-summary" markdown="span">Barclays가 &#x27;Avient at Equal-Weight&#x27;로 분석을 개시했다.</p>
 
-[미국 증시 2026-10-09 이전 시황 읽기](archive/us-equity/2026/10/2026-10-09.md){ .investo-market-link }
+[미국 증시 2026-10-13 시황 읽기](archive/us-equity/2026/10/2026-10-13.md){ .investo-market-link }
 
 </article>
-<article id="crypto" markdown="1" class="investo-market-card" data-segment="crypto" data-target-date="2026-10-12" data-generated="true" data-quality="limited">
+<article id="crypto" markdown="1" class="investo-market-card" data-segment="crypto" data-target-date="2026-10-13" data-generated="true" data-quality="limited">
 <h2 data-investo-field="market" markdown="0">크립토</h2>
-<p class="investo-market-date" data-investo-field="date" markdown="0">발행 2026-10-12</p>
+<p class="investo-market-date" data-investo-field="date" markdown="0">발행 2026-10-13</p>
 <p class="investo-market-status" data-investo-field="quality" markdown="0">근거 상태: 제한</p>
-<p class="investo-market-summary" markdown="span">전체 가상자산 시가총액은 UTC 24시간 스냅샷(시점 자료) 기준 **$2.80T**, 구간 내 **-3.41%**를 기록했다. 본문 참고.</p>
+<p class="investo-market-summary" markdown="span">전체 가상자산 시가총액은 **$2.82T**로 구간 내 **-1.00%** 하락했고, BTC 도미넌스(시장 점유율)는 **59.22%**다. 본문 참고.</p>
 
-[크립토 2026-10-12 시황 읽기](archive/crypto/2026/10/2026-10-12.md){ .investo-market-link }
+[크립토 2026-10-13 시황 읽기](archive/crypto/2026/10/2026-10-13.md){ .investo-market-link }
 
 </article></div>
 </section>

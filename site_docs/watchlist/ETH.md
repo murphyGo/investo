@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-13 begin -->
+
+## 2026-10-13
+
+- [defillama-market-structure] **ticker**: DeFi TVL $91.3B; leader Ethereum
+- [theblock-crypto] **ticker**: Interactive Brokers expands crypto services with Ethereum staking via Zerohash
+
+<!-- u33 entry 2026-10-13 end -->
 <!-- u33 entry 2026-10-12 begin -->
 
 ## 2026-10-12
