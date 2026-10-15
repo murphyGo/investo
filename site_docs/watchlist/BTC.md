@@ -2,6 +2,21 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-14 begin -->
+
+## 2026-10-14
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6852 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,764,878,523,974; BTC dominance 59.27%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $613,637,680 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin falls below $82,000 as hotter core CPI revives Fed hike concerns
+- [theblock-crypto] **ticker**: Coinbase lays out flexible designs as key priority for Bitcoin’s post-quantum migration
+- [theblock-crypto] **ticker**: How Bitcoin Works
+- [theblock-crypto] **ticker**: Strategy’s preferred stock financing may cost it bitcoin, K33 argues
+- [theblock-crypto] **ticker**: Strive buys $235 million in bitcoin as warrant exercises yield $369 million
+
+<!-- u33 entry 2026-10-14 end -->
 <!-- u33 entry 2026-10-13 begin -->
 
 ## 2026-10-13
