@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-15 begin -->
+
+## 2026-10-15
+
+- [defillama-market-structure] **ticker**: DeFi TVL $90.5B; leader Ethereum
+- [theblock-crypto] **ticker**: DeFi Development boosts CHAD dividend to 14% amid push to grow Solana holdings
+- [theblock-crypto] **ticker**: Ledger unveils Atom Android device with Solana Mobile integration and new tamper protections amid investigation into…
+
+<!-- u33 entry 2026-10-15 end -->
 <!-- u33 entry 2026-10-14 begin -->
 
 ## 2026-10-14

@@ -2,6 +2,19 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-15 begin -->
+
+## 2026-10-15
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6852 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,777,380,386,737; BTC dominance 59.34%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $622,791,060 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000388506658152 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin drops below $81,000 as risk-off sentiment weighs on Asian equities
+- [theblock-crypto] **ticker**: Bitwise CIO argues bitcoin will benefit whether AI booms or busts
+- [theblock-crypto] **ticker**: CleanSpark and BitFuFu see bitcoin production slip in September as Canaan remains flat
+
+<!-- u33 entry 2026-10-15 end -->
 <!-- u33 entry 2026-10-14 begin -->
 
 ## 2026-10-14

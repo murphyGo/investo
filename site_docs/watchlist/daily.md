@@ -1,28 +1,27 @@
-# 오늘의 관심 자산 영향 — 2026-10-14
+# 오늘의 관심 자산 영향 — 2026-10-15
 
-직접 19 · 관련 0 · 보류 14 · 제외 25
+직접 18 · 관련 0 · 보류 14 · 제외 25
 
 ## 직접 영향 (Direct)
 
-- AAPL: 직접 관련 · [yfinance-price] AAPL 341.27 (+0.09%)
-- AMZN: 직접 관련 · [yfinance-price] AMZN 258.58 (-0.37%)
+- AAPL: 직접 관련 · [yfinance-price] AAPL 342.96 (+0.50%)
+- AMZN: 직접 관련 · [yfinance-price] AMZN 254.08 (-1.74%)
 - BTC: 직접 관련 · [cftc-cot-positioning] CFTC Bitcoin CME leveraged_money net -6852 contracts
-- BTC: 직접 관련 · [coingecko-global-market] Global crypto market cap $2,764,878,523,974; BTC dominance 59.27%
-- BTC: 직접 관련 · [okx-derivatives] BTC 미결제약정 $613,637,680 (OKX, UTC 24h)
-- BTC: 직접 관련 · [okx-derivatives] BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
-- BTC: 직접 관련 · [theblock-crypto] Bitcoin falls below $82,000 as hotter core CPI revives Fed hike concerns
-- BTC: 직접 관련 · [theblock-crypto] Coinbase lays out flexible designs as key priority for Bitcoin’s post-quantum migration
-- BTC: 직접 관련 · [theblock-crypto] How Bitcoin Works
-- BTC: 직접 관련 · [theblock-crypto] Strategy’s preferred stock financing may cost it bitcoin, K33 argues
-- BTC: 직접 관련 · [theblock-crypto] Strive buys $235 million in bitcoin as warrant exercises yield $369 million
-- ETH: 직접 관련 · [defillama-market-structure] DeFi TVL $89.6B; leader Ethereum
-- GOOGL: 직접 관련 · [yfinance-price] GOOGL 353.78 (+0.30%)
-- META: 직접 관련 · [yfinance-price] META 762.50 (+2.63%)
-- MSFT: 직접 관련 · [yfinance-price] MSFT 543.45 (+0.43%)
-- NVDA: 직접 관련 · [yfinance-price] NVDA 228.52 (+0.97%)
-- SOL: 직접 관련 · [defillama-market-structure] DeFi TVL $89.6B; leader Ethereum
-- SOL: 직접 관련 · [theblock-crypto] Major shareholder presses SkyAI on Solana sales after treasury shrinks 70% in a month
-- TSLA: 직접 관련 · [yfinance-price] TSLA 375.23 (-0.74%)
+- BTC: 직접 관련 · [coingecko-global-market] Global crypto market cap $2,777,380,386,737; BTC dominance 59.34%
+- BTC: 직접 관련 · [okx-derivatives] BTC 미결제약정 $622,791,060 (OKX, UTC 24h)
+- BTC: 직접 관련 · [okx-derivatives] BTC 펀딩비 0.0000388506658152 (OKX, UTC 24h)
+- BTC: 직접 관련 · [theblock-crypto] Bitcoin drops below $81,000 as risk-off sentiment weighs on Asian equities
+- BTC: 직접 관련 · [theblock-crypto] Bitwise CIO argues bitcoin will benefit whether AI booms or busts
+- BTC: 직접 관련 · [theblock-crypto] CleanSpark and BitFuFu see bitcoin production slip in September as Canaan remains flat
+- ETH: 직접 관련 · [defillama-market-structure] DeFi TVL $90.5B; leader Ethereum
+- GOOGL: 직접 관련 · [yfinance-price] GOOGL 347.64 (-1.74%)
+- META: 직접 관련 · [yfinance-price] META 737.54 (-3.27%)
+- MSFT: 직접 관련 · [yfinance-price] MSFT 533.69 (-1.80%)
+- NVDA: 직접 관련 · [yfinance-price] NVDA 221.30 (-3.16%)
+- SOL: 직접 관련 · [defillama-market-structure] DeFi TVL $90.5B; leader Ethereum
+- SOL: 직접 관련 · [theblock-crypto] DeFi Development boosts CHAD dividend to 14% amid push to grow Solana holdings
+- SOL: 직접 관련 · [theblock-crypto] Ledger unveils Atom Android device with Solana Mobile integration and new tamper protections amid investigation into…
+- TSLA: 직접 관련 · [yfinance-price] TSLA 367.16 (-2.15%)
 
 ## 관련·매크로 맥락 (Related)
 
@@ -30,8 +29,8 @@ _해당 항목 없음._
 
 ## 관련 시황
 
-- [미국 증시](../archive/us-equity/2026/10/2026-10-14.md)
-- [크립토](../archive/crypto/2026/10/2026-10-14.md)
+- [미국 증시](../archive/us-equity/2026/10/2026-10-15.md)
+- [크립토](../archive/crypto/2026/10/2026-10-15.md)
 
 <details>
 <summary>진단: 보류/제외된 후보</summary>
@@ -55,30 +54,30 @@ _해당 항목 없음._
 
 제외 (Rejected) — 짧은 티커 오탐 억제 확인:
 
+- AAPL ⊘ AA [short-ticker-boundary] · nasdaq-earnings-calendar #18acff
+- AAPL ⊘ ALOY [short-ticker-boundary] · nasdaq-earnings-calendar #6ae2ad
+- AAPL ⊘ ALX [short-ticker-boundary] · sec-edgar-8k #50fb35
 - AAPL ⊘ AMZN [short-ticker-boundary] · nasdaq-symbol-directory #beb0ca
 - AAPL ⊘ AMZN [short-ticker-boundary] · sec-company-facts #367e13
-- AAPL ⊘ AMZN [short-ticker-boundary] · yfinance-price #d04590
-- AAPL ⊘ ASML [short-ticker-boundary] · nasdaq-earnings-calendar #837330
+- AAPL ⊘ AMZN [short-ticker-boundary] · yfinance-price #0e938b
+- AAPL ⊘ ARES [short-ticker-boundary] · sec-edgar-8k #c4b7a4
+- AAPL ⊘ ARRY [short-ticker-boundary] · nasdaq-stocks-news #cc2a8b
 - AMZN ⊘ AAPL [short-ticker-boundary] · nasdaq-symbol-directory #9aad09
 - AMZN ⊘ AAPL [short-ticker-boundary] · sec-company-facts #6e4883
-- AMZN ⊘ AAPL [short-ticker-boundary] · yfinance-price #1f5c14
-- AMZN ⊘ amid [short-ticker-boundary] · theblock-crypto #da8994
+- AMZN ⊘ AAPL [short-ticker-boundary] · yfinance-price #e6b63c
+- AMZN ⊘ ALOY [short-ticker-boundary] · nasdaq-earnings-calendar #6ae2ad
+- AMZN ⊘ ALX [short-ticker-boundary] · sec-edgar-8k #50fb35
+- AMZN ⊘ amid [short-ticker-boundary] · theblock-crypto #d9aa1f
 - AMZN ⊘ amount [short-ticker-boundary] · treasury-auctions #28d612
-- AMZN ⊘ ASML [short-ticker-boundary] · nasdaq-earnings-calendar #837330
-- BTC ⊘ BAC [short-ticker-boundary] · nasdaq-earnings-calendar #a11e4c
+- AMZN ⊘ ARES [short-ticker-boundary] · sec-edgar-8k #c4b7a4
+- AMZN ⊘ ARRY [short-ticker-boundary] · nasdaq-stocks-news #cc2a8b
 - BTC ⊘ BEA [short-ticker-boundary] · us-economic-calendar #09d9d1
-- BTC ⊘ BELOW [short-ticker-boundary] · sec-edgar-8k #caeaf4
-- BTC ⊘ BGCR [short-ticker-boundary] · nyfed-reference-rates #b0c206
-- BTC ⊘ BLK [short-ticker-boundary] · nasdaq-earnings-calendar #7fb652
-- BTC ⊘ BNY [short-ticker-boundary] · theblock-crypto #0a4d1b
-- BTC ⊘ BSC [short-ticker-boundary] · defillama-market-structure #eb4663
-- ETH ⊘ EDUC [short-ticker-boundary] · nasdaq-earnings-calendar #a1dac5
-- ETH ⊘ EFFR [short-ticker-boundary] · nyfed-reference-rates #ef9b14
-- ETH ⊘ EIA [short-ticker-boundary] · eia-petroleum-weekly #631118
-- ETH ⊘ EPS [short-ticker-boundary] · nasdaq-earnings-calendar #837330
-- ETH ⊘ EQBK [short-ticker-boundary] · nasdaq-earnings-calendar #0b6d5e
-- ETH ⊘ etf [short-ticker-boundary] · nasdaq-symbol-directory #9aad09
-- ETH ⊘ Ether [short-ticker-boundary] · cftc-cot-positioning #d201ed
-- META ⊘ MATTEL [short-ticker-boundary] · sec-edgar-8k #3f96bd
+- BTC ⊘ BGCR [short-ticker-boundary] · nyfed-reference-rates #c56f18
+- BTC ⊘ BNY [short-ticker-boundary] · nasdaq-earnings-calendar #fb9b70
+- BTC ⊘ BSC [short-ticker-boundary] · defillama-market-structure #7639b9
+- BTC ⊘ BSVN [short-ticker-boundary] · nasdaq-earnings-calendar #9fb11f
+- ETH ⊘ EBA [short-ticker-boundary] · theblock-crypto #8eaa64
+- ETH ⊘ EFFR [short-ticker-boundary] · nyfed-reference-rates #d89c06
+- ETH ⊘ EIA [short-ticker-boundary] · eia-petroleum-weekly #569ac5
 
 </details>
