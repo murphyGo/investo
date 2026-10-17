@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-16 begin -->
+
+## 2026-10-16
+
+- [defillama-market-structure] **ticker**: DeFi TVL $89.6B; leader Ethereum
+- [theblock-crypto] **ticker**: How Ethereum Works
+- [theblock-crypto] **ticker**: OpenAI says research model spent another wallet’s testnet ETH without authorization on coding task
+
+<!-- u33 entry 2026-10-16 end -->
 <!-- u33 entry 2026-10-15 begin -->
 
 ## 2026-10-15

@@ -8,7 +8,7 @@
 <details class="investo-archive-month-nav" markdown="1">
 <summary>보관 월 바로가기</summary>
 
-[2026-10 (10)](#month-2026-10) · [2026-09 (22)](#month-2026-09) · [2026-08 (19)](#month-2026-08) · [2026-07 (18)](#month-2026-07) · [2026-06 (20)](#month-2026-06) · [2026-05 (13)](#month-2026-05)
+[2026-10 (11)](#month-2026-10) · [2026-09 (22)](#month-2026-09) · [2026-08 (19)](#month-2026-08) · [2026-07 (18)](#month-2026-07) · [2026-06 (20)](#month-2026-06) · [2026-05 (13)](#month-2026-05)
 
 </details>
 <form class="investo-archive-controls" hidden>
@@ -21,11 +21,16 @@
 
 ## 2026년 10월 { #month-2026-10 tabindex="-1" }
 
+<div class="investo-archive-entry" data-date="2026-10-16" markdown="1">
+
+[2026-10-16](2026/10/2026-10-16.md){ .investo-archive-link }
+
+<p class="investo-archive-snippet" markdown="0">전체 가상자산 시가총액은 UTC(협정세계시) 24시간 스냅샷(시점 자료) 기준 $2.76T, 구간 내 -3.40% 하락으로 집계됐다. 본문 참고.</p>
+</div>
 <div class="investo-archive-entry" data-date="2026-10-15" markdown="1">
 
 [2026-10-15](2026/10/2026-10-15.md){ .investo-archive-link }
 
-<p class="investo-archive-snippet" markdown="0">전체 가상자산 시가총액은 UTC 24시간 스냅샷(시점 자료) 기준 $2.78T로 -2.16% 하락했다. 이번 문서는 수집 근거가 제한적입니다.</p>
 </div>
 <div class="investo-archive-entry" data-date="2026-10-14" markdown="1">
 

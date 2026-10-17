@@ -304,3 +304,5 @@
 {"action_tag": "[데이터부족]", "briefing_url": "archive/us-equity/2026/10/2026-10-14.md", "published_at": "2026-10-15T00:24:56.969128+00:00", "segment": "us-equity", "target_date": "2026-10-14", "tickers": []}
 {"action_tag": "[데이터부족]", "briefing_url": "archive/crypto/2026/10/2026-10-15.md", "published_at": "2026-10-16T00:12:28.921669+00:00", "segment": "crypto", "target_date": "2026-10-15", "tickers": ["UTC"]}
 {"action_tag": "[데이터부족]", "briefing_url": "archive/us-equity/2026/10/2026-10-15.md", "published_at": "2026-10-16T00:12:28.921669+00:00", "segment": "us-equity", "target_date": "2026-10-15", "tickers": []}
+{"action_tag": "[데이터부족]", "briefing_url": "archive/crypto/2026/10/2026-10-16.md", "published_at": "2026-10-17T03:35:26.153773+00:00", "segment": "crypto", "target_date": "2026-10-16", "tickers": ["UTC"]}
+{"action_tag": "[데이터부족]", "briefing_url": "archive/us-equity/2026/10/2026-10-16.md", "published_at": "2026-10-17T03:35:26.153773+00:00", "segment": "us-equity", "target_date": "2026-10-16", "tickers": ["CIBC"]}
