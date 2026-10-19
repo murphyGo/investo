@@ -5,11 +5,11 @@
 <text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">미국 증시 가격 스냅샷</text>
 <text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-10-16</text>
 <text class="card-emphasis" x="90" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">^GSPC</text>
-<text class="card-text" x="310" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">7,659.44 · -1.09% · V 3.32B</text>
+<text class="card-text" x="310" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">7,659.44 · -1.09% · V 5.48B</text>
 <text class="card-emphasis" x="90" y="242" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">^IXIC</text>
-<text class="card-text" x="310" y="242" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">26,140.03 · -2.15% · V 8.35B</text>
+<text class="card-text" x="310" y="242" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">26,140.03 · -2.15% · V 9.51B</text>
 <text class="card-emphasis" x="90" y="304" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">^DJI</text>
-<text class="card-text" x="310" y="304" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">52,002.40 · -0.34% · V 488.09M</text>
+<text class="card-text" x="310" y="304" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">52,002.41 · -0.34% · V 488.09M</text>
 <text class="card-emphasis" x="90" y="366" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">^VIX</text>
 <text class="card-text" x="310" y="366" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">19.99 · +21.45% · V 0.00</text>
 <text class="card-emphasis" x="90" y="428" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">AAPL</text>

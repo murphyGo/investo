@@ -25,7 +25,7 @@
 
 [2026-10-16](2026/10/2026-10-16.md){ .investo-archive-link }
 
-<p class="investo-archive-snippet" markdown="0">CIBC가 Vistra에 Outperformer 의견을 부여하며 분석을 개시했습니다.</p>
+<p class="investo-archive-snippet" markdown="0">High Roller Technologies, Inc.는 Previously Issued Financial Statements 신뢰불가 공시.</p>
 </div>
 <div class="investo-archive-entry" data-date="2026-10-15" markdown="1">
 

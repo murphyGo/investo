@@ -7,12 +7,12 @@
 - AAPL: 직접 관련 · [yfinance-price] AAPL 343.46 (+0.43%)
 - AMZN: 직접 관련 · [yfinance-price] AMZN 250.00 (-1.87%)
 - BTC: 직접 관련 · [cftc-cot-positioning] CFTC Bitcoin CME leveraged_money net -5844 contracts
-- BTC: 직접 관련 · [coingecko-global-market] Global crypto market cap $2,757,414,457,442; BTC dominance 59.32%
-- BTC: 직접 관련 · [okx-derivatives] BTC 미결제약정 $615,347,240 (OKX, UTC 24h)
+- BTC: 직접 관련 · [coingecko-global-market] Global crypto market cap $2,735,739,126,329; BTC dominance 60.10%
+- BTC: 직접 관련 · [okx-derivatives] BTC 미결제약정 $634,123,520 (OKX, UTC 24h)
 - BTC: 직접 관련 · [okx-derivatives] BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
 - BTC: 직접 관련 · [theblock-crypto] Capital B posts wider H1 net loss of $78 million on bitcoin impairment charge
 - BTC: 직접 관련 · [theblock-crypto] Strive’s bitcoin buying spree earns 27% price target hike from TD Cowen
-- ETH: 직접 관련 · [defillama-market-structure] DeFi TVL $89.6B; leader Ethereum
+- ETH: 직접 관련 · [defillama-market-structure] DeFi TVL $88.1B; leader Ethereum
 - ETH: 직접 관련 · [theblock-crypto] How Ethereum Works
 - ETH: 직접 관련 · [theblock-crypto] OpenAI says research model spent another wallet’s testnet ETH without authorization on coding task
 - GOOGL: 직접 관련 · [theblock-crypto] Google demonstrates quantum computing breakthrough as observers weigh Q-day implications
@@ -20,7 +20,7 @@
 - META: 직접 관련 · [yfinance-price] META 709.33 (-3.72%)
 - MSFT: 직접 관련 · [yfinance-price] MSFT 529.05 (-1.93%)
 - NVDA: 직접 관련 · [yfinance-price] NVDA 214.13 (-1.43%)
-- SOL: 직접 관련 · [defillama-market-structure] DeFi TVL $89.6B; leader Ethereum
+- SOL: 직접 관련 · [defillama-market-structure] DeFi TVL $88.1B; leader Ethereum
 - TSLA: 직접 관련 · [yfinance-price] TSLA 354.72 (-2.13%)
 
 ## 관련·매크로 맥락 (Related)
@@ -68,16 +68,16 @@ _해당 항목 없음._
 - BTC ⊘ BANF [short-ticker-boundary] · nasdaq-earnings-calendar #e61560
 - BTC ⊘ BEA [short-ticker-boundary] · us-economic-calendar #09d9d1
 - BTC ⊘ BGCR [short-ticker-boundary] · nyfed-reference-rates #27339b
-- BTC ⊘ BMV [short-ticker-boundary] · nasdaq-stocks-news #a6ba95
 - BTC ⊘ BOW [short-ticker-boundary] · sec-edgar-8k #e7f00c
-- BTC ⊘ BSC [short-ticker-boundary] · defillama-market-structure #eb4663
+- BTC ⊘ BSC [short-ticker-boundary] · defillama-market-structure #c28675
 - BTC ⊘ BVFL [short-ticker-boundary] · nasdaq-earnings-calendar #c93a64
 - ETH ⊘ EFFR [short-ticker-boundary] · nyfed-reference-rates #700d9d
-- ETH ⊘ EOG [short-ticker-boundary] · nasdaq-stocks-news #a6ba95
 - ETH ⊘ EPS [short-ticker-boundary] · nasdaq-earnings-calendar #8a875d
 - ETH ⊘ etf [short-ticker-boundary] · nasdaq-symbol-directory #9aad09
 - ETH ⊘ Ether [short-ticker-boundary] · cftc-cot-positioning #552f50
 - META ⊘ MCBS [short-ticker-boundary] · nasdaq-earnings-calendar #e3be5e
 - META ⊘ MINING [short-ticker-boundary] · sec-edgar-8k #e7f00c
+- META ⊘ MOBIX [short-ticker-boundary] · sec-edgar-8k #96e025
+- META ⊘ MSFT [short-ticker-boundary] · nasdaq-symbol-directory #9f8afe
 
 </details>
