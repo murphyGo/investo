@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-19 begin -->
+
+## 2026-10-19
+
+- [defillama-market-structure] **ticker**: DeFi TVL $89.3B; leader Ethereum
+- [theblock-crypto] **ticker**: Bitmine adds 12,535 ETH as treasury reaches 6.04 million tokens
+- [theblock-crypto] **ticker**: JPMorgan expands ‘JPM Coin’ deposit token to Ethereum for institutional clients
+
+<!-- u33 entry 2026-10-19 end -->
 <!-- u33 entry 2026-10-16 begin -->
 
 ## 2026-10-16

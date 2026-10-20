@@ -306,3 +306,4 @@
 {"action_tag": "[데이터부족]", "briefing_url": "archive/us-equity/2026/10/2026-10-15.md", "published_at": "2026-10-16T00:12:28.921669+00:00", "segment": "us-equity", "target_date": "2026-10-15", "tickers": []}
 {"action_tag": "[데이터부족]", "briefing_url": "archive/crypto/2026/10/2026-10-16.md", "published_at": "2026-10-19T00:02:24.285476+00:00", "segment": "crypto", "target_date": "2026-10-16", "tickers": []}
 {"action_tag": "[데이터부족]", "briefing_url": "archive/us-equity/2026/10/2026-10-16.md", "published_at": "2026-10-19T00:02:24.285476+00:00", "segment": "us-equity", "target_date": "2026-10-16", "tickers": []}
+{"action_tag": "[데이터부족]", "briefing_url": "archive/crypto/2026/10/2026-10-19.md", "published_at": "2026-10-20T01:03:27.724590+00:00", "segment": "crypto", "target_date": "2026-10-19", "tickers": ["BTC"]}

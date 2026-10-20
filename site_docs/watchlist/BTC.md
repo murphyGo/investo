@@ -2,6 +2,20 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-19 begin -->
+
+## 2026-10-19
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -5844 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,750,019,583,637; BTC dominance 59.53%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $597,905,880 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: AnchorWatch Trust Company launches bitcoin custody service with up to $370 million in insurance per client
+- [theblock-crypto] **ticker**: BlackRock files for bitcoin ETF offering downside protection and upside exposure to IBIT
+- [theblock-crypto] **ticker**: Strive scoops up another 1,223 bitcoin for $100 million as total holdings reach 36,818 BTC
+- [theblock-crypto] **ticker**: ‘We found room for more orange’: Michael Saylor’s Strategy buys another 267 bitcoin for $22 million
+
+<!-- u33 entry 2026-10-19 end -->
 <!-- u33 entry 2026-10-16 begin -->
 
 ## 2026-10-16

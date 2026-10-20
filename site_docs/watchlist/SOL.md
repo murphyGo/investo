@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-19 begin -->
+
+## 2026-10-19
+
+- [defillama-market-structure] **ticker**: DeFi TVL $89.3B; leader Ethereum
+- [theblock-crypto] **ticker**: SkyAI sells off entire Solana treasury as it launches $201 million buyback
+
+<!-- u33 entry 2026-10-19 end -->
 <!-- u33 entry 2026-10-16 begin -->
 
 ## 2026-10-16
