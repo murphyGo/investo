@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-20 begin -->
+
+## 2026-10-20
+
+- [defillama-market-structure] **ticker**: DeFi TVL $90.4B; leader Ethereum
+- [theblock-crypto] **ticker**: Blockchain.com rolls out crypto options as it pursues US derivatives licenses
+- [theblock-crypto] **ticker**: Ethereum staking hits record as yields fall and Solana activity grows: Bitwise
+
+<!-- u33 entry 2026-10-20 end -->
 <!-- u33 entry 2026-10-19 begin -->
 
 ## 2026-10-19

@@ -2,6 +2,21 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-20 begin -->
+
+## 2026-10-20
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -5844 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,797,485,343,482; BTC dominance 59.56%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $600,293,290 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000217382927680 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin yield platform HoneyB developer raises $5 million at $30 million valuation
+- [theblock-crypto] **ticker**: BlackRock’s IBIT Bitcoin ETF draws $665 million inflow, highest since October 2025
+- [theblock-crypto] **ticker**: Blockchain.com rolls out crypto options as it pursues US derivatives licenses
+- [theblock-crypto] **ticker**: JPMorgan issues first long-term bitcoin return forecast, projecting 10% annually
+- [theblock-crypto] **ticker**: Swiss regulator FINMA approves country’s first spot bitcoin ETF for retail investors
+
+<!-- u33 entry 2026-10-20 end -->
 <!-- u33 entry 2026-10-19 begin -->
 
 ## 2026-10-19
