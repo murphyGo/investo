@@ -8,7 +8,7 @@
 <details class="investo-archive-month-nav" markdown="1">
 <summary>보관 월 바로가기</summary>
 
-[2026-10 (13)](#month-2026-10) · [2026-09 (22)](#month-2026-09) · [2026-08 (19)](#month-2026-08) · [2026-07 (18)](#month-2026-07) · [2026-06 (20)](#month-2026-06) · [2026-05 (13)](#month-2026-05)
+[2026-10 (14)](#month-2026-10) · [2026-09 (22)](#month-2026-09) · [2026-08 (19)](#month-2026-08) · [2026-07 (18)](#month-2026-07) · [2026-06 (20)](#month-2026-06) · [2026-05 (13)](#month-2026-05)
 
 </details>
 <form class="investo-archive-controls" hidden>
@@ -21,11 +21,16 @@
 
 ## 2026년 10월 { #month-2026-10 tabindex="-1" }
 
+<div class="investo-archive-entry" data-date="2026-10-21" markdown="1">
+
+[2026-10-21](2026/10/2026-10-21.md){ .investo-archive-link }
+
+<p class="investo-archive-snippet" markdown="0">전체 가상자산 시가총액은 $2.83T로 구간 내 -1.40% 하락했고, BTC 도미넌스(시장 점유율)는 59.66%로 확인됐다. 본문 참고.</p>
+</div>
 <div class="investo-archive-entry" data-date="2026-10-20" markdown="1">
 
 [2026-10-20](2026/10/2026-10-20.md){ .investo-archive-link }
 
-<p class="investo-archive-snippet" markdown="0">전체 가상자산 시가총액은 $2.80T로 구간 내 -1.41% 하락했다. 이번 문서는 수집 근거가 제한적입니다.</p>
 </div>
 <div class="investo-archive-entry" data-date="2026-10-19" markdown="1">
 

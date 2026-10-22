@@ -2,6 +2,17 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-21 begin -->
+
+## 2026-10-21
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -5844 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,829,965,145,503; BTC dominance 59.66%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $621,006,750 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000387289699040 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin volatility nears 2026 lows as traders brace for Fed decision and US midterms
+
+<!-- u33 entry 2026-10-21 end -->
 <!-- u33 entry 2026-10-20 begin -->
 
 ## 2026-10-20

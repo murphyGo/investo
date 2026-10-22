@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-21 begin -->
+
+## 2026-10-21
+
+- [defillama-market-structure] **ticker**: DeFi TVL $92.9B; leader Ethereum
+- [theblock-crypto] **ticker**: MoonPay, Upbit parent Dunamu explore collaboration on stablecoin payments, GIWA expansion
+
+<!-- u33 entry 2026-10-21 end -->
 <!-- u33 entry 2026-10-20 begin -->
 
 ## 2026-10-20

@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-21 begin -->
+
+## 2026-10-21
+
+- [nasdaq-earnings-calendar] **ticker**: TSLA earnings — after-hours — EPS forecast $0.22
+- [sec-edgar-8k] **ticker**: 8-K: Tesla, Inc. (CIK 0001318605)
+- [yfinance-price] **ticker**: TSLA 373.71 (+1.54%)
+
+<!-- u33 entry 2026-10-21 end -->
 <!-- u33 entry 2026-10-16 begin -->
 
 ## 2026-10-16
