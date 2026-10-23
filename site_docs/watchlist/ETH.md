@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-22 begin -->
+
+## 2026-10-22
+
+- [defillama-market-structure] **ticker**: DeFi TVL $90.2B; leader Ethereum
+- [theblock-crypto] **ticker**: Aerodrome and Velodrome merge to launch Aero across seven blockchain networks
+- [theblock-crypto] **ticker**: Layer 2 Scaling Solutions
+- [theblock-crypto] **ticker**: Uniswap’s aggregator hooks go live on Ethereum, Base and Robinhood Chain
+
+<!-- u33 entry 2026-10-22 end -->
 <!-- u33 entry 2026-10-21 begin -->
 
 ## 2026-10-21

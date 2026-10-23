@@ -25,7 +25,6 @@
 
 [2026-10-21](2026/10/2026-10-21.md){ .investo-archive-link }
 
-<p class="investo-archive-snippet" markdown="0">Jefferies가 Chagee Holdings Limited - Depositary Receipt를 Hold에서 Buy로 상향했다.</p>
 </div>
 <div class="investo-archive-entry" data-date="2026-10-16" markdown="1">
 
