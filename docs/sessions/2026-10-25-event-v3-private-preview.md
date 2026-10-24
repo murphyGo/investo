@@ -35,6 +35,18 @@ sealed 문서로 세지 않으며 반복·수동 실행을 genuine scheduled 관
 잘못됐는지는 판정하지 않았다. 기존 검증기의 숫자 value-only 참조, source metadata field 역할, 1–240 Unicode
 span 규칙을 Stage 1 지시에 명시했다. 검증기·예산·재시도·원본 buffer는 그대로다. 실제 효과는 추가 preview로 확인한다.
 이 지시 변경은 로컬 focused 85 PASS(5.63s), 독립 focused 104 PASS와 열린 P1/P2 0을 확인했다.
+`6f4f461d`의 [후속 미국 preview 40116589238](https://github.com/murphyGo/automation-runtime/actions/runs/40116589238)는
+2회 후 `context.required_missing`으로 끝났다. 필수 item과 actual fact의 metric/unit/period/status refs를
+유지해야 한다는 기존 gate 조건도 prompt에 명시했다. 빈 event 배열로 필수 사실을 피하는 응답은 계속 거부한다.
+원문 모델 응답이 없으므로 사유 변화만으로 정확한 근본 원인이나 최종 의미 수용을 확정하지 않는다.
+
+`1036ff8b`의 [전체 CI 40115806931](https://github.com/murphyGo/investo/actions/runs/40115806931)는
+7069 PASS/1 skipped/2 FAILED(733.52s)였다. 두 실패는 directory/flat 홈 build 검사였다. 당시 테스트가
+본문 어디에나 있는 제한 문구를 짧은 홈 요약에도 요구했지만 실제 홈은 별도의 canonical partial/limited
+상태를 표시했다. 각 카드의 보이는 품질 문구와 data-quality를 대조하고, 발행본의 기존 canonical status
+owner와도 대조하도록 검사를 수정했다. 링크·날짜·미발행 조건은 유지했다. 이 수정과 필수 actual 지시는
+로컬 집중 106 PASS(21.43s)를 확인했으며 최종 전체 CI를 별도로 수행한다.
+독립 검토는 focused 125 PASS와 홈 품질 변조 4건 거부, 열린 P1/P2 0을 확인했다.
 현재 사람 수용 corpus 0/12, review 0, verified slot 0/8,
 genuine v3 예약 0이며 cutover와 legacy 제거는 미실행이다.
 

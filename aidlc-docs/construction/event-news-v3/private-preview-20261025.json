@@ -66,6 +66,23 @@
       "reviewed_preview_code_sha": "1036ff8b3798d597de0d360bcd3a4372e28e3c17",
       "segment": "us-equity",
       "basis": "actual_private_manual_diagnostic_replay"
+    },
+    {
+      "status": "failed",
+      "code": "preview.execution_failed",
+      "error_type": "briefing_generation",
+      "stage": "classification",
+      "attempt_count": 2,
+      "failure_code": "context.required_missing",
+      "diagnostics": [
+        "context.required_missing"
+      ],
+      "ciphertext_sha256": "82cd4410d0c96d79050458636fdbb515e20fdb24f9523445412c37334d8a6035",
+      "run_id": 40116589238,
+      "run_url": "https://github.com/murphyGo/automation-runtime/actions/runs/40116589238",
+      "reviewed_preview_code_sha": "6f4f461d514b1f563d43c5aa449bb188d0e1a913",
+      "segment": "us-equity",
+      "basis": "actual_private_manual_span_prompt_replay"
     }
   ]
 }

@@ -1,5 +1,7 @@
 """Frozen input/context handoff and legacy serialization compatibility."""
 
+import pytest
+
 from investo.briefing.generation_contract import GenerationInput
 from investo.briefing.watchlist import WatchlistConfig
 from investo.models.event_config import EventGenerationPolicy
@@ -86,7 +88,10 @@ async def test_actual_stage_one_context_reaches_protected_stage_two_buffer() -> 
     assert len(runner.prompts) == 1
 
 
-async def test_numeric_value_reference_retry_preserves_the_fact_gate() -> None:
+@pytest.mark.parametrize("omitted_required", [False, True])
+async def test_numeric_value_reference_retry_preserves_the_fact_gate(
+    omitted_required: bool,
+) -> None:
     from investo.briefing._core.orchestration import GenerationPolicy, classify_context
     from investo.briefing.claude_code import RetryBudget
     from investo.briefing.event_context import build_context_prompt_buffer
@@ -100,8 +105,10 @@ async def test_numeric_value_reference_retry_preserves_the_fact_gate() -> None:
     wrong = correct.model_copy(update={"facts": (wrong_fact,)})
     runner = _ReplayRunner(
         [
-            ContextClassificationResult(schema_version=3, events=(event,)).model_dump_json()
-            for event in (wrong, correct)
+            ContextClassificationResult(
+                schema_version=3, events=() if event is None else (event,)
+            ).model_dump_json()
+            for event in (None if omitted_required else wrong, correct)
         ]
     )
     buffer = build_context_prompt_buffer((doc,), required_item_ids=frozenset({1}))
@@ -117,7 +124,9 @@ async def test_numeric_value_reference_retry_preserves_the_fact_gate() -> None:
     assert len(runner.prompts) == 2
     assert "numeric token alone" in runner.prompts[0]
     assert "one to 240 codepoints" in runner.prompts[0]
-    assert "Retry rule: context.fact_invalid" in runner.prompts[1]
+    expected_rule = "context.required_missing" if omitted_required else "context.fact_invalid"
+    assert f"Retry rule: {expected_rule}" in runner.prompts[1]
+    assert "Every required actual item ID" in runner.prompts[0]
     assert buffer.text in runner.prompts[0] and buffer.text in runner.prompts[1]
 
 
