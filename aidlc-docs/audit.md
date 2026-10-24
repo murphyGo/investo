@@ -8083,3 +8083,7 @@ Exact main application24ad770d Quality38044175630 SUCCESS6921/470.87s,1 known mi
 ## 2026-10-12 — Event/news v3 native implementation and gated acceptance
 
 User development/remaining-work/commit-push authorization applied in isolated worktree. Native schema3 generation, sole finalizer/publication, story ledger, readers/visuals, semantic replay/cutover audit and source-slot tooling implemented. Current UI/sector remote55c00fc8 preserved; final codeca631e24. Independent166PASS/direct regressions/all clear0P1-P2. Synthetic57/12groups/3markets remains AI-authored/humanpending; actual corpus0/12, slot0/8, scheduled0. Default2/preview3/activefalse and existing production/source/cursor gates retained. Full/static/policy/docs evidence and remaining performance/viewport/private capture/human/release/cleanup: `construction/event-news-v3/implementation-evidence.md`, `docs/cross-checks/2026-10-12-event-news-v3.md`. Root dirty files preserved.
+
+## 2026-10-25 Event v3 continuation
+
+사용자 “진행시켜” 지시로 기존 root dirty 작업을 보존하고 최신 public main `dd113ae4`의 별도 worktree에서 재개했다. 이전 v3 delivery exact-CI 성공을 확인했다. private manual preview에 schema 2(default)/3 선택만 연결하고 preview pin만 갱신했으며 기존 production pin/gates와 shared auth queue를 보존했다. 실제 preview의 native failure reason 누락을 닫힌 13개 rule로 보완하고 독립 검토 P1/P2=0, 집중 67 PASS를 확인했다. Fed/CFTC 실제 36개 parser context·원문 span 84개 대조 기록은 ignored private 원문과 공개 count/hash로 분리했다. source slot 0/8, 사람 수용과 viewport/운영 전환 pending은 유지한다. [Session](../docs/sessions/2026-10-25-event-v3-private-preview.md).

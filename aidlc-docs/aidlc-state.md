@@ -318,6 +318,8 @@ Source permission remains unverified under the u145 exception; Browser is
 
 2026-10-12 native 검증: [AC cross-check](../docs/cross-checks/2026-10-12-event-news-v3.md), [구현 증거](construction/event-news-v3/implementation-evidence.md). synthetic57/12groups/3markets와 실제 사람 corpus0/12·slot0/8·예약0을 구별한다. default2/preview3/activefalse이며 legacy 최종 폐기는 선행 수용 이후다.
 
+2026-10-25 재개: 이전 delivery `3e399447`의 exact-SHA quality `38166319085` 성공을 확인했다. private preview schema 선택 `6ff635c6`을 배포하고 기존 운영 pin/mode를 보존했다. 실제 preview와 native 닫힌 실패 진단 보완, Fed/CFTC 36개 private parser context·원문 span 84개 대조를 진행했다. FSC 실패·필수 slot/rights/runtime·사람 수용과 Browser 연결 오류로 인한 viewport는 pending이며 unit 완료 횟수를 늘리지 않았다. [재개 증거](../docs/sessions/2026-10-25-event-v3-private-preview.md).
+
 ### u174–u179 — Web UI Modernization (2026-10-10)
 
 **Source**: 사용자는 현재 웹 UI 분석과 로컬 홈 시안을 확인한 뒤 “굿 일단 유닛 문서화부터 진행해줘”라고 요청했다. 최초 코드 기준은 원격 main `48762793`, 최종 문서 통합 기준은 `838bed60`이다. 동시 등록된 사건·뉴스 v3 u167–u173을 보존하고 번호 충돌을 피해 UI u174–u179의 문서만 등록한다. 구현·기능 설계 승인·커밋/푸시·배포 인수를 뜻하지 않는다.

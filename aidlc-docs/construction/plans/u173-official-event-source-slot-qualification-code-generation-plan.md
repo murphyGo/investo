@@ -78,3 +78,5 @@ git diff --check
 사용자의 개발·계속 진행·커밋/푸시 지시를 적용했다. native 구현 SHA `ca631e245d0341c09ea1671c32c4286dbd2c9c3a`, 원격 UI/섹터 통합 기준 `55c00fc85e2828f62cd69d5583afd3761ef86d45`.
 
 In progress — 6/7; private parser capture pending. [공통 검증](../event-news-v3/implementation-evidence.md), [번호별 AC 대조](../../../docs/cross-checks/2026-10-12-event-news-v3.md), [private 수용·전환 handoff](../event-news-v3/private-acceptance-and-cutover-runbook.md). 구현과 실제 사람/운영 수용을 구별하며 v3 active는 false다.
+
+2026-10-25: 기존 Fed/CFTC feed 실제 응답 6개와 normalized item 36개를 private capture하고 u167 typed factory·원문 span 84개 대조를 통과했다. FSC adapter는 실패했다. [count/hash와 제한](../u173-official-event-source-slot-qualification/qualification-conclusions.md#2026-10-25-실제-feed-parser-capture). 전체 필수 slot·rights·body·runtime의 성공은 아니므로 Step 4와 verified 0/8을 유지한다.

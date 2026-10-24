@@ -14,19 +14,21 @@ import subprocess
 import time
 from datetime import UTC, date, datetime
 from pathlib import Path
-from typing import Never, cast
+from typing import Never, cast, get_args
 
 from investo.briefing._core.classification import event_classification_diagnostics
 from investo.briefing.claude_code import ClaudeRunner
 from investo.briefing.codex_cli import CodexRunner
 from investo.briefing.context import load_recent_briefings, resolve_recent_days
 from investo.briefing.errors import BriefingGenerationError
+from investo.briefing.event_context import ContextEvidenceError
 from investo.briefing.event_narrative import event_synthesis_diagnostics
 from investo.briefing.event_routing import share_official_event_candidates
 from investo.briefing.generation_contract import GenerationInput
 from investo.briefing.segments import segment_items
 from investo.briefing.watchlist import DEFAULT_WATCHLIST_PATH, load_watchlist
 from investo.models.event_config import EventExecutionConfig
+from investo.models.event_context import ContextRule
 from investo.models.segments import DOMESTIC_EQUITY, MarketSegment
 from investo.orchestrator.domestic_anchor_quarantine import (
     load_previous_domestic_anchor_closes,
@@ -56,6 +58,7 @@ from investo.sources import collect_sources
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 _MAX_MARKDOWN_BYTES = 256 * 1024
 _MAX_MANIFEST_BYTES = 16 * 1024
+_CONTEXT_RULES = frozenset(get_args(ContextRule))
 _FAILURE_STAGES = {
     "run_preview": "preview",
     "collect_sources": "collection",
@@ -297,6 +300,13 @@ def _failure_manifest(exc: Exception) -> dict[str, object]:
             r"Stage [12] subprocess returned rc=-?\d{1,3}, stdout_len=\d{1,8}", cause
         ):
             manifest["failure_code"] = "generation.subprocess_failed"
+        elif (
+            isinstance(exc.cause, ContextEvidenceError)
+            and type(exc.cause.rule_code) is str
+            and exc.cause.rule_code in _CONTEXT_RULES
+        ):
+            manifest["failure_code"] = exc.cause.rule_code
+            manifest["diagnostics"] = (exc.cause.rule_code,)
     elif isinstance(exc, PublicDocumentFinalizationError):
         manifest["error_type"] = "finalization"
         manifest["failure_code"] = "finalization.rejected"

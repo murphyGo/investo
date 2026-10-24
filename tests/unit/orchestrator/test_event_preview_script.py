@@ -344,6 +344,46 @@ def test_manifest_exposes_closed_classification_diagnostics(script: ModuleType) 
 
 
 @pytest.mark.parametrize(
+    "rule", ["context.invalid_schema", "context.fact_invalid", "context.status_unbound"]
+)
+def test_native_classification_manifest_retains_reason_without_model_output(
+    script: ModuleType, rule: str
+) -> None:
+    from investo.briefing.event_context import ContextEvidenceError
+
+    error = BriefingGenerationError(
+        stage="classification",
+        attempt_count=3,
+        last_stdout="PRIVATE_MODEL_RESPONSE",
+        last_stderr="PRIVATE_NATIVE_ERROR",
+        cause=ContextEvidenceError(rule),  # type: ignore[arg-type]
+    )
+    manifest = script._failure_manifest(error)
+    assert manifest["failure_code"] == rule
+    assert manifest["diagnostics"] == (rule,)
+    assert "PRIVATE" not in json.dumps(manifest)
+
+
+@pytest.mark.parametrize(
+    "untrusted", ["context.invalid_schema PRIVATE_MODEL_RESPONSE", ["PRIVATE_MODEL_RESPONSE"]]
+)
+def test_native_classification_manifest_does_not_trust_arbitrary_rule_values(
+    script: ModuleType, untrusted: object
+) -> None:
+    from investo.briefing.event_context import ContextEvidenceError
+
+    cause = ContextEvidenceError("context.invalid_schema")
+    cause.rule_code = untrusted  # type: ignore[assignment]
+    error = BriefingGenerationError(
+        stage="classification", attempt_count=3, last_stderr="PRIVATE", cause=cause
+    )
+    manifest = script._failure_manifest(error)
+    assert "failure_code" not in manifest
+    assert "diagnostics" not in manifest
+    assert "PRIVATE" not in json.dumps(manifest)
+
+
+@pytest.mark.parametrize(
     "cause",
     [
         "event.narrative_invalid",

@@ -48,3 +48,18 @@ offline checker는 정상 blocked 행을 자료로 받아들이지만 source-rea
 
 u161 body HTTP capability, u160 cursor, u172 사람 수용과 runtime release는 각 소유자의 gate다.
 qualification tooling 완료와 source-ready 0/8을 별도로 기록한다.
+
+## 2026-10-25 실제 feed parser capture
+
+기존 adapter와 retry owner만 호출해 정확한 기존 feed 7개 범위에서 private capture를 시도했다.
+새 body/provider 경로와 source key는 추가하지 않았다. 30일 창은 parser characterization을 위한 것으로,
+실제 production news-window recall이나 현재 monetary decision의 수용 표본이 아니다.
+
+Fed press 1응답/13개, Fed speech·testimony 2응답/11개, CFTC 3응답/12개를 정규화했다.
+기존 u167 factory로 36개 typed context를 만들고 source-owned span 84개를 원본 chunk와 대조했다.
+국내 FSC feed는 `SourceFetchError`를 반환했다. 이 capture에서 더 구체적인 원인을 판정하지 않았다.
+
+원문·normalized items·typed context는 ignored private 경로에만 저장했다.
+[공개 가능한 count/hash 기록](code/feed-parser-capture-20261025.json)은 raw text를 담지 않는다.
+이는 feed parser의 현재 증거다. official body 접근·권리·필수 slot field binding·나머지 source/runtime의
+검증은 부족하므로 manifest의 verified 0/8과 activation false를 유지한다. Step 4는 부분 진전이며 완료가 아니다.

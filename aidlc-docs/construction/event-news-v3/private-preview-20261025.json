@@ -1,0 +1,52 @@
+{
+  "document_schema": 3,
+  "basis": "actual_private_manual_preview",
+  "runtime_workflow_sha": "6ff635c6258bcf308b28a30d73c2f1ab7ca60b97",
+  "reviewed_preview_code_sha": "3e399447b804ba1053202b9d17af0ab240d0c3d2",
+  "target_date": "2026-10-23",
+  "run_id": 40114529910,
+  "run_url": "https://github.com/murphyGo/automation-runtime/actions/runs/40114529910",
+  "result": "failed",
+  "sealed_document_count": 0,
+  "artifacts_decrypted": 3,
+  "human_review_count": 0,
+  "accepted_corpus_count": 0,
+  "genuine_v3_scheduled_runs": 0,
+  "production_pin_unchanged": "35ea6c6e8cb3e871bd06bbdb1810065b5d97949f",
+  "publication_committed": false,
+  "notification_sent": false,
+  "production_cursor_written": false,
+  "production_receipt_written": false,
+  "records": [
+    {
+      "status": "failed",
+      "code": "preview.execution_failed",
+      "error_type": "briefing_generation",
+      "stage": "classification",
+      "attempt_count": 3,
+      "artifact": "event-preview-crypto",
+      "ciphertext_sha256": "aab1c445ecfe44b4557818d26fda5ad863e57cb1fcbecb41140d8a6ea4d049e2",
+      "artifact_file_count": 1
+    },
+    {
+      "status": "failed",
+      "code": "preview.execution_failed",
+      "error_type": "briefing_generation",
+      "stage": "classification",
+      "attempt_count": 3,
+      "artifact": "event-preview-domestic-equity",
+      "ciphertext_sha256": "8ca95ba717a5c2039bfb00d245651b97aeaea34670e486833fb64d2d1a8a0388",
+      "artifact_file_count": 1
+    },
+    {
+      "status": "failed",
+      "code": "preview.execution_failed",
+      "error_type": "briefing_generation",
+      "stage": "classification",
+      "attempt_count": 2,
+      "artifact": "event-preview-us-equity",
+      "ciphertext_sha256": "465f51bc0f9d30368688804cb5bfe205014eff3b579f12581ff55ba265a002a3",
+      "artifact_file_count": 1
+    }
+  ]
+}

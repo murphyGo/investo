@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "basis": "actual_private_existing_feed_capture",
+  "captured_source_code_sha": "3e399447b804ba1053202b9d17af0ab240d0c3d2",
+  "window": "30-day parser characterization; not production news-window recall",
+  "raw_recording_storage": "ignored private directory only",
+  "verified_source_slots": 0,
+  "records": [
+    {
+      "source_name": "fomc-rss",
+      "observed_at": "2026-10-24T17:08:29.339268+00:00",
+      "status": "parser_returned",
+      "error_type": null,
+      "response_count": 1,
+      "response_statuses": [
+        200
+      ],
+      "response_sha256": [
+        "529e889a916423a3979c1bebdd94c2b8d402889700d8c85cc4d125b7f538d327"
+      ],
+      "normalized_item_count": 13,
+      "normalized_recording_sha256": "b74db9beda526f58ad7f0ff0671ac846993038163aa3d4131891dd1d4d58f22b",
+      "typed_context_documents": 13,
+      "typed_context_sha256": "a6cc4f7b5ccfc3ec2d5ba75f1a636991ca0cb89d17bb07a5e71c345863805b89",
+      "exact_span_checks": 39,
+      "slot_field_bindings_verified": 0,
+      "rights_verified": false,
+      "runtime_probe_status": "not_run",
+      "activation_ready": false
+    },
+    {
+      "source_name": "fed-speech-rss",
+      "observed_at": "2026-10-24T17:08:29.339268+00:00",
+      "status": "parser_returned",
+      "error_type": null,
+      "response_count": 2,
+      "response_statuses": [
+        200,
+        200
+      ],
+      "response_sha256": [
+        "41d3b87fbd6930e4285ef366f574d20ee3a8db2ab295fceb5d8fa68448055930",
+        "77fb2cfab34560d077485280233bdde36ea9a4bc56b9fbb8db05f91368c867cf"
+      ],
+      "normalized_item_count": 11,
+      "normalized_recording_sha256": "db41ba21a7087d20a390f7200d832d13bdd304013367667cdd56d58d862b83e7",
+      "typed_context_documents": 11,
+      "typed_context_sha256": "ebaf8fd048aa2176237a0e943b576225853939a6fd884b5a027c56833efb0ac5",
+      "exact_span_checks": 33,
+      "slot_field_bindings_verified": 0,
+      "rights_verified": false,
+      "runtime_probe_status": "not_run",
+      "activation_ready": false
+    },
+    {
+      "source_name": "cftc-policy-rss",
+      "observed_at": "2026-10-24T17:08:29.339268+00:00",
+      "status": "parser_returned",
+      "error_type": null,
+      "response_count": 3,
+      "response_statuses": [
+        200,
+        200,
+        200
+      ],
+      "response_sha256": [
+        "eb9cfc1965e233f6c8297954a5876df93dce22fe17b2caa950a3ddd892c72a0f",
+        "788eb37a9c082327a441da8dd772826d044de0621e85a300df9904d50a5e771b",
+        "dea35b038ebd1bf132cce4de95db4a20d8d201677dcb5a19520bdbbee7c8b621"
+      ],
+      "normalized_item_count": 12,
+      "normalized_recording_sha256": "b1c65fa0f735d3d0bf0f23a2ccb4b49d3db35e692a953e7f4beec623da35dbba",
+      "typed_context_documents": 12,
+      "typed_context_sha256": "04d4c1ea7ceee218d7bbc3f25e3615409071a4014d2e59b6aeaa1f98a83d9dbd",
+      "exact_span_checks": 12,
+      "slot_field_bindings_verified": 0,
+      "rights_verified": false,
+      "runtime_probe_status": "not_run",
+      "activation_ready": false
+    },
+    {
+      "source_name": "korea-policy-rss",
+      "observed_at": "2026-10-24T17:08:29.339268+00:00",
+      "status": "capture_failed",
+      "error_type": "SourceFetchError",
+      "response_count": 0,
+      "response_statuses": [],
+      "response_sha256": [],
+      "normalized_item_count": 0,
+      "normalized_recording_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "typed_context_documents": 0,
+      "typed_context_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "exact_span_checks": 0,
+      "slot_field_bindings_verified": 0,
+      "rights_verified": false,
+      "runtime_probe_status": "not_run",
+      "activation_ready": false
+    }
+  ]
+}
