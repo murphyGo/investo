@@ -8,7 +8,7 @@
 <details class="investo-archive-month-nav" markdown="1">
 <summary>보관 월 바로가기</summary>
 
-[2026-10 (12)](#month-2026-10) · [2026-09 (17)](#month-2026-09) · [2026-08 (19)](#month-2026-08) · [2026-07 (19)](#month-2026-07) · [2026-06 (21)](#month-2026-06) · [2026-05 (16)](#month-2026-05)
+[2026-10 (13)](#month-2026-10) · [2026-09 (17)](#month-2026-09) · [2026-08 (19)](#month-2026-08) · [2026-07 (19)](#month-2026-07) · [2026-06 (21)](#month-2026-06) · [2026-05 (16)](#month-2026-05)
 
 </details>
 <form class="investo-archive-controls" hidden>
@@ -21,6 +21,12 @@
 
 ## 2026년 10월 { #month-2026-10 tabindex="-1" }
 
+<div class="investo-archive-entry" data-date="2026-10-23" markdown="1">
+
+[2026-10-23](2026/10/2026-10-23.md){ .investo-archive-link }
+
+<p class="investo-archive-snippet" markdown="0">SEC가 Fiscal Year 2027 Examination Priorities를 발표했습니다.</p>
+</div>
 <div class="investo-archive-entry" data-date="2026-10-21" markdown="1">
 
 [2026-10-21](2026/10/2026-10-21.md){ .investo-archive-link }
