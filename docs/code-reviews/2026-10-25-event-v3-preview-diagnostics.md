@@ -63,3 +63,15 @@ field allowlist와 일치한다. 값·delta·기간·priority·request params/ca
 
 독립 focused130 PASS, unit 누락 시 required_missing·잘못된 unit field면 fact_invalid인 추가 probe도 통과했다.
 Ruff/format/diff PASS, 열린 P1/P2 0이다. 추가 HTTP·실제 key·private 원문 접근·source edits 없이 검토했다.
+
+## Source metadata 좌표 전달
+
+실제 미국 기록의 metric/unit offset -1/+1 실패를 위해 동일 metadata boundary owner가 계산한
+field별 정확한 범위를 Stage 1 row에 전달한다. 원본 context/revision과 전체 ContextRef 출력은 유지하고
+지도 bytes도 기존 24KiB에 포함한다. 반환된 좌표를 자동 보정하거나 gate를 우회하지 않는다.
+
+독립 focused 201 PASS(12.58s: native57, budget/handoff/refs/models/FRED/legacy preview 포함),
+Ruff/format/diff PASS를 확인했다. 추가 Unicode/escape/key-like-value·동일 literal의 다른 필드 9개 probe는
+좌표 owner 일치를 확인했다. 같은 문자열이 있어도 unit의 wrong field→fact_invalid,
+다른 revision→item_mismatch, 없는 chunk→unknown_chunk 거절을 확인했다. 열린 P1/P2는 0이다.
+실제 모델 성공과 사람 수용은 이 synthetic 검토에 포함하지 않는다.

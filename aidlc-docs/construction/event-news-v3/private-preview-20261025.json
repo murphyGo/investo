@@ -123,5 +123,77 @@
       "segment": "us-equity",
       "basis": "actual_private_manual_model_recording"
     }
+  ],
+  "validation_runs": [
+    {
+      "run_id": 40121638323,
+      "run_url": "https://github.com/murphyGo/automation-runtime/actions/runs/40121638323",
+      "reviewed_preview_code_sha": "29978b46e5d11ce03499a664d9f68565422f65ad",
+      "runtime_workflow_sha": "a9bd69741cacbbf2c4ab57d9f23f2afd6cd0068e",
+      "basis": "actual_private_manual_unit_metadata_repair_validation",
+      "target_date": "2026-10-23",
+      "document_schema": 3,
+      "result": "failure",
+      "sealed_document_count": 2,
+      "human_review_count": 0,
+      "accepted_corpus_count": 0,
+      "genuine_v3_scheduled_runs": 0,
+      "records": [
+        {
+          "status": "sealed",
+          "document_schema": 3,
+          "terminal_event_count": 0,
+          "availability": "source_limited",
+          "markdown_sha256": "e15674a2e7c77f8bbfb16898fa051e28e8a7a867ca2309fba731c1100387eac1",
+          "projection_sha256": "d6cd20cf0c298128490f0f73efd7bcc8af3e7b94c9d043a047a0b5002792bc23",
+          "artifact": "event-preview-crypto",
+          "ciphertext_sha256": "fc9961000bcf90863922222eb78301bbf616a84f8379b164c470145bda726c75",
+          "artifact_file_count": 3,
+          "preview_sha256": "e15674a2e7c77f8bbfb16898fa051e28e8a7a867ca2309fba731c1100387eac1",
+          "recording_status": "complete",
+          "calls_started": 2,
+          "calls_completed": 2,
+          "recording_sha256": "63f22115862d5085569e7f89ab1bf02c1c14dd89dbd5fdece68f72705f11dfa6"
+        },
+        {
+          "status": "sealed",
+          "document_schema": 3,
+          "terminal_event_count": 0,
+          "availability": "source_limited",
+          "markdown_sha256": "e767d82e768bf72d2ef5f0128b0562ab542e1698555376792aff15603dac0064",
+          "projection_sha256": "edf5694a51c0f04a26facb33e523bb76d406b40f0da7ca0cc759b0b3f5113b5c",
+          "artifact": "event-preview-domestic-equity",
+          "ciphertext_sha256": "ff70e70d6be901a28e5ac5e9f16b5b039a90cb26118b6a23ec75acc2768f7a9e",
+          "artifact_file_count": 3,
+          "preview_sha256": "e767d82e768bf72d2ef5f0128b0562ab542e1698555376792aff15603dac0064",
+          "recording_status": "complete",
+          "calls_started": 1,
+          "calls_completed": 1,
+          "recording_sha256": "57c4caf6f251c8d79fa74873494730f3fd79da9826eb26deff24bdd29bb87694"
+        },
+        {
+          "status": "failed",
+          "code": "preview.execution_failed",
+          "error_type": "briefing_generation",
+          "stage": "classification",
+          "attempt_count": 2,
+          "failure_code": "context.fact_invalid",
+          "diagnostics": [
+            "context.fact_invalid"
+          ],
+          "artifact": "event-preview-us-equity",
+          "ciphertext_sha256": "cc07b83d9adc6f62dbab21a8aba7b50577c3fd5c7c2a55bfb76b8a324130b281",
+          "artifact_file_count": 2,
+          "recording_status": "complete",
+          "calls_started": 2,
+          "calls_completed": 2,
+          "recording_sha256": "9c40bf78aaa1d61208c052fc681473296902dd919e01557d43d2af14b38d2fe5"
+        }
+      ],
+      "publication_committed": false,
+      "notification_sent": false,
+      "production_cursor_written": false,
+      "production_receipt_written": false
+    }
   ]
 }

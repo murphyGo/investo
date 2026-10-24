@@ -68,6 +68,24 @@ owner와도 대조하도록 검사를 수정했다. 링크·날짜·미발행 �
 현재 사람 수용 corpus 0/12, review 0, verified slot 0/8,
 genuine v3 예약 0이며 cutover와 legacy 제거는 미실행이다.
 
+FRED 단위 수리 source `29978b46`의 [세 시장 실제 preview 40121638323](https://github.com/murphyGo/automation-runtime/actions/runs/40121638323)는
+국내·코인 sealed, 미국 분류 실패로 끝났다. 세 artifact를 복호화했고 sealed Markdown hash도 manifest와
+일치했다. 성공 sibling은 모두 `source_limited`/terminal event 0이므로 인간 수용으로 세지 않는다.
+미국의 complete 2-call 기록은 metric/unit 메타데이터 좌표가 1차 -1, 2차 +1 codepoint임을 확인했다.
+2차 응답에 정확한 위치만 적용한 로컬 진단은 기존 classifier를 통과했고, 1차의 잘못된 subject field는
+여전히 거절됐다. 이 진단을 새 모델 성공으로 집계하지 않는다.
+
+[메타데이터 범위 전달 수리](../../aidlc-docs/construction/event-news-v3/metadata-span-transport-repair.md)는
+기존 source-owned chunk별 field 위치를 서버가 계산해 Stage 1과 공유한다. 원본 document/revision,
+출력 ContextRef 및 모든 gate는 유지한다. 지도 bytes도 기존 24KiB에 포함하며 필수 문서는 먼저 예약한다.
+집중 94 PASS(7.22s), Ruff/format 776/mypy328을 확인했고 독립 검토와 새 실제 검증을 진행한다.
+
+FRED 수리 source `29978b46e5d11ce03499a664d9f68565422f65ad`의 exact-SHA
+[quality 40121607322](https://github.com/murphyGo/investo/actions/runs/40121607322)는
+7,098 PASS/1 skipped(758.93s), Node29와 static/policy/docs/Material/calendar 전체 검사를 성공했다.
+직전 recording source `8e423add`의 [quality 40119569331](https://github.com/murphyGo/investo/actions/runs/40119569331)도
+7,086 PASS/1 skipped(623.07s)와 전체 검사 성공이었다. 이 CI 성공은 실제 미국 preview 성공과 구별한다.
+
 ## Source capture와 viewport
 
 기존 Fed/CFTC/FSC adapter의 실제 feed capture와 u167 factory 결과는

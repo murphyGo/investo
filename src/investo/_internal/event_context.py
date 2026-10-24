@@ -372,22 +372,30 @@ def normalized_context_literal(value: str) -> str:
     return " ".join(unicodedata.normalize("NFKC", value).split())
 
 
+def _metadata_value_spans(text: str) -> dict[str, tuple[int, int]]:
+    """Coordinates in the exact transmitted metadata JSON, including JSON escapes."""
+    try:
+        fields = json.loads(text)
+        spans: dict[str, tuple[int, int]] = {}
+        for key, value in fields.items():
+            prefix = json.dumps(key) + ":"
+            encoded = json.dumps(value, ensure_ascii=False)
+            literal = encoded[1:-1] if isinstance(value, str) else encoded
+            start = text.index(prefix) + len(prefix) + int(isinstance(value, str))
+            spans[str(key)] = (start, start + len(literal))
+        return spans
+    except (ValueError, AttributeError):
+        return {}
+
+
 def metadata_ref_field(ref: ContextRef, documents: ContextLookup) -> str | None:
     doc = documents[(ref.document_id, ref.revision_id)]
     chunk = next(chunk for chunk in doc.chunks if chunk.chunk_id == ref.chunk_id)
     if chunk.source_locator != "source_metadata":
         return None
-    try:
-        fields = json.loads(chunk.text)
-        for key, value in fields.items():
-            prefix = json.dumps(key) + ":"
-            encoded = json.dumps(value, ensure_ascii=False)
-            text = encoded[1:-1] if isinstance(value, str) else encoded
-            start = chunk.text.index(prefix) + len(prefix) + int(isinstance(value, str))
-            if (ref.start, ref.end) == (start, start + len(text)):
-                return str(key)
-    except (ValueError, AttributeError):
-        pass
+    for key, span in _metadata_value_spans(chunk.text).items():
+        if (ref.start, ref.end) == span:
+            return key
     raise ContextEvidenceError("context.fact_invalid")
 
 
@@ -536,7 +544,24 @@ def build_context_prompt_buffer(
             if i in required_item_ids:
                 raise ContextEvidenceError("context.budget_exhausted")
             continue
-        row = {"item_id": len(rows) + 1, "context": documents[i - 1].model_dump(mode="json")}
+        doc = documents[i - 1]
+        metadata_spans = [
+            {
+                "chunk_id": chunk.chunk_id,
+                "fields": {
+                    key: span
+                    for key, span in _metadata_value_spans(chunk.text).items()
+                    if 0 < span[1] - span[0] <= 240 and chunk.text[span[0] : span[1]].strip()
+                },
+            }
+            for chunk in doc.chunks
+            if chunk.source_locator == "source_metadata"
+        ]
+        row = {
+            "item_id": len(rows) + 1,
+            "context": doc.model_dump(mode="json"),
+            "metadata_spans": metadata_spans,
+        }
         proposed = _json({"schema_version": 3, "documents": [*rows, row]})
         if len(proposed.encode("utf-8")) > STAGE_ONE_CONTEXT_BYTES:
             if i in required_item_ids:
