@@ -86,6 +86,16 @@ FRED 수리 source `29978b46e5d11ce03499a664d9f68565422f65ad`의 exact-SHA
 직전 recording source `8e423add`의 [quality 40119569331](https://github.com/murphyGo/investo/actions/runs/40119569331)도
 7,086 PASS/1 skipped(623.07s)와 전체 검사 성공이었다. 이 CI 성공은 실제 미국 preview 성공과 구별한다.
 
+[후속 미국 preview 40122882991](https://github.com/murphyGo/automation-runtime/actions/runs/40122882991)는
+source `8ee57c71`로 분류를 1회에 통과하고 합성 2회 후 `event.entity_unsupported`로 끝났다.
+complete 3-call 기록을 같은 document/binding/plan으로 재생하고 protected JSON 13,345 bytes 일치도 확인했다.
+모든 필수 주체·대상은 포함했지만 일반 성분명 ‘관측값’, ‘단위’를 근거 없는 이름으로 판정한 오탐이었다.
+이 두 표현만 기존 generic noun과 같이 처리한 뒤에는 별도의 fact subject ref 누락이 드러났다.
+[성분명·근거 전달 수리](../../aidlc-docs/construction/event-news-v3/korean-component-label-repair.md)는
+그 누락도 거부하면서 이미 전달된 compact draft.facts의 모든 근거 복사를 Stage 2에 명시한다.
+payload·schema·예산·출력 자동수리는 바꾸지 않는다. 두 실제 응답의 로컬 진단은 누락 근거만 보완하면
+기존 최종 계약을 통과했다. fresh model 성공과 구별하며 집중94 PASS(3.41s)를 확인했다.
+
 ## Source capture와 viewport
 
 기존 Fed/CFTC/FSC adapter의 실제 feed capture와 u167 factory 결과는

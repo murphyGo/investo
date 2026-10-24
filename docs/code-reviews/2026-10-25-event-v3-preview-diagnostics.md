@@ -75,3 +75,17 @@ Ruff/format/diff PASS를 확인했다. 추가 Unicode/escape/key-like-value·동
 좌표 owner 일치를 확인했다. 같은 문자열이 있어도 unit의 wrong field→fact_invalid,
 다른 revision→item_mismatch, 없는 chunk→unknown_chunk 거절을 확인했다. 열린 P1/P2는 0이다.
 실제 모델 성공과 사람 수용은 이 synthetic 검토에 포함하지 않는다.
+
+## Korean 성분명 오탐과 fact subject 근거
+
+실제 분류 1회 성공 후 합성 두 응답에서 일반 성분명 ‘관측값’, ‘단위’를 고유명사로 오인한 것을 확인했다.
+두 표현만 기존 generic noun에 포함한다. 사건 actor와 별개인 fact subject ref 누락도 기존 gate로 거부하며,
+이미 전달된 compact draft.facts의 모든 component ref를 복사하도록 Stage 2 지시를 명시했다.
+evidence payload/16KiB owner와 출력 schema·budget은 그대로이고 자동 근거 보완은 없다.
+
+최종 독립 focused113 PASS(7.92s), Ruff/format/diff PASS, 열린 P1/P2 0이다.
+source value/unit/status/period, 필수 actor/object, 새 기관명 등 9개 변조를 계속 거부했고,
+별도 fact subject ref까지 복사하면 seal, 그 ref 하나 누락 시 evidence_invalid를 확인했다.
+native57과 multi_document 세 시장 회귀, reader/claim/finalizer/budget/handoff/refs도 통과했다.
+검토 중 발견한 잘못된 event_digest import는 중복 mapping 제거와 함께 원본화했고,
+최종 editorial_plan.py diff는 0이다. counterfactual과 fresh model/human 수용은 구별했다.
