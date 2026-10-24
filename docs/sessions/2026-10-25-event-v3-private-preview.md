@@ -96,6 +96,21 @@ complete 3-call 기록을 같은 document/binding/plan으로 재생하고 protec
 payload·schema·예산·출력 자동수리는 바꾸지 않는다. 두 실제 응답의 로컬 진단은 누락 근거만 보완하면
 기존 최종 계약을 통과했다. fresh model 성공과 구별하며 집중94 PASS(3.41s)를 확인했다.
 
+[실제 미국 preview 40123873052](https://github.com/murphyGo/automation-runtime/actions/runs/40123873052)는
+source `d44a5df3b7ff75f7cff5132a07768c975157269a`에서 **성공**했다. complete recording 2 calls,
+sealed schema 3 문서 1개/terminal event 4개이며 Markdown hash를 복호화 원문과 대조했다.
+344개 수집/174개 라우팅, source 상태 ok28/zero9/failed2로 availability는 `source_limited`다.
+사람 검수는 pending, 게시·Telegram·운영 cursor/receipt 쓰기는 모두 false다.
+같은 source의 [가상자산 40124247148](https://github.com/murphyGo/automation-runtime/actions/runs/40124247148)는
+1 call/terminal event0/source_limited로 sealed했다. [국내 40124245399](https://github.com/murphyGo/automation-runtime/actions/runs/40124245399)는
+분류 통과 뒤 post_validation 실패였다. 기록 재생은 한 텍스트 fact의 status_refs 부재로 canonical owner가
+identity.fact_unbound를 반환함을 확인했다. 다른 두 event는 fact가 없어 정상 정규화됐다.
+[상태 근거 재시도 수리](../../aidlc-docs/construction/event-news-v3/status-proof-retry-repair.md)는
+기존 canonical 필수 조건을 classifier 수락 시점에도 검사해 기존 재시도로 보완할 수 있게 한다.
+lower context의 limited-support 평가는 유지하며 없는 상태를 코드가 추정하지 않는다.
+직전 `d44a5df3`의 [전체 CI 40123857168](https://github.com/murphyGo/investo/actions/runs/40123857168)는
+7,117 PASS/1 skipped(761.90s), Node29 및 전체 static/policy/docs 성공이다.
+
 ## Source capture와 viewport
 
 기존 Fed/CFTC/FSC adapter의 실제 feed capture와 u167 factory 결과는

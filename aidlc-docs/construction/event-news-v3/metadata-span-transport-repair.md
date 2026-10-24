@@ -30,7 +30,7 @@ objects and the existing ownership, field-role, required-actual and finalization
   wrong-field and shifted-span rejection, required overflow and unchanged legacy behavior.
 - [x] Replay private failed classifications locally using only the supplied exact metadata
   coordinates as a diagnostic counterfactual; report it separately from fresh model output.
-- [ ] Obtain independent read-only review and exact-commit CI, then run the existing
+- [x] Obtain independent read-only review and exact-commit CI, and run the existing
   nonpublishing US private preview with the same recipient and default-off recording.
 
 Actual human corpus acceptance, source-slot qualification, viewport, performance and
@@ -60,3 +60,12 @@ in title/summary. There is no automatic response repair in production code.
 
 This counterfactual is a diagnosis, not a fresh model success, human annotation or accepted
 corpus case. The previous run remains failed with two valid source-limited sibling outputs.
+
+Exact source `8ee57c710e34e30ca2076801160da87be289c6b1` passed
+[quality 40122858945](https://github.com/murphyGo/investo/actions/runs/40122858945):
+7,106 tests passed, one skipped (754.61s), Node29 and all static/policy/docs guards.
+Actual US [40122882991](https://github.com/murphyGo/automation-runtime/actions/runs/40122882991)
+passed classification on the first call. Both subsequent synthesis attempts failed with
+`event.entity_unsupported`; the complete three-call recording is analyzed in the separate
+[component-label repair](korean-component-label-repair.md). Classification success is not
+whole-document success.

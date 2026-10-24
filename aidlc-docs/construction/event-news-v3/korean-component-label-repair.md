@@ -20,7 +20,7 @@ the source-bound observation and unit fields; they are not new issuers or instit
   omitted required identity labels, including when generic nouns occur in the same claim.
 - [x] Replay both complete actual synthesis outputs through the unchanged remaining
   gates; distinguish local replay from fresh model or human acceptance.
-- [ ] Obtain independent read-only QA, exact-source CI and fresh nonpublishing US preview.
+- [x] Obtain independent read-only QA, exact-source CI and fresh nonpublishing US preview.
 
 After correcting only the generic-noun false positive, local replay exposes a second
 independent failure: each article omits one fact subject reference, even though it includes
@@ -49,3 +49,12 @@ The final source delta is two generic nouns and the complete-fact-ref instructio
 editorial-plan payload builder is byte-for-byte unchanged. Native57/multi-document across
 all markets, reader/claim/finalization and context bounds passed. Unsupported name, value,
 unit, status, period and omitted required actor/object probes remain rejected.
+
+Exact source `d44a5df3b7ff75f7cff5132a07768c975157269a` passed
+[quality 40123857168](https://github.com/murphyGo/investo/actions/runs/40123857168):
+7,117 passed, one skipped (761.90s), Node29 and all required guards. Actual US
+[40123873052](https://github.com/murphyGo/automation-runtime/actions/runs/40123873052)
+sealed one schema-three document containing four terminal events with complete two-call
+recording and matching Markdown hash. Availability remains source-limited, human review
+pending, publication/notification/cursor/receipt writes false. This proves actual generation,
+not corpus acceptance or production readiness.

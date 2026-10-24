@@ -89,3 +89,16 @@ source value/unit/status/period, 필수 actor/object, 새 기관명 등 9개 변
 native57과 multi_document 세 시장 회귀, reader/claim/finalizer/budget/handoff/refs도 통과했다.
 검토 중 발견한 잘못된 event_digest import는 중복 mapping 제거와 함께 원본화했고,
 최종 editorial_plan.py diff는 0이다. counterfactual과 fresh model/human 수용은 구별했다.
+
+## Classifier status-proof 수락 경계
+
+실제 국내 텍스트 fact가 상태 근거 없이 분류를 통과하고 canonical 단계에서 identity.fact_unbound로
+실패했다. 기존 canonical 요건을 classifier 수락 단계에서도 context.status_unbound로 검사해 기존
+2-attempt/budget 내에서 근거 복구 또는 비필수 fact 생략이 가능하도록 했다. lower context의 limited
+평가와 원래 canonical 검사는 그대로다. required actual 누락과 네 status 역할의 증명 요건도 유지한다.
+
+독립 최종 focused151 PASS(12.63s), Ruff/format/diff PASS, 열린 P1/P2 0이다.
+텍스트 fact의 lower PASS/limited→canonical 거부 경로를 재현했으며, 새 guard 두 줄을 메모리에서
+제거한 mutation은 6/6 회귀 실패를 검출했다. proof 복구/optional fact 생략 두 재시도와 네 status 양성,
+native57·source-slot·identity·models·budget/handoff/metadata/refs 및 legacy/shadow/no-fact를 검토했다.
+raw/private/key·외부 호출·파일 편집 없이 검토했다. 새 실제 preview 성공은 별도 증거다.

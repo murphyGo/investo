@@ -45,6 +45,8 @@ def render_context_classification_prompt(evidence_json: str, *, segment: MarketS
         "Meaning/reaction refs may be independent of actor/fact refs, but must belong to "
         "the same event documents. Never invent URLs, times, units, periods, metrics or status. "
         "Bind subject, metric, value, unit and period separately. Preserve source status. "
+        "Every fact needs nonempty status_refs proving its declared status. "
+        "If that status is unsupported, omit the fact rather than infer it. "
         "Preserve required release actuals; do not turn forecasts, calendars or repeated "
         "background into new results. No quotas or filler; a valid event array may be empty.\n"
         "Every required actual item ID must belong to an event with an actual fact from "

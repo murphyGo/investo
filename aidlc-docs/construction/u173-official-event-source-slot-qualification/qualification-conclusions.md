@@ -71,3 +71,8 @@ Nasdaq 실적 캘린더의 2026-10-23 한 날짜 1응답/32개를 정규화했�
 DART는 이 로컬 capture에서 호출하지 않았다. 기존 managed credential을 변경·복사하지 않았다.
 8-K 목록을 guidance, 캘린더를 actual, company snapshot을 새로운 reported actual로 승격하지 않았다.
 원본의 단위·기간·발생 시점·filing locator의 독립 검증과 body/rights/필수 slot/runtime 수용은 계속 pending이다.
+
+같은 날 기존 FSC URL의 별도 bounded HTTP 진단은 HEAD 403, GET 503을 반환했다
+(각 20초 상한, GET 5MiB 상한). 응답 본문·cookie/header를 repo에 쓰지 않았다.
+이는 후속 접속 상태이며 앞선 parser capture의 정확한 원인을 소급 확정하지 않는다.
+접근 경로나 인증을 우회하지 않았고 source qualification은 미충족을 유지한다.

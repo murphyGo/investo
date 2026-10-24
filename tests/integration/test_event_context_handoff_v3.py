@@ -130,6 +130,53 @@ async def test_numeric_value_reference_retry_preserves_the_fact_gate(
     assert buffer.text in runner.prompts[0] and buffer.text in runner.prompts[1]
 
 
+@pytest.mark.parametrize("omit_unsupported_fact", [False, True])
+async def test_missing_fact_status_is_retried_before_native_identity_normalization(
+    omit_unsupported_fact: bool,
+) -> None:
+    from investo.briefing._core.orchestration import GenerationPolicy, classify_context
+    from investo.briefing.claude_code import RetryBudget
+    from investo.briefing.event_context import (
+        build_context_prompt_buffer,
+        support_vector,
+        validate_context_event,
+    )
+    from investo.briefing.event_identity import canonical_event_binding
+    from investo.models.event_context import ContextClassificationResult
+    from tests._helpers.event_context_v3 import text_fact_case
+    from tests.integration.test_event_generation import _ReplayRunner
+
+    doc, correct = text_fact_case()
+    incomplete = correct.model_copy(
+        update={"facts": (correct.facts[0].model_copy(update={"status_refs": ()}),)}
+    )
+    # The lower context owner can still characterize limited source evidence.
+    validate_context_event(incomplete, (doc,), observed_at=NOW)
+    assert support_vector(incomplete, (doc,), baseline_available=False).facts == "limited"
+    replacement = correct.model_copy(update={"facts": ()}) if omit_unsupported_fact else correct
+    runner = _ReplayRunner(
+        [
+            ContextClassificationResult(schema_version=3, events=(event,)).model_dump_json()
+            for event in (incomplete, replacement)
+        ]
+    )
+    result = await classify_context(
+        build_context_prompt_buffer((doc,)),
+        runner=runner,
+        budget=RetryBudget(total_budget_s=30),
+        policy=GenerationPolicy(timeout_s=3, max_attempts=2),
+        segment="domestic-equity",
+        observed_at=NOW,
+    )
+    assert result.events == (replacement,)
+    assert len(runner.prompts) == 2
+    assert "Retry rule: context.status_unbound" in runner.prompts[1]
+    assert "Every fact needs nonempty status_refs" in runner.prompts[0]
+    assert canonical_event_binding(
+        result.events[0], (doc,), (), observed_at=NOW, baseline_available=False
+    )
+
+
 async def test_shadow_source_attachment_failure_is_a_private_diagnostic() -> None:
     from dataclasses import replace
 

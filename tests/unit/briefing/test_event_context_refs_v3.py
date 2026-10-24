@@ -137,6 +137,24 @@ def test_required_actual_cannot_be_an_event_without_a_fact() -> None:
         )
 
 
+@pytest.mark.parametrize("status", ["actual", "forecast", "scheduled", "quoted_opinion"])
+def test_optional_fact_status_proof_matches_native_identity_requirement(status: str) -> None:
+    from investo.briefing.event_identity import EventIdentityError, normalize_fact_bindings
+    from tests._helpers.event_context_v3 import text_fact_case
+
+    doc, event = text_fact_case()
+    fact = event.facts[0].model_copy(update={"status": status, "status_refs": ()})
+    event = event.model_copy(update={"facts": (fact,)})
+    # Partial source characterization still exists; native acceptance requires proof.
+    validate_context_event(event, (doc,), observed_at=NOW)
+    assert support_vector(event, (doc,), baseline_available=False).facts == "limited"
+    with pytest.raises(EventIdentityError, match=r"identity\.fact_unbound"):
+        normalize_fact_bindings((doc,), (fact,))
+    payload = ContextClassificationResult(schema_version=3, events=(event,)).model_dump_json()
+    with pytest.raises(ContextEvidenceError, match=r"context\.status_unbound"):
+        parse_context_classification(payload, (doc,), observed_at=NOW)
+
+
 def test_metadata_metric_or_key_cannot_supply_fact_status() -> None:
     from investo.models.event_evidence import make_event_context_document, make_evidence_document
 

@@ -414,6 +414,8 @@ def parse_context_classification(
         raise ContextEvidenceError("context.invalid_schema") from None
     for draft in result.events:
         validate_context_event(draft, documents, observed_at=observed_at)
+        if any(not fact.status_refs for fact in draft.facts):
+            raise ContextEvidenceError("context.status_unbound")
     assigned = {i for draft in result.events for i in draft.item_ids}
     if not required_item_ids <= assigned:
         raise ContextEvidenceError("context.required_missing")
