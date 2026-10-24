@@ -30,7 +30,12 @@ target date 2026-10-23, schema 3, 세 시장으로 수동 실행했다. 로컬 �
 각각 실패 manifest만 포함한다. [닫힌 결과와 hash](../../aidlc-docs/construction/event-news-v3/private-preview-20261025.json)를 기록했다.
 기존 manifest가 native closed reason을 누락한 문제를 이번 변경으로 수정했다. 미완료 시장이나 실패를
 sealed 문서로 세지 않으며 반복·수동 실행을 genuine scheduled 관찰로 세지 않는다.
-후속 실제 실행 결과는 별도 receipt로 추가한다. 현재 사람 수용 corpus 0/12, review 0, verified slot 0/8,
+진단 수정 `1036ff8b`의 [미국 재생 40115832486](https://github.com/murphyGo/automation-runtime/actions/runs/40115832486)은
+2회 후 `context.fact_invalid`를 반환했다. 이 코드는 실패 범주이며 원문 응답이 없으므로 정확히 어떤 field/span이
+잘못됐는지는 판정하지 않았다. 기존 검증기의 숫자 value-only 참조, source metadata field 역할, 1–240 Unicode
+span 규칙을 Stage 1 지시에 명시했다. 검증기·예산·재시도·원본 buffer는 그대로다. 실제 효과는 추가 preview로 확인한다.
+이 지시 변경은 로컬 focused 85 PASS(5.63s), 독립 focused 104 PASS와 열린 P1/P2 0을 확인했다.
+현재 사람 수용 corpus 0/12, review 0, verified slot 0/8,
 genuine v3 예약 0이며 cutover와 legacy 제거는 미실행이다.
 
 ## Source capture와 viewport

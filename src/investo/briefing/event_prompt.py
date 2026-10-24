@@ -31,6 +31,12 @@ def render_context_classification_prompt(evidence_json: str, *, segment: MarketS
     return (
         "Classify source-backed market events. Return only schema_version=3 JSON. "
         "Use transmitted item IDs and exact document/revision/chunk offsets. "
+        "Offsets are zero-based Unicode codepoint indices with an exclusive end; "
+        "each reference spans one to 240 codepoints. "
+        "For numeric facts, every value_refs span contains the numeric token alone, "
+        "without a metric, unit, JSON key, quotes or surrounding sentence. "
+        "In source_metadata cite the JSON value of the matching component field; "
+        "keep actual, forecast and consensus values and their status fields separate. "
         "Separate identity, fact, background, comparison, meaning, reaction and follow-up refs. "
         "Meaning/reaction refs may be independent of actor/fact refs, but must belong to "
         "the same event documents. Never invent URLs, times, units, periods, metrics or status. "

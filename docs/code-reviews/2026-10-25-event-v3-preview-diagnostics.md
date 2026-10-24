@@ -16,3 +16,14 @@ private workflow의 schema 선택 8줄은 별도 리뷰를 통과했다. 기본�
 quoted CLI 전달, private/main 제한, contents read, 기존 `queue: max`·auth cleanup·ciphertext 보관을 유지한다.
 공개 reviewed template과 private queue 외의 bytes가 같다. 실제 native preview boundary 3시장과 parser/workflow
 무변경 probe 5개도 통과했다. 운영 활성화와 사람 평가의 승인은 이 판정에 포함하지 않는다.
+
+## Stage 1 source span 지시 보완
+
+실제 미국 진단 preview가 `context.fact_invalid`를 보존한 뒤, 검증기가 이미 요구하던 세부 규칙을
+Stage 1 지시에 추가했다. Unicode end-exclusive/1–240 codepoints, 숫자 token만의 value 참조,
+matching metadata field와 actual/forecast/consensus 상태 구분이다. gate와 원본 buffer는 바꾸지 않았다.
+whole-fact numeric ref 거부 후 같은 buffer의 올바른 numeric ref가 두 번째 시도에 성공하는 회귀를 추가했다.
+
+별도 reviewer가 실제 Python slice·span validator·숫자 정규식·metadata field owner와의 일치를 확인했다.
+독립 focused 104 PASS(57 native replay 포함), Ruff/format/diff PASS, 열린 P1/P2 0이다.
+이 synthetic 결과로 실제 모델의 정확한 offending component나 개선 효과를 확정하지 않는다.

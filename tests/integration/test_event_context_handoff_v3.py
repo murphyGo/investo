@@ -86,6 +86,41 @@ async def test_actual_stage_one_context_reaches_protected_stage_two_buffer() -> 
     assert len(runner.prompts) == 1
 
 
+async def test_numeric_value_reference_retry_preserves_the_fact_gate() -> None:
+    from investo.briefing._core.orchestration import GenerationPolicy, classify_context
+    from investo.briefing.claude_code import RetryBudget
+    from investo.briefing.event_context import build_context_prompt_buffer
+    from investo.models.event_context import ContextClassificationResult
+    from tests._helpers.event_context_v3 import FACT, draft, ref
+    from tests.integration.test_event_generation import _ReplayRunner
+
+    doc = document()
+    correct = draft(doc)
+    wrong_fact = correct.facts[0].model_copy(update={"value_refs": (ref(doc, FACT),)})
+    wrong = correct.model_copy(update={"facts": (wrong_fact,)})
+    runner = _ReplayRunner(
+        [
+            ContextClassificationResult(schema_version=3, events=(event,)).model_dump_json()
+            for event in (wrong, correct)
+        ]
+    )
+    buffer = build_context_prompt_buffer((doc,), required_item_ids=frozenset({1}))
+    result = await classify_context(
+        buffer,
+        runner=runner,
+        budget=RetryBudget(total_budget_s=30),
+        policy=GenerationPolicy(timeout_s=3, max_attempts=2),
+        segment="us-equity",
+        observed_at=NOW,
+    )
+    assert result.events == (correct,)
+    assert len(runner.prompts) == 2
+    assert "numeric token alone" in runner.prompts[0]
+    assert "one to 240 codepoints" in runner.prompts[0]
+    assert "Retry rule: context.fact_invalid" in runner.prompts[1]
+    assert buffer.text in runner.prompts[0] and buffer.text in runner.prompts[1]
+
+
 async def test_shadow_source_attachment_failure_is_a_private_diagnostic() -> None:
     from dataclasses import replace
 

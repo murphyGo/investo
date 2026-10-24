@@ -48,5 +48,24 @@
       "ciphertext_sha256": "465f51bc0f9d30368688804cb5bfe205014eff3b579f12581ff55ba265a002a3",
       "artifact_file_count": 1
     }
+  ],
+  "diagnostic_attempts": [
+    {
+      "status": "failed",
+      "code": "preview.execution_failed",
+      "error_type": "briefing_generation",
+      "stage": "classification",
+      "attempt_count": 2,
+      "failure_code": "context.fact_invalid",
+      "diagnostics": [
+        "context.fact_invalid"
+      ],
+      "ciphertext_sha256": "87d4b55d8d6f8384e063b06295f82fce537f9715e430a510519bc59e32fc75eb",
+      "run_id": 40115832486,
+      "run_url": "https://github.com/murphyGo/automation-runtime/actions/runs/40115832486",
+      "reviewed_preview_code_sha": "1036ff8b3798d597de0d360bcd3a4372e28e3c17",
+      "segment": "us-equity",
+      "basis": "actual_private_manual_diagnostic_replay"
+    }
   ]
 }
