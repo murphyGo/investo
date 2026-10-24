@@ -58,6 +58,13 @@ owner와도 대조하도록 검사를 수정했다. 링크·날짜·미발행 �
 모델 stderr/argv/auth state는 제외하며 실패에도 기록을 보존하고 incomplete/whole unavailable을 구별한다.
 이는 사전 human oracle/전체 ingestion 분모를 대체하지 않는다. 집중80PASS와 독립 검토 P1/P2=0을 확인했으며
 새 source 코드의 전체 CI와 실제 기록을 추가 검증한다.
+
+실제 기록 [40119627476](https://github.com/murphyGo/automation-runtime/actions/runs/40119627476)은 complete 2 calls였고
+두 응답은 `context.required_missing`이었다. 같은 validator 재생으로 네 required FRED actual의 다른 조건은
+모두 충족하지만 unit_refs가 비었음을 확인했다. 입력 source metadata에 단위가 없었다.
+[FRED 단위 수리와 primary metadata](../../aidlc-docs/construction/event-news-v3/fred-unit-metadata-repair.md)에
+원인·변경·제한을 기록했다. 기존 5개 default series의 원래 unit만 source owner에서 전달하며 unknown은 그대로 둔다.
+로컬 focused115/독립130과 네 지표의 합성 native seal1/issue0을 확인했고 실제 결과는 추가 preview로 검증한다.
 현재 사람 수용 corpus 0/12, review 0, verified slot 0/8,
 genuine v3 예약 0이며 cutover와 legacy 제거는 미실행이다.
 

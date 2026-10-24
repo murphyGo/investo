@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "basis": "actual_private_model_recording_structural_replay",
+  "reviewed_code_sha": "8e423addfdcf96bd09fb3740ecab46d6f440eab0",
+  "run_id": 40119627476,
+  "model_recording_sha256": "76cc2a53efe6e6c5ca350f16bf08d584e9e8f324329cad45ecb089c049d31ba9",
+  "failure_code": "context.required_missing",
+  "validator_location": "src/investo/_internal/event_context.py:438",
+  "required_fred_series": [
+    "DFF",
+    "UNRATE",
+    "CPIAUCSL",
+    "PPIFID"
+  ],
+  "metadata_unit_fields_present": false,
+  "actual_replay": [
+    {
+      "call": 1,
+      "required_actual_checks": [
+        {
+          "item_id": 1,
+          "source_name": "fred-macro",
+          "all_other_required_actual_conditions_met": true,
+          "unit_ref_count": 0
+        },
+        {
+          "item_id": 2,
+          "source_name": "fred-macro",
+          "all_other_required_actual_conditions_met": true,
+          "unit_ref_count": 0
+        },
+        {
+          "item_id": 3,
+          "source_name": "fred-macro",
+          "all_other_required_actual_conditions_met": true,
+          "unit_ref_count": 0
+        },
+        {
+          "item_id": 4,
+          "source_name": "fred-macro",
+          "all_other_required_actual_conditions_met": true,
+          "unit_ref_count": 0
+        }
+      ]
+    },
+    {
+      "call": 2,
+      "required_actual_checks": [
+        {
+          "item_id": 1,
+          "source_name": "fred-macro",
+          "all_other_required_actual_conditions_met": true,
+          "unit_ref_count": 0
+        },
+        {
+          "item_id": 2,
+          "source_name": "fred-macro",
+          "all_other_required_actual_conditions_met": true,
+          "unit_ref_count": 0
+        },
+        {
+          "item_id": 3,
+          "source_name": "fred-macro",
+          "all_other_required_actual_conditions_met": true,
+          "unit_ref_count": 0
+        },
+        {
+          "item_id": 4,
+          "source_name": "fred-macro",
+          "all_other_required_actual_conditions_met": true,
+          "unit_ref_count": 0
+        }
+      ]
+    }
+  ],
+  "raw_text_included": false,
+  "human_review_count": 0,
+  "accepted_document_count": 0
+}

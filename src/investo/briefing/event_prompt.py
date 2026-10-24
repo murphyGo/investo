@@ -45,7 +45,7 @@ def render_context_classification_prompt(evidence_json: str, *, segment: MarketS
         "background into new results. No quotas or filler; a valid event array may be empty.\n"
         "Every required actual item ID must belong to an event with an actual fact from "
         "that item's document and nonempty metric_refs, unit_refs, period_refs and status_refs. "
-        "For typed macro evidence use macro_actual, its macro_actual_status, macro_unit, "
+        "For typed macro evidence use macro_actual, its macro_actual_status, unit or macro_unit, "
         "macro_release_period and macro_label (or the matching metric/series field). "
         "Do not repair a failed reference by dropping a required item or its actual fact.\n"
         f"Recipient market: {segment}\nJSON schema:\n{schema}\n"

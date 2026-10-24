@@ -53,3 +53,13 @@ artifact 경계를 유지한다. 12회/1MiB 한도 초과는 전체 기록을 �
 awaited alias, default2/off와 opt-in3, private/public workflow mirror를 포함한다. Security Boundary,
 Concurrency/Lifecycle, Data Integrity/Memory, Error Contract를 검토했으며 열린 P1/P2는 0이다.
 이 검토는 외부 서비스·실제 secret·source edits 없이 수행했고 모델 의미 수용이나 운영 활성화 승인이 아니다.
+
+## 실제 unit 누락 수리
+
+기록을 재생한 결과 required FRED 4개에 unit이 전달되지 않아 기존 gate가 거절했다. Source adapter에서
+공식 metadata로 확인한 5개 default series에만 unit을 전달하고 custom/unknown에는 추측하지 않는다.
+명시 non-lin 응답은 거절하고 기존 fan-out sibling 계약을 유지한다. Prompt의 unit/macro_unit 대안도 기존
+field allowlist와 일치한다. 값·delta·기간·priority·request params/call count·secret 연결은 그대로다.
+
+독립 focused130 PASS, unit 누락 시 required_missing·잘못된 unit field면 fact_invalid인 추가 probe도 통과했다.
+Ruff/format/diff PASS, 열린 P1/P2 0이다. 추가 HTTP·실제 key·private 원문 접근·source edits 없이 검토했다.

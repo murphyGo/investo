@@ -100,6 +100,28 @@
       "reviewed_preview_code_sha": "e82144f756a30a46fde967de5125eb182933710e",
       "segment": "us-equity",
       "basis": "actual_private_manual_required_prompt_replay"
+    },
+    {
+      "status": "failed",
+      "code": "preview.execution_failed",
+      "error_type": "briefing_generation",
+      "stage": "classification",
+      "attempt_count": 2,
+      "failure_code": "context.required_missing",
+      "diagnostics": [
+        "context.required_missing"
+      ],
+      "ciphertext_sha256": "daf953afda74cc0a547f60a94716aefb20fa8a4f2f243cbfb850db90a031cae6",
+      "recording_status": "complete",
+      "calls_started": 2,
+      "calls_completed": 2,
+      "recording_sha256": "76cc2a53efe6e6c5ca350f16bf08d584e9e8f324329cad45ecb089c049d31ba9",
+      "run_id": 40119627476,
+      "run_url": "https://github.com/murphyGo/automation-runtime/actions/runs/40119627476",
+      "reviewed_preview_code_sha": "8e423addfdcf96bd09fb3740ecab46d6f440eab0",
+      "runtime_workflow_sha": "a9bd69741cacbbf2c4ab57d9f23f2afd6cd0068e",
+      "segment": "us-equity",
+      "basis": "actual_private_manual_model_recording"
     }
   ]
 }

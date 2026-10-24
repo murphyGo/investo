@@ -39,7 +39,7 @@ from __future__ import annotations
 
 import os
 from datetime import UTC, date, datetime, timedelta
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Final
 from zoneinfo import ZoneInfo
 
 import httpx
@@ -59,6 +59,17 @@ _LOOKBACK_DAYS = 65
 _ENV_SERIES = "INVESTO_FRED_SERIES"
 _ENV_KEY = "FRED_API_KEY"
 _PLACEHOLDER = "."
+# Source-owned units for the existing default, untransformed series.
+# Official per-series metadata: https://fred.stlouisfed.org/series/<ID>
+# Verified 2026-10-25; index levels are not percent changes. Unknown/custom
+# series remain without a unit instead of inheriting a guessed default.
+_SERIES_UNITS: Final[dict[str, str]] = {
+    "CPIAUCSL": "Index 1982-1984=100",
+    "UNRATE": "Percent",
+    "DFF": "Percent",
+    "DGS10": "Percent",
+    "PPIFID": "Index Nov 2009=100",
+}
 
 
 @register
@@ -138,6 +149,12 @@ class FredMacroAdapter:
                 message=f"non-object FRED response for {series_id}",
                 transient=False,
             )
+        if payload.get("units", "lin") != "lin":
+            raise SourceFetchError(
+                source_name=self.name,
+                message=f"unsupported FRED observation transformation for {series_id}",
+                transient=False,
+            )
         observations = payload.get("observations")
         if not isinstance(observations, list) or not observations:
             raise SourceFetchError(
@@ -199,6 +216,8 @@ class FredMacroAdapter:
             "value": format_float(latest_value),
             "release_date": latest_date_str,
         }
+        if unit := _SERIES_UNITS.get(series_id):
+            raw_metadata["unit"] = unit
         if prior_value is not None and prior_date_str is not None:
             raw_metadata["previous_value"] = format_float(prior_value)
             raw_metadata["previous_release_date"] = prior_date_str

@@ -310,6 +310,121 @@ async def test_ppifid_happy_path_adds_required_macro_actual(
     assert is_required_macro_actual(item) is True
 
 
+@pytest.mark.parametrize(
+    ("series_id", "fixture", "expected_unit"),
+    [
+        ("CPIAUCSL", _CPI_FIXTURE, "Index 1982-1984=100"),
+        ("UNRATE", _UNRATE_FIXTURE, "Percent"),
+        ("DFF", _DFF_FIXTURE, "Percent"),
+        ("DGS10", _DFF_FIXTURE, "Percent"),
+        ("PPIFID", _PPI_FIXTURE, "Index Nov 2009=100"),
+        ("CUSTOM_SERIES", _DFF_FIXTURE, None),
+    ],
+)
+async def test_source_units_are_preserved_without_an_unknown_series_default(
+    monkeypatch: pytest.MonkeyPatch, series_id: str, fixture: Path, expected_unit: str | None
+) -> None:
+    _set_key(monkeypatch)
+    _override_series(monkeypatch, series_id)
+    client, captured = _series_router({series_id: fixture.read_bytes()})
+    async with client:
+        items = await FredMacroAdapter().fetch(client, _WINDOW)
+    assert len(items) == len(captured) == 1
+    assert items[0].raw_metadata.get("unit") == expected_unit
+    assert captured[0].url.path == "/fred/series/observations"
+    assert "units" not in captured[0].url.params  # Existing untransformed request is unchanged.
+
+
+@pytest.mark.parametrize("transformation", ["pch", "pc1", "chg", "unknown"])
+async def test_transformed_response_cannot_be_labeled_with_a_level_unit(
+    monkeypatch: pytest.MonkeyPatch, transformation: str
+) -> None:
+    _set_key(monkeypatch)
+    _override_series(monkeypatch, "CPIAUCSL")
+    payload = json.loads(_CPI_FIXTURE.read_bytes())
+    payload["units"] = transformation
+    client, _ = _series_router({"CPIAUCSL": json.dumps(payload).encode()})
+    async with client:
+        with pytest.raises(SourceFetchError, match="unsupported FRED observation"):
+            await FredMacroAdapter()._fetch_one(client, "CPIAUCSL", _SENTINEL_KEY, _WINDOW)
+
+
+async def test_transformed_series_is_isolated_from_valid_siblings(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _set_key(monkeypatch)
+    _override_series(monkeypatch, "CPIAUCSL,DFF")
+    payload = json.loads(_CPI_FIXTURE.read_bytes())
+    payload["units"] = "pch"
+    client, _ = _series_router(
+        {"CPIAUCSL": json.dumps(payload).encode(), "DFF": _DFF_FIXTURE.read_bytes()}
+    )
+    async with client:
+        items = await FredMacroAdapter().fetch(client, _WINDOW)
+    assert [item.raw_metadata["series_id"] for item in items] == ["DFF"]
+    assert items[0].raw_metadata["unit"] == "Percent"
+
+
+async def test_fred_required_actuals_have_source_unit_refs_in_native_context(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from investo.briefing.event_context import (
+        parse_context_classification,
+        prepare_context_documents,
+    )
+    from investo.models.event_context import (
+        ContextClassificationResult,
+        ContextEventDraft,
+        ContextFactDraft,
+    )
+    from tests._helpers.event_context_v3 import metadata_ref, ref
+
+    _set_key(monkeypatch)
+    files = {
+        "CPIAUCSL": _CPI_FIXTURE,
+        "UNRATE": _UNRATE_FIXTURE,
+        "DFF": _DFF_FIXTURE,
+        "PPIFID": _PPI_FIXTURE,
+    }
+    _override_series(monkeypatch, ",".join(files))
+    client, requests = _series_router({key: path.read_bytes() for key, path in files.items()})
+    async with client:
+        items = await FredMacroAdapter().fetch(client, _WINDOW)
+    observed = _WINDOW.end_utc
+    docs = prepare_context_documents(items, received_at=observed)
+    events = []
+    for index, (item, doc) in enumerate(zip(items, docs, strict=True), 1):
+        actor = ref(doc, item.raw_metadata["series_id"])
+        fact = ContextFactDraft(
+            predicate="result",
+            status="actual",
+            value_kind="numeric",
+            subject_refs=(actor,),
+            metric_refs=(metadata_ref(doc, "series_id"),),
+            value_refs=(metadata_ref(doc, "macro_actual"),),
+            unit_refs=(metadata_ref(doc, "unit"),),
+            period_refs=(metadata_ref(doc, "macro_release_period"),),
+            status_refs=(metadata_ref(doc, "macro_actual_status"),),
+        )
+        events.append(
+            ContextEventDraft(
+                item_ids=(index,),
+                event_kind="macro_release",
+                actor_refs=(actor,),
+                action_refs=(ref(doc, "latest"),),
+                facts=(fact,),
+                timing="background",
+                relation="direct",
+                impact="systemic",
+            )
+        )
+    payload = ContextClassificationResult(schema_version=3, events=tuple(events)).model_dump_json()
+    assert len(requests) == len(docs) == 4
+    assert parse_context_classification(
+        payload, docs, observed_at=observed, required_item_ids=frozenset(range(1, 5))
+    ).events == tuple(events)
+
+
 async def test_three_series_concurrent(monkeypatch: pytest.MonkeyPatch) -> None:
     _set_key(monkeypatch)
     _override_series(monkeypatch, "CPIAUCSL,UNRATE,DFF")
