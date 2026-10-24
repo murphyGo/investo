@@ -320,6 +320,10 @@ Source permission remains unverified under the u145 exception; Browser is
 
 2026-10-25 재개: 이전 delivery `3e399447`의 exact-SHA quality `38166319085` 성공을 확인했다. private preview schema 선택 `6ff635c6`을 배포하고 기존 운영 pin/mode를 보존했다. 실제 preview와 native 닫힌 실패 진단 보완, Fed/CFTC 36개 private parser context·원문 span 84개 대조를 진행했다. FSC 실패·필수 slot/rights/runtime·사람 수용과 Browser 연결 오류로 인한 viewport는 pending이며 unit 완료 횟수를 늘리지 않았다. [재개 증거](../docs/sessions/2026-10-25-event-v3-private-preview.md).
 
+최종 같은 source `817b356c`의 private run `40125141798`에서 세 시장 schema3 문서3개가 sealed했다(국내0/미국4/코인0 terminal 사건; 모두 source_limited). FRED unit 전달, exact metadata span, 한국어 성분명 오탐, 별도 fact subject 근거와 classifier status-proof 재시도 경계를 수리하고 독립 리뷰 P1/P2=0을 확인했다. 기존 운영 pin `35ea6c6e`/schema2 active는 유지한다. 실제 수용 corpus0/12·slot0/8·예약0, viewport/성능과 운영 전환·legacy 제거 pending은 유지하며 유닛 완료 횟수는 바꾸지 않는다. 기존6개 source의 typed context105/span232 capture는 parser 증거이며 slot 자격이 아니다.
+
+최종 exact-source quality `40125122575`는 7,123 PASS/1 skipped(765.72s), Node29와 전체 static/policy/docs 검사를 성공했다. 세 ciphertext의 복호화·Markdown/recording hash와 모든 게시/알림/운영 쓰기 false를 확인했고 최종 문서 검토도 P1/P2=0이다. Code/private-generation 증거와 human/source/runtime 수용 pending은 구별한다.
+
 ### u174–u179 — Web UI Modernization (2026-10-10)
 
 **Source**: 사용자는 현재 웹 UI 분석과 로컬 홈 시안을 확인한 뒤 “굿 일단 유닛 문서화부터 진행해줘”라고 요청했다. 최초 코드 기준은 원격 main `48762793`, 최종 문서 통합 기준은 `838bed60`이다. 동시 등록된 사건·뉴스 v3 u167–u173을 보존하고 번호 충돌을 피해 UI u174–u179의 문서만 등록한다. 구현·기능 설계 승인·커밋/푸시·배포 인수를 뜻하지 않는다.

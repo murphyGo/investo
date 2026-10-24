@@ -8087,3 +8087,19 @@ User development/remaining-work/commit-push authorization applied in isolated wo
 ## 2026-10-25 Event v3 continuation
 
 사용자 “진행시켜” 지시로 기존 root dirty 작업을 보존하고 최신 public main `dd113ae4`의 별도 worktree에서 재개했다. 이전 v3 delivery exact-CI 성공을 확인했다. private manual preview에 schema 2(default)/3 선택만 연결하고 preview pin만 갱신했으며 기존 production pin/gates와 shared auth queue를 보존했다. 실제 preview의 native failure reason 누락을 닫힌 13개 rule로 보완하고 독립 검토 P1/P2=0, 집중 67 PASS를 확인했다. Fed/CFTC 실제 36개 parser context·원문 span 84개 대조 기록은 ignored private 원문과 공개 count/hash로 분리했다. source slot 0/8, 사람 수용과 viewport/운영 전환 pending은 유지한다. [Session](../docs/sessions/2026-10-25-event-v3-private-preview.md).
+
+## 2026-10-25 Event v3 same-source private validation closeout
+
+Final source `817b356c` passed exact quality `40125122575`: 7,123 tests, one skipped (765.72s),
+Node29 and all guards. Same-source private run `40125141798` sealed all three schema-three markets:
+domestic one document / zero events / one call, US one / four / two, crypto one / zero / three.
+All ciphertexts decrypted and Markdown/recording hashes matched. All outputs remain source-limited and
+human pending; publication, Telegram, production cursor and receipt writes are false. Actual diagnosis
+repaired FRED units, exact source spans, generic Korean labels, separate fact-subject refs and early
+status-proof retry within existing budgets and proof gates. Independent reviews and final docs have no
+open P1/P2. Private schema-two defaults, opt-in R10, queue/auth/ciphertext boundaries, production `35ea`
+and AI pins were preserved. Human corpus 0/12, qualified slots 0/8 and genuine scheduled observations 0;
+viewport, performance, release and legacy retirement remain pending. Six existing sources produced
+105 typed contexts / 232 spans as parser evidence; FSC failed and local DART capture was not run.
+Original dirty work and concurrent history were preserved. Closeout changes documentation only;
+[evidence](../docs/sessions/2026-10-25-event-v3-private-preview.md).

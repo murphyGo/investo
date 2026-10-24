@@ -4,6 +4,37 @@
 기존 root의 dirty 파일은 보존하고 별도 public worktree를 현재 `origin/main` `dd113ae4`에서 만들었다.
 이 기준과 이전 delivery `3e399447` 사이의 source/scripts/ops/docs는 같고, 차이는 생성 자료뿐이다.
 
+## 최종 실제 생성 확인
+
+동일 source `817b356c75e7e7cf32235cd1b217707e2993e211`의
+[세 시장 private preview 40125141798](https://github.com/murphyGo/automation-runtime/actions/runs/40125141798)가
+모두 성공했다. runtime workflow SHA는 `a9bd69741cacbbf2c4ab57d9f23f2afd6cd0068e`, target date는
+2026-10-23이다. 세 artifact 복호화, Markdown hash 및 각 prompt/stdout recording hash 대조를 통과했다.
+
+| 시장 | sealed 문서 | terminal 사건 | model calls | availability |
+| --- | ---: | ---: | ---: | --- |
+| 국내 | 1 | 0 | 1 | source_limited |
+| 미국 | 1 | 4 | 2 | source_limited |
+| 가상자산 | 1 | 0 | 3 | source_limited |
+
+각 시장은 344개 수집, source ok28/zero9/failed2였고 라우팅은 국내145/미국174/코인22였다.
+코인은 두 번의 상태 근거 거절 뒤 기존 세 번째 분류 시도에서 통과했다. 근거 없는 사실은 수용하지 않았다.
+게시·Telegram·운영 cursor/receipt 쓰기는 전부 false, 사람 수용0/12·verified slot0/8·genuine 예약0이다.
+원문은 ignored private 경로에만 있다. [전체 이력과 최종 snapshot](../../aidlc-docs/construction/event-news-v3/private-preview-20261025.json)의
+top-level failed/0은 초기 실행 기록이며 `latest_same_source_validation`이 위 최종 결과다.
+
+이는 실제 비게시 생성 성공이다. 국내·코인 0건과 모든 source_limited 상태를 인간 의미 수용으로 바꾸지 않는다.
+사람 사전 주석, source body/rights/slot, native viewport, 실제 성능·release·예약 관찰과 legacy 제거는 남아 있다.
+
+최종 source의 exact-SHA [quality 40125122575](https://github.com/murphyGo/investo/actions/runs/40125122575)는
+**7,123 PASS/1 skipped(765.72s)**, Node29, Ruff/format777·mypy328 및 전체 policy/docs/Material/calendar 검사를
+성공했다. 최종 문서 정합성 독립 검토도 열린 P1/P2=0이다. 마감 기록은 문서만 변경하며 이 검증된
+source/test/workflow/config는 유지한다.
+
+최종 repo 변수 재조회에서도 preview pin만 `817b356c`, production pin `35ea6c6e`, production gate1,
+기존 schema2 event mode active와 AI report pin/gate는 그대로다. environment override는 없고
+공개 workflow template과 private workflow는 기존 `queue: max` 외에는 byte 일치한다.
+
 ## 이전 delivery와 이번 검증
 
 `3e399447b804ba1053202b9d17af0ab240d0c3d2`의 정확한

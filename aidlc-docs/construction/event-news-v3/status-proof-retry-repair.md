@@ -16,7 +16,7 @@ mandatory. No actual/forecast/scheduled/opinion marker is added or weakened.
 - [x] Verify retry to a source-proven fact, and omission of an unsupported optional fact,
   using the existing maximum attempts/provider budget. Required actual omission still fails.
 - [x] Verify numeric/status/metadata-role/source identity gates and native57/legacy behavior.
-- [ ] Independent read-only QA, exact-source CI and final same-source market previews.
+- [x] Independent read-only QA, exact-source CI and final same-source market previews.
 
 No source values, metadata status, labels or returned refs are synthesized by code. Missing
 proof remains an error if the model cannot correct it within the existing attempt budget.
@@ -38,3 +38,12 @@ Removing only the new two-line guard in memory makes all six new regressions fai
 they detect the previously accepted text-fact gap. Source-proven actual/forecast/scheduled/
 quoted-opinion positives, required actual rejection and lower limited/no-fact/legacy/shadow
 behavior remain intact. No private text, keys, external calls or source edits were used.
+
+Final source `817b356c75e7e7cf32235cd1b217707e2993e211` passed exact
+[quality 40125122575](https://github.com/murphyGo/investo/actions/runs/40125122575):
+7,123 passed, one skipped (765.72s), Node29 and all required guards. Same-source
+[private run 40125141798](https://github.com/murphyGo/automation-runtime/actions/runs/40125141798)
+sealed all three markets: domestic zero events / one call, US four events / two calls,
+crypto zero events / three calls. Ciphertext, Markdown and recording hashes were checked.
+All outputs remain source-limited and human pending; no publication or production-state
+writes occurred. This completes the bounded repair, not human or operational acceptance.
