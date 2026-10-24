@@ -39,3 +39,17 @@ source-owned fact만 수용한다. 첫 prompt 변경의 실제 수용 성공을 
 바꿨다. 링크·날짜·미발행 검사와 기존 unit의 품질 모순 거부는 유지한다. 로컬 집중 106 PASS를 확인했다.
 독립 검토도 focused 125 PASS, 실제 directory/flat build와 품질 attribute/visible text/동시 상향/field 삭제
 4개 변조 거부를 확인했다. 선택 요약의 한계 문구 보존 unit도 그대로 통과했다. 최종 이 diff의 열린 P1/P2는 0이다.
+
+## Opt-in private model recording
+
+실제 후속 preview도 실패해 정확한 모델 참조를 조사하기 위한 R10 옵션을 추가했다. 기본 false,
+schema 3/Codex 전용이며 기존 owned delegate와 타입을 유지해 auth lifecycle·retry accounting을 바꾸지 않는다.
+prompt와 검증 후 stdout/returncode/hash만 기록하고 argv·stderr·auth state는 기록하지 않는다.
+ignored 파일의 pre-auth 검사, await 후 symlink 검사, exclusive/no-follow 0600 쓰기와 기존 ciphertext-only
+artifact 경계를 유지한다. 12회/1MiB 한도 초과는 전체 기록을 버리고 unavailable, in-flight 취소는 incomplete다.
+
+로컬 focused 80 PASS, 독립 focused 78 PASS와 최신 암호화 4 tests PASS를 확인했다.
+독립 추가 probe는 UTF-8/encoding/12→13회 초과, concurrent finish, abort, in-flight 취소/늦은 쓰기,
+awaited alias, default2/off와 opt-in3, private/public workflow mirror를 포함한다. Security Boundary,
+Concurrency/Lifecycle, Data Integrity/Memory, Error Contract를 검토했으며 열린 P1/P2는 0이다.
+이 검토는 외부 서비스·실제 secret·source edits 없이 수행했고 모델 의미 수용이나 운영 활성화 승인이 아니다.

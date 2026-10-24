@@ -16,17 +16,21 @@ def test_private_recipient_round_trip_and_wrong_key_rejection(tmp_path: Path) ->
     content = "출처가 확인된 비게시 미리보기"
     (root / "preview.md").write_text(content)
     (root / "manifest.json").write_text('{"published": false}')
+    recording = '{"prompt":"PRIVATE_SOURCE_INPUT","stdout":"PRIVATE_MODEL_OUTPUT"}'
+    (root / "model-recording.json").write_text(recording)
     (root / "ignored.log").write_text("native output must never be packed")
     key = PrivateKey.generate()
     output = tmp_path / "preview.sealed"
     seal_preview(root, bytes(key.public_key).hex(), output)
     assert content.encode() not in output.read_bytes()
+    assert b"PRIVATE_SOURCE_INPUT" not in output.read_bytes()
     with pytest.raises(CryptoError):
         SealedBox(PrivateKey.generate()).decrypt(output.read_bytes())
     plain = SealedBox(key).decrypt(output.read_bytes())
     with zipfile.ZipFile(io.BytesIO(plain)) as archive:
-        assert set(archive.namelist()) == {"manifest.json", "preview.md"}
+        assert set(archive.namelist()) == {"manifest.json", "preview.md", "model-recording.json"}
         assert archive.read("preview.md").decode() == content
+        assert archive.read("model-recording.json").decode() == recording
 
 
 @pytest.mark.parametrize("failure", ["key", "oversize", "symlink"])

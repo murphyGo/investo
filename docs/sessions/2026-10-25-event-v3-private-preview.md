@@ -47,6 +47,17 @@ span 규칙을 Stage 1 지시에 명시했다. 검증기·예산·재시도·원
 owner와도 대조하도록 검사를 수정했다. 링크·날짜·미발행 조건은 유지했다. 이 수정과 필수 actual 지시는
 로컬 집중 106 PASS(21.43s)를 확인했으며 최종 전체 CI를 별도로 수행한다.
 독립 검토는 focused 125 PASS와 홈 품질 변조 4건 거부, 열린 P1/P2 0을 확인했다.
+수정 source `e82144f756a30a46fde967de5125eb182933710e`의 exact-SHA
+[quality 40117402920](https://github.com/murphyGo/investo/actions/runs/40117402920)는
+7,073 PASS/1 skipped(746.33s)와 전체 static/policy/docs/Node/Material/calendar 검사를 성공했다.
+다만 같은 코드의 [실제 미국 preview 40117426046](https://github.com/murphyGo/automation-runtime/actions/runs/40117426046)는
+분류 2회 후 다시 `context.fact_invalid`였다. 따라서 prompt 보완의 실제 해결 효과나 source/human-ready를 주장하지 않는다.
+
+정확한 입력/응답 조사에 필요한 opt-in R10 model recording을 기존 암호화 preview 안에 추가했다.
+기본 false, 최대12회/1MiB, 원문은 ignored private artifact에만 있고 public status에는 담지 않는다.
+모델 stderr/argv/auth state는 제외하며 실패에도 기록을 보존하고 incomplete/whole unavailable을 구별한다.
+이는 사전 human oracle/전체 ingestion 분모를 대체하지 않는다. 집중80PASS와 독립 검토 P1/P2=0을 확인했으며
+새 source 코드의 전체 CI와 실제 기록을 추가 검증한다.
 현재 사람 수용 corpus 0/12, review 0, verified slot 0/8,
 genuine v3 예약 0이며 cutover와 legacy 제거는 미실행이다.
 
@@ -56,6 +67,8 @@ genuine v3 예약 0이며 cutover와 legacy 제거는 미실행이다.
 [u173 count/hash 기록](../../aidlc-docs/construction/u173-official-event-source-slot-qualification/code/feed-parser-capture-20261025.json)으로 남겼다.
 Fed/CFTC 36개 context와 정확한 span 84개 대조는 성공했고 FSC adapter는 실패했다. 원문은 ignored private 저장소에만
 있으며 feed capture를 official body·rights·필수 slot·runtime 성공으로 바꾸지 않는다.
+추가 기존 SEC/Nasdaq 한정 capture 69개 context/148개 span도 성공했다. 합계 105개 context/232개 span이며
+공개 추가 기록은 [structured count/hash](../../aidlc-docs/construction/u173-official-event-source-slot-qualification/code/structured-parser-capture-20261025.json)다.
 
 Browser 연결은 설치된 runtime이 필요한 `browser-service.mjs`의 이전 버전 경로를 찾지 못해 실패했다.
 실제 390×844/1440×900 화면은 미검증이다. MkDocs 빌드를 화면 수용으로 대신 기록하지 않는다.

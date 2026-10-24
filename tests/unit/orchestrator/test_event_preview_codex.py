@@ -32,12 +32,14 @@ def wrapper() -> ModuleType:
 
 
 @pytest.mark.parametrize("outcome", ["sealed", "blocked", "generation_failure", "auth_failure"])
+@pytest.mark.parametrize("record_model_io", [False, True])
 def test_private_preview_uses_supervisor_and_never_public_pipeline(
     wrapper: ModuleType,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
     outcome: str,
+    record_model_io: bool,
 ) -> None:
     repository = tmp_path / "data"
     repository.mkdir()
@@ -56,6 +58,7 @@ def test_private_preview_uses_supervisor_and_never_public_pipeline(
         assert kwargs["runner"] is runner
         assert kwargs["repository_root"] == repository.resolve()
         assert kwargs["baseline_sha"] == "a" * 40
+        assert kwargs["record_model_io"] is record_model_io
         if outcome == "generation_failure":
             raise RuntimeError("PRIVATE_MODEL_RESPONSE")
         return {"status": "blocked" if outcome == "blocked" else "sealed", "provider": "codex"}
@@ -72,18 +75,19 @@ def test_private_preview_uses_supervisor_and_never_public_pipeline(
     monkeypatch.setattr(wrapper, "_supervised", supervised)
     _no_publication(monkeypatch)
     previous_logging = logging.root.manager.disable
-    result = wrapper.main(
-        [
-            "--target-date",
-            "2026-10-02",
-            "--segment",
-            "us-equity",
-            "--output-dir",
-            ".tmp/preview",
-            "--baseline-sha",
-            "a" * 40,
-        ]
-    )
+    argv = [
+        "--target-date",
+        "2026-10-02",
+        "--segment",
+        "us-equity",
+        "--output-dir",
+        ".tmp/preview",
+        "--baseline-sha",
+        "a" * 40,
+    ]
+    if record_model_io:
+        argv.extend(["--document-schema", "3", "--record-model-io"])
+    result = wrapper.main(argv)
     captured = capsys.readouterr()
     manifest = json.loads(captured.out)
     assert calls == ["auth_owner", "preview", "auth_preserved"]
@@ -96,11 +100,13 @@ def test_private_preview_uses_supervisor_and_never_public_pipeline(
     assert not (repository / ".tmp").exists()
 
 
+@pytest.mark.parametrize("record_schema_two", [False, True])
 def test_bad_output_is_rejected_before_auth_restore(
     wrapper: ModuleType,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
+    record_schema_two: bool,
 ) -> None:
     monkeypatch.chdir(tmp_path)
 
@@ -117,6 +123,7 @@ def test_bad_output_is_rejected_before_auth_restore(
                 "us-equity",
                 "--output-dir",
                 "archive/preview",
+                *(["--record-model-io"] if record_schema_two else []),
             ]
         )
         == 2
@@ -139,6 +146,8 @@ def test_private_preview_workflow_shares_auth_lock_without_publication_credentia
 ) -> None:
     text = (ROOT / "ops/private-runtime/event-preview.yml").read_text()
     workflow = yaml.safe_load(text)
+    recording = workflow[True]["workflow_dispatch"]["inputs"]["record_model_io"]
+    assert recording["type"] == "boolean" and recording["default"] is False
     production = yaml.safe_load((ROOT / "ops/private-runtime/production-briefing.yml").read_text())
     assert workflow["concurrency"] == production["concurrency"]
     assert workflow["permissions"] == {"contents": "read"}
@@ -150,6 +159,8 @@ def test_private_preview_workflow_shares_auth_lock_without_publication_credentia
     assert "TELEGRAM" not in text and "INVESTO_PUBLIC_PUBLISH_TOKEN" not in text
     assert "REVIEWED_CODE_SHA }}" not in text  # Production pointer is never changed/reused.
     generation = next(step for step in job["steps"] if step.get("id") == "preview")
+    assert generation["env"]["PREVIEW_RECORD_MODEL_IO"] == "${{ inputs.record_model_io }}"
+    assert '"${record_args[@]}"' in generation["run"]
     data = next(step for step in job["steps"] if step.get("id") == "public_data")
     assert data["with"]["repository"] == "murphyGo/investo"
     assert data["with"]["ref"] == "main"

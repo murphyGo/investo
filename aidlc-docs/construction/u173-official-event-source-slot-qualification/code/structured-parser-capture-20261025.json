@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "basis": "actual_private_existing_structured_adapter_capture",
+  "captured_source_code_sha": "e82144f756a30a46fde967de5125eb182933710e",
+  "scope": "one configured existing SEC company, existing 8-K listing and one Nasdaq calendar date; no actual/guidance slot acceptance",
+  "target_date": "2026-10-23",
+  "raw_recording_storage": "ignored private directory only",
+  "verified_source_slots": 0,
+  "records": [
+    {
+      "source_name": "sec-company-facts",
+      "observed_at": "2026-10-24T17:49:26.980997+00:00",
+      "status": "parser_returned",
+      "error_type": null,
+      "response_count": 2,
+      "response_statuses": [
+        200,
+        200
+      ],
+      "response_sha256": [
+        "47e4383b0133a4146cc631725f9aa28bac6d5679d504f735a78f1a1923c4b622",
+        "73a86c6aedc31f77cac2ea4df5f80f0b3bd7e6eb58bb4e01444fbedf3afb9c43"
+      ],
+      "normalized_item_count": 1,
+      "normalized_recording_sha256": "e1eee437f902008f2e659b582cce6d8f8626a16ef9ef3630ea1c3ea01c26cae8",
+      "typed_context_documents": 1,
+      "typed_context_sha256": "9310b8f5b92311d2c4d01a35f365ffcf7772d0a1e33d17e9c2e2a1260a0bc025",
+      "exact_span_checks": 3,
+      "slot_field_bindings_verified": 0,
+      "rights_verified": false,
+      "runtime_probe_status": "not_run",
+      "activation_ready": false
+    },
+    {
+      "source_name": "sec-edgar-8k",
+      "observed_at": "2026-10-24T17:49:26.980997+00:00",
+      "status": "parser_returned",
+      "error_type": null,
+      "response_count": 1,
+      "response_statuses": [
+        200
+      ],
+      "response_sha256": [
+        "10553d78bfc17cdd702d9d3de0666532e7f01e2977ad0d02f5f227111d7c718c"
+      ],
+      "normalized_item_count": 36,
+      "normalized_recording_sha256": "ac47a016539aa16a4bf0cfba2dd3e37a1689e7b7c5c5186f9265b40c1fc5e357",
+      "typed_context_documents": 36,
+      "typed_context_sha256": "3af4847c6f7c48d2e1278e25e18cc9fd77741146837c637b6cc77f72e6514c78",
+      "exact_span_checks": 81,
+      "slot_field_bindings_verified": 0,
+      "rights_verified": false,
+      "runtime_probe_status": "not_run",
+      "activation_ready": false
+    },
+    {
+      "source_name": "nasdaq-earnings-calendar",
+      "observed_at": "2026-10-24T17:49:26.980997+00:00",
+      "status": "parser_returned",
+      "error_type": null,
+      "response_count": 1,
+      "response_statuses": [
+        200
+      ],
+      "response_sha256": [
+        "1c4db8f8ff2cd0cd2f9fe0786f6e4a01a2dbcbd473c2f4039f2c29c6e79186d1"
+      ],
+      "normalized_item_count": 32,
+      "normalized_recording_sha256": "78dfb1306fab264f115f0c625ae43302846fc26456ed2ae543cca5d1cbc019b6",
+      "typed_context_documents": 32,
+      "typed_context_sha256": "3fd288f2e28d2a436e56b62c6a704b3090ca46928cf9fedb1c4925cf3805520b",
+      "exact_span_checks": 64,
+      "slot_field_bindings_verified": 0,
+      "rights_verified": false,
+      "runtime_probe_status": "not_run",
+      "activation_ready": false
+    }
+  ]
+}

@@ -11,6 +11,7 @@ import logging
 import os
 import re
 import subprocess
+import threading
 import time
 from datetime import UTC, date, datetime
 from pathlib import Path
@@ -58,6 +59,8 @@ from investo.sources import collect_sources
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 _MAX_MARKDOWN_BYTES = 256 * 1024
 _MAX_MANIFEST_BYTES = 16 * 1024
+_MAX_MODEL_RECORDING_BYTES = 1024 * 1024
+_MAX_MODEL_RECORDING_CALLS = 12
 _CONTEXT_RULES = frozenset(get_args(ContextRule))
 _FAILURE_STAGES = {
     "run_preview": "preview",
@@ -127,6 +130,115 @@ class PreviewInputError(ValueError):
     """A fixed CLI error; never echo caller paths or private data."""
 
 
+class _ModelRecording:
+    """Opt-in encrypted-artifact input; never includes argv, stderr or auth state."""
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self.started = 0
+        self.completed = 0
+        self._rows: list[dict[str, object]] = []
+        self._bytes = 0
+        self._failure: str | None = None
+
+    def begin(self) -> int:
+        with self._lock:
+            self.started += 1
+            return self.started
+
+    def finish(self, number: int, prompt: str, result: subprocess.CompletedProcess[str]) -> None:
+        with self._lock:
+            self.completed += 1
+            if self._failure is not None:
+                return
+            try:
+                if (
+                    number > _MAX_MODEL_RECORDING_CALLS
+                    or not isinstance(prompt, str)
+                    or not isinstance(result.stdout, str)
+                    or type(result.returncode) is not int
+                    or not -255 <= result.returncode <= 255
+                    or len(prompt) + len(result.stdout) > _MAX_MODEL_RECORDING_BYTES
+                ):
+                    raise ValueError
+                prompt_bytes, stdout_bytes = prompt.encode(), result.stdout.encode()
+                row: dict[str, object] = {
+                    "call": number,
+                    "prompt": prompt,
+                    "stdout": result.stdout,
+                    "prompt_sha256": hashlib.sha256(prompt_bytes).hexdigest(),
+                    "stdout_sha256": hashlib.sha256(stdout_bytes).hexdigest(),
+                    "returncode": result.returncode,
+                }
+                size = len(json.dumps(row, ensure_ascii=False).encode())
+                if self._bytes + size > _MAX_MODEL_RECORDING_BYTES - 4096:
+                    raise ValueError
+                self._rows.append(row)
+                self._bytes += size
+            except (TypeError, ValueError):
+                self._failure = "budget_or_encoding_unavailable"
+                self._rows.clear()
+                self._bytes = 0
+
+    def abort(self) -> None:
+        with self._lock:
+            self.completed += 1
+            self._failure = "incomplete"
+            self._rows.clear()
+            self._bytes = 0
+
+    def encode(self) -> bytes:
+        with self._lock:
+            status = self._failure or (
+                "complete" if self.started == self.completed else "incomplete"
+            )
+            encoded = json.dumps(
+                {
+                    "schema_version": 1,
+                    "basis": "private_model_io",
+                    "status": status,
+                    "calls_started": self.started,
+                    "calls_completed": self.completed,
+                    "records": self._rows,
+                },
+                ensure_ascii=False,
+            ).encode()
+            if len(encoded) > _MAX_MODEL_RECORDING_BYTES:
+                raise PreviewInputError
+            return encoded
+
+
+class _RecordingCodexRunner(CodexRunner):
+    """Delegate to the same managed runner, preserving its type for retry accounting."""
+
+    def __init__(self, delegate: CodexRunner, recording: _ModelRecording) -> None:
+        self._delegate = delegate
+        self._recording = recording
+
+    def close(self) -> None:
+        self._delegate.close()
+
+    def __call__(
+        self,
+        args: list[str],
+        *,
+        capture_output: bool,
+        text: bool,
+        timeout: float,
+        input: str | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        number = self._recording.begin()
+        try:
+            result = self._delegate(
+                args, capture_output=capture_output, text=text, timeout=timeout, input=input
+            )
+        except BaseException:
+            self._recording.abort()
+            raise
+        self._recording.finish(number, input or "", result)
+        return result
+
+
 class _Parser(argparse.ArgumentParser):
     def error(self, message: str) -> Never:
         del message
@@ -140,7 +252,15 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument("--output-dir", required=True, type=Path)
     parser.add_argument("--baseline-sha", help="Trusted remote data checkout commit; read only.")
     parser.add_argument("--document-schema", choices=(2, 3), type=int, default=2)
-    return parser.parse_args(argv)
+    parser.add_argument(
+        "--record-model-io",
+        action="store_true",
+        help="Record bounded schema-three Codex model IO in the encrypted private artifact.",
+    )
+    args = parser.parse_args(argv)
+    if args.record_model_io and args.document_schema != 3:
+        raise PreviewInputError
+    return args
 
 
 def _preview_baseline(
@@ -209,7 +329,9 @@ def _preview_native_baseline(
     )
 
 
-def _private_path(output_dir: Path, repository_root: Path) -> Path:
+def _private_path(
+    output_dir: Path, repository_root: Path, *, record_model_io: bool = False
+) -> Path:
     """Require a new, untracked, ignored directory below the real repo .tmp."""
     root = repository_root.resolve(strict=True)
     output = output_dir if output_dir.is_absolute() else root / output_dir
@@ -224,7 +346,8 @@ def _private_path(output_dir: Path, repository_root: Path) -> Path:
             raise PreviewInputError
     if output.exists():
         raise PreviewInputError
-    for name in ("preview.md", "manifest.json"):
+    names = ("preview.md", "manifest.json") + (("model-recording.json",) if record_model_io else ())
+    for name in names:
         relative = (output / name).relative_to(root).as_posix()
         ignored = subprocess.run(
             ["git", "check-ignore", "--quiet", "--no-index", "--", relative],
@@ -371,15 +494,20 @@ async def run_preview(
     observed_at: datetime | None = None,
     baseline_sha: str | None = None,
     document_schema: int = 2,
+    record_model_io: bool = False,
 ) -> dict[str, object]:
     """No run_pipeline, publisher, notifier, receipt or cursor writer is called."""
     if segment not in SEGMENT_ORDER or document_schema not in (2, 3):
+        raise PreviewInputError
+    if type(record_model_io) is not bool or (
+        record_model_io and (document_schema != 3 or not isinstance(runner, CodexRunner))
+    ):
         raise PreviewInputError
     clock = observed_at or datetime.now(UTC)
     if clock.utcoffset() is None:
         raise PreviewInputError
     clock = clock.astimezone(UTC)
-    output = _private_path(output_dir, repository_root)
+    output = _private_path(output_dir, repository_root, record_model_io=record_model_io)
     baseline = (
         _preview_baseline(repository_root, baseline_sha, clock) if document_schema == 2 else None
     )
@@ -410,39 +538,50 @@ async def run_preview(
         {market: routed.for_segment(market) for market in SEGMENT_ORDER},
     )
     days = resolve_recent_days()
-    result = await preview_event_briefing(
-        GenerationInput(
-            target_date=target_date,
-            items=candidates[segment],
-            segment=segment,
-            runner=runner,
-            watchlist_config=load_watchlist(repository_root / DEFAULT_WATCHLIST_PATH),
-            source_outcomes=report.outcomes,
-            market_anchors=anchors.get(segment, ()),
-            data_limited=routed.is_data_limited(segment),
-            generation_policy=SEGMENT_GENERATION_POLICIES[segment],
-            recent_context=load_recent_briefings(archive, target_date, days=days) if days else None,
-            event_observed_at=clock,
-            event_baseline=baseline.receipts if baseline is not None else (),
-            event_baseline_available=(
-                native_baseline is not None
-                and native_baseline.identity[segment].availability == "available"
-                and native_baseline.stories.available
-            )
-            if document_schema == 3
-            else baseline is not None,
-            event_generation_policy=EventExecutionConfig(mode="preview", document_schema=3)
-            if document_schema == 3
-            else None,
-            canonical_event_baseline=native_baseline.identity[segment].segment_receipts
-            if native_baseline is not None
-            else (),
-            story_baseline=tuple(r for r in native_baseline.stories.records if r.segment == segment)
-            if native_baseline is not None
-            else (),
-            event_collection_items=projection.public_items,
-        )
+    recording = _ModelRecording() if record_model_io else None
+    effective_runner = (
+        _RecordingCodexRunner(cast(CodexRunner, runner), recording)
+        if recording is not None
+        else runner
     )
+    request = GenerationInput(
+        target_date=target_date,
+        items=candidates[segment],
+        segment=segment,
+        runner=effective_runner,
+        watchlist_config=load_watchlist(repository_root / DEFAULT_WATCHLIST_PATH),
+        source_outcomes=report.outcomes,
+        market_anchors=anchors.get(segment, ()),
+        data_limited=routed.is_data_limited(segment),
+        generation_policy=SEGMENT_GENERATION_POLICIES[segment],
+        recent_context=load_recent_briefings(archive, target_date, days=days) if days else None,
+        event_observed_at=clock,
+        event_baseline=baseline.receipts if baseline is not None else (),
+        event_baseline_available=(
+            native_baseline is not None
+            and native_baseline.identity[segment].availability == "available"
+            and native_baseline.stories.available
+        )
+        if document_schema == 3
+        else baseline is not None,
+        event_generation_policy=EventExecutionConfig(mode="preview", document_schema=3)
+        if document_schema == 3
+        else None,
+        canonical_event_baseline=native_baseline.identity[segment].segment_receipts
+        if native_baseline is not None
+        else (),
+        story_baseline=tuple(r for r in native_baseline.stories.records if r.segment == segment)
+        if native_baseline is not None
+        else (),
+        event_collection_items=projection.public_items,
+    )
+    try:
+        result = await preview_event_briefing(request)
+    finally:
+        if recording is not None:
+            if any(part.is_symlink() for part in (output, *output.parents)):
+                raise PreviewInputError
+            _write_private(output, "model-recording.json", recording.encode())
     documents = result.finalized.documents
     if len(documents) > 1:
         raise ValueError("preview returned multiple documents")
@@ -514,6 +653,7 @@ def main(argv: list[str] | None = None) -> int:
                 output_dir=args.output_dir,
                 baseline_sha=args.baseline_sha,
                 document_schema=args.document_schema,
+                record_model_io=args.record_model_io,
             )
         )
         print(json.dumps(manifest, ensure_ascii=True, sort_keys=True))

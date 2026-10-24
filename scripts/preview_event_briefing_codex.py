@@ -40,7 +40,9 @@ def main(argv: list[str] | None = None) -> int:
         args = preview._parse_args(argv)
         data_root = Path.cwd().resolve()
         # Reject a bad/reused output location before restoring auth.
-        preview._private_path(args.output_dir, data_root)
+        preview._private_path(
+            args.output_dir, data_root, record_model_io=getattr(args, "record_model_io", False)
+        )
 
         async def operation(
             *,
@@ -60,6 +62,7 @@ def main(argv: list[str] | None = None) -> int:
                         target_date=args.target_date,
                         segment=args.segment,
                         document_schema=getattr(args, "document_schema", 2),
+                        record_model_io=getattr(args, "record_model_io", False),
                         output_dir=args.output_dir,
                         repository_root=data_root,
                         runner=llm_runner,

@@ -23,6 +23,20 @@ _NOW = datetime(2026, 9, 22, 6, tzinfo=UTC)
 _TARGET = date(2026, 9, 21)
 
 
+class _RecordingDelegate(CodexRunner):
+    def __init__(self, stdout: str = "PRIVATE_MODEL_RESPONSE") -> None:
+        self.stdout = stdout
+        self.calls = 0
+        self.closed = False
+
+    def __call__(self, args, **kwargs):
+        self.calls += 1
+        return subprocess.CompletedProcess(args, 0, self.stdout, "PRIVATE_AUTH_STDERR")
+
+    def close(self) -> None:
+        self.closed = True
+
+
 @pytest.fixture
 def script() -> ModuleType:
     spec = importlib.util.spec_from_file_location("preview_event_briefing_script", _SCRIPT)
@@ -341,6 +355,173 @@ def test_manifest_exposes_closed_classification_diagnostics(script: ModuleType) 
     assert manifest["failure_code"] == "classification.invalid_evidence"
     assert manifest["diagnostics"] == ("evidence.span_out_of_bounds",)
     assert "PRIVATE" not in json.dumps(manifest)
+
+
+def test_private_recording_preserves_runner_output_and_omits_auth_surfaces(script: ModuleType):
+    delegate = _RecordingDelegate()
+    recording = script._ModelRecording()
+    runner = script._RecordingCodexRunner(delegate, recording)
+    assert isinstance(runner, CodexRunner)
+    result = runner(
+        ["PRIVATE_ARGV"], capture_output=True, text=True, timeout=1, input="PRIVATE_PROMPT"
+    )
+    payload = json.loads(recording.encode())
+    assert result.stdout == delegate.stdout and result.stderr == "PRIVATE_AUTH_STDERR"
+    assert delegate.calls == 1 and not delegate.closed
+    assert payload["status"] == "complete"
+    assert payload["calls_started"] == payload["calls_completed"] == 1
+    assert payload["records"][0]["stdout"] == delegate.stdout
+    assert payload["records"][0]["prompt"] == "PRIVATE_PROMPT"
+    assert "PRIVATE_ARGV" not in recording.encode().decode()
+    assert "PRIVATE_AUTH_STDERR" not in recording.encode().decode()
+    runner.close()
+    assert delegate.closed
+
+
+def test_private_recording_omits_the_whole_capture_when_the_budget_is_exceeded(script: ModuleType):
+    recording = script._ModelRecording()
+    delegate = _RecordingDelegate()
+    runner = script._RecordingCodexRunner(delegate, recording)
+    runner([], capture_output=True, text=True, timeout=1, input="small")
+    delegate.stdout = "PRIVATE_OVERSIZED" + "a" * script._MAX_MODEL_RECORDING_BYTES
+    result = runner([], capture_output=True, text=True, timeout=1, input="small")
+    payload = json.loads(recording.encode())
+    assert result.stdout == delegate.stdout and delegate.calls == 2
+    assert payload["status"] == "budget_or_encoding_unavailable" and payload["records"] == []
+    assert payload["calls_started"] == payload["calls_completed"] == 2
+    assert len(recording.encode()) < 1024 and "PRIVATE" not in recording.encode().decode()
+
+
+def test_private_recording_never_reports_an_inflight_call_as_complete(script: ModuleType):
+    recording = script._ModelRecording()
+    recording.begin()
+    payload = json.loads(recording.encode())
+    assert payload["status"] == "incomplete"
+    assert payload["calls_started"] == 1 and payload["calls_completed"] == 0
+
+
+@pytest.mark.parametrize("successful", [False, True])
+@pytest.mark.parametrize("tamper", [False, True])
+async def test_private_recording_preserves_native_success_and_failure(
+    script: ModuleType,
+    repository: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    successful: bool,
+    tamper: bool,
+):
+    from investo.briefing._core.orchestration import GenerationPolicy
+    from investo.models.event_context import ContextClassificationResult
+    from investo.models.event_document import EventEditionContent
+    from tests._helpers.event_document_v3 import native_case
+
+    item, draft = native_case("us-equity")
+
+    async def collect(*args, **kwargs):
+        return SourceCollectionReport(
+            items=(item,), outcomes=(SourceOutcome.ok(item.source_name, "news", 1),)
+        )
+
+    async def anchors(*args, **kwargs):
+        return {}, {}
+
+    import investo.briefing.segments as segments
+
+    monkeypatch.setattr(
+        segments, "_US_ONLY_SOURCES", segments._US_ONLY_SOURCES | {item.source_name}
+    )
+    monkeypatch.setattr(script, "collect_sources", collect)
+    monkeypatch.setattr(script, "_load_market_anchors_for_run", anchors)
+    monkeypatch.setattr(
+        script,
+        "SEGMENT_GENERATION_POLICIES",
+        {"us-equity": GenerationPolicy(timeout_s=3, total_budget_s=30, max_attempts=1)},
+    )
+    _no_publication(monkeypatch)
+    output = repository / ".tmp" / "recorded-failure"
+    outside = repository.parent / "outside"
+    outside.mkdir()
+    if tamper:
+        original_preview = script.preview_event_briefing
+
+        async def redirect_after_await(request):
+            try:
+                return await original_preview(request)
+            finally:
+                output.rmdir()
+                output.symlink_to(outside, target_is_directory=True)
+
+        monkeypatch.setattr(script, "preview_event_briefing", redirect_after_await)
+
+    class CodexReplayRunner(_ReplayRunner, CodexRunner):
+        pass
+
+    delegate = (
+        CodexReplayRunner(
+            [
+                ContextClassificationResult(
+                    schema_version=3, events=(draft.editorial_plan.events[0].source_event,)
+                ).model_dump_json(),
+                EventEditionContent(articles=draft.articles).model_dump_json(),
+            ]
+        )
+        if successful
+        else _RecordingDelegate()
+    )
+
+    async def execute():
+        return await script.run_preview(
+            target_date=draft.target_date,
+            segment="us-equity",
+            output_dir=output,
+            repository_root=repository,
+            observed_at=item.published_at,
+            runner=delegate,
+            document_schema=3,
+            record_model_io=True,
+        )
+
+    if tamper:
+        with pytest.raises(script.PreviewInputError):
+            await execute()
+        assert tuple(outside.iterdir()) == ()
+        assert len(delegate.prompts) == 2 if successful else delegate.calls == 1
+        return
+    if successful:
+        result = await execute()
+        assert result["status"] == "sealed"
+        assert len(delegate.prompts) == 2
+    else:
+        with pytest.raises(BriefingGenerationError) as caught:
+            await execute()
+        assert delegate.calls == 1
+        assert "PRIVATE" not in json.dumps(script._failure_manifest(caught.value))
+    record_path = output / "model-recording.json"
+    payload = json.loads(record_path.read_text())
+    assert payload["status"] == "complete"
+    if not successful:
+        assert payload["records"][0]["stdout"] == "PRIVATE_MODEL_RESPONSE"
+    assert payload["calls_started"] == payload["calls_completed"] == (2 if successful else 1)
+    assert "PRIVATE_AUTH_STDERR" not in record_path.read_text()
+    assert record_path.stat().st_mode & 0o777 == 0o600
+    assert not (repository / "archive").exists()
+
+
+async def test_private_recording_requires_its_file_to_be_ignored_before_collection(
+    script: ModuleType, repository: Path, monkeypatch: pytest.MonkeyPatch
+):
+    (repository / ".gitignore").write_text(".tmp/preview/preview.md\n.tmp/preview/manifest.json\n")
+    monkeypatch.setattr(script, "collect_sources", _forbidden)
+    with pytest.raises(script.PreviewInputError):
+        await script.run_preview(
+            target_date=_TARGET,
+            segment="us-equity",
+            output_dir=repository / ".tmp" / "preview",
+            repository_root=repository,
+            runner=_RecordingDelegate(),
+            document_schema=3,
+            record_model_io=True,
+        )
+    assert not (repository / ".tmp").exists()
 
 
 @pytest.mark.parametrize(

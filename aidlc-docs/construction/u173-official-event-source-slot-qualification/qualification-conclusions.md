@@ -63,3 +63,11 @@ Fed press 1응답/13개, Fed speech·testimony 2응답/11개, CFTC 3응답/12개
 [공개 가능한 count/hash 기록](code/feed-parser-capture-20261025.json)은 raw text를 담지 않는다.
 이는 feed parser의 현재 증거다. official body 접근·권리·필수 slot field binding·나머지 source/runtime의
 검증은 부족하므로 manifest의 verified 0/8과 activation false를 유지한다. Step 4는 부분 진전이며 완료가 아니다.
+
+추가로 기존 SEC companyfacts를 기본 목록의 1개 기업으로 제한해 2응답/1개, SEC 8-K 목록 1응답/36개,
+Nasdaq 실적 캘린더의 2026-10-23 한 날짜 1응답/32개를 정규화했다.
+[추가 count/hash](code/structured-parser-capture-20261025.json)의 69개 typed context와 원문 span 148개를
+대조했다. 합계는 6개 source의 normalized/typed context 105개와 span 232개다. FSC 1개 source는 실패했고
+DART는 이 로컬 capture에서 호출하지 않았다. 기존 managed credential을 변경·복사하지 않았다.
+8-K 목록을 guidance, 캘린더를 actual, company snapshot을 새로운 reported actual로 승격하지 않았다.
+원본의 단위·기간·발생 시점·filing locator의 독립 검증과 body/rights/필수 slot/runtime 수용은 계속 pending이다.

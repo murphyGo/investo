@@ -23,6 +23,11 @@ on:
         default: '2'
         type: choice
         options: ['2', '3']
+      record_model_io:
+        description: 'Capture bounded model IO in the encrypted schema 3 artifact.'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -118,6 +123,7 @@ jobs:
           PY
       - name: Generate preview with auth checkpoint
         id: preview
+        shell: bash
         working-directory: public-data
         timeout-minutes: 110
         env:
@@ -132,13 +138,19 @@ jobs:
           PREVIEW_TARGET_DATE: ${{ inputs.target_date }}
           PREVIEW_SEGMENT: ${{ matrix.segment }}
           PREVIEW_DOCUMENT_SCHEMA: ${{ inputs.document_schema }}
+          PREVIEW_RECORD_MODEL_IO: ${{ inputs.record_model_io }}
           PREVIEW_BASELINE_SHA: ${{ steps.public_data.outputs.commit }}
         run: |
+          record_args=()
+          if [ "$PREVIEW_RECORD_MODEL_IO" = "true" ]; then
+            record_args+=(--record-model-io)
+          fi
           mkdir -p .tmp
           set +e
           "$UV_PROJECT_ENVIRONMENT/bin/python" -I "$GITHUB_WORKSPACE/runtime-code/scripts/preview_event_briefing_codex.py" \
             --target-date "$PREVIEW_TARGET_DATE" --segment "$PREVIEW_SEGMENT" \
             --document-schema "$PREVIEW_DOCUMENT_SCHEMA" \
+            "${record_args[@]}" \
             --baseline-sha "$PREVIEW_BASELINE_SHA" \
             --output-dir .tmp/event-preview > .tmp/event-preview-status.json
           preview_rc=$?

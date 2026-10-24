@@ -27,6 +27,14 @@ source-slot verified, 기존 body HTTP 자격, cursor 준비, human-ready, runti
 보관한다. `.tmp/event-news-v3/source-qualification/`도 ignored다. 두 경로의 `git check-ignore`를
 확인했다. public synthetic 57개 사례의 author는 AI, human review는 pending이며 실제 corpus에 합산하지 않는다.
 
+schema 3 Codex의 실패 원문을 조사할 때는 `--record-model-io` 또는 private workflow의
+`record_model_io=true`를 명시한다. 기본값은 false다. 실제 전달한 prompt와 기존 runner가 검증한 stdout만
+`model-recording.json`으로 기록하며 argv·stderr·auth 파일은 수집하지 않는다. 파일은 사전에 ignored 여부를
+검사하고 0700 private 경로의 exclusive/no-follow 0600 파일로 저장한 뒤 기존 recipient 키로 암호화한다.
+최대 12회/1MiB이며 초과·encoding 실패는 전체 기록을 unavailable로 표시하고 부분 원문을 남기지 않는다.
+취소 중 미완료 호출은 incomplete다. recording complete는 입출력 기록의 완전성만 뜻하며 생성·사람 수용 성공이 아니다.
+이 기록은 실제 전송 입력의 진단 자료이며 전체 수집 분모·사전 사람 oracle·ingestion recall을 대체하지 않는다.
+
 1. 국내·미국·크립토 각각 실제 4개 이상, 발행 날짜 2개 이상을 확보한다. 시장별 뉴스가 풍부한 정상
    사건, 수집 제한, 주말/장후 사례를 포함한다. 같은 입력의 반복·수동 재생은 실제 사례 수를 늘리지 않는다.
 2. 출력 생성 전에 사람이 뉴스창, source 범위, 기대 event/story IDs, must-include, required facts,
