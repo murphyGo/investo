@@ -169,6 +169,7 @@ jobs:
           exit 0
 
       - name: Ensure Pages deployment
+        id: ensure_pages
         if: steps.pipeline.outputs.publication_committed == 'true' || steps.pipeline.outputs.insights_publication_committed == 'true'
         timeout-minutes: 2
         env:
@@ -188,6 +189,282 @@ jobs:
             queued|in_progress|waiting|pending|requested|success) ;;
             *) gh workflow run pages.yml --repo murphyGo/investo --ref main ;;
           esac
+
+      - name: Capture public insights observation metadata
+        id: insights_observation
+        if: always()
+        continue-on-error: true
+        timeout-minutes: 1
+        working-directory: public-data
+        env:
+          OBS_MODE: ${{ vars.INVESTO_INSIGHTS_MODE || 'off' }}
+          OBS_MODULES: ${{ vars.INVESTO_INSIGHTS_MODULES || 'macro' }}
+          OBS_CONFIRMED: ${{ steps.pipeline.outputs.insights_publication_committed }}
+          OBS_PUBLISHED_SHA: ${{ steps.pipeline.outputs.insights_published_sha }}
+          OBS_PIPELINE_STARTED_AT: ${{ steps.pipeline.outputs.started_at }}
+          OBS_PIPELINE_STATUS: ${{ steps.pipeline.outputs.pipeline_status }}
+          OBS_PIPELINE_RC: ${{ steps.pipeline.outputs.process_exit_code }}
+          OBS_PAGES_OUTCOME: ${{ steps.ensure_pages.outcome }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$UV_PROJECT_ENVIRONMENT/bin/python" -I - <<'PY_OBSERVATION'
+          """Private metadata receipt only; no collection, publication, model or auth access."""
+
+          import hashlib
+          import json
+          import os
+          import re
+          import subprocess
+          import tempfile
+          import time
+          from datetime import UTC, datetime
+          from pathlib import Path
+
+          MODULES = {"macro", "calendar", "crypto"}
+          DEADLINE = time.monotonic() + 10
+
+
+          def identifier(value: str, pattern: str) -> str:
+              if re.fullmatch(pattern, value) is None:
+                  raise ValueError("invalid metadata")
+              return value
+
+
+          def git(repo: Path, *args: str) -> bytes:
+              remaining = DEADLINE - time.monotonic()
+              if remaining <= 0:
+                  raise TimeoutError()
+              return subprocess.run(
+                  ["git", "-C", str(repo), *args],
+                  check=True,
+                  timeout=min(3, remaining),
+                  stdout=subprocess.PIPE,
+                  stderr=subprocess.DEVNULL,
+              ).stdout
+
+
+          def blob(repo: Path, sha: str, name: str) -> bytes:
+              ref = f"{sha}:{name}"
+              size = git(repo, "cat-file", "-s", ref).strip()
+              if not size.isdigit() or not 0 < int(size) <= 256 * 1024:
+                  raise ValueError("blob cap")
+              data = git(repo, "cat-file", "blob", ref)
+              if len(data) != int(size):
+                  raise ValueError("blob size")
+              return data
+
+
+          def pairs(rows: list[tuple[str, object]]) -> dict[str, object]:
+              result: dict[str, object] = {}
+              for key, value in rows:
+                  if key in result:
+                      raise ValueError("duplicate key")
+                  result[key] = value
+              return result
+
+
+          def nonfinite(_: str) -> None:
+              raise ValueError("nonfinite JSON")
+
+
+          def parse(data: bytes) -> dict:
+              value = json.loads(data, object_pairs_hook=pairs, parse_constant=nonfinite)
+              if not isinstance(value, dict):
+                  raise ValueError("object required")
+              return value
+
+
+          def canonical(value: object) -> bytes:
+              return json.dumps(
+                  value, sort_keys=True, ensure_ascii=False, separators=(",", ":"), allow_nan=False
+              ).encode()
+
+
+          def clock(value: str) -> datetime:
+              if not isinstance(value, str) or len(value) > 48:
+                  raise ValueError("clock")
+              parsed = datetime.fromisoformat(value)
+              if parsed.tzinfo is None or parsed.utcoffset() is None:
+                  raise ValueError("clock timezone")
+              return parsed.astimezone(UTC)
+
+
+          def emit(name: str, value: str) -> None:
+              with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as target:
+                  target.write(f"{name}={value}\n")
+
+
+          def capture(started: int) -> dict:
+              if os.environ["GITHUB_REPOSITORY"] != "murphyGo/automation-runtime":
+                  raise ValueError("private owner required")
+              workspace = Path(os.environ["GITHUB_WORKSPACE"])
+              expected = identifier(os.environ["REVIEWED_CODE_SHA"], r"[0-9a-f]{40}")
+              actual = git(workspace / "runtime-code", "rev-parse", "HEAD").decode().strip()
+              if actual != expected:
+                  raise ValueError("execution pin mismatch")
+              modules = [part.strip() for part in os.environ["OBS_MODULES"].split(",")]
+              if not modules or len(set(modules)) != len(modules) or set(modules) - MODULES:
+                  raise ValueError("module configuration")
+              mode = os.environ["OBS_MODE"]
+              if mode not in {"off", "shadow", "active"}:
+                  raise ValueError("mode")
+              event = os.environ["GITHUB_EVENT_NAME"]
+              event = event if event in {"schedule", "workflow_dispatch"} else "other"
+              report = {
+                  "schema_version": 1,
+                  "run_id": int(identifier(os.environ["GITHUB_RUN_ID"], r"[1-9][0-9]{0,19}")),
+                  "run_attempt": int(identifier(os.environ["GITHUB_RUN_ATTEMPT"], r"[1-9][0-9]{0,5}")),
+                  "event": event,
+                  "workflow_sha": identifier(os.environ["GITHUB_SHA"], r"[0-9a-f]{40}"),
+                  "execution_code_sha": actual,
+                  "configured_mode": mode,
+                  "configured_modules": modules,
+                  "pipeline_started_at": datetime.fromtimestamp(started, UTC).isoformat(),
+                  "captured_at": datetime.now(UTC).isoformat(),
+                  "pipeline_status": os.environ.get("OBS_PIPELINE_STATUS")
+                  if os.environ.get("OBS_PIPELINE_STATUS") in {"success", "partial", "failed"}
+                  else None,
+                  "pipeline_exit_code": int(os.environ["OBS_PIPELINE_RC"])
+                  if os.environ.get("OBS_PIPELINE_RC") in {"0", "1", "2"}
+                  else None,
+                  "pages_ensure_outcome": os.environ.get("OBS_PAGES_OUTCOME")
+                  if os.environ.get("OBS_PAGES_OUTCOME") in {"success", "failure", "cancelled", "skipped"}
+                  else None,
+                  "status": "not_confirmed",
+                  "scheduled_candidate": False,
+                  "module_evidence": [],
+                  "acceptance": "pending_source_receipt_and_pages_review",
+              }
+              if os.environ.get("OBS_CONFIRMED") != "true":
+                  return report
+              if mode != "active":
+                  raise ValueError("confirmed signal requires active mode")
+              sha = identifier(os.environ["OBS_PUBLISHED_SHA"], r"[0-9a-f]{40}")
+              data_repo = workspace / "public-data"
+              manifest_bytes = blob(data_repo, sha, "site_docs/insights/_data/manifest.json")
+              manifest = parse(manifest_bytes)
+              entries = manifest["modules"]
+              if manifest.get("schema_version") != 1 or not isinstance(entries, list) or len(entries) > 3:
+                  raise ValueError("manifest")
+              if any(row["module"] not in MODULES for row in entries):
+                  raise ValueError("manifest module")
+              by_module = {row["module"]: row for row in entries}
+              if len(by_module) != len(entries):
+                  raise ValueError("duplicate manifest module")
+              evidence = []
+              for module in modules:
+                  entry = by_module[module]
+                  current_bytes = blob(data_repo, sha, f"site_docs/insights/_data/{module}/current.json")
+                  current_hash = hashlib.sha256(current_bytes).hexdigest()
+                  if current_hash != entry["current_hash"]:
+                      raise ValueError("current hash")
+                  current = parse(current_bytes)
+                  snapshot = identifier(current.pop("snapshot_id"), r"[0-9a-f]{64}")
+                  if (
+                      snapshot != entry["snapshot_id"]
+                      or snapshot != hashlib.sha256(canonical(current)).hexdigest()
+                  ):
+                      raise ValueError("snapshot identity")
+                  if current["module"] != module or current.get("schema_version") != 1:
+                      raise ValueError("current schema")
+                  if current["availability"] not in {"available", "limited", "unavailable"}:
+                      raise ValueError("availability")
+                  metrics, events = current["metrics"], current["events"]
+                  if not isinstance(metrics, list) or len(metrics) > 32:
+                      raise ValueError("metric cap")
+                  if not isinstance(events, list) or len(events) > 128:
+                      raise ValueError("event cap")
+                  begin = clock(current["run_started_at"])
+                  completed = clock(current["collection_completed_at"])
+                  evaluated = clock(current["evaluated_at"])
+                  if not begin <= completed <= evaluated or evaluated.timestamp() > time.time() + 5:
+                      raise ValueError("clock order")
+                  history = entry.get("history_hash")
+                  if history is not None:
+                      identifier(history, r"[0-9a-f]{64}")
+                  evidence.append(
+                      {
+                          "module": module,
+                          "snapshot_id": snapshot,
+                          "current_hash": current_hash,
+                          "index_hash": identifier(entry["index_hash"], r"[0-9a-f]{64}"),
+                          "history_hash": history,
+                          "availability": current["availability"],
+                          "metric_count": len(metrics),
+                          "event_count": len(events),
+                          "run_started_at": begin.isoformat(),
+                          "collection_completed_at": completed.isoformat(),
+                          "evaluated_at": evaluated.isoformat(),
+                          "collected_in_this_run": begin.timestamp() >= started - 5,
+                          "source_clock_hash": hashlib.sha256(
+                              canonical([row["time"] for row in [*metrics, *events]])
+                          ).hexdigest(),
+                      }
+                  )
+              policy = blob(data_repo, sha, "ops/insights_source_qualification.json")
+              report.update(
+                  status="captured",
+                  published_sha=sha,
+                  manifest_hash=hashlib.sha256(manifest_bytes).hexdigest(),
+                  qualification_hash=hashlib.sha256(policy).hexdigest(),
+                  module_evidence=evidence,
+                  scheduled_candidate=event == "schedule"
+                  and report["run_attempt"] == 1
+                  and all(row["collected_in_this_run"] for row in evidence),
+              )
+              return report
+
+
+          def main() -> None:
+              started_raw = os.environ.get("OBS_PIPELINE_STARTED_AT", "")
+              if not started_raw.isdigit() or not 0 <= time.time() - int(started_raw) <= 225 * 60 - 75:
+                  emit("capture_status", "skipped_allowance")
+                  return
+              try:
+                  report = capture(int(started_raw))
+              except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError):
+                  report = {
+                      "schema_version": 1,
+                      "status": "unavailable",
+                      "reason": "invalid_or_missing_evidence",
+                      "scheduled_candidate": False,
+                  }
+              if time.monotonic() > DEADLINE or time.time() - int(started_raw) > 225 * 60 - 65:
+                  emit("capture_status", "skipped_allowance")
+                  return
+              encoded = canonical(report) + b"\n"
+              if len(encoded) > 16 * 1024:
+                  raise ValueError("metadata cap")
+              directory = Path(
+                  tempfile.mkdtemp(prefix="insights-observation-", dir=os.environ["RUNNER_TEMP"])
+              )
+              path = directory / "observation.json"
+              fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+              with os.fdopen(fd, "wb") as target:
+                  target.write(encoded)
+              if time.time() - int(started_raw) > 225 * 60 - 65:
+                  emit("capture_status", "skipped_allowance")
+                  return
+              emit("artifact_path", str(path))
+              emit("capture_status", report["status"])
+
+
+          if __name__ == "__main__":
+              main()
+          PY_OBSERVATION
+
+      - name: Retain public insights observation metadata
+        if: always() && steps.insights_observation.outputs.artifact_path != ''
+        continue-on-error: true
+        timeout-minutes: 1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: insights-observation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.insights_observation.outputs.artifact_path }}
+          include-hidden-files: false
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Re-emit pipeline exit code
         if: always()

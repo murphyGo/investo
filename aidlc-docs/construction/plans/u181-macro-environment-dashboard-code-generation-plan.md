@@ -77,3 +77,8 @@ u180 코드·공통 source/time/permission/publication 계약. u176/u178 사이�
 Source rights는 정의별 9allow/4blocked이고 actual source/runtime/Pages 수용은 분리한다. Treasury actual response replay typed6개, SOFR200/BLS CPI503, FRED미호출. 최초 menu label 회귀 수정과 Decimal/부모 권한/lazy-load findings 및 최종 증거는 [summary](../u181-macro-environment-dashboard/code/summary.md), [validation](../u181-macro-environment-dashboard/code/validation.json), [cross-check](../../../docs/cross-checks/2026-10-25-u181-macro-environment-dashboard.md)에 있다.
 
 Step8 pending: 최신 main 통합과 정확한 application SHA, source conditions, reviewed private pin/mode, Pages/live 및5회 scheduled. 다음 코드 유닛은 u182이다.
+
+
+## 2026-10-25 운영 연결 진행
+
+후속 사용자 지시에 따라 최신main 통합·commit/push·공개 조건별 순차 초기 게시와 기존 private 예약 갱신 연결을 수행했다. 실행pin0025497d/quality40182882842, 최종current게시1f6b37c6/quality40184291647/Pages40184291651 모두 확인했다. 실제HTTPS snapshot/hash·운영Chromium12조건과 기존코드7344pass/1knownskip. [운영 증거](../public-insights-20261012/operations-evidence-20261025.json). 모듈별 genuine scheduled0/5이므로 Step8 체크는 미완료로 유지한다. 로컬probe·수동초기게시를 예약관찰로 세지 않는다.

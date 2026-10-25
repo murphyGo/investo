@@ -87,6 +87,18 @@ Codex는 자체적으로 `auth.json`을 갱신한다. 런타임은 갱신 파일
 기존 finalizer/publisher를
 재사용하며 산출물 전체나 인증 디렉터리를 artifact/cache에 올리지 않는다.
 
+## Insights 예약 관찰 metadata
+
+Production daily의 유일한 artifact는 `insights-observation-<run_id>-<attempt>`의
+`observation.json` 한 파일이다. 실제 실행 SHA·run ID/attempt/event·기존 confirmed 게시 신호·
+manifest/current hash·모듈 시각/개수만 allowlist로 보존하며 16KiB/7일로 제한한다.
+원문·모델 출력·환경 전체·인증 경로는 읽거나 업로드하지 않는다.
+Capture는 최대10초, upload는1분이며 기존225분 allowance에75초 이상 남아야 시작한다.
+잔여 예산을 다시 검사해 upload를 생략할 수 있고 실패는 주 시황 exit code를 바꾸지 않는다.
+`scheduled_candidate`는 자동 수용이 아니다. manual/retry/이전 snapshot/미확정 게시를 제외하고
+실제 source 범위·receipt/원격 ancestry·Pages snapshot을 대조한 뒤5회 운영 수용을 기록한다.
+index/history hash는 manifest 선언값이며 이 단계가 해당 파일을 독립 재해시하지 않는다.
+
 ## CLI qualification evidence
 
 Codex 0.153.4의 공식 모델 스키마와 도구 등록 코드를 근거로
