@@ -170,6 +170,12 @@ _NESTED = re.compile(
     r"[\"'\u201c\u201d\u2018\u2019]|\b(?:that|according|reportedly|although|while|because|and|but)\b",
     re.I,
 )
+_NAMED_YEAR = re.compile(
+    r"(?:19|20)\d{2}\s+"
+    r"(?:(?:annual|examination|enforcement|regulatory|policy|investor|advisory|small|business|research)\s+){0,4}"
+    r"(?:agenda|priorities|conference|forum|roundtable|meeting|symposium|workshop|edition)[.!。]?",
+    re.I,
+)
 
 
 def action_equivalents(action: str) -> tuple[str, ...]:
@@ -215,8 +221,17 @@ def prove_text_assertion(
     """Accept only complete, literal source frames with their own status proof."""
     if not subject or not value or not assertion or len(assertion) > 240:
         return None
-    if re.search(r"(?<![\w.])[+-]?\d+(?:,\d{3})*(?:\.\d+)?%?", value):
-        return None  # Numeric values require their metric/unit/period proof.
+    numbers = list(re.finditer(r"(?<![\w.])[+-]?\d+(?:,\d{3})*(?:\.\d+)?%?", value))
+    if numbers and (
+        not any(char.isalpha() for char in value)
+        or any(_NAMED_YEAR.fullmatch(value, number.start()) is None for number in numbers)
+        or re.search(
+            r"[$€£₩%]|\b(?:USD|EUR|KRW|dollars?|million|billion|percent)\b|원|달러|퍼센트",
+            value,
+            re.I,
+        )
+    ):
+        return None  # Named event years are not financial numeric facts.
     # A subject cannot absorb a reporting clause to impersonate its actor.
     name = r"(?:[A-Z][A-Za-z0-9_.&-]*|[a-z][A-Z][A-Za-z0-9_.&-]*|[가-힣][가-힣0-9·]*)"
     if not re.fullmatch(rf"{name}(?:\s+(?:and|of|the|for|{name}))*", subject):
@@ -228,7 +243,12 @@ def prove_text_assertion(
     }
     if any(word.casefold() in verbs for word in subject.split()):
         return None
-    if _NEGATIVE.search(assertion) or _NESTED.search(assertion.replace(subject, "", 1)):
+    nested = re.sub(
+        r"(?<=\w)['\u2019](?=\w)|(?<=[sS])['\u2019](?=\s|$)",
+        "",
+        assertion.replace(subject, "", 1),
+    )
+    if _NEGATIVE.search(assertion) or _NESTED.search(nested):
         return None
     if status == "actual" and _FUTURE.search(assertion):
         return None
@@ -258,7 +278,7 @@ def prove_text_assertion(
         return None
     if status == "actual":
         allowed = _ACTIONS.get(predicate, ())
-        modal = r"(?:(?:has|have)\s+)?"
+        modal = r"(?:(?:today|yesterday)\s+)?(?:(?:has|have)\s+)?"
     elif status == "forecast":
         allowed = _BASE_ACTIONS.get(predicate, ())
         modal = r"(?:will|plans\s+to|expects\s+to)\s+"

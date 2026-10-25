@@ -62,6 +62,20 @@ def text_case(sentence, predicate, action, value, *, status="actual", subject="A
         ("Acme signed a supply agreement", "agreement", "signed", "a supply agreement", "Acme"),
         ("Acme approved the merger", "decision", "approved", "the merger", "Acme"),
         ("Acme announced the decision", "statement", "announced", "the decision", "Acme"),
+        (
+            "Acme today announced Widget\u2019s 2026 agenda.",
+            "statement",
+            "announced",
+            "Widget\u2019s 2026 agenda",
+            "Acme",
+        ),
+        (
+            "Acme today announced investors\u2019 2026 agenda.",
+            "statement",
+            "announced",
+            "investors\u2019 2026 agenda",
+            "Acme",
+        ),
         ("아크메가 신제품을 출시했다", "launch", "출시했다", "신제품", "아크메"),
         ("아크메는 공급계약을 체결했다", "agreement", "체결했다", "공급계약", "아크메"),
         ("아크메가 합병을 승인했다", "decision", "승인했다", "합병", "아크메"),
@@ -145,12 +159,26 @@ def test_text_fact_final_display_can_translate_only_the_bound_predicate(text):
         ("Acme Reported Beta launched Widget", "Acme Reported Beta", "launched", "Widget"),
         ("Acme Said Beta launched Widget", "Acme Said Beta", "launched", "Widget"),
         ("Acme launched 1200", "Acme", "launched", "1200"),
+        ("Acme announced 2026 USD of revenue", "Acme", "announced", "2026 USD of revenue"),
+        ("Acme announced 2026", "Acme", "announced", "2026"),
+        ("Acme announced 2026 shares", "Acme", "announced", "2026 shares"),
+        ("Acme announced 2026 JPY", "Acme", "announced", "2026 JPY"),
+        ("Acme announced EPS 2026", "Acme", "announced", "EPS 2026"),
+        ("Acme announced 2026 KWD", "Acme", "announced", "2026 KWD"),
+        (
+            "Acme announced 2026 conference attendees",
+            "Acme",
+            "announced",
+            "2026 conference attendees",
+        ),
+        ("Acme announced 2026 forum users", "Acme", "announced", "2026 forum users"),
     ],
 )
 def test_reporting_subject_absorption_and_numeric_as_text_are_rejected(
     sentence, subject, action, value
 ):
-    doc, event = text_case(sentence, "launch", action, value, subject=subject)
+    predicate = "statement" if action == "announced" else "launch"
+    doc, event = text_case(sentence, predicate, action, value, subject=subject)
     with pytest.raises(ContextEvidenceError):
         validate_context_event(event, (doc,), observed_at=NOW)
 
