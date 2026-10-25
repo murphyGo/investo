@@ -4,6 +4,19 @@
 
 이 문서는 shared contract의 단일 출처다. 각 유닛 계획은 이 계약을 재정의하지 않는다. 코드형 표기는 구현할 frozen Pydantic/dataclass의 논리 필드이며 현재 존재하는 타입이라는 뜻이 아니다.
 
+**2026-10-26 설계 개정 범위**: 아래 C1/C2/C4/C7의 두 단계·역할별 본문·입력 상한은 기존 `role_v1`의 계약이다. 신규 `article_v2`는 [내용 충실도 설계](../event-news-v3-content-20261026/README.md)에 따라 별도 Stage3, typed narrative/claim map, 긴 passage와 고정 총예산을 사용한다. 이는 구현 전 target contract이며 현재 default·runtime·source 권한은 바꾸지 않는다. C3/C5/C6/C8의 identity·단일 finalizer·story·실제 인수/cleanup 불변조건은 그대로다.
+
+| 계약 | role_v1 유지 | article_v2 target amendment |
+| --- | --- | --- |
+| C1 생성 | 기존 두 단계/default | schema3에서만 명시적 profile, Stage1/2/3 + 수정/재검증 최대2 calls |
+| C2 근거 | ContextRef 최대240자 | locator 상한 유지, source당6개/6,000자 passage 묶음과 질문별 근거 |
+| C4 본문 | what_changed600자, 역할별180자와 display blocks | content_contract2 narrative 본문3,200자 상한, lead600자 동일 projection, 모든 문장 claim 연결 |
+| C5 이력 | 기존 v1 projection bytes/hash | 새 version2 fields는 명시적 hash에 포함; 기존 hash에 새 default 필드 삽입 금지 |
+| C7 예산 | Stage1 24KiB / Stage2 16KiB, 기존 timeout/attempt | Stage1 evidence24KiB, Stage2 evidence48KiB·prompt64KiB, Stage3 prompt96KiB, 시장총3900초/최대5 calls |
+| C7 수용 | 실제12문서·사람5/5·fact100%·unsupported0 | 같은 수용에 news-rich detailed 양성·terminal readiness 추가; 모델 점수를 사람 점수로 치환 금지 |
+
+정확한 field/실패 규칙/timeout 분배는 새 program의 FD/NFR가 단일 출처다. HTTP6회/20초·source qualification·private raw·기존 hard trust gate는 유지한다. 새 profile의 코드/실제 인수 없이 위 표를 근거로 실행 경로를 활성화하지 않는다.
+
 ## C1. Generation policy와 버전
 
 `EventGenerationPolicy(mode: off|shadow|preview|active, document_schema: 2|3, active_segments: tuple[MarketSegment,...])`는 models에서 소유하고 orchestrator entrypoint에서 한 번 구성한다. 기존 `INVESTO_EVENT_BRIEFING_MODE`를 재사용하고 새 `INVESTO_EVENT_DOCUMENT_SCHEMA`의 기본값은 `2`다. 기존 기본 동작과 현재 reviewed pin은 문서 작성만으로 바뀌지 않는다.

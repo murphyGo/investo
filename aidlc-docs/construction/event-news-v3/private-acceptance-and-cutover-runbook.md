@@ -93,3 +93,7 @@ read-only archive 회귀, 이전 commit/policy 복구를 검증한다. cleanup�
 | reviewed capability/pin/release | 기존 private runtime owner + u172 | active false |
 | genuine scheduled·Pages·Telegram·ledger/cursor | u172 운영 owner | 0회 |
 | legacy 최종 폐기 | u172 reviewed cleanup | 선행 수용 대기 |
+
+## 2026-10-26 article_v2 설계 인계
+
+위 절차의 실제 corpus/human/source/viewport/예약 관찰 수는 변경하지 않는다. 새 [내용 충실도 program](../event-news-v3-content-20261026/README.md)의 profile은 기존 두 단계 role_v1과 분리된다. 구현 후 article_v2 actual 검수에는 [새 수용 절차](../event-news-v3-content-20261026/acceptance-and-handoff.md)와 전역5 calls/3900초, packet/draft/review/policy hash를 적용한다. 현재 template/default/pin은 변경하지 않았다. 실제 호출 단계가 늘어도 같은 CLI/auth owner를 사용하며 archive/Git/Telegram/production ledger/cursor 쓰기0인 preview 경계는 유지한다.

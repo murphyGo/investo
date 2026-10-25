@@ -678,3 +678,13 @@ Evidence: `aidlc-docs/construction/source-reliability-20261009/review.md`. Four 
 | u183 crypto-market-internals-dashboard | US-013 | FR-029/026; 기존 FR-003/011/013/018 | u180 typed gate/history/receipt, u181/u182 사용자 순서 전달, u66/u74 기존 crypto indicator 의미와 u164 source-vs-query time 재사용. 소스별 public display/retention 은 activation prerequisite 이며 코드 fixture 작업의 가짜 승인으로 만들지 않는다. |
 
 사용자제품선택/유닛설계허가에따른추가매핑이다. u180→u181→u182→u183 순서로전달하며 v3story 나 u145sectorhistory 를재등록하지않는다. [Program](../../construction/public-insights-20261012/README.md)과각 unit 계획의 AC 를적용한다. 구현/승인/운영미실행.
+
+## u184–u186 — 실제 자동 기사 내용 충실도 (2026-10-26)
+
+| Unit | User-visible outcome | Stories / requirements | Existing owner / dependencies |
+| --- | --- | --- | --- |
+| u184 event-evidence-packet-completion | 핵심 변경과 설명을 뒷받침할 실제 자료 확보 | US-001/002/007/008; FR-001/002/017/021/023/024 | u161/u167 보강; u160/u165/u168 재사용; u173 source별 자격 |
+| u185 claim-grounded-article-composition | 주제에 맞는 자연스러운 한국어 기사 | US-002/003/004/006/007/009; FR-002/003/004/006/009/012/013/017/018/024/025 | u169/u171 확장; u184 packet; u186 검증 필요 |
+| u186 article-semantic-review-and-readiness | 사실과 내용이 검증된 자동 기사 | US-002/003/005/007; FR-002/006/007/017/021/023/024/025 | u169 runner/u159/u172 평가; u184/u185; actual/human/rollout은 u172 |
+
+[설계](../../construction/event-news-v3-content-20261026/README.md). FD/NFR 작성, 코드0/6씩. 새 FR 번호나 중복 source/rollout unit을 만들지 않는다. u184→u185→u186→기존u172 실제 인수 순서이며 u173 qualification은 별도 수행 가능하다. 편집 정책 승인·설계 작성은 실제 자동 생성/사람/운영 합격이 아니다.

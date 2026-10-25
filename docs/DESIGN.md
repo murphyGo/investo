@@ -338,3 +338,13 @@ TD-013 site-scoped SVG styles require an intact SVG subtree. New calendar figure
 ### u175 chart client URL/palette owner (2026-10-10)
 
 The u75 sidecar stays beside its source Markdown. The client alone resolves the exact matching MkDocs date directory to that sibling; other URL forms retain browser URL semantics. Charts read Material body palette with live HTML fallback and update existing options without refetch or reconstruction. Numeric and sealed document owners remain unchanged.
+
+### TD-017: 실제 자동 기사의 근거·산문·의미 검증 분리 (2026-10-26 target design)
+
+**Status**: 사용자 설계 요청에 따른 FD/NFR 작성. u184/u185/u186 구현0/6씩, production/runtime 미변경.
+
+**Choice**: article_v2는 기존 u161 원문 보강을 preview/production 공통 preparation으로 연결하고, canonical event별 EvidencePacket을 만든다. Stage2는 sentence claim에 연결된 한국어 typed narrative를 작성한다. 기존 hard gate 뒤 동일 CLI의 별도 Stage3 의미 검증을 추가하며 batch 수정은1회/전체최대5 calls/시장3900초로 제한한다. 기존 role_v1의 two-stage default는 보존한다.
+
+**Compatibility**: document schema3/content contract2를 명시하고 version1 raw shape/hash/과거 archive를 유지한다. 단일 finalizer는 exact narrative/packet/review hash와 terminal survivor를 확인한다. 본문과 무관한 안내·면책은 승인된 하단 배치, 필요한 조건·출처는 기사 안에 둔다.
+
+**Acceptance**: refs 존재·글자 수·모델 supported를 충분한 기사/사람5/5로 간주하지 않는다. u172의 실제 corpus/source/viewport/performance와 시장별 rollout을 완료해야 운영 완료다. NFR-001 및 DEBT-090은 유지한다. [설계·결정 근거](../aidlc-docs/construction/event-news-v3-content-20261026/README.md), [수용 절차](../aidlc-docs/construction/event-news-v3-content-20261026/acceptance-and-handoff.md).

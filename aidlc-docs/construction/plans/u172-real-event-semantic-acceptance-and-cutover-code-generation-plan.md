@@ -88,3 +88,9 @@ uv run python scripts/check_event_coverage.py --manifest tests/fixtures/event_br
 사용자의 개발·계속 진행·커밋/푸시 지시를 적용했다. native 구현 SHA `ca631e245d0341c09ea1671c32c4286dbd2c9c3a`, 원격 UI/섹터 통합 기준 `55c00fc85e2828f62cd69d5583afd3761ef86d45`.
 
 In progress — 5/9; actual acceptance pending. [공통 검증](../event-news-v3/implementation-evidence.md), [번호별 AC 대조](../../../docs/cross-checks/2026-10-12-event-news-v3.md), [private 수용·전환 handoff](../event-news-v3/private-acceptance-and-cutover-runbook.md). 구현과 실제 사람/운영 수용을 구별하며 v3 active는 false다.
+
+## 2026-10-26 article_v2 내용 충실도 인계
+
+실제 자동 기사 부족에 대한 후속 설계는 [u184–u186](../event-news-v3-content-20261026/README.md)이다. 이 유닛의 기존5/9·실제corpus0/12·사람pending·운영/cleanup pending은 유지한다. Step2/7 인수는 새 profile의 실제 source→3단계 작성/검증→terminal 출력과 draft/packet/review/policy hashes까지 결속한다. 기존 두 단계/16KiB 기술 문구는 role_v1에 유지하며 article_v2에는 [새 NFR](../event-news-v3-content-20261026/nfr-requirements/nfr-requirements.md)을 적용한다. 새 semantic call은 기존 CLI를 쓰는 u186 소유이며 유료 평가 API를 추가하지 않는다.
+
+[실제 수용 절차](../event-news-v3-content-20261026/acceptance-and-handoff.md)의 news-rich detailed 양성·사람5/5·must-cover100%·requiredfact100%·unsupported0을 검수한다. 사용자 historical reference 편집 승인은 실제 사람 corpus에 합산하지 않는다. 새로운 rollout 유닛을 만들지 않고 Step8/9를 계속 사용한다.
