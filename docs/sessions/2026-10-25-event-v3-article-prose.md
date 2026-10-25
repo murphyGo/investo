@@ -106,4 +106,18 @@ remain local/ignored, with zero live model calls/new source HTTP. Their Markdown
 The updated viewer at <http://127.0.0.1:58755/> places all development metadata, document
 notes and both disclaimers after the two article sections; DOM ownership and HTTP200 were
 checked. Opening Chrome/DOM checks do not establish viewport acceptance. Actual producer,
-human/source/slot/scheduled acceptance and the production pin remain unchanged.
+human/source/slot/scheduled acceptance were not advanced by this layout change.
+
+Footer implementation `658be680688c969116800e71d0ea9cf597007a9e` was pushed and
+[exact-source quality 40216843514](https://github.com/murphyGo/investo/actions/runs/40216843514)
+succeeded: **7,464 passed / one existing skip in 514.88s**, Node29, Ruff/format823,
+mypy346, policy/assets/theme/calendar guards and strict MkDocs4.27s. The preview-only pin
+was updated to this exact tested SHA and read back. Concurrent insights work advanced the
+production pin to `873cea37c878da3f9363d2457aa2a4c5a01db3fb`; its existing schema-two active
+mode and pin were preserved. This task changed no production variable and dispatched no
+new producer run. Current-main NY Fed qualification/publication changes were fast-forwarded
+into the closeout worktree; the footer implementation files and regression file remain
+identical to the tested implementation. Delivery closeout only adds documentation.
+After the fast-forward, the final scoped183 passed in15.17s, Ruff/mypy passed and strict
+MkDocs built in10.55s. These checks preserve the concurrent-main changes and are separate
+from the exact-source full suite above.

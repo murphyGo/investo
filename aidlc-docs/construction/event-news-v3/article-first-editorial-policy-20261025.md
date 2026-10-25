@@ -86,3 +86,9 @@ This bounded user-directed presentation decision is its own design/NFR amendment
 unit or separate approval cycle is needed. Existing development/commit-push authorization
 continues. Acceptance is native finalize/write success plus missing/wrong/misplaced footer
 rejection before filesystem writes, legacy regression checks, and an updated local reference.
+
+Footer implementation `658be680688c969116800e71d0ea9cf597007a9e` passed
+[exact-source quality 40216843514](https://github.com/murphyGo/investo/actions/runs/40216843514):
+7,464 passed/one existing skip, all static/policy/docs and29 client tests. Independent
+review closed the extra wrong-segment/legacy-footer finding, with no open P1/P2. The
+preview-only pin uses this tested code; concurrent production/NY Fed changes are preserved.
