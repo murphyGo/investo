@@ -8152,3 +8152,8 @@ User continuation: “진행시켜”, following the explicit next target u183. 
 ## 2026-10-25 u183 local verification closeout
 
 Steps1–7 verified; Step8 operations pending. Current7143 nodes latest unique7142pass/1existing skip; missing/unmatched0. Finalfocused211pass/63.61s, DSTroundtrip9pass/2.26s; repaired fullshard1789pass/284.53s. Existing PEP495 model-equality failure reproduced onHEAD/current; JSON/UTC preserved, test-only repair+3regressions. Independent C/H/M0(core47,clock2,DST9direct). Ruff/format781/mypy328/policy/strictMkDocs/Material/Calendar/resource PASS. Actual temporaryChromium154 crypto16+macro16cases, lazy56+6rows/hash gatesPASS. FNG1allow/8crypto definitionsblocked;7development endpoint200/9typed replay, no rawfixtures public copy or sourcekey read. Defaultoff, modulesdefaultmacro, no mainintegration/commit/push/privatepin/mode/Pages/Telegramactivation. All requested three screens locally implemented; production/5scheduled acceptance remains separate. Evidence: construction/u183-crypto-market-internals-dashboard/code/summary.md and validation.json.
+
+
+## 2026-10-25 Public insights latest-main integration
+
+User continuation authorized scoped integration and qualified operational linkage. Saved reviewed feature cb56fd7d, merged current remote0768d780 into isolated784626e1; preserved both audit histories, root dirty work and v3/schema2 gates. Full7344pass/1existing skip(1293.42s), Ruff818/mypy344/policy/strictdocs8.50s/Material/Calendar/Node29/browser48/resource PASS. Independent67pass/C/H/M0. Live local shadow: Treasury6metrics, calendar19events, FNG1metric; BLSzero. No runtime/scheduled equivalence claimed. Delivery and actual Pages/private pin/5scheduled evidence follow separately.
