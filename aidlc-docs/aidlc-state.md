@@ -330,6 +330,8 @@ Source permission remains unverified under the u145 exception; Browser is
 
 2026-10-26 사용자 하단 배치 결정: native v3의 상단 중복 짧은 면책을 제거하고 일반 자료 안내·기준일·관측창을 본문 뒤에, canonical 전문을 맨 끝에 1회 둔다. NFR-004/C4 보완과 E1/E5 검증을 적용하며 schema2/legacy 상단 gate는 유지한다. 기사별 근거·조건과 기사0건 사유는 본문에 남긴다. 개발자 reference2개의 편집 변경이며 실제 사람·source·viewport·운영 수용과 완료 횟수는 늘리지 않는다. [증거](../docs/sessions/2026-10-25-event-v3-article-prose.md).
 
+2026-10-26 사용자가 최종 편집 프리뷰 뒤 “승인”으로 확정했다. 사건별 섹션·기사형 산문 기본·주제별 자율 구성·일반 안내/면책 하단 배치를 u169/u171의 승인된 편집 기준으로 기록한다. [편집 승인](construction/event-news-v3/article-first-editorial-policy-20261025.md). 실제 producer corpus의 점수·source/viewport/운영 수용과 유닛 완료 횟수는 별도 증거를 유지한다.
+
 ### u174–u179 — Web UI Modernization (2026-10-10)
 
 **Source**: 사용자는 현재 웹 UI 분석과 로컬 홈 시안을 확인한 뒤 “굿 일단 유닛 문서화부터 진행해줘”라고 요청했다. 최초 코드 기준은 원격 main `48762793`, 최종 문서 통합 기준은 `838bed60`이다. 동시 등록된 사건·뉴스 v3 u167–u173을 보존하고 번호 충돌을 피해 UI u174–u179의 문서만 등록한다. 구현·기능 설계 승인·커밋/푸시·배포 인수를 뜻하지 않는다.

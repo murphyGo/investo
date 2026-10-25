@@ -121,3 +121,16 @@ identical to the tested implementation. Delivery closeout only adds documentatio
 After the fast-forward, the final scoped183 passed in15.17s, Ruff/mypy passed and strict
 MkDocs built in10.55s. These checks preserve the concurrent-main changes and are separate
 from the exact-source full suite above.
+
+## User editorial acceptance — 2026-10-26
+
+After the final footer preview and delivery `1bc15d35`, the user replied “승인”. Record
+the event-section/article-first/flexible-layout/footer-notice policy as approved editorial
+direction for v3. The approved historical reference uses implementation `658be680` at
+<http://127.0.0.1:58755/>. This acceptance does not populate actual producer corpus scores,
+source-slot qualification, measured viewport evidence or production cutover counts.
+
+Approval recording changes documentation only. Live variable readback remains preview
+`658be680688c969116800e71d0ea9cf597007a9e`, production
+`873cea37c878da3f9363d2457aa2a4c5a01db3fb`, existing schema-two active mode. No workflow,
+source access, publication or operational variable was changed by this approval record.

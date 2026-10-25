@@ -8267,3 +8267,14 @@ Preview-only pin readback is658be680. Concurrent insights work's current product
 pin873cea37/schema-two active and latest-main NY Fed changes were preserved. The footer
 implementation/test files are byte-identical to the tested source; closeout adds docs only.
 No live producer, new source HTTP, notification, archive or ledger write was performed.
+
+## 2026-10-26 — User approval of v3 editorial presentation
+
+User: “승인”, after the final article-first/footer preview and main delivery `1bc15d35`.
+Record approval of event sections, default news prose, topic-dependent structured elements
+and general notices/disclaimers at the bottom. The reviewed reference is historical authored
+replay at localhost58755 / implementation658be680; approval establishes the editorial
+baseline without inventing actual semantic scores, viewport measurements or runtime receipts.
+Unit/source/corpus/scheduled counts are unchanged. Documentation-only work continues in the
+clean isolated footer worktree; unrelated dirty root work is preserved. Live readback confirms
+preview658be680 / production873cea37 / existing schema-two active. No operational mutation.
