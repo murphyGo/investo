@@ -1,0 +1,82 @@
+{
+  "base_remote_sha": "0768d780d2e8c2487a004927603c398f8d21c0e8",
+  "feature_sha": "cb56fd7d",
+  "merge_sha": "784626e1f381fcc271e255f6bab0ac8e3ee31d1a",
+  "scope": "current-main merge; no executable changes after validation started",
+  "input_count": 1063,
+  "input_fingerprint": "ada8472675164f977a3104252fe3fdb0992218ef3f3abfcdecc25db061e32163",
+  "pytest": {
+    "passed": 7344,
+    "skipped": 1,
+    "failures": 0,
+    "errors": 0,
+    "wall_seconds": 1293.42,
+    "single_process": true,
+    "skip_reason": "existing public groups migrated committed dataset; separate schema2 fixture covered"
+  },
+  "ruff": {
+    "check": "pass",
+    "format_files": 818
+  },
+  "mypy": {
+    "status": "pass",
+    "source_files": 344
+  },
+  "policies": {
+    "anthropic": "pass",
+    "paid_api": "pass",
+    "curated_assets": "19 filed / 0 deferred",
+    "image_store": "0 binaries / 0 sidecars"
+  },
+  "documentation": {
+    "strict_mkdocs": "pass",
+    "build_seconds": 8.5,
+    "material_css_and_rendered_pair": "pass",
+    "calendar_render_contract": "pass"
+  },
+  "node": {
+    "chart_client_tests": 29,
+    "failures": 0
+  },
+  "browser": {
+    "engine": "temporary local Chromium154; synthetic datasets",
+    "macro_cases": 16,
+    "calendar_cases": 16,
+    "crypto_cases": 16,
+    "errors": 0,
+    "overflow": 0,
+    "zoom": "half CSS viewport and DPR2, not browser chrome zoom",
+    "native_browser_connector_repaired": false
+  },
+  "resource": {
+    "kind": "actual foundation phase with synthetic three-module local bare-Git baseline and push",
+    "metrics": 64,
+    "events": 128,
+    "history_bytes": 8013025,
+    "status": "remote_confirmed",
+    "new_commit_remote_confirmed": true,
+    "additional_rss_bytes": 77398016,
+    "cpu_seconds": 2.547164,
+    "wall_seconds": 5.175457792007364,
+    "source_http_calls": 0,
+    "llm_calls": 0,
+    "telegram_calls": 0
+  },
+  "independent_integration_review": {
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "direct_cross_regressions_passed": 67
+  },
+  "local_live_probe": "local-live-shadow-20261025.json",
+  "operational_acceptance": {
+    "github_quality": "pending delivery",
+    "private_pin": "unchanged at this checkpoint",
+    "publications": "not yet initialized",
+    "scheduled_observations": {
+      "macro": 0,
+      "calendar": 0,
+      "crypto": 0
+    }
+  }
+}

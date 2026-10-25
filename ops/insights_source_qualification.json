@@ -1,0 +1,1770 @@
+{
+  "schema_version": 1,
+  "qualifications": [
+    {
+      "source_name": "treasury-rates",
+      "endpoint": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml",
+      "field_scope": "BC_3MONTH",
+      "definition_ids": [
+        "ust_3m.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "ust_3m.v1",
+          "module": "macro",
+          "public_id": "ust_3m",
+          "unit": "percent",
+          "provider": "US Treasury",
+          "scope_id": "BC_3MONTH",
+          "methodology_id": "daily-par-yield-v1",
+          "sample_policy": "source-day",
+          "cadence": "daily",
+          "calendar_policy": "treasury"
+        }
+      ],
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": true,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.govinfo.gov/content/pkg/USCODE-2024-title17/html/USCODE-2024-title17-chap1-sec105.htm",
+        "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "U.S. Department of the Treasury · Daily Treasury Par Yield Curve Rates. 금리차는 Investo 계산.",
+      "required_env_names": [],
+      "runtime_probe_state": "ok",
+      "allowed_hrefs": [
+        "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml",
+        "https://home.treasury.gov/resource-center/data-chart-center/interest-rates"
+      ]
+    },
+    {
+      "source_name": "treasury-rates",
+      "endpoint": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml",
+      "field_scope": "BC_2YEAR",
+      "definition_ids": [
+        "ust_2y.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "ust_2y.v1",
+          "module": "macro",
+          "public_id": "ust_2y",
+          "unit": "percent",
+          "provider": "US Treasury",
+          "scope_id": "BC_2YEAR",
+          "methodology_id": "daily-par-yield-v1",
+          "sample_policy": "source-day",
+          "cadence": "daily",
+          "calendar_policy": "treasury"
+        }
+      ],
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": true,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.govinfo.gov/content/pkg/USCODE-2024-title17/html/USCODE-2024-title17-chap1-sec105.htm",
+        "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "U.S. Department of the Treasury · Daily Treasury Par Yield Curve Rates. 금리차는 Investo 계산.",
+      "required_env_names": [],
+      "runtime_probe_state": "ok",
+      "allowed_hrefs": [
+        "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml",
+        "https://home.treasury.gov/resource-center/data-chart-center/interest-rates"
+      ]
+    },
+    {
+      "source_name": "treasury-rates",
+      "endpoint": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml",
+      "field_scope": "BC_10YEAR",
+      "definition_ids": [
+        "ust_10y.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "ust_10y.v1",
+          "module": "macro",
+          "public_id": "ust_10y",
+          "unit": "percent",
+          "provider": "US Treasury",
+          "scope_id": "BC_10YEAR",
+          "methodology_id": "daily-par-yield-v1",
+          "sample_policy": "source-day",
+          "cadence": "daily",
+          "calendar_policy": "treasury"
+        }
+      ],
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": true,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.govinfo.gov/content/pkg/USCODE-2024-title17/html/USCODE-2024-title17-chap1-sec105.htm",
+        "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "U.S. Department of the Treasury · Daily Treasury Par Yield Curve Rates. 금리차는 Investo 계산.",
+      "required_env_names": [],
+      "runtime_probe_state": "ok",
+      "allowed_hrefs": [
+        "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml",
+        "https://home.treasury.gov/resource-center/data-chart-center/interest-rates"
+      ]
+    },
+    {
+      "source_name": "treasury-rates",
+      "endpoint": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml",
+      "field_scope": "BC_30YEAR",
+      "definition_ids": [
+        "ust_30y.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "ust_30y.v1",
+          "module": "macro",
+          "public_id": "ust_30y",
+          "unit": "percent",
+          "provider": "US Treasury",
+          "scope_id": "BC_30YEAR",
+          "methodology_id": "daily-par-yield-v1",
+          "sample_policy": "source-day",
+          "cadence": "daily",
+          "calendar_policy": "treasury"
+        }
+      ],
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": true,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.govinfo.gov/content/pkg/USCODE-2024-title17/html/USCODE-2024-title17-chap1-sec105.htm",
+        "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "U.S. Department of the Treasury · Daily Treasury Par Yield Curve Rates. 금리차는 Investo 계산.",
+      "required_env_names": [],
+      "runtime_probe_state": "ok",
+      "allowed_hrefs": [
+        "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml",
+        "https://home.treasury.gov/resource-center/data-chart-center/interest-rates"
+      ]
+    },
+    {
+      "source_name": "treasury-rates",
+      "endpoint": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml",
+      "field_scope": "BC_10YEAR-BC_2YEAR",
+      "definition_ids": [
+        "ust_10y_2y_bp.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "ust_10y_2y_bp.v1",
+          "module": "macro",
+          "public_id": "ust_10y_2y_bp",
+          "unit": "basis_point",
+          "provider": "US Treasury",
+          "scope_id": "BC_10YEAR-BC_2YEAR",
+          "methodology_id": "same-day-percent-difference-times-100-v1",
+          "sample_policy": "source-day",
+          "cadence": "daily",
+          "calendar_policy": "treasury"
+        }
+      ],
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": true,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.govinfo.gov/content/pkg/USCODE-2024-title17/html/USCODE-2024-title17-chap1-sec105.htm",
+        "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "U.S. Department of the Treasury · Daily Treasury Par Yield Curve Rates. 금리차는 Investo 계산.",
+      "required_env_names": [],
+      "runtime_probe_state": "ok",
+      "allowed_hrefs": [
+        "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml",
+        "https://home.treasury.gov/resource-center/data-chart-center/interest-rates"
+      ]
+    },
+    {
+      "source_name": "treasury-rates",
+      "endpoint": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml",
+      "field_scope": "BC_10YEAR-BC_3MONTH",
+      "definition_ids": [
+        "ust_10y_3m_bp.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "ust_10y_3m_bp.v1",
+          "module": "macro",
+          "public_id": "ust_10y_3m_bp",
+          "unit": "basis_point",
+          "provider": "US Treasury",
+          "scope_id": "BC_10YEAR-BC_3MONTH",
+          "methodology_id": "same-day-percent-difference-times-100-v1",
+          "sample_policy": "source-day",
+          "cadence": "daily",
+          "calendar_policy": "treasury"
+        }
+      ],
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": true,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.govinfo.gov/content/pkg/USCODE-2024-title17/html/USCODE-2024-title17-chap1-sec105.htm",
+        "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "U.S. Department of the Treasury · Daily Treasury Par Yield Curve Rates. 금리차는 Investo 계산.",
+      "required_env_names": [],
+      "runtime_probe_state": "ok",
+      "allowed_hrefs": [
+        "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml",
+        "https://home.treasury.gov/resource-center/data-chart-center/interest-rates"
+      ]
+    },
+    {
+      "source_name": "nyfed-reference-rates",
+      "endpoint": "https://markets.newyorkfed.org/api/rates/secured/sofr/last/1.json",
+      "field_scope": "SOFR",
+      "definition_ids": [
+        "sofr.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "sofr.v1",
+          "module": "macro",
+          "public_id": "sofr",
+          "unit": "percent",
+          "provider": "Federal Reserve Bank of New York",
+          "scope_id": "SOFR",
+          "methodology_id": "official-effective-date-v1",
+          "sample_policy": "source-day",
+          "cadence": "daily",
+          "calendar_policy": "sofr"
+        }
+      ],
+      "display_allowed": false,
+      "public_git_history_allowed": false,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.newyorkfed.org/privacy/termsofuse.html",
+        "https://www.newyorkfed.org/markets/reference-rates"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "Federal Reserve Bank of New York · 재배포 고지 충족 전 공개 차단.",
+      "required_env_names": [],
+      "runtime_probe_state": "ok",
+      "allowed_hrefs": [
+        "https://markets.newyorkfed.org/api/rates/secured/sofr/last/1.json",
+        "https://www.newyorkfed.org/markets/reference-rates"
+      ]
+    },
+    {
+      "source_name": "nyfed-reference-rates",
+      "endpoint": "https://markets.newyorkfed.org/api/rates/unsecured/effr/last/1.json",
+      "field_scope": "EFFR",
+      "definition_ids": [
+        "effr.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "effr.v1",
+          "module": "macro",
+          "public_id": "effr",
+          "unit": "percent",
+          "provider": "Federal Reserve Bank of New York",
+          "scope_id": "EFFR",
+          "methodology_id": "official-effective-date-v1",
+          "sample_policy": "source-day",
+          "cadence": "daily",
+          "calendar_policy": "effr"
+        }
+      ],
+      "display_allowed": false,
+      "public_git_history_allowed": false,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.newyorkfed.org/privacy/termsofuse.html",
+        "https://www.newyorkfed.org/markets/reference-rates"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "Federal Reserve Bank of New York · 재배포 고지 충족 전 공개 차단.",
+      "required_env_names": [],
+      "runtime_probe_state": "unverified",
+      "allowed_hrefs": [
+        "https://markets.newyorkfed.org/api/rates/unsecured/effr/last/1.json",
+        "https://www.newyorkfed.org/markets/reference-rates"
+      ]
+    },
+    {
+      "source_name": "nyfed-reference-rates",
+      "endpoint": "https://markets.newyorkfed.org/api/rates",
+      "field_scope": "SOFR-EFFR",
+      "definition_ids": [
+        "sofr_effr_bp.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "sofr_effr_bp.v1",
+          "module": "macro",
+          "public_id": "sofr_effr_bp",
+          "unit": "basis_point",
+          "provider": "Federal Reserve Bank of New York",
+          "scope_id": "SOFR-EFFR",
+          "methodology_id": "same-effective-day-percent-difference-times-100-v1",
+          "sample_policy": "source-day",
+          "cadence": "daily",
+          "calendar_policy": "sofr"
+        }
+      ],
+      "display_allowed": false,
+      "public_git_history_allowed": false,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.newyorkfed.org/privacy/termsofuse.html",
+        "https://www.newyorkfed.org/markets/reference-rates"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "Federal Reserve Bank of New York · 재배포 고지 충족 전 공개 차단.",
+      "required_env_names": [],
+      "runtime_probe_state": "unverified",
+      "allowed_hrefs": [
+        "https://markets.newyorkfed.org/api/rates",
+        "https://www.newyorkfed.org/markets/reference-rates"
+      ]
+    },
+    {
+      "source_name": "fred-fx-close",
+      "endpoint": "https://api.stlouisfed.org/fred/series/observations",
+      "field_scope": "DEXKOUS",
+      "definition_ids": [
+        "usd_krw_h10.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "usd_krw_h10.v1",
+          "module": "macro",
+          "public_id": "usd_krw_h10",
+          "unit": "krw_per_usd",
+          "provider": "Federal Reserve Board via FRED",
+          "scope_id": "DEXKOUS",
+          "methodology_id": "h10-noon-buying-rate-not-exchange-close-v1",
+          "sample_policy": "source-day",
+          "cadence": "daily",
+          "calendar_policy": "h10"
+        }
+      ],
+      "display_allowed": false,
+      "public_git_history_allowed": false,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://fred.stlouisfed.org/legal/terms/",
+        "https://fred.stlouisfed.org/series/DEXKOUS"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "Board of Governors, H.10 DEXKOUS via FRED · 사용 조건 검토 전 공개 차단.",
+      "required_env_names": [
+        "FRED_API_KEY"
+      ],
+      "runtime_probe_state": "unverified",
+      "allowed_hrefs": [
+        "https://api.stlouisfed.org/fred/series/observations",
+        "https://fred.stlouisfed.org/series/DEXKOUS"
+      ]
+    },
+    {
+      "source_name": "bls-macro-actuals",
+      "endpoint": "https://api.bls.gov/publicAPI/v2/timeseries/data/CUSR0000SA0",
+      "field_scope": "CUSR0000SA0",
+      "definition_ids": [
+        "cpi_sa_index.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "cpi_sa_index.v1",
+          "module": "macro",
+          "public_id": "cpi_sa_index",
+          "unit": "index",
+          "provider": "US Bureau of Labor Statistics",
+          "scope_id": "CUSR0000SA0",
+          "methodology_id": "SA-1982-84=100-revisable-v1",
+          "sample_policy": "source-period-revisions",
+          "cadence": "monthly",
+          "calendar_policy": "federal"
+        }
+      ],
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": true,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.bls.gov/opub/copyright-information.htm",
+        "https://www.bls.gov/data/"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "U.S. Bureau of Labor Statistics · 계절조정 월간 원천 자료. CPI 1982-84=100; 실업률 percent. 수정될 수 있습니다.",
+      "required_env_names": [],
+      "runtime_probe_state": "failed",
+      "allowed_hrefs": [
+        "https://api.bls.gov/publicAPI/v2/timeseries/data/CUSR0000SA0",
+        "https://www.bls.gov/data/"
+      ]
+    },
+    {
+      "source_name": "bls-macro-actuals",
+      "endpoint": "https://api.bls.gov/publicAPI/v2/timeseries/data/CUSR0000SA0L1E",
+      "field_scope": "CUSR0000SA0L1E",
+      "definition_ids": [
+        "core_cpi_sa_index.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "core_cpi_sa_index.v1",
+          "module": "macro",
+          "public_id": "core_cpi_sa_index",
+          "unit": "index",
+          "provider": "US Bureau of Labor Statistics",
+          "scope_id": "CUSR0000SA0L1E",
+          "methodology_id": "SA-1982-84=100-revisable-v1",
+          "sample_policy": "source-period-revisions",
+          "cadence": "monthly",
+          "calendar_policy": "federal"
+        }
+      ],
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": true,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.bls.gov/opub/copyright-information.htm",
+        "https://www.bls.gov/data/"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "U.S. Bureau of Labor Statistics · 계절조정 월간 원천 자료. CPI 1982-84=100; 실업률 percent. 수정될 수 있습니다.",
+      "required_env_names": [],
+      "runtime_probe_state": "unverified",
+      "allowed_hrefs": [
+        "https://api.bls.gov/publicAPI/v2/timeseries/data/CUSR0000SA0L1E",
+        "https://www.bls.gov/data/"
+      ]
+    },
+    {
+      "source_name": "bls-macro-actuals",
+      "endpoint": "https://api.bls.gov/publicAPI/v2/timeseries/data/LNS14000000",
+      "field_scope": "LNS14000000",
+      "definition_ids": [
+        "unemployment_rate.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "unemployment_rate.v1",
+          "module": "macro",
+          "public_id": "unemployment_rate",
+          "unit": "percent",
+          "provider": "US Bureau of Labor Statistics",
+          "scope_id": "LNS14000000",
+          "methodology_id": "SA-civilian-16plus-revisable-v1",
+          "sample_policy": "source-period-revisions",
+          "cadence": "monthly",
+          "calendar_policy": "federal"
+        }
+      ],
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": true,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.bls.gov/opub/copyright-information.htm",
+        "https://www.bls.gov/data/"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "U.S. Bureau of Labor Statistics · 계절조정 월간 원천 자료. CPI 1982-84=100; 실업률 percent. 수정될 수 있습니다.",
+      "required_env_names": [],
+      "runtime_probe_state": "unverified",
+      "allowed_hrefs": [
+        "https://api.bls.gov/publicAPI/v2/timeseries/data/LNS14000000",
+        "https://www.bls.gov/data/"
+      ]
+    },
+    {
+      "source_name": "fomc-calendar",
+      "endpoint": "https://www.federalreserve.gov/json/calendar.json",
+      "field_scope": "schedule.fed.meeting",
+      "definition_ids": [
+        "calendar.fed.meeting.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "calendar.fed.meeting.v1",
+          "module": "calendar",
+          "public_id": "calendar.fed.meeting.v1",
+          "unit": null,
+          "provider": null,
+          "scope_id": null,
+          "methodology_id": null,
+          "sample_policy": null,
+          "cadence": "schedule",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.federalreserve.gov/disclaimer.htm",
+        "https://www.federalreserve.gov/newsevents/calendar.htm"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "Board of Governors of the Federal Reserve System · 공식 일정의 날짜와 종류. 비공식 한국어 표시이며 원천에서 변경 여부를 확인하세요.",
+      "required_env_names": [],
+      "runtime_probe_state": "ok",
+      "allowed_hrefs": [
+        "https://www.federalreserve.gov/json/calendar.json",
+        "https://www.federalreserve.gov/newsevents/calendar.htm"
+      ]
+    },
+    {
+      "source_name": "fomc-calendar",
+      "endpoint": "https://www.federalreserve.gov/json/calendar.json",
+      "field_scope": "schedule.fed.statement",
+      "definition_ids": [
+        "calendar.fed.statement.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "calendar.fed.statement.v1",
+          "module": "calendar",
+          "public_id": "calendar.fed.statement.v1",
+          "unit": null,
+          "provider": null,
+          "scope_id": null,
+          "methodology_id": null,
+          "sample_policy": null,
+          "cadence": "schedule",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.federalreserve.gov/disclaimer.htm",
+        "https://www.federalreserve.gov/newsevents/calendar.htm"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "Board of Governors of the Federal Reserve System · 공식 일정의 날짜와 종류. 비공식 한국어 표시이며 원천에서 변경 여부를 확인하세요.",
+      "required_env_names": [],
+      "runtime_probe_state": "unverified",
+      "allowed_hrefs": [
+        "https://www.federalreserve.gov/json/calendar.json",
+        "https://www.federalreserve.gov/newsevents/calendar.htm"
+      ]
+    },
+    {
+      "source_name": "fomc-calendar",
+      "endpoint": "https://www.federalreserve.gov/json/calendar.json",
+      "field_scope": "schedule.fed.press_conference",
+      "definition_ids": [
+        "calendar.fed.press_conference.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "calendar.fed.press_conference.v1",
+          "module": "calendar",
+          "public_id": "calendar.fed.press_conference.v1",
+          "unit": null,
+          "provider": null,
+          "scope_id": null,
+          "methodology_id": null,
+          "sample_policy": null,
+          "cadence": "schedule",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.federalreserve.gov/disclaimer.htm",
+        "https://www.federalreserve.gov/newsevents/calendar.htm"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "Board of Governors of the Federal Reserve System · 공식 일정의 날짜와 종류. 비공식 한국어 표시이며 원천에서 변경 여부를 확인하세요.",
+      "required_env_names": [],
+      "runtime_probe_state": "ok",
+      "allowed_hrefs": [
+        "https://www.federalreserve.gov/json/calendar.json",
+        "https://www.federalreserve.gov/newsevents/calendar.htm"
+      ]
+    },
+    {
+      "source_name": "fomc-calendar",
+      "endpoint": "https://www.federalreserve.gov/json/calendar.json",
+      "field_scope": "schedule.fed.minutes",
+      "definition_ids": [
+        "calendar.fed.minutes.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "calendar.fed.minutes.v1",
+          "module": "calendar",
+          "public_id": "calendar.fed.minutes.v1",
+          "unit": null,
+          "provider": null,
+          "scope_id": null,
+          "methodology_id": null,
+          "sample_policy": null,
+          "cadence": "schedule",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.federalreserve.gov/disclaimer.htm",
+        "https://www.federalreserve.gov/newsevents/calendar.htm"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "Board of Governors of the Federal Reserve System · 공식 일정의 날짜와 종류. 비공식 한국어 표시이며 원천에서 변경 여부를 확인하세요.",
+      "required_env_names": [],
+      "runtime_probe_state": "ok",
+      "allowed_hrefs": [
+        "https://www.federalreserve.gov/json/calendar.json",
+        "https://www.federalreserve.gov/newsevents/calendar.htm"
+      ]
+    },
+    {
+      "source_name": "fomc-calendar",
+      "endpoint": "https://www.federalreserve.gov/json/calendar.json",
+      "field_scope": "schedule.fed.speech",
+      "definition_ids": [
+        "calendar.fed.speech.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "calendar.fed.speech.v1",
+          "module": "calendar",
+          "public_id": "calendar.fed.speech.v1",
+          "unit": null,
+          "provider": null,
+          "scope_id": null,
+          "methodology_id": null,
+          "sample_policy": null,
+          "cadence": "schedule",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.federalreserve.gov/disclaimer.htm",
+        "https://www.federalreserve.gov/newsevents/calendar.htm"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "Board of Governors of the Federal Reserve System · 공식 일정의 날짜와 종류. 비공식 한국어 표시이며 원천에서 변경 여부를 확인하세요.",
+      "required_env_names": [],
+      "runtime_probe_state": "unverified",
+      "allowed_hrefs": [
+        "https://www.federalreserve.gov/json/calendar.json",
+        "https://www.federalreserve.gov/newsevents/calendar.htm"
+      ]
+    },
+    {
+      "source_name": "fomc-calendar",
+      "endpoint": "https://www.federalreserve.gov/json/calendar.json",
+      "field_scope": "schedule.fed.beige",
+      "definition_ids": [
+        "calendar.fed.beige.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "calendar.fed.beige.v1",
+          "module": "calendar",
+          "public_id": "calendar.fed.beige.v1",
+          "unit": null,
+          "provider": null,
+          "scope_id": null,
+          "methodology_id": null,
+          "sample_policy": null,
+          "cadence": "schedule",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.federalreserve.gov/disclaimer.htm",
+        "https://www.federalreserve.gov/newsevents/calendar.htm"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "Board of Governors of the Federal Reserve System · 공식 일정의 날짜와 종류. 비공식 한국어 표시이며 원천에서 변경 여부를 확인하세요.",
+      "required_env_names": [],
+      "runtime_probe_state": "unverified",
+      "allowed_hrefs": [
+        "https://www.federalreserve.gov/json/calendar.json",
+        "https://www.federalreserve.gov/newsevents/calendar.htm"
+      ]
+    },
+    {
+      "source_name": "fomc-calendar",
+      "endpoint": "https://www.federalreserve.gov/json/calendar.json",
+      "field_scope": "schedule.fed.statistics",
+      "definition_ids": [
+        "calendar.fed.statistics.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "calendar.fed.statistics.v1",
+          "module": "calendar",
+          "public_id": "calendar.fed.statistics.v1",
+          "unit": null,
+          "provider": null,
+          "scope_id": null,
+          "methodology_id": null,
+          "sample_policy": null,
+          "cadence": "schedule",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.federalreserve.gov/disclaimer.htm",
+        "https://www.federalreserve.gov/newsevents/calendar.htm"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "Board of Governors of the Federal Reserve System · 공식 일정의 날짜와 종류. 비공식 한국어 표시이며 원천에서 변경 여부를 확인하세요.",
+      "required_env_names": [],
+      "runtime_probe_state": "ok",
+      "allowed_hrefs": [
+        "https://www.federalreserve.gov/json/calendar.json",
+        "https://www.federalreserve.gov/newsevents/calendar.htm"
+      ]
+    },
+    {
+      "source_name": "fomc-calendar",
+      "endpoint": "https://www.federalreserve.gov/json/calendar.json",
+      "field_scope": "schedule.fed.testimony",
+      "definition_ids": [
+        "calendar.fed.testimony.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "calendar.fed.testimony.v1",
+          "module": "calendar",
+          "public_id": "calendar.fed.testimony.v1",
+          "unit": null,
+          "provider": null,
+          "scope_id": null,
+          "methodology_id": null,
+          "sample_policy": null,
+          "cadence": "schedule",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.federalreserve.gov/disclaimer.htm",
+        "https://www.federalreserve.gov/newsevents/calendar.htm"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "Board of Governors of the Federal Reserve System · 공식 일정의 날짜와 종류. 비공식 한국어 표시이며 원천에서 변경 여부를 확인하세요.",
+      "required_env_names": [],
+      "runtime_probe_state": "unverified",
+      "allowed_hrefs": [
+        "https://www.federalreserve.gov/json/calendar.json",
+        "https://www.federalreserve.gov/newsevents/calendar.htm"
+      ]
+    },
+    {
+      "source_name": "fomc-calendar",
+      "endpoint": "https://www.federalreserve.gov/json/calendar.json",
+      "field_scope": "schedule.fed.holiday",
+      "definition_ids": [
+        "calendar.fed.holiday.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "calendar.fed.holiday.v1",
+          "module": "calendar",
+          "public_id": "calendar.fed.holiday.v1",
+          "unit": null,
+          "provider": null,
+          "scope_id": null,
+          "methodology_id": null,
+          "sample_policy": null,
+          "cadence": "schedule",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.federalreserve.gov/disclaimer.htm",
+        "https://www.federalreserve.gov/newsevents/calendar.htm"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "Board of Governors of the Federal Reserve System · 공식 일정의 날짜와 종류. 비공식 한국어 표시이며 원천에서 변경 여부를 확인하세요.",
+      "required_env_names": [],
+      "runtime_probe_state": "ok",
+      "allowed_hrefs": [
+        "https://www.federalreserve.gov/json/calendar.json",
+        "https://www.federalreserve.gov/newsevents/calendar.htm"
+      ]
+    },
+    {
+      "source_name": "us-economic-calendar",
+      "endpoint": "https://www.bea.gov/news/schedule",
+      "field_scope": "schedule.bea.gdp",
+      "definition_ids": [
+        "calendar.bea.gdp.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "calendar.bea.gdp.v1",
+          "module": "calendar",
+          "public_id": "calendar.bea.gdp.v1",
+          "unit": null,
+          "provider": null,
+          "scope_id": null,
+          "methodology_id": null,
+          "sample_policy": null,
+          "cadence": "schedule",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.bea.gov/help/faq/147",
+        "https://www.bea.gov/news/schedule"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "Source: U.S. Bureau of Economic Analysis · 공식 발표 일정. BEA의 보증·인증을 뜻하지 않습니다.",
+      "required_env_names": [],
+      "runtime_probe_state": "ok",
+      "allowed_hrefs": [
+        "https://www.bea.gov/news/schedule"
+      ]
+    },
+    {
+      "source_name": "us-economic-calendar",
+      "endpoint": "https://www.bea.gov/news/schedule",
+      "field_scope": "schedule.bea.pce",
+      "definition_ids": [
+        "calendar.bea.pce.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "calendar.bea.pce.v1",
+          "module": "calendar",
+          "public_id": "calendar.bea.pce.v1",
+          "unit": null,
+          "provider": null,
+          "scope_id": null,
+          "methodology_id": null,
+          "sample_policy": null,
+          "cadence": "schedule",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.bea.gov/help/faq/147",
+        "https://www.bea.gov/news/schedule"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "Source: U.S. Bureau of Economic Analysis · 공식 발표 일정. BEA의 보증·인증을 뜻하지 않습니다.",
+      "required_env_names": [],
+      "runtime_probe_state": "ok",
+      "allowed_hrefs": [
+        "https://www.bea.gov/news/schedule"
+      ]
+    },
+    {
+      "source_name": "us-economic-calendar",
+      "endpoint": "https://www.bea.gov/news/schedule",
+      "field_scope": "schedule.bea.trade",
+      "definition_ids": [
+        "calendar.bea.trade.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "calendar.bea.trade.v1",
+          "module": "calendar",
+          "public_id": "calendar.bea.trade.v1",
+          "unit": null,
+          "provider": null,
+          "scope_id": null,
+          "methodology_id": null,
+          "sample_policy": null,
+          "cadence": "schedule",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.bea.gov/help/faq/147",
+        "https://www.bea.gov/news/schedule"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "Source: U.S. Bureau of Economic Analysis · 공식 발표 일정. BEA의 보증·인증을 뜻하지 않습니다.",
+      "required_env_names": [],
+      "runtime_probe_state": "ok",
+      "allowed_hrefs": [
+        "https://www.bea.gov/news/schedule"
+      ]
+    },
+    {
+      "source_name": "us-economic-calendar",
+      "endpoint": "https://www.bea.gov/news/schedule",
+      "field_scope": "schedule.bea.other",
+      "definition_ids": [
+        "calendar.bea.other.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "calendar.bea.other.v1",
+          "module": "calendar",
+          "public_id": "calendar.bea.other.v1",
+          "unit": null,
+          "provider": null,
+          "scope_id": null,
+          "methodology_id": null,
+          "sample_policy": null,
+          "cadence": "schedule",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.bea.gov/help/faq/147",
+        "https://www.bea.gov/news/schedule"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "Source: U.S. Bureau of Economic Analysis · 공식 발표 일정. BEA의 보증·인증을 뜻하지 않습니다.",
+      "required_env_names": [],
+      "runtime_probe_state": "ok",
+      "allowed_hrefs": [
+        "https://www.bea.gov/news/schedule"
+      ]
+    },
+    {
+      "source_name": "fred-economic-calendar",
+      "endpoint": "https://api.stlouisfed.org/fred/release/dates",
+      "field_scope": "schedule.fred.10",
+      "definition_ids": [
+        "calendar.fred.10.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "calendar.fred.10.v1",
+          "module": "calendar",
+          "public_id": "calendar.fred.10.v1",
+          "unit": null,
+          "provider": null,
+          "scope_id": null,
+          "methodology_id": null,
+          "sample_policy": null,
+          "cadence": "schedule",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": false,
+      "public_git_history_allowed": false,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://fred.stlouisfed.org/legal/terms/",
+        "https://fred.stlouisfed.org/releases/calendar"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "FRED, Federal Reserve Bank of St. Louis · 일정 재배포 범위의 사용 조건 확인 전 공개 차단.",
+      "required_env_names": [
+        "FRED_API_KEY"
+      ],
+      "runtime_probe_state": "unverified",
+      "allowed_hrefs": [
+        "https://api.stlouisfed.org/fred/release/dates",
+        "https://fred.stlouisfed.org/releases/calendar"
+      ]
+    },
+    {
+      "source_name": "fred-economic-calendar",
+      "endpoint": "https://api.stlouisfed.org/fred/release/dates",
+      "field_scope": "schedule.fred.46",
+      "definition_ids": [
+        "calendar.fred.46.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "calendar.fred.46.v1",
+          "module": "calendar",
+          "public_id": "calendar.fred.46.v1",
+          "unit": null,
+          "provider": null,
+          "scope_id": null,
+          "methodology_id": null,
+          "sample_policy": null,
+          "cadence": "schedule",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": false,
+      "public_git_history_allowed": false,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://fred.stlouisfed.org/legal/terms/",
+        "https://fred.stlouisfed.org/releases/calendar"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "FRED, Federal Reserve Bank of St. Louis · 일정 재배포 범위의 사용 조건 확인 전 공개 차단.",
+      "required_env_names": [
+        "FRED_API_KEY"
+      ],
+      "runtime_probe_state": "unverified",
+      "allowed_hrefs": [
+        "https://api.stlouisfed.org/fred/release/dates",
+        "https://fred.stlouisfed.org/releases/calendar"
+      ]
+    },
+    {
+      "source_name": "fred-economic-calendar",
+      "endpoint": "https://api.stlouisfed.org/fred/release/dates",
+      "field_scope": "schedule.fred.50",
+      "definition_ids": [
+        "calendar.fred.50.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "calendar.fred.50.v1",
+          "module": "calendar",
+          "public_id": "calendar.fred.50.v1",
+          "unit": null,
+          "provider": null,
+          "scope_id": null,
+          "methodology_id": null,
+          "sample_policy": null,
+          "cadence": "schedule",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": false,
+      "public_git_history_allowed": false,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://fred.stlouisfed.org/legal/terms/",
+        "https://fred.stlouisfed.org/releases/calendar"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "FRED, Federal Reserve Bank of St. Louis · 일정 재배포 범위의 사용 조건 확인 전 공개 차단.",
+      "required_env_names": [
+        "FRED_API_KEY"
+      ],
+      "runtime_probe_state": "unverified",
+      "allowed_hrefs": [
+        "https://api.stlouisfed.org/fred/release/dates",
+        "https://fred.stlouisfed.org/releases/calendar"
+      ]
+    },
+    {
+      "source_name": "fred-economic-calendar",
+      "endpoint": "https://api.stlouisfed.org/fred/release/dates",
+      "field_scope": "schedule.fred.53",
+      "definition_ids": [
+        "calendar.fred.53.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "calendar.fred.53.v1",
+          "module": "calendar",
+          "public_id": "calendar.fred.53.v1",
+          "unit": null,
+          "provider": null,
+          "scope_id": null,
+          "methodology_id": null,
+          "sample_policy": null,
+          "cadence": "schedule",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": false,
+      "public_git_history_allowed": false,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://fred.stlouisfed.org/legal/terms/",
+        "https://fred.stlouisfed.org/releases/calendar"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "FRED, Federal Reserve Bank of St. Louis · 일정 재배포 범위의 사용 조건 확인 전 공개 차단.",
+      "required_env_names": [
+        "FRED_API_KEY"
+      ],
+      "runtime_probe_state": "unverified",
+      "allowed_hrefs": [
+        "https://api.stlouisfed.org/fred/release/dates",
+        "https://fred.stlouisfed.org/releases/calendar"
+      ]
+    },
+    {
+      "source_name": "fred-economic-calendar",
+      "endpoint": "https://api.stlouisfed.org/fred/release/dates",
+      "field_scope": "schedule.fred.54",
+      "definition_ids": [
+        "calendar.fred.54.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "calendar.fred.54.v1",
+          "module": "calendar",
+          "public_id": "calendar.fred.54.v1",
+          "unit": null,
+          "provider": null,
+          "scope_id": null,
+          "methodology_id": null,
+          "sample_policy": null,
+          "cadence": "schedule",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": false,
+      "public_git_history_allowed": false,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://fred.stlouisfed.org/legal/terms/",
+        "https://fred.stlouisfed.org/releases/calendar"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "FRED, Federal Reserve Bank of St. Louis · 일정 재배포 범위의 사용 조건 확인 전 공개 차단.",
+      "required_env_names": [
+        "FRED_API_KEY"
+      ],
+      "runtime_probe_state": "unverified",
+      "allowed_hrefs": [
+        "https://api.stlouisfed.org/fred/release/dates",
+        "https://fred.stlouisfed.org/releases/calendar"
+      ]
+    },
+    {
+      "source_name": "fred-economic-calendar",
+      "endpoint": "https://api.stlouisfed.org/fred/release/dates",
+      "field_scope": "schedule.fred.13",
+      "definition_ids": [
+        "calendar.fred.13.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "calendar.fred.13.v1",
+          "module": "calendar",
+          "public_id": "calendar.fred.13.v1",
+          "unit": null,
+          "provider": null,
+          "scope_id": null,
+          "methodology_id": null,
+          "sample_policy": null,
+          "cadence": "schedule",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": false,
+      "public_git_history_allowed": false,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://fred.stlouisfed.org/legal/terms/",
+        "https://fred.stlouisfed.org/releases/calendar"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "FRED, Federal Reserve Bank of St. Louis · 일정 재배포 범위의 사용 조건 확인 전 공개 차단.",
+      "required_env_names": [
+        "FRED_API_KEY"
+      ],
+      "runtime_probe_state": "unverified",
+      "allowed_hrefs": [
+        "https://api.stlouisfed.org/fred/release/dates",
+        "https://fred.stlouisfed.org/releases/calendar"
+      ]
+    },
+    {
+      "source_name": "fred-economic-calendar",
+      "endpoint": "https://api.stlouisfed.org/fred/release/dates",
+      "field_scope": "schedule.fred.9",
+      "definition_ids": [
+        "calendar.fred.9.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "calendar.fred.9.v1",
+          "module": "calendar",
+          "public_id": "calendar.fred.9.v1",
+          "unit": null,
+          "provider": null,
+          "scope_id": null,
+          "methodology_id": null,
+          "sample_policy": null,
+          "cadence": "schedule",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": false,
+      "public_git_history_allowed": false,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://fred.stlouisfed.org/legal/terms/",
+        "https://fred.stlouisfed.org/releases/calendar"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "FRED, Federal Reserve Bank of St. Louis · 일정 재배포 범위의 사용 조건 확인 전 공개 차단.",
+      "required_env_names": [
+        "FRED_API_KEY"
+      ],
+      "runtime_probe_state": "unverified",
+      "allowed_hrefs": [
+        "https://api.stlouisfed.org/fred/release/dates",
+        "https://fred.stlouisfed.org/releases/calendar"
+      ]
+    },
+    {
+      "source_name": "fred-economic-calendar",
+      "endpoint": "https://api.stlouisfed.org/fred/release/dates",
+      "field_scope": "schedule.fred.192",
+      "definition_ids": [
+        "calendar.fred.192.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "calendar.fred.192.v1",
+          "module": "calendar",
+          "public_id": "calendar.fred.192.v1",
+          "unit": null,
+          "provider": null,
+          "scope_id": null,
+          "methodology_id": null,
+          "sample_policy": null,
+          "cadence": "schedule",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": false,
+      "public_git_history_allowed": false,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://fred.stlouisfed.org/legal/terms/",
+        "https://fred.stlouisfed.org/releases/calendar"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "FRED, Federal Reserve Bank of St. Louis · 일정 재배포 범위의 사용 조건 확인 전 공개 차단.",
+      "required_env_names": [
+        "FRED_API_KEY"
+      ],
+      "runtime_probe_state": "unverified",
+      "allowed_hrefs": [
+        "https://api.stlouisfed.org/fred/release/dates",
+        "https://fred.stlouisfed.org/releases/calendar"
+      ]
+    },
+    {
+      "source_name": "fred-economic-calendar",
+      "endpoint": "https://api.stlouisfed.org/fred/release/dates",
+      "field_scope": "schedule.fred.27",
+      "definition_ids": [
+        "calendar.fred.27.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "calendar.fred.27.v1",
+          "module": "calendar",
+          "public_id": "calendar.fred.27.v1",
+          "unit": null,
+          "provider": null,
+          "scope_id": null,
+          "methodology_id": null,
+          "sample_policy": null,
+          "cadence": "schedule",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": false,
+      "public_git_history_allowed": false,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://fred.stlouisfed.org/legal/terms/",
+        "https://fred.stlouisfed.org/releases/calendar"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "FRED, Federal Reserve Bank of St. Louis · 일정 재배포 범위의 사용 조건 확인 전 공개 차단.",
+      "required_env_names": [
+        "FRED_API_KEY"
+      ],
+      "runtime_probe_state": "unverified",
+      "allowed_hrefs": [
+        "https://api.stlouisfed.org/fred/release/dates",
+        "https://fred.stlouisfed.org/releases/calendar"
+      ]
+    },
+    {
+      "source_name": "fred-economic-calendar",
+      "endpoint": "https://api.stlouisfed.org/fred/release/dates",
+      "field_scope": "schedule.fred.291",
+      "definition_ids": [
+        "calendar.fred.291.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "calendar.fred.291.v1",
+          "module": "calendar",
+          "public_id": "calendar.fred.291.v1",
+          "unit": null,
+          "provider": null,
+          "scope_id": null,
+          "methodology_id": null,
+          "sample_policy": null,
+          "cadence": "schedule",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": false,
+      "public_git_history_allowed": false,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://fred.stlouisfed.org/legal/terms/",
+        "https://fred.stlouisfed.org/releases/calendar"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "FRED, Federal Reserve Bank of St. Louis · 일정 재배포 범위의 사용 조건 확인 전 공개 차단.",
+      "required_env_names": [
+        "FRED_API_KEY"
+      ],
+      "runtime_probe_state": "unverified",
+      "allowed_hrefs": [
+        "https://api.stlouisfed.org/fred/release/dates",
+        "https://fred.stlouisfed.org/releases/calendar"
+      ]
+    },
+    {
+      "source_name": "treasury-auctions",
+      "endpoint": "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/upcoming_auctions",
+      "field_scope": "schedule.treasury.auction",
+      "definition_ids": [
+        "calendar.treasury.auction.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "calendar.treasury.auction.v1",
+          "module": "calendar",
+          "public_id": "calendar.treasury.auction.v1",
+          "unit": null,
+          "provider": null,
+          "scope_id": null,
+          "methodology_id": null,
+          "sample_policy": null,
+          "cadence": "schedule",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.govinfo.gov/content/pkg/USCODE-2024-title17/html/USCODE-2024-title17-chap1-sec105.htm",
+        "https://fiscaldata.treasury.gov/datasets/upcoming-auctions/upcoming-auctions"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "U.S. Department of the Treasury, Fiscal Data · 국채 입찰 예정 날짜·만기·재발행. 원천 갱신 지연과 수집 필터가 적용됩니다.",
+      "required_env_names": [],
+      "runtime_probe_state": "ok",
+      "allowed_hrefs": [
+        "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/upcoming_auctions",
+        "https://fiscaldata.treasury.gov/datasets/upcoming-auctions/upcoming-auctions"
+      ]
+    },
+    {
+      "source_name": "coingecko-global-market",
+      "endpoint": "https://api.coingecko.com/api/v3/global",
+      "field_scope": "data.market_cap_percentage.btc",
+      "definition_ids": [
+        "crypto.btc_dominance.coingecko.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "crypto.btc_dominance.coingecko.v1",
+          "module": "crypto",
+          "public_id": "btc_dominance",
+          "unit": "percent",
+          "provider": "CoinGecko",
+          "scope_id": "global.tracked.market_cap",
+          "methodology_id": "btc-market-cap-share-v1",
+          "sample_policy": "utc-collection-day-last-confirmed",
+          "cadence": "snapshot",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": false,
+      "public_git_history_allowed": false,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.coingecko.com/en/api_terms",
+        "https://www.coingecko.com/en/global-charts"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "CoinGecko · 공개 Git 재배포/보관 조건 확인 전 표시 차단.",
+      "required_env_names": [],
+      "runtime_probe_state": "ok",
+      "allowed_hrefs": [
+        "https://api.coingecko.com/api/v3/global",
+        "https://www.coingecko.com/en/global-charts"
+      ]
+    },
+    {
+      "source_name": "coingecko-global-market",
+      "endpoint": "https://api.coingecko.com/api/v3/global",
+      "field_scope": "data.total_market_cap.usd",
+      "definition_ids": [
+        "crypto.market_cap_usd.coingecko.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "crypto.market_cap_usd.coingecko.v1",
+          "module": "crypto",
+          "public_id": "market_cap_usd",
+          "unit": "usd",
+          "provider": "CoinGecko",
+          "scope_id": "global.tracked.market_cap",
+          "methodology_id": "tracked-market-cap-usd-v1",
+          "sample_policy": "utc-collection-day-last-confirmed",
+          "cadence": "snapshot",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": false,
+      "public_git_history_allowed": false,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.coingecko.com/en/api_terms",
+        "https://www.coingecko.com/en/global-charts"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "CoinGecko · 공개 Git 재배포/보관 조건 확인 전 표시 차단.",
+      "required_env_names": [],
+      "runtime_probe_state": "ok",
+      "allowed_hrefs": [
+        "https://api.coingecko.com/api/v3/global",
+        "https://www.coingecko.com/en/global-charts"
+      ]
+    },
+    {
+      "source_name": "defillama-market-structure",
+      "endpoint": "https://stablecoins.llama.fi/stablecoins",
+      "field_scope": "peggedAssets.circulating.peggedUSD",
+      "definition_ids": [
+        "crypto.usd_stablecoin_supply.defillama.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "crypto.usd_stablecoin_supply.defillama.v1",
+          "module": "crypto",
+          "public_id": "usd_stablecoin_supply",
+          "unit": "usd",
+          "provider": "DeFiLlama",
+          "scope_id": "named-positive.peggedUSD",
+          "methodology_id": "circulating-peggedUSD-nominal-sum-v1",
+          "sample_policy": "utc-collection-day-last-confirmed",
+          "cadence": "snapshot",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": false,
+      "public_git_history_allowed": false,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://enterprise.defillama.com/terms",
+        "https://defillama.com/stablecoins"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "DeFiLlama · 공개 Git 재배포/보관 조건 확인 전 표시 차단.",
+      "required_env_names": [],
+      "runtime_probe_state": "ok",
+      "allowed_hrefs": [
+        "https://stablecoins.llama.fi/stablecoins",
+        "https://defillama.com/stablecoins"
+      ]
+    },
+    {
+      "source_name": "defillama-market-structure",
+      "endpoint": "https://api.llama.fi/v2/chains",
+      "field_scope": "chains.tvl",
+      "definition_ids": [
+        "crypto.chain_tvl_sum.defillama.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "crypto.chain_tvl_sum.defillama.v1",
+          "module": "crypto",
+          "public_id": "chain_tvl_sum",
+          "unit": "usd",
+          "provider": "DeFiLlama",
+          "scope_id": "named-positive.chain-tvl",
+          "methodology_id": "chain-tvl-usd-sum-not-netflow-v1",
+          "sample_policy": "utc-collection-day-last-confirmed",
+          "cadence": "snapshot",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": false,
+      "public_git_history_allowed": false,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://enterprise.defillama.com/terms",
+        "https://defillama.com/chains"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "DeFiLlama · 공개 Git 재배포/보관 조건 확인 전 표시 차단.",
+      "required_env_names": [],
+      "runtime_probe_state": "ok",
+      "allowed_hrefs": [
+        "https://api.llama.fi/v2/chains",
+        "https://defillama.com/chains"
+      ]
+    },
+    {
+      "source_name": "bybit-derivatives",
+      "endpoint": "https://api.bybit.com/v5/market/tickers",
+      "field_scope": "BTCUSDT.fundingRate",
+      "definition_ids": [
+        "crypto.btc_funding.bybit.indicative.28800s.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "crypto.btc_funding.bybit.indicative.28800s.v1",
+          "module": "crypto",
+          "public_id": "btc_funding",
+          "unit": "fraction",
+          "provider": "Bybit",
+          "scope_id": "BTCUSDT.linear.perpetual",
+          "methodology_id": "indicative-for-cycle-28800s-v1",
+          "sample_policy": "utc-collection-day-last-confirmed",
+          "cadence": "snapshot",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": false,
+      "public_git_history_allowed": false,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.bybit.com/en/help-center/article/API-Terms",
+        "https://www.bybit.com/trade/usdt/BTCUSDT"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "Bybit · 공개 Git 재배포/보관 조건 확인 전 표시 차단.",
+      "required_env_names": [],
+      "runtime_probe_state": "ok",
+      "allowed_hrefs": [
+        "https://api.bybit.com/v5/market/tickers",
+        "https://www.bybit.com/trade/usdt/BTCUSDT"
+      ]
+    },
+    {
+      "source_name": "bybit-derivatives",
+      "endpoint": "https://api.bybit.com/v5/market/tickers",
+      "field_scope": "BTCUSDT.openInterestValue",
+      "definition_ids": [
+        "crypto.btc_oi_usd.bybit.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "crypto.btc_oi_usd.bybit.v1",
+          "module": "crypto",
+          "public_id": "btc_oi_usd",
+          "unit": "usd_notional",
+          "provider": "Bybit",
+          "scope_id": "BTCUSDT.linear.perpetual",
+          "methodology_id": "venue-open-interest-usd-notional-v1",
+          "sample_policy": "utc-collection-day-last-confirmed",
+          "cadence": "snapshot",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": false,
+      "public_git_history_allowed": false,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.bybit.com/en/help-center/article/API-Terms",
+        "https://www.bybit.com/trade/usdt/BTCUSDT"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "Bybit · 공개 Git 재배포/보관 조건 확인 전 표시 차단.",
+      "required_env_names": [],
+      "runtime_probe_state": "ok",
+      "allowed_hrefs": [
+        "https://api.bybit.com/v5/market/tickers",
+        "https://www.bybit.com/trade/usdt/BTCUSDT"
+      ]
+    },
+    {
+      "source_name": "okx-derivatives",
+      "endpoint": "https://www.okx.com/api/v5/public/funding-rate",
+      "field_scope": "BTC-USD-SWAP.fundingRate",
+      "definition_ids": [
+        "crypto.btc_funding.okx.indicative.28800s.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "crypto.btc_funding.okx.indicative.28800s.v1",
+          "module": "crypto",
+          "public_id": "btc_funding",
+          "unit": "fraction",
+          "provider": "OKX",
+          "scope_id": "BTC-USD-SWAP.inverse.perpetual",
+          "methodology_id": "indicative-for-cycle-28800s-v1",
+          "sample_policy": "utc-collection-day-last-confirmed",
+          "cadence": "snapshot",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": false,
+      "public_git_history_allowed": false,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.okx.com/help/okx-api-agreement",
+        "https://www.okx.com/trade-swap/btc-usd-swap"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "OKX · 공개 Git 재배포/보관 조건 확인 전 표시 차단.",
+      "required_env_names": [],
+      "runtime_probe_state": "ok",
+      "allowed_hrefs": [
+        "https://www.okx.com/api/v5/public/funding-rate",
+        "https://www.okx.com/trade-swap/btc-usd-swap"
+      ]
+    },
+    {
+      "source_name": "okx-derivatives",
+      "endpoint": "https://www.okx.com/api/v5/public/open-interest",
+      "field_scope": "BTC-USD-SWAP.oiUsd",
+      "definition_ids": [
+        "crypto.btc_oi_usd.okx.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "crypto.btc_oi_usd.okx.v1",
+          "module": "crypto",
+          "public_id": "btc_oi_usd",
+          "unit": "usd_notional",
+          "provider": "OKX",
+          "scope_id": "BTC-USD-SWAP.inverse.perpetual",
+          "methodology_id": "venue-open-interest-usd-notional-v1",
+          "sample_policy": "utc-collection-day-last-confirmed",
+          "cadence": "snapshot",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": false,
+      "public_git_history_allowed": false,
+      "retention_allowed": false,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://www.okx.com/help/okx-api-agreement",
+        "https://www.okx.com/trade-swap/btc-usd-swap"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "OKX · 공개 Git 재배포/보관 조건 확인 전 표시 차단.",
+      "required_env_names": [],
+      "runtime_probe_state": "ok",
+      "allowed_hrefs": [
+        "https://www.okx.com/api/v5/public/open-interest",
+        "https://www.okx.com/trade-swap/btc-usd-swap"
+      ]
+    },
+    {
+      "source_name": "alternative-fng",
+      "endpoint": "https://api.alternative.me/fng/",
+      "field_scope": "data[0].value",
+      "definition_ids": [
+        "crypto.fear_greed_index.alternative.me.v1"
+      ],
+      "definitions": [
+        {
+          "definition_id": "crypto.fear_greed_index.alternative.me.v1",
+          "module": "crypto",
+          "public_id": "fear_greed_index",
+          "unit": "index",
+          "provider": "Alternative.me",
+          "scope_id": "provider.bitcoin.index",
+          "methodology_id": "provider-index-0-100-v1",
+          "sample_policy": "utc-collection-day-last-confirmed",
+          "cadence": "snapshot",
+          "calendar_policy": "none"
+        }
+      ],
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": true,
+      "revoked": false,
+      "evidence_hrefs": [
+        "https://alternative.me/crypto/fear-and-greed-index/"
+      ],
+      "checked_on": "2026-10-25",
+      "attribution": "Source: Alternative.me · Crypto Fear & Greed Index. BTC 중심의 제공자 지수이며 매매 신호가 아닙니다.",
+      "required_env_names": [],
+      "runtime_probe_state": "ok",
+      "allowed_hrefs": [
+        "https://api.alternative.me/fng/",
+        "https://alternative.me/crypto/fear-and-greed-index/"
+      ]
+    }
+  ]
+}

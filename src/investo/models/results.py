@@ -44,6 +44,7 @@ from investo.models._validators import (
 )
 from investo.models.coverage import SourceOutcome
 from investo.models.event_quality import EventCoverage, PublishedEventCoverage
+from investo.models.insights import InsightRunOutcome
 from investo.models.public_document_outcome import (
     ContentCompleteness,
     SegmentFinalizationOutcome,
@@ -221,13 +222,19 @@ class PipelineResult(BaseModel):
     event_coverage: dict[MarketSegment, EventCoverage] | None = None
     published_event_coverage: PublishedEventCoverage | None = None
     publication_receipts: tuple[PublishReceipt, ...] = ()
+    insights: InsightRunOutcome | None = None
 
     @model_serializer(mode="wrap")
     def _serialize_event_compatible(
         self, handler: SerializerFunctionWrapHandler
     ) -> dict[str, object]:
         payload = cast("dict[str, object]", handler(self))
-        for name in ("event_coverage", "published_event_coverage", "publication_receipts"):
+        for name in (
+            "event_coverage",
+            "published_event_coverage",
+            "publication_receipts",
+            "insights",
+        ):
             if not getattr(self, name):
                 payload.pop(name, None)
         return payload

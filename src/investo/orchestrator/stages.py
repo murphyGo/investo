@@ -59,6 +59,7 @@ from investo.models.news_window import (
     NewsWindowKey,
 )
 from investo.models.results import FailureStage
+from investo.orchestrator.insights import InsightsConfig
 
 T = TypeVar("T")
 
@@ -99,6 +100,7 @@ class PipelineContext:
     event_enrichment_deadline: float | None = None
     news_window_config: NewsWindowConfig = DEFAULT_NEWS_WINDOW_CONFIG
     run_started_at: datetime | None = None
+    insights_config: InsightsConfig = field(default_factory=InsightsConfig)
     news_replay: bool = False
     news_replay_windows: Mapping[NewsWindowKey, NewsObservationWindow] | None = None
 

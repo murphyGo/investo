@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from datetime import UTC, date, datetime, time, timedelta
 from html.parser import HTMLParser
 from typing import ClassVar
@@ -11,6 +12,13 @@ import httpx
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
+from investo.models.insights import (
+    InsightTime,
+    SourceInsightEnvelope,
+    SourceScheduleCoverage,
+    digest,
+)
+from investo.models.insights_events import BEA_RECIPES
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._sanitize import strip_html
@@ -60,6 +68,8 @@ class UsEconomicCalendarAdapter:
             )
         start_date = window.target_date
         end_date = start_date + timedelta(days=_LOOKAHEAD_DAYS)
+        years = parser.declared_years if window.insights_enabled else set()
+        source_year = int(next(iter(years))) if len(years) == 1 else None
         items: list[NormalizedItem] = []
         seen: set[tuple[datetime, str, str]] = set()
         for row in parser.rows:
@@ -89,6 +99,19 @@ class UsEconomicCalendarAdapter:
                             "release_type": release_type,
                             "scheduled_date": scheduled_date.isoformat(),
                         },
+                        insight_envelope=_insight_release(
+                            row,
+                            source_year,
+                            scheduled_at,
+                            SourceScheduleCoverage(
+                                start_date=start_date,
+                                end_date=end_date,
+                                upstream_cap=_MAX_ITEMS,
+                                cap_reached=len(parser.rows) >= _MAX_ITEMS,
+                            ),
+                        )
+                        if window.insights_enabled
+                        else None,
                     )
                 )
             except ValidationError:
@@ -103,6 +126,7 @@ class _ScheduleTableParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
         self.rows: list[list[str]] = []
+        self.declared_years: set[str] = set()
         self._in_td = False
         self._current_cell: list[str] = []
         self._current_row: list[str] = []
@@ -124,8 +148,73 @@ class _ScheduleTableParser(HTMLParser):
             self._current_row = []
 
     def handle_data(self, data: str) -> None:
+        self.declared_years.update(re.findall(r"\bYear\s+(\d{4})\b", data))
         if self._in_td:
             self._current_cell.append(data)
+
+
+def _insight_release(
+    row: list[str], source_year: int | None, legacy_at: datetime, coverage: SourceScheduleCoverage
+) -> SourceInsightEnvelope | None:
+    """Only the page's declared year and valid ET wall clock establish precision."""
+    if source_year is None:
+        return None
+    parts = row[0].split()
+    if len(parts) < 2 or parts[0] not in _MONTHS:
+        return None
+    try:
+        day = date(source_year, _MONTHS[parts[0]], int(parts[1]))
+        if day != legacy_at.astimezone(_NY).date():
+            return None
+        clock = InsightTime(
+            basis="schedule", precision="date", local_date=day, source_timezone="America/New_York"
+        )
+        if (
+            len(parts) == 4
+            and re.fullmatch(r"(?:[1-9]|1[0-2]):[0-5]\d", parts[2])
+            and parts[3] in {"AM", "PM"}
+        ):
+            hour, minute = _parse_time(parts[2], parts[3])
+            exact = datetime.combine(day, time(hour, minute), _NY)
+            # Reject non-existent/ambiguous local times, even if a future row uses them.
+            if exact.replace(fold=1).utcoffset() == exact.utcoffset() and exact.astimezone(
+                UTC
+            ).astimezone(_NY).replace(tzinfo=None) == exact.replace(tzinfo=None):
+                clock = InsightTime(
+                    basis="schedule",
+                    precision="exact",
+                    exact_at=exact.astimezone(UTC),
+                    source_timezone="America/New_York",
+                )
+        title = strip_html(row[2])
+        key = (
+            "gdp"
+            if title.startswith(("GDP (", "Gross Domestic Product ("))
+            else "pce"
+            if title.startswith("Personal Income and Outlays,")
+            else "trade"
+            if title.startswith(
+                (
+                    "U.S. International Trade in Goods and Services,",
+                    "International Trade in Goods and Services,",
+                )
+            )
+            else "other"
+        )
+        period = None
+        match = re.search(r", (\d)(?:st|nd|rd|th) Quarter (\d{4})$", title)
+        if match and match[1] in "1234":
+            period = f"{match[2]}-Q{match[1]}"
+        else:
+            match = re.search(r", ([A-Z][a-z]+) (\d{4})$", title)
+            if match and match[1] in _MONTHS:
+                period = f"{match[2]}-{_MONTHS[match[1]]:02d}"
+        recipe = BEA_RECIPES[key]
+        # Source-local identity includes the explicit estimate/version, never inferred period.
+        own_id = "bea:" + digest(title.encode())[:32]
+        return recipe.envelope(recipe.event(clock, own_id, target_period=period), coverage)
+    except (ValueError, ValidationError):
+        return None
 
 
 def _row_to_event(

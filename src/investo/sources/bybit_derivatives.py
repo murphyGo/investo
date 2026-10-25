@@ -36,13 +36,15 @@ Pins:
 from __future__ import annotations
 
 import math
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any, ClassVar
 
 import httpx
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
+from investo.models.insights import InsightTime, SourceInsightEnvelope
+from investo.models.insights_crypto import derivative_recipe, envelope, epoch, safe_metric
 from investo.sources._config import format_float
 from investo.sources._parse import parse_json_response
 from investo.sources._registry import register
@@ -142,7 +144,66 @@ class BybitDerivativesAdapter:
                 message="Bybit ticker missing fundingRate / openInterestValue",
                 transient=False,
             )
+        if window.insights_enabled:
+            items[0] = items[0].model_copy(update={"insight_envelope": _insight_bybit(payload)})
         return items
+
+
+def _insight_bybit(payload: Any) -> SourceInsightEnvelope | None:
+    if (
+        not isinstance(payload, dict)
+        or type(payload.get("retCode")) is not int
+        or payload["retCode"] != 0
+    ):
+        return None
+    result = payload.get("result")
+    rows = result.get("list") if isinstance(result, dict) else None
+    if (
+        not isinstance(result, dict)
+        or result.get("category") != "linear"
+        or not isinstance(rows, list)
+        or len(rows) != 1
+    ):
+        return None
+    row = rows[0]
+    if not isinstance(row, dict) or row.get("symbol") != "BTCUSDT":
+        return None
+    observed = epoch(payload.get("time"), milliseconds=True)
+    clock = (
+        InsightTime(basis="source_response", precision="exact", exact_at=observed)
+        if observed
+        else InsightTime(basis="source_response", precision="unknown")
+    )
+    metrics = [
+        safe_metric(derivative_recipe("btc_oi_usd", "Bybit"), row.get("openInterestValue"), clock)
+    ]
+    interval = row.get("fundingIntervalHour")
+    cycle_end = epoch(row.get("nextFundingTime"), milliseconds=True)
+    if (
+        isinstance(interval, str)
+        and interval.isdigit()
+        and 1 <= int(interval) <= 168
+        and cycle_end
+        and observed
+    ):
+        seconds = int(interval) * 3600
+        cycle_start = cycle_end - timedelta(seconds=seconds)
+        if cycle_start <= observed < cycle_end:
+            funding_clock = InsightTime(
+                basis="source_response",
+                precision="exact",
+                exact_at=observed,
+                applicable_start=cycle_start,
+                applicable_end=cycle_end,
+            )
+            metrics.append(
+                safe_metric(
+                    derivative_recipe("btc_funding", "Bybit", interval_seconds=seconds),
+                    row.get("fundingRate"),
+                    funding_clock,
+                )
+            )
+    return envelope("bybit-derivatives", metrics)
 
 
 def _str_field(row: dict[str, Any], key: str) -> str | None:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, date, datetime, time
+from decimal import Decimal, DecimalException
 from typing import ClassVar
 from urllib.parse import urlencode
 from zoneinfo import ZoneInfo
@@ -12,6 +13,8 @@ from defusedxml.ElementTree import ParseError, fromstring
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
+from investo.models.insights import InsightTime, SourceInsightEnvelope
+from investo.models.insights_macro import MACRO_BY_ID, difference_exact
 from investo.sources._config import format_float
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
@@ -52,7 +55,10 @@ class TreasuryRatesAdapter:
         if selected is None:
             return []
         try:
-            return [_row_to_item(selected, source_name=self.name, target_date=window.target_date)]
+            item = _row_to_item(selected, source_name=self.name, target_date=window.target_date)
+            if window.insights_enabled:
+                item = item.model_copy(update={"insight_envelope": _insight_envelope(selected)})
+            return [item]
         except (TypeError, ValueError, ValidationError):
             return []
 
@@ -140,3 +146,29 @@ def _parse_rate(value: str | None) -> float:
     if not text:
         raise ValueError("missing rate")
     return float(text)
+
+
+def _insight_envelope(row: dict[str, str]) -> SourceInsightEnvelope | None:
+    """Read original XML decimals, independently of legacy float formatting."""
+    try:
+        clock = InsightTime(
+            basis="effective_date",
+            precision="date",
+            local_date=_parse_date(row["NEW_DATE"]),
+            source_timezone="America/New_York",
+        )
+        values = {
+            mid: Decimal(row[MACRO_BY_ID[mid].field_scope])
+            for mid in ("ust_3m", "ust_2y", "ust_10y", "ust_30y")
+        }
+        values["ust_10y_2y_bp"] = difference_exact(values["ust_10y"], values["ust_2y"], scale=100)
+        values["ust_10y_3m_bp"] = difference_exact(values["ust_10y"], values["ust_3m"], scale=100)
+        metrics = []
+        for mid, value in values.items():
+            try:
+                metrics.append(MACRO_BY_ID[mid].metric(value, clock))
+            except ValueError:
+                continue
+        return SourceInsightEnvelope(source_name=TreasuryRatesAdapter.name, metrics=tuple(metrics))
+    except (ValueError, KeyError, DecimalException):
+        return None

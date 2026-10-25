@@ -1,0 +1,149 @@
+{
+  "unit": "u182-upcoming-events-dashboard",
+  "date": "2026-10-25",
+  "base_sha": "55c00fc85e2828f62cd69d5583afd3761ef86d45",
+  "remote_checked_at_start": "817b356c75e7e7cf32235cd1b217707e2993e211",
+  "branch": "codex/public-insights-unit-design-20261012",
+  "working_changes_committed": false,
+  "remote_integration_performed": false,
+  "changed_inputs_sha256": "c8a6d76d72658af36425fbc7bc7a23e13fc240c62289ea54413b76bf5759e86e",
+  "changed_input_count": 59,
+  "implementation": "local_verified",
+  "plan": {
+    "complete": 6,
+    "total": 7,
+    "pending": "latest main/exact implementation SHA/source conditions/private pin+mode/Pages/five scheduled runs"
+  },
+  "tests": {
+    "current_collected": 7092,
+    "latest_unique_results": {
+      "passed": 7091,
+      "skipped": 1
+    },
+    "missing": 0,
+    "unmatched": 0,
+    "method": "four disjoint full file shards, then final focused236 including the added Fed recording regression; not a single final full-suite process",
+    "full_checkpoint": {
+      "collected": 7091,
+      "passed": 7090,
+      "skipped": 1,
+      "shards": [
+        {
+          "index": 0,
+          "passed": 1773,
+          "seconds": 134.29
+        },
+        {
+          "index": 1,
+          "passed": 1773,
+          "seconds": 487.98
+        },
+        {
+          "index": 2,
+          "passed": 1773,
+          "seconds": 223.83
+        },
+        {
+          "index": 3,
+          "passed": 1771,
+          "skipped": 1,
+          "seconds": 469.26
+        }
+      ]
+    },
+    "final_focused": {
+      "passed": 236,
+      "seconds": 79.0,
+      "log": "/private/tmp/u182-final-focused.log"
+    },
+    "reviewer": {
+      "initial_focused_passed": 45,
+      "seconds": 11.72,
+      "corrected_recording_regression_passed": 1
+    },
+    "initial_related_failure": "u181 permission test assumed total13 instead of selecting macro definitions; fixed scope and reran",
+    "skip": "existing sector schema2 committed dataset migration fixture",
+    "source": "test-coverage.json"
+  },
+  "checks": {
+    "ruff": "pass",
+    "format": {
+      "status": "pass",
+      "files": 772
+    },
+    "mypy": {
+      "status": "pass",
+      "source_files": 325
+    },
+    "no_paid_apis": "pass",
+    "no_anthropic_sdk": "pass",
+    "curated_assets": "pass:19 filed0deferred",
+    "image_store": "pass:0 binaries",
+    "strict_mkdocs": "pass",
+    "material_theme": "pass including built CSS/rendered pairs",
+    "calendar_render": "pass",
+    "javascript_syntax": "pass",
+    "diff_check": "pass",
+    "registered_sources": 44
+  },
+  "budgets": {
+    "current_bytes_synthetic128": 126460,
+    "current_limit": 262144,
+    "html_bytes_synthetic128": 81048,
+    "html_limit": 122880,
+    "css_plus_calendar_js_gzip": 2153,
+    "incremental_gzip_limit": 15360,
+    "history_for_calendar": false,
+    "resource": "resource-evidence.json"
+  },
+  "browser": {
+    "status": "pass",
+    "cases": 16,
+    "evidence": "browser-evidence.json",
+    "script": "tests/browser/upcoming_insights.cjs",
+    "preview_builder": "tests/_helpers/upcoming_insights_preview.py",
+    "connector": "unavailable: installed service path differs from tool worker path",
+    "backend": "separate temporary local headless Chromium; no user profile",
+    "user_browser_controlled": false,
+    "u145_waiver_inherited": false,
+    "zoom_method": "200% equivalent half CSS viewport and DPR2",
+    "fixture": "explicitly synthetic schedules; not live calendar/production evidence",
+    "preview": "http://127.0.0.1:8874/insights/calendar/"
+  },
+  "source_qualification": {
+    "calendar_definitions": 24,
+    "rights_allowed": 14,
+    "rights_blocked": 10,
+    "blocked_source": "FRED terms scope unresolved; no key read or real request",
+    "actual_development_http200": [
+      "fomc-calendar",
+      "us-economic-calendar",
+      "treasury-auctions"
+    ],
+    "actual_parser_replay": "source-probes.json",
+    "production_runtime_accepted": false
+  },
+  "independent_review": {
+    "initial": "review-u182-initial.md",
+    "final": "review-u182-final.md",
+    "unresolved_confirmed_findings": {
+      "critical": 0,
+      "high": 0,
+      "medium": 0
+    }
+  },
+  "operating_state": {
+    "mode_default": "off",
+    "private_pin_mode_changed": false,
+    "production_deployed": false,
+    "production_telegram_sent": false,
+    "five_scheduled_runs": "pending"
+  },
+  "limits": [
+    "current test evidence is the union of four full shards and final focused results after the Fed occurrence fix",
+    "actual source access, field-level qualification, synthetic browser fixtures, local Git push and production acceptance are separate",
+    "existing source filtering may omit non-qualified or unparseable rows; no full-calendar claim",
+    "raw source titles/descriptions are not copied into public event labels; original occurrence distinction is source-local",
+    "DEBT-090 and other unit gates remain unchanged"
+  ]
+}

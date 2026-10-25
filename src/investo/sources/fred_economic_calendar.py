@@ -118,6 +118,8 @@ import httpx
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
+from investo.models.insights import InsightTime, SourceScheduleCoverage
+from investo.models.insights_events import FRED_RECIPES
 from investo.sources._config import SUMMARY_MAX_LEN, parse_symbol_list
 from investo.sources._parse import parse_json_response
 from investo.sources._registry import register
@@ -219,6 +221,7 @@ class FredEconomicCalendarAdapter:
                     target_published_at=target_published_at,
                     forward_start=window.target_date,
                     forward_end=forward_window_end,
+                    insights_enabled=window.insights_enabled,
                 )
                 for release_id in release_ids
             ),
@@ -245,6 +248,7 @@ class FredEconomicCalendarAdapter:
         target_published_at: datetime,
         forward_start: date,
         forward_end: date,
+        insights_enabled: bool = False,
     ) -> list[NormalizedItem]:
         response = await retry_get(
             client,
@@ -301,6 +305,30 @@ class FredEconomicCalendarAdapter:
                 forward_end=forward_end,
             )
             if normalized is not None:
+                recipe = FRED_RECIPES.get(release_id)
+                if insights_enabled and recipe is not None:
+                    # The response provides no target period. Legacy macro_event_key
+                    # intentionally stays unchanged and never enters this envelope.
+                    local_date = date.fromisoformat(str(normalized.raw_metadata["scheduled_date"]))
+                    clock = InsightTime(
+                        basis="schedule",
+                        precision="date",
+                        local_date=local_date,
+                        source_timezone="America/New_York",
+                    )
+                    normalized = normalized.model_copy(
+                        update={
+                            "insight_envelope": recipe.envelope(
+                                recipe.event(clock, f"fred:{release_id}"),
+                                SourceScheduleCoverage(
+                                    start_date=forward_start,
+                                    end_date=forward_end,
+                                    upstream_cap=15,
+                                    cap_reached=len(release_dates) >= 15,
+                                ),
+                            )
+                        }
+                    )
                 items.append(normalized)
         return items
 

@@ -2975,3 +2975,74 @@ Evidence: [25 executed runs /44 sources](../../construction/source-reliability-2
 **Design**: [u173](../../construction/u173-official-event-source-slot-qualification/design-brief.md).
 
 **Plan**: [u173 code](../../construction/plans/u173-official-event-source-slot-qualification-code-generation-plan.md).
+
+## u180–u183 — Public Insights (2026-10-12)
+
+사용자선택순서에따른 bounded4units. 공통 foundation 이숫자/일정/time/permission/remotepublication 을소유하고세 consumer 는자신의 metric/event 의미와 UI 만확장한다. 자세한공통계약은[Program](../../construction/public-insights-20261012/README.md)에있다. 상태의권위는 aidlc-state.md 이며아래초안등록으로과거유닛완료상태를바꾸지않는다.
+
+### u180: `public-insights-snapshot-and-publication` — 공개 인사이트 스냅샷·이력·게시 기반
+
+**Purpose**: 현재 수집 결과의 숫자·일정을 독립 typed snapshot 으로 검증하고 제한된 이력과 화면 파일을 원격에 일관되게 게시한다. 시황 LLM 실패와 데이터 dashboard 결과를 구별한다.
+
+**Stories / FR / NFR**: US-011/012/013; FR-026; 기존 FR-001/003/005/006/010/011/017/021; NFR-001~008/R10/R13.
+
+**Existing Coverage / Deduplication / Dependencies**: 기존 u102 source registry, u113 scoped publish, u144 sealed/public boundary, u155 private runtime, u164 temporal truth, u165 source lifecycle. 새 화면 및 event/news v3 미완료를 prerequisite 로 추가하지 않는다.
+
+**Module scope**: models/insights.py, models/insights_calendar.py, models/items.py 의 선택 envelope 와 serializer, models/results.py 의 optional insights 결과; sources/_window.py 및 aggregator.py 의 default-false opt-in; orchestrator/insights.py/insights_projection.py/insights_publication.py 와 CollectStage handoff; publisher/insights/__init__.py/store.py; ops/insights_source_qualification.json 의 검증 타입·loader; __main__.py 의 optional GHA output 및 ops/private-runtime/production-briefing.yml Pages 신호 연계; 신규 공통 tests.
+
+**Non-goals**: 원천별 metric parser, 신규 source/secret/HTTP/scheduler, standalone 모듈 UI, event/news ledger/cursor, u145 store, 기존 archive/LLM finalizer, Telegram 추가 발송, production activation.
+
+**Definition of Done**: [계획](../../construction/plans/u180-public-insights-snapshot-and-publication-code-generation-plan.md)의 numbered AC 와 actualsource/time/rights·snapshot·remote/Pages 수용을 증명한다. FD/NFR 초안작성·코드완료·실제배포/운영은구별한다. 사용자 후속 진행 지시로 로컬 구현·검증 7/8. Step8 운영 수용은 후속 consumer 구현 이후 pending.
+
+**Design**: [Business logic](../../construction/u180-public-insights-snapshot-and-publication/functional-design/business-logic-model.md), [Business rules](../../construction/u180-public-insights-snapshot-and-publication/functional-design/business-rules.md), [Entities](../../construction/u180-public-insights-snapshot-and-publication/functional-design/domain-entities.md), [Focused NFR](../../construction/u180-public-insights-snapshot-and-publication/nfr-requirements/nfr-requirements.md).
+
+
+### u181: `macro-environment-dashboard` — 매크로 환경판
+
+**Purpose**: 만기별 미 국채금리, 기준금리, 원달러 H.10 관측, 월간 CPI 지수·실업률을 기준일/단위와 함께 비교할 수 있는 공개 환경판을 만든다.
+
+**Stories / FR / NFR**: US-011; FR-027/026; 기존 FR-003/011/014/015/018; NFR-001~008/R10/R13.
+
+**Existing Coverage / Deduplication / Dependencies**: u180 코드·공통 source/time/permission/publication 계약. u176/u178 사이트 토큰·탐색·가독성 재사용. v3 native document 완료는 hard dependency 가 아니다.
+
+**Module scope**: 기존 sources/treasury_rates.py/nyfed_reference_rates.py/bls_macro_actuals.py/fred_fx_close.py 의 opt-in envelope; models/insights.py 의 macro13 metric definitions; orchestrator/insights_projection.py 의 metric recipe binding; publisher/insights/macro.py; site_docs/insights/index.md 및 macro/index.md·_data/macro; insights-scoped CSS/JS·mkdocs nav; source qualification entries 와 tests.
+
+**Non-goals**: FRED 제 3 자 series 확대, CPI YoY·NFP 증감의 새 산식, VIX/MOVE/credit spreads, 금리 인하 확률·합성 위험점수, 새 소스 호출, 정확한 원달러 종가 주장, 매크로→섹터 인과 자동 추론.
+
+**Definition of Done**: [계획](../../construction/plans/u181-macro-environment-dashboard-code-generation-plan.md)의 numbered AC 와 actualsource/time/rights·snapshot·remote/Pages 수용을 증명한다. FD/NFR 초안작성·코드완료·실제배포/운영은구별한다. 2026-10-25 사용자 후속 지시로 로컬 구현·검증7/8; 운영 Step8 pending.
+
+**Design**: [Business logic](../../construction/u181-macro-environment-dashboard/functional-design/business-logic-model.md), [Business rules](../../construction/u181-macro-environment-dashboard/functional-design/business-rules.md), [Entities](../../construction/u181-macro-environment-dashboard/functional-design/domain-entities.md), [Focused NFR](../../construction/u181-macro-environment-dashboard/nfr-requirements/nfr-requirements.md).
+
+
+### u182: `upcoming-events-dashboard` — 이번 주 주요 일정
+
+**Purpose**: 공식 경제지표·중앙은행·국채 입찰의 예정 날짜와 확인된 시각을 7 일 기본/30 일 선택 목록으로 보여주고 원천으로 연결한다.
+
+**Stories / FR / NFR**: US-012; FR-028/026; 기존 FR-003/020/011; NFR-001~008/R10/R13.
+
+**Existing Coverage / Deduplication / Dependencies**: u180 shared time/snapshot/publication, u181 hub/nav 구현 이후 전달한다. u35/u43 기존 calendar sources 재사용. 새 source/actual join/DEBT-079 closeout 는 prerequisite 가 아니다.
+
+**Module scope**: sources/fomc_calendar.py/fred_economic_calendar.py/us_economic_calendar.py/treasury_auctions.py 의 기존 응답 기반 opt-in event envelope; models/insights.py event definition/identity; orchestrator/insights_projection.py calendar selection; publisher/insights/calendar.py; calendar/index.md 와 _data/calendar/current.json; insights CSS/JS 필터/nav·qualification·tests.
+
+**Non-goals**: BLS ICS 신규 adapter, Nasdaq earnings 재배포, real-time countdown, actual 발표완료·consensus/surprise·schedule actual join, calendar history backfill, generic topic/ticker 사건 ID·v3 story reducer.
+
+**Definition of Done**: [계획](../../construction/plans/u182-upcoming-events-dashboard-code-generation-plan.md)의 numbered AC 와 actualsource/time/rights·snapshot·remote/Pages 수용을 증명한다. FD/NFR 초안작성·코드완료·실제배포/운영은구별한다. 2026-10-25 로컬 구현·검증6/7. Step7 운영 수용은 pending이다. [결과](../../construction/u182-upcoming-events-dashboard/code/summary.md).
+
+**Design**: [Business logic](../../construction/u182-upcoming-events-dashboard/functional-design/business-logic-model.md), [Business rules](../../construction/u182-upcoming-events-dashboard/functional-design/business-rules.md), [Entities](../../construction/u182-upcoming-events-dashboard/functional-design/domain-entities.md), [Focused NFR](../../construction/u182-upcoming-events-dashboard/nfr-requirements/nfr-requirements.md).
+
+
+### u183: `crypto-market-internals-dashboard` — 크립토 시장 내부
+
+**Purpose**: 시장 규모·USD 연동 공급·체인 TVL·BTC 거래소 파생상품을 제공자/계약/주기/조회시점에 맞게 읽을 수 있는 공개 내부 지표 화면을 만든다.
+
+**Stories / FR / NFR**: US-013; FR-029/026; 기존 FR-003/011/013/018; NFR-001~008/R10/R13.
+
+**Existing Coverage / Deduplication / Dependencies**: u180 typed gate/history/receipt, u181/u182 사용자 순서 전달, u66/u74 기존 crypto indicator 의미와 u164 source-vs-query time 재사용. 소스별 public display/retention 은 activation prerequisite 이며 코드 fixture 작업의 가짜 승인으로 만들지 않는다.
+
+**Module scope**: 기존 sources/defillama_market_structure.py/coingecko_global_market.py/bybit_derivatives.py/okx_derivatives.py/alternative_fng.py 의 opt-in envelope; models/insights.py 의 crypto7slot definition; orchestrator/insights_projection.py crypto precedence/selection; publisher/insights/crypto.py; crypto/index.md 와 _data/crypto; 공통 history/filter/nav·qualification·tests.
+
+**Non-goals**: crypto price/Demo 키 활성화, 추가 ETH/SOL 파생상품, 거래소별 liquidation/netflow, ETF 실제 fund flow, TVL 기반 유입 단정, 펀딩 연율·24h 평균·시장 종합 위험점수, provider 바뀐 OI 이력 연결, 새 paid/historical endpoints.
+
+**Definition of Done**: [계획](../../construction/plans/u183-crypto-market-internals-dashboard-code-generation-plan.md)의 numbered AC 와 actualsource/time/rights·snapshot·remote/Pages 수용을 증명한다. FD/NFR 초안작성·코드완료·실제배포/운영은구별한다. 2026-10-25 로컬구현·검증7/8. 운영Step8은pending이다. [결과](../../construction/u183-crypto-market-internals-dashboard/code/summary.md).
+
+**Design**: [Business logic](../../construction/u183-crypto-market-internals-dashboard/functional-design/business-logic-model.md), [Business rules](../../construction/u183-crypto-market-internals-dashboard/functional-design/business-rules.md), [Entities](../../construction/u183-crypto-market-internals-dashboard/functional-design/domain-entities.md), [Focused NFR](../../construction/u183-crypto-market-internals-dashboard/nfr-requirements/nfr-requirements.md).

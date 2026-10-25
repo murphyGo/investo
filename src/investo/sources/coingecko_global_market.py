@@ -31,12 +31,15 @@ from __future__ import annotations
 
 import math
 from datetime import UTC, datetime
+from decimal import Decimal
 from typing import Any, ClassVar
 
 import httpx
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
+from investo.models.insights import InsightTime, SourceInsightEnvelope
+from investo.models.insights_crypto import CG_DOMINANCE, CG_MARKET_CAP, envelope, epoch, safe_metric
 from investo.sources._config import format_float
 from investo.sources._parse import parse_json_response
 from investo.sources._registry import register
@@ -136,6 +139,7 @@ class CoinGeckoGlobalMarketAdapter:
                     url="https://www.coingecko.com/en/global-charts",
                     published_at=published_at,
                     raw_metadata=raw_metadata,
+                    insight_envelope=_insight_global(response) if window.insights_enabled else None,
                 )
             ]
         except ValidationError as exc:
@@ -157,3 +161,33 @@ class CoinGeckoGlobalMarketAdapter:
         if isinstance(value, (int, float)):
             return float(value) if math.isfinite(float(value)) else None
         return None
+
+
+def _insight_global(response: httpx.Response) -> SourceInsightEnvelope | None:
+    # A separate decode preserves original decimal tokens without changing legacy floats.
+    try:
+        payload = response.json(parse_float=Decimal)
+    except ValueError:
+        return None
+    data = payload.get("data") if isinstance(payload, dict) else None
+    if not isinstance(data, dict):
+        return None
+    observed = epoch(data.get("updated_at"))
+    clock = (
+        InsightTime(
+            basis="source_response",
+            precision="exact",
+            exact_at=observed,
+            source_updated_at=observed,
+        )
+        if observed
+        else InsightTime(basis="source_response", precision="unknown")
+    )
+    pct, cap = data.get("market_cap_percentage"), data.get("total_market_cap")
+    return envelope(
+        "coingecko-global-market",
+        [
+            safe_metric(CG_DOMINANCE, pct.get("btc"), clock) if isinstance(pct, dict) else None,
+            safe_metric(CG_MARKET_CAP, cap.get("usd"), clock) if isinstance(cap, dict) else None,
+        ],
+    )

@@ -1,0 +1,18 @@
+{
+  "scope": "all currently collected tests; latest per-node result across four full shards, failed-shard rerun and final scoped tests",
+  "collected": 7046,
+  "counts": {
+    "passed": 7045,
+    "skipped": 1
+  },
+  "missing": [],
+  "unmatched": [],
+  "input_junit_xml": [
+    "/private/tmp/u181-full-shard-0.xml",
+    "/private/tmp/u181-full-shard-1.xml",
+    "/private/tmp/u181-full-shard-2.xml",
+    "/private/tmp/u181-full-shard-3.xml",
+    "/private/tmp/u181-full-shard-2-final.xml",
+    "/private/tmp/u181-final-scoped.xml"
+  ]
+}

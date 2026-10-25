@@ -1,0 +1,184 @@
+{
+  "unit": "u183-crypto-market-internals-dashboard",
+  "date": "2026-10-25",
+  "base_sha": "55c00fc85e2828f62cd69d5583afd3761ef86d45",
+  "remote_checked_at_start": "0768d780d2e8c2487a004927603c398f8d21c0e8",
+  "branch": "codex/public-insights-unit-design-20261012",
+  "working_changes_committed": false,
+  "remote_integration_performed": false,
+  "changed_inputs_sha256": "621bfbd8b302ab6f4e113e44f9badcf2cd44d7818f9b3191ed69ad59e685f686",
+  "changed_input_count": 76,
+  "implementation": "local_verified",
+  "plan": {
+    "complete": 7,
+    "total": 8,
+    "pending": "latest main/exact implementation SHA/source permissions/private pin+mode/Pages/five scheduled runs"
+  },
+  "tests": {
+    "current_collected": 7143,
+    "latest_unique_results": {
+      "passed": 7142,
+      "skipped": 1
+    },
+    "missing": 0,
+    "unmatched": 0,
+    "method": "all current collected tests; latest per node across four full file shards, final focused suite and repaired full shard",
+    "full_checkpoint": {
+      "collected": 7138,
+      "passed": 7136,
+      "skipped": 1,
+      "failed": 1,
+      "shards": [
+        {
+          "index": 0,
+          "passed": 1785,
+          "seconds": 153.34
+        },
+        {
+          "index": 1,
+          "passed": 1785,
+          "seconds": 322.02
+        },
+        {
+          "index": 2,
+          "passed": 1783,
+          "failed": 1,
+          "seconds": 326.75
+        },
+        {
+          "index": 3,
+          "passed": 1783,
+          "skipped": 1,
+          "seconds": 480.58
+        }
+      ]
+    },
+    "repaired_full_shard": {
+      "index": 2,
+      "passed": 1789,
+      "seconds": 284.53
+    },
+    "final_focused": {
+      "passed": 211,
+      "seconds": 63.61,
+      "log": "/private/tmp/u183-final-focused.log"
+    },
+    "dst_roundtrip": {
+      "passed": 9,
+      "seconds": 2.26,
+      "log": "/private/tmp/u183-roundtrip.log"
+    },
+    "independent_reviewer": {
+      "core_passed": 47,
+      "seconds": 4.89,
+      "final_clock_negatives_passed": 2,
+      "seconds_clock": 0.8,
+      "dst_pbt_passed": 9,
+      "seconds_dst": 2.29
+    },
+    "initial_failure": "existing PEP495 IANA/fixed-offset datetime equality at imaginary local time; reproduced on HEAD and current, same JSON and UTC instant; test assertion now checks JSON-visible fields with three DST regression cases, product model unchanged",
+    "skip": "existing sector schema2 committed dataset migration fixture",
+    "source": "test-coverage.json"
+  },
+  "checks": {
+    "ruff": "pass",
+    "format": {
+      "status": "pass",
+      "files": 781
+    },
+    "mypy": {
+      "status": "pass",
+      "source_files": 328
+    },
+    "no_paid_apis": "pass",
+    "no_anthropic_sdk": "pass",
+    "curated_assets": "pass:19 filed0deferred",
+    "image_store": "pass:0 binaries",
+    "strict_mkdocs": {
+      "status": "pass",
+      "seconds": 9.56
+    },
+    "material_theme": "pass including built stylesheet and rendered pairs",
+    "calendar_render": "pass",
+    "javascript_syntax": "pass",
+    "diff_check": "pass",
+    "registered_sources": 44
+  },
+  "budgets": {
+    "current_bytes_synthetic7": 8854,
+    "current_limit": 262144,
+    "html_bytes_synthetic7": 9397,
+    "html_limit": 102400,
+    "common_css_history_js_gzip": 4230,
+    "gzip_limit": 20480,
+    "history_limit": 4194304,
+    "resource": "resource-evidence.json"
+  },
+  "browser": {
+    "status": "pass",
+    "crypto_cases": 16,
+    "macro_regression_cases": 16,
+    "evidence": "browser-evidence.json",
+    "macro_evidence": "macro-browser-regression.json",
+    "script": "tests/browser/crypto_insights.cjs",
+    "preview_builder": "tests/_helpers/crypto_insights_preview.py",
+    "connector": "unavailable: service path differs from tool worker path",
+    "backend": "separate temporary local headless Chromium; no user profile",
+    "zoom_method": "200% equivalent half CSS viewport and DPR2; not browser-chrome zoom",
+    "u145_waiver_inherited": false,
+    "fixture": "explicitly synthetic observations and permission fixtures; not live market or production evidence",
+    "lazy_history": {
+      "requests": 2,
+      "table_rows": 56,
+      "keyboard_enter": true
+    },
+    "preview": "http://127.0.0.1:8875/insights/crypto/"
+  },
+  "source_qualification": {
+    "slots": 7,
+    "definitions": 9,
+    "rights_allowed": 1,
+    "rights_blocked": 8,
+    "allowed_source": "Alternative.me with adjacent attribution for current/history/chart/JSON",
+    "blocked_sources": [
+      "CoinGecko",
+      "DeFiLlama",
+      "Bybit",
+      "OKX"
+    ],
+    "actual_development_http200_endpoints": 7,
+    "actual_adapter_replay_metrics": 9,
+    "actual_parser_evidence": "source-probes.json",
+    "new_raw_recordings_committed": false,
+    "source_key_read": false,
+    "additional_runtime_source_http": 0,
+    "production_runtime_accepted": false
+  },
+  "independent_review": {
+    "initial": "review-u183-initial.md",
+    "final": "review-u183-final.md",
+    "unresolved_confirmed_findings": {
+      "critical": 0,
+      "high": 0,
+      "medium": 0
+    }
+  },
+  "operating_state": {
+    "mode_default": "off",
+    "modules_default": [
+      "macro"
+    ],
+    "private_pin_mode_changed": false,
+    "production_deployed": false,
+    "production_telegram_sent": false,
+    "five_scheduled_runs": "pending"
+  },
+  "limits": [
+    "test counts aggregate latest unique results across named checkpoints; not a single final full-suite process",
+    "final CSS-only crypto grid specificity repair followed regression and was checked in sixteen actual renders",
+    "source access, raw parser replay, permission evidence, synthetic UI, local Git remote confirmation and production acceptance are separate",
+    "the original DST equality failure was reproduced on base and current; only the JSON round-trip test contract was corrected",
+    "source API fields/regions may change; exact runtime pin/Pages/five scheduled observations remain pending",
+    "DEBT-090 and other unit gates remain unchanged"
+  ]
+}
