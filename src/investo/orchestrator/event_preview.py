@@ -157,7 +157,9 @@ async def preview_event_briefing(request: GenerationInput) -> EventPreviewResult
         diagnostics = {"compliance.post_generation"}
         try:
             scan_compliance(
-                render_event_edition(generation.document, retain_invalid_digests=True)
+                render_event_edition(
+                    generation.document, retain_invalid_digests=True, for_validation=True
+                )
                 if isinstance(generation, NativeEventGenerationResult)
                 else generation.briefing.rendered_markdown,
                 segment,

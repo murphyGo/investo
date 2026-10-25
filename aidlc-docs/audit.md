@@ -8210,3 +8210,33 @@ Remote advanced to154b57a2 while closeout a926ab07 was prepared. Normal push rej
 ## 2026-10-26 u181 NY Fed qualification Stage1
 
 User continuation advances existing operational Step8 only. Official NY Fed terms permit reproduction/storage/derived display under source conditions; full required 924-character notice is carried in current/history and before numeric cards, with explicit Investo calculation labels. Software MIT is separated from source data rights in README/NOTICE. All three NY Fed permission flags remain false until exact bounded-runtime CI and pin promotion. Other43 definitions retain existing24allowed/19blocked permissions. Existing14 collector requests all200; Treasury6/NYFed3/BLS3 project12metrics, BLSunknown/limited. No new endpoint, scheduler, LLM or Telegram calls. Independent C/H/M0 after labeling five-day comparisons; local focused65/static/docs PASS. Genuine scheduled remains0/5; code integration and production data delivery are pending separately.
+
+## 2026-10-25 — Event v3 article-first editorial decision
+
+The user retained event sections and directly requested news prose as the default, with
+topic-dependent structured elements. Existing development/isolated-worktree/commit-push
+authorization applies to this bounded FR-024/C4 presentation refinement. Work proceeds in
+`codex/event-v3-article-prose-20261025` from current main `8e0342b9`; the dirty root and
+concurrent public-insights operational work remain preserved.
+
+Private display blocks group and order checked evidence roles exactly once; default prose,
+plain bullets, explicit labeled lists and optional fact tables are supported. Original facts
+remain scanned outside table masking. Native optional-context containment uses renderer-owned
+offsets so protected primary claims cannot be removed by changing presentation. The public
+semantic DTO and source/fact/causal/sole-finalizer gates remain unchanged. Focused regressions
+and independent QA cover layout mutation, separate fact subjects, original hard findings,
+three display styles and overlapping protected claims.
+
+The updated historical Fed/CFTC developer reference page uses offline authored replay and
+finalization, zero live model calls and zero new source HTTP requests. No actual producer,
+human, source-slot, viewport or scheduled acceptance is added. Production pins, body access,
+schema-three activation, publication and notification gates are unchanged. Delivery and
+exact-source full CI are recorded after validation. [Evidence](../docs/sessions/2026-10-25-event-v3-article-prose.md).
+
+2026-10-26 KST closeout: exact implementation `35d1dcca3391d9194c88ce404d492e1a88c937ca`
+was pushed to both main and the scoped feature branch. Quality `40202461444` SUCCESS:
+7,451 passed/one existing skip in 775.89s, Node29 and all static/policy/docs checks.
+Preview-only pin was updated to this tested SHA and read back; production
+`0025497d4280d9bd72bcafd04ffafe026b8ad6fc`/schema-two active was preserved. No new live
+producer run or source access occurred. Closeout changes documentation only and preserves
+the exact tested application tree. Human/source/viewport/runtime gates and unit counts remain pending.

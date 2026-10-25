@@ -326,6 +326,8 @@ Source permission remains unverified under the u145 exception; Browser is
 
 2026-10-25 내용 품질 재검증: 사용자가 실제 프리뷰의 내용 부족을 지적했다. 위 sealed/CI 성공은 읽을 만한 뉴스 품질의 인수를 뜻하지 않는다. US 실제 Stage1 입력은 174개 라우팅 뒤 일정/정기 통계10개만 남아 뉴스0개였다. [내용 품질 수리](construction/event-news-v3/content-quality-repair-20261025.md)로 실제 byte budget 뉴스 우선과 정기 관측 참고 분리, 일반 뉴스 행동의 원문 증명·표시·이력 경계를 수리했다. 새 실제 run `40186613927`은 뉴스15개 입력과 기사1개 봉인을 확인했으나 배경/의미0으로 정상 내용 인수에는 여전히 부족하다. 과거 공식 원문 기반 개발자 작성 reference2개는 독립 표본이며 실제 producer/human 수용으로 세지 않는다. [증거](../docs/sessions/2026-10-25-event-v3-content-quality.md). 사람 수용·활성화 상태와 완료 횟수는 늘리지 않는다.
 
+2026-10-25 사용자 편집 결정: 사건별 섹션은 유지하고 종합적인 기사형 산문을 기본으로 하며, 주제에 따라 필요한 문단·목록·표만 분리한다. FR-024/C4와 u169/u171의 [편집 정책](construction/event-news-v3/article-first-editorial-policy-20261025.md)에 반영했다. 내부 근거 역할을 고정 독자 소제목으로 강제하지 않으며, 검증된 원문 역할을 빠짐없이 재배치하는 private display plan만 추가했다. 사실·조건·인과 한계와 단일 finalizer는 유지한다. 과거 공식 원문 기반 개발자 reference2개의 새 편집은 실제 자동 생성·사람·slot·viewport 수용을 늘리지 않는다. [구현·검증](../docs/sessions/2026-10-25-event-v3-article-prose.md).
+
 ### u174–u179 — Web UI Modernization (2026-10-10)
 
 **Source**: 사용자는 현재 웹 UI 분석과 로컬 홈 시안을 확인한 뒤 “굿 일단 유닛 문서화부터 진행해줘”라고 요청했다. 최초 코드 기준은 원격 main `48762793`, 최종 문서 통합 기준은 `838bed60`이다. 동시 등록된 사건·뉴스 v3 u167–u173을 보존하고 번호 충돌을 피해 UI u174–u179의 문서만 등록한다. 구현·기능 설계 승인·커밋/푸시·배포 인수를 뜻하지 않는다.

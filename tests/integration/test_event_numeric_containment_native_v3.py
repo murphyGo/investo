@@ -15,6 +15,7 @@ from investo.briefing.event_context import (
 from investo.briefing.event_identity import canonical_event_binding
 from investo.models.event_context import MeaningContext, ReactionContext
 from investo.models.event_document import (
+    ArticleDisplayBlock,
     EditionAvailability,
     EventArticle,
     EventDigest,
@@ -90,7 +91,8 @@ def build(segment, detail, *, text=None, mechanism=None, assumptions=(), refs=No
 
 
 @pytest.mark.parametrize("placement", ["mechanism", "assumption"])
-def test_domestic_conditional_context_keeps_required_facts(placement):
+@pytest.mark.parametrize("layout", [None, "paragraph", "bullets", "labeled_list"])
+def test_domestic_conditional_context_keeps_required_facts(placement, layout):
     claim = "코스피 1.8% 상승."
     _, draft, ctx = build(
         "domestic-equity",
@@ -99,6 +101,16 @@ def test_domestic_conditional_context_keeps_required_facts(placement):
         mechanism=claim if placement == "mechanism" else "수요가 유지됩니다.",
         assumptions=("수요가 유지됩니다." if placement == "mechanism" else claim,),
     )
+    if layout is not None:
+        article = draft.articles[0].model_copy(
+            update={
+                "display_blocks": (
+                    ArticleDisplayBlock(parts=("what_changed",)),
+                    ArticleDisplayBlock(kind=layout, parts=("meaning",)),
+                )
+            }
+        )
+        draft = draft.model_copy(update={"articles": (article,)})
     sealed = finalize_public_bundle({draft.segment: draft}, context=ctx).documents[0]
     assert sealed.edition_view.edition.events[0].meaning.mode == "unavailable"
     assert sealed.edition_view.edition.events[0].facts[0].value == "1200"
@@ -106,6 +118,20 @@ def test_domestic_conditional_context_keeps_required_facts(placement):
     assert not scan_anchor_assertions(
         sealed.rendered_markdown, segment=draft.segment, available_symbols=()
     )
+
+
+def test_grouped_optional_text_cannot_own_a_protected_primary_claim():
+    _, draft, ctx = build("domestic-equity", "코스피 1.8% 상승.")
+    article = draft.articles[0]
+    article = article.model_copy(
+        update={
+            "what_changed": article.what_changed + " 코스피 1.8% 상승.",
+            "source_refs": (*article.source_refs, *article.meaning.refs),
+        }
+    )
+    draft = draft.model_copy(update={"articles": (article,)})
+    with pytest.raises(PublicDocumentFinalizationError, match=r"numeric\.anchor_assertion"):
+        finalize_public_bundle({draft.segment: draft}, context=ctx)
 
 
 def test_related_asset_cannot_survive_its_contained_meaning():

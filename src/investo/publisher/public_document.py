@@ -4402,7 +4402,7 @@ def _seal_native_document(
     except (ContextEvidenceError, EventIdentityError, EventEditionValidationError) as exc:
         code = exc.rule_code if isinstance(exc, ContextEvidenceError) else exc.code
         raise _SegmentTrustBlockedError(phase="generated", issue_codes=(code,)) from None
-    original = render_event_edition(draft, retain_invalid_digests=True)
+    original = render_event_edition(draft, retain_invalid_digests=True, for_validation=True)
 
     def hard_codes(markdown: str) -> tuple[str, ...]:
         codes = set()
@@ -4454,7 +4454,9 @@ def _seal_native_document(
                     )
                 }
             )
-            original_codes = hard_codes(render_event_edition(draft, retain_invalid_digests=True))
+            original_codes = hard_codes(
+                render_event_edition(draft, retain_invalid_digests=True, for_validation=True)
+            )
     if original_codes:
         raise _SegmentTrustBlockedError(phase="assembled", issue_codes=original_codes)
     markdown = render_event_edition(draft)

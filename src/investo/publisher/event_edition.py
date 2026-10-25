@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from hashlib import sha256
 from urllib.parse import quote
@@ -11,8 +12,10 @@ from investo._internal.event_context import resolve_context_ref
 from investo._internal.event_identity import source_receipt
 from investo._internal.event_public_text import markdown_literal as _plain
 from investo._internal.event_v3_contract import fact_source_map, usable_digest
-from investo.models.event_context import ContextRef
+from investo.models.event_context import ContextFactDraft, ContextRef, EventContextDocument
 from investo.models.event_document import (
+    ArticleDisplayBlock,
+    EventArticle,
     EventEditionDraft,
     NumericFollowUpEntry,
     PublicAssetImpactView,
@@ -48,11 +51,72 @@ def _link(href: str) -> str:
     return quote(href, safe=":/?=&%+@;,$!~-_.")
 
 
+def _fact_subject(source: ContextFactDraft, documents: tuple[EventContextDocument, ...]) -> str:
+    # Fact subjects need not be one of the event's actor/object identities.
+    return " ".join(resolve_context_ref(ref, documents) for ref in source.subject_refs)
+
+
 @dataclass(frozen=True, slots=True)
 class EventEditionRegions:
     event_ids: tuple[str, ...]
     fact_ids: tuple[str, ...]
     follow_up_ids: tuple[str, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class ArticleBody:
+    markdown: str
+    # Offsets are renderer-owned, independent of visible labels and grouping.
+    field_ranges: tuple[tuple[str, int, int], ...]
+
+
+def render_article_body(article: EventArticle) -> ArticleBody:
+    """Compose checked evidence text as prose by default, without new claims."""
+    article.check_display()
+    parts = article.text_parts()
+    blocks = article.display_blocks or (ArticleDisplayBlock(parts=tuple(parts)),)
+    labels = {
+        "what_changed": "핵심 변화",
+        "background": "배경",
+        "meaning": "해석",
+        "reaction": "관측 반응",
+    }
+    pieces: list[str] = []
+    ranges: list[tuple[str, int, int]] = []
+    length = 0
+
+    def append(text: str, owner: str | None = None) -> None:
+        nonlocal length
+        if owner is not None:
+            ranges.append((owner, length, length + len(text)))
+        pieces.append(text)
+        length += len(text)
+
+    for block in blocks:
+        for index, part in enumerate(block.parts):
+            separator = (" " if block.kind == "paragraph" else "\n") if index else ""
+            text = parts[part]
+            if not re.search(r"[.!?。…][\"'\u2019\u201d)]*$", text):
+                text += "."
+            if part == "reaction" and article.reaction.attribution == "coincidence_only":
+                text += " 사건과의 인과관계는 확인되지 않았습니다."
+            prefix = (
+                f"- {labels[part]}: "
+                if block.kind == "labeled_list"
+                else "- "
+                if block.kind == "bullets"
+                else ""
+            )
+            append(separator + prefix + _plain(text), part)
+        append("\n\n")
+        if "meaning" in block.parts and article.meaning.mode == "conditional":
+            append("> 조건부 해석의 경로: " + _plain(article.meaning.mechanism), "meaning")
+            append("\n>\n")
+            append(
+                "> 전제: " + "; ".join(_plain(a) for a in article.meaning.assumptions), "meaning"
+            )
+            append("\n\n")
+    return ArticleBody("".join(pieces).rstrip(), tuple(ranges))
 
 
 def edition_regions(markdown: str, draft: EventEditionDraft) -> EventEditionRegions:
@@ -73,7 +137,12 @@ def edition_regions(markdown: str, draft: EventEditionDraft) -> EventEditionRegi
     )
 
 
-def render_event_edition(draft: EventEditionDraft, *, retain_invalid_digests: bool = False) -> str:
+def render_event_edition(
+    draft: EventEditionDraft,
+    *,
+    retain_invalid_digests: bool = False,
+    for_validation: bool = False,
+) -> str:
     lines = [
         f"# {draft.target_date.isoformat()} {SEGMENT_LABELS[draft.segment]} 시황",
         "",
@@ -96,20 +165,12 @@ def render_event_edition(draft: EventEditionDraft, *, retain_invalid_digests: bo
             )
         )
     if draft.articles:
-        lines.extend(("## 한눈에 보기", ""))
         digests = {
             d.event_id: d for d in draft.digests if retain_invalid_digests or usable_digest(d.text)
         }
-        for article in draft.articles[:3]:
-            lines.append(
-                "- "
-                + _plain(
-                    digests[article.event_id].text
-                    if article.event_id in digests
-                    else article.headline
-                )
-            )
-        lines.append("")
+        overview = [digests[a.event_id].text for a in draft.articles if a.event_id in digests]
+        if overview:
+            lines.extend(("## 주요 소식", "", " ".join(_plain(t) for t in overview), ""))
     bindings = {b.identity.event_id: b for b in draft.bindings}
     plans = {p.event_id: p for p in draft.editorial_plan.events}
     vectors = {
@@ -125,21 +186,26 @@ def render_event_edition(draft: EventEditionDraft, *, retain_invalid_digests: bo
                 f"<!-- investo:block event:{article.event_id} -->",
                 f"## {_plain(article.headline)}",
                 "",
-                _plain(article.what_changed),
+                render_article_body(article).markdown,
                 "",
             )
         )
+        fact_lines: list[str] = []
+        fact_rows: list[tuple[str, ...]] = []
+        fact_sources = fact_source_map(binding, source, draft.documents)
         for fact in binding.facts:
             if fact.fact_id not in article.fact_ids:
                 continue
-            fact_source = fact_source_map(binding, source, draft.documents)[fact.fact_id]
+            fact_source = fact_sources[fact.fact_id]
             label = (
                 " ".join(resolve_context_ref(r, draft.documents) for r in fact_source.metric_refs)
                 or fact.canonical.predicate
             )
+            subject = _fact_subject(fact_source, draft.documents)
             detail = " · ".join(
                 v
                 for v in (
+                    subject,
                     label,
                     fact.original_value,
                     fact.canonical.unit,
@@ -148,7 +214,40 @@ def render_event_edition(draft: EventEditionDraft, *, retain_invalid_digests: bo
                 )
                 if v
             )
-            lines.extend((f"<!-- investo:fact {fact.fact_id} -->", f"- {_plain(detail)}"))
+            fact_lines.extend((f"<!-- investo:fact {fact.fact_id} -->", f"- {_plain(detail)}"))
+            fact_rows.append(
+                (
+                    subject,
+                    label,
+                    fact.original_value,
+                    fact.canonical.unit or "—",
+                    fact.canonical.period or "—",
+                    _STATUS[fact.canonical.status],
+                )
+            )
+        if for_validation:
+            # Table masking and collapsed UI must never hide original hard findings.
+            # This representation is used only by the sole pre-publication scanner.
+            lines.extend((*fact_lines, ""))
+        elif article.show_facts:
+            lines.extend(
+                f"<!-- investo:fact {fact.fact_id} -->"
+                for fact in binding.facts
+                if fact.fact_id in article.fact_ids
+            )
+            lines.extend(
+                (
+                    "",
+                    "### 주요 사실",
+                    "",
+                    "| 주체 | 항목 | 값 | 단위 | 기간 | 구분 |",
+                    "|---|---|---|---|---|---|",
+                )
+            )
+            lines.extend(
+                "| " + " | ".join(_plain(cell) for cell in row) + " |" for row in fact_rows
+            )
+            lines.append("")
         for correction in binding.delta.correction_claims:
             for ref in correction.source_refs:
                 lines.extend(
@@ -162,27 +261,24 @@ def render_event_edition(draft: EventEditionDraft, *, retain_invalid_digests: bo
         lines.extend(
             (
                 "",
+                '<details markdown="1">',
+                "<summary>출처·시점·확인 범위</summary>",
+                "",
                 f"사건 시점: {point.value.isoformat() if point.value else '확인 불가'} "
                 f"({point.precision})",
                 "",
             )
         )
-        if article.background:
-            lines.extend((f"배경: {_plain(article.background)}", ""))
-        meaning = article.meaning.text or "시장에 미치는 의미는 확인하지 못했습니다."
-        lines.extend((f"의미: {_plain(meaning)}", ""))
-        if article.meaning.mode == "conditional":
+        if doc.time.published_at.value is not None:
             lines.extend(
                 (
-                    f"작동 경로: {_plain(article.meaning.mechanism)}",
-                    "전제: " + "; ".join(_plain(a) for a in article.meaning.assumptions),
+                    f"원문 게시: {doc.time.published_at.value.isoformat()} "
+                    f"({doc.time.published_at.precision})",
                     "",
                 )
             )
-        reaction = article.reaction.text or "시장 반응은 확인하지 못했습니다."
-        if article.reaction.attribution == "coincidence_only":
-            reaction += " 사건과의 인과관계는 확인되지 않았습니다."
-        lines.extend((f"반응: {_plain(reaction)}", ""))
+        if not article.show_facts and not for_validation:
+            lines.extend((*fact_lines, ""))
         limits = support_vector_reader_limits(
             support.model_copy(
                 update={"meaning": article.meaning.mode, "reaction": article.reaction.status}
@@ -190,6 +286,7 @@ def render_event_edition(draft: EventEditionDraft, *, retain_invalid_digests: bo
         )
         if limits:
             lines.extend(("확인 한계: " + " · ".join(limits), ""))
+        lines.extend(("</details>", ""))
         links = sorted(
             {
                 href
@@ -305,7 +402,6 @@ def render_event_edition(draft: EventEditionDraft, *, retain_invalid_digests: bo
             fact_sources = fact_source_map(
                 binding, plans[reference.event_id].source_event, draft.documents
             )
-            entities = {e.entity.entity_id: e.entity.display_label for e in binding.entities}
             for fact in binding.facts:
                 label = " ".join(
                     resolve_context_ref(r, draft.documents)
@@ -314,7 +410,7 @@ def render_event_edition(draft: EventEditionDraft, *, retain_invalid_digests: bo
                 detail = " · ".join(
                     value
                     for value in (
-                        entities[fact.canonical.subject_id],
+                        _fact_subject(fact_sources[fact.fact_id], draft.documents),
                         label or fact.canonical.predicate,
                         fact.original_value,
                         fact.canonical.unit,
