@@ -6,8 +6,8 @@
 ## 공개 범위와 순서
 
 매크로 → 주요 일정 → 크립토 순서로 확인한다. qualification의 display와 public Git 보존 권한이 모두 있어야 현재값을 게시한다.
-총 46개 정의 중 24개만 허용하며 crypto는 Alternative.me 공포·탐욕 지수만 허용한다.
-권한이 미확인된 FRED/NYFed/CoinGecko/DeFiLlama/Bybit/OKX 정의는 공개하지 않는다.
+총 46개 정의 중 27개만 허용하며 crypto는 Alternative.me 공포·탐욕 지수만 허용한다.
+권한이 미확인된 FRED/CoinGecko/DeFiLlama/Bybit/OKX 정의는 공개하지 않는다.
 숫자가 없는 카드는 이유를 표시하고 0이나 다른 원천의 값으로 채우지 않는다.
 
 코드의 mode 기본 off, modules 기본 macro를 유지한다. 기존 유일한 private daily owner의
@@ -37,8 +37,11 @@ insights의 remote receipt·Pages 상태를 각각 기록한다. 기존 실패�
 
 insights만 중지하려면 `INVESTO_INSIGHTS_MODE=off`로 설정하고 readback한다.
 이는 이전 공개 current/history를 삭제하지 않으며 이후 갱신만 중지한다.
-runtime 자체 회귀가 확인되면 이전 reviewed pin `35ea6c6e8cb3e871bd06bbdb1810065b5d97949f`와
-기존 daily workflow를 함께 복구한다. 모호한 push는 재게시 전에 기존 receipt reconciliation으로 확인한다.
+현재 reviewed execution pin은 `873cea37c878da3f9363d2457aa2a4c5a01db3fb`다.
+NY Fed 표시 코드에 회귀가 있어 이전 pin `0025497d4280d9bd72bcafd04ffafe026b8ad6fc`로 복구하려면
+먼저 NY Fed 세 정의의 display/public Git/retention 권한을 닫고 검증된 phase로 현재값·rolling 이력을 정리한다.
+그 다음 실행 pin을 복구하고 readback한다. 이전 renderer에 새 NY Fed 권한을 남긴 채 실행하지 않는다.
+이번 u181 후속은 private workflow를 바꾸지 않았으며 관찰 기록/queue/cron을 유지한다. 모호한 push는 재게시 전에 기존 receipt reconciliation으로 확인한다.
 권리 철회는 qualification을 닫아 다음 검증 게시에서 현재값과 보존 이력을 정리한다.
 
 운영 evidence는 이 디렉터리의 integration/deployment 기록에 추가한다. 5회 관찰 대기는
@@ -55,3 +58,20 @@ execution_code_sha가 reviewed pin과 일치하는지 대조한다. published_sh
 각 모듈의 run_started/collection_completed/evaluated와 원천 clock을 읽는다.
 마지막으로 실제 Pages 배포 SHA와 같은 snapshot을 결속한다. index/history hash는 manifest 선언값이므로 필요한 Git 파일을 추가로 재해시한다.
 candidate만으로 관찰5회를 자동 완료하지 않는다. [회차 기록](scheduled-observations.json)의 미래 nominal 슬롯은 실제 실행이 아니다.
+
+
+## 2026-10-26 NY Fed 자격 후속
+
+NY Fed SOFR/EFFR/같은 유효일 금리차 세 정의만 현재 원천 조건에 따라 허용한다.
+필수924자 출처·비제휴·비보증·DTCC 고지와 Investo 계산 구분을 current/history/값 앞 UI에 보존한다.
+Software MIT와 원천 데이터 조건은 별도다. [결정](nyfed-qualification-decision.md), [독립 리뷰](nyfed-policy-review.md).
+
+실행 코드873cea37는 기존0025497d 위의 다섯 파일만 반영한 별도 release다. 다른 이벤트 구현은 승격하지 않았다.
+공개 데이터 정책 commit36bd84bf의 SHA256은
+`2ac7295452d2fdc5f5c86af850d667f363bfd0a16537950e1dbe98988c7e28f5`이며 검토한7470923e 정책과 byte가 같다.
+실행 코드 checkout의 bundled policy와 public-data cwd의 활성 정책을 혼동하지 않는다.
+운영 관찰 시 execution SHA와 실제 public-data 정책 hash를 함께 확인한다.
+
+FRED11/CoinGecko2/DeFiLlama2/Bybit2/OKX2 총19정의는 계속 보류다. 외부 라이선스 구매·허가 요청이나
+legacy briefing 경로 변경은 하지 않았다. 01:56KST의 개발 조회·추가수집 없는 수동 macro 게시를
+genuine scheduled 관찰로 세지 않는다. 다음 nominal은10/26 07KST이며 실제 관찰0/5를 유지한다.

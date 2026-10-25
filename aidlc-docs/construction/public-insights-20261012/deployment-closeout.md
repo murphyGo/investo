@@ -17,7 +17,7 @@
 ## 구현과 원격 검증
 
 현재 main `0768d780`과 feature `cb56fd7d`를 별도 작업공간에서 통합했다. 감사 이력 양쪽을 보존했다.
-실행 pin은 `0025497d4280d9bd72bcafd04ffafe026b8ad6fc`다.
+초기 실행 pin은 `0025497d4280d9bd72bcafd04ffafe026b8ad6fc`였다.
 [구현 CI 40182882842](https://github.com/murphyGo/investo/actions/runs/40182882842)는
 7344 passed/1 existing skip, Ruff·format 818개, mypy 344개, 정책·Node 29개·strict docs·Material·Calendar를 통과했다.
 독립 통합 리뷰는 직접 교차 회귀 67개 통과, 미해결 C/H/M 0이다.
@@ -54,3 +54,29 @@ private daily만 active이며 공개 daily는 disabled_manually다. 적용 전 �
 
 모든 count/hash/receipt/readback은 [운영 증거](operations-evidence-20261025.json),
 복구와 관찰 절차는 [운영 runbook](operations-runbook.md)에 있다.
+
+
+## 2026-10-26 NY Fed 후속 배포
+
+현재 매크로 관찰은6개에서12개로 늘었다. NY Fed SOFR/EFFR/같은 날 금리차3개를 공식 조건에 따라 열고,
+기존 BLS3개가 재조회에서 복구됐다. BLS는 다음 공식 발표일 미확인으로unknown/limited를 유지한다.
+Treasury6/NYFed3은 원천 유효일을 표시하며 FRED 원달러를0으로 채우지 않는다.
+19일정/FNG1과 다른 모듈 파일은 바뀌지 않았다. 전체 권한은27허용/19보류다.
+
+실행pin은873cea37c878da3f9363d2457aa2a4c5a01db3fb이며 기존0025497d에 다섯 파일만 적용했다.
+이 SHA의 [CI40215762782](https://github.com/murphyGo/investo/actions/runs/40215762782)는7347pass/1skip,
+정책7470923e의 [CI40216204493](https://github.com/murphyGo/investo/actions/runs/40216204493)는7454pass/1skip으로 성공했다.
+운영pin을 먼저 승격/readback한 뒤 main36bd84bf에서 NY Fed 아홉 권한 flag만 열었다.
+코드SHA와 별도 current-public-data 정책hash2ac72954를 함께 결속했다. 다른 이벤트 변경은 운영에 승격하지 않았다.
+
+추가 source/LLM/Telegram 호출0으로 기존 실제capture를 macro-only phase에 재사용했다.
+remote-confirmed 게시1d0532d96efb9027c7d69957081bc3bcd5ee31de의
+[quality40217744493](https://github.com/murphyGo/investo/actions/runs/40217744493)와
+[Pages40217744504](https://github.com/murphyGo/investo/actions/runs/40217744504)는 모두SUCCESS다.
+실제 HTTPS10파일과3HTMLsnapshot이 게시본과 일치했고, 운영Chromium12조건/4.5:1대비/오류·overflow없음을 확인했다.
+별도 실제source 로컬preview16조건도 통과했다. current/history와 값 이전 UI에924자 필수 고지를 보존했다.
+독립리뷰의 미해결C/H/M0, 정책 철회/current·history seam도 확인했다.
+
+[자격결정](nyfed-qualification-decision.md), [검증](nyfed-qualification-validation.json),
+[HTTPS](nyfed-https-verification.json), [운영화면](nyfed-production-viewport-validation.json)에 증거를 남겼다.
+세 모듈 genuine scheduled는여전히각각0/5이며 첫nominal은10/26 07KST다. 마지막 운영 수용 단계는 미완료로 유지한다.

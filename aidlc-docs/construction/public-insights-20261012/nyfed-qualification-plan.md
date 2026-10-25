@@ -48,3 +48,17 @@ Stage1은 고지/계산값 표시/데이터 라이선스 안내 코드와924자 
 독립 리뷰의 비교값 표기 지적을 반영해 5원천 영업일 변화도 Investo 계산으로 구별한다. 원천 SOFR/EFFR 관찰 자체는 바꾸지 않는다.
 
 2026-10-26 01:56 KST 개발 조회: 기존Treasury/BLS/NYFed 총14요청 모두200, source outcome1/8/5 items. NY Fed의 typed2개는유효일2026-10-22가같고spread Decimal계산·freshness확인 PASS. Treasury6·NYFed3·BLS3 총12typed card 투영. BLS는월간값의nextrelease미확인으로unknown/limited이며최신확정으로표현하지않는다. 이조회는source/API local qualification일뿐 GHA 운영관찰이아니다.
+
+
+## 실행 결과
+
+- [x] 공식 원천 조건·기존14HTTP200·12projection 검증.
+- [x] 필수 고지/파생값 구분/current·history/NOTICE/software license 분리.
+- [x] Stage1 bounded873cea37 전체7347pass/1skip 및 공개e6ede833 전체7454pass/1skip.
+- [x] 운영pin873cea37 승격/readback 후 Stage2 권한9flag만 main36bd84bf에 적용.
+- [x] 정책7470923e 전체7454pass/1skip, 독립리뷰C/H/M0.
+- [x] macro1d0532d9 remote-confirmed, 전체7464pass/1skip·Pages40217744504 SUCCESS.
+- [x] 실제HTTPS10files/3snapshot·운영12렌더 및 로컬16렌더 PASS; sibling 자료 보존.
+- [ ] 세 모듈 genuine scheduled 각5회(현재0/5). nominal07KST는 아직 관찰이 아니다.
+
+[최종 검증](nyfed-qualification-validation.json), [운영 배포 기록](deployment-closeout.md)을 참고한다.

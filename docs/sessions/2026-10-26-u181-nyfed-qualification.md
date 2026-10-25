@@ -1,0 +1,13 @@
+# Session: u181 NY Fed source qualification
+
+2026-10-26 KST, existing operational Step8. User continuation authorizes completing the current source-qualified public dashboards. Functional/NFR design remains covered by existing FR-026/027 and source/right/time/history contracts; no new unit or endpoint.
+
+NY Fed SOFR/EFFR/derived spread now retain required copyright/terms/non-affiliation/disclaimer/DTCC notices and explicit Investo calculation labels. Five-business-day changes are also labeled calculations. README/NOTICE distinguish source data conditions from software MIT. Existing collector14requests all200, daily9+monthly3 project12; BLS remains unknown/limited. Other43 definitions are identical;27allowed/19blocked overall.
+
+The exact bounded runtime873cea37 contains only five reviewed files over0025497d. Its CI40215762782 passed7347/1skip; publicStage1e6ede833 passed7454/1skip. Private pin was changed and read back before policy activation, with no old queued/running daily. Policy7470923e passed7454/1skip; main36bd84bf policy has identical SHA2562ac72954. Existing source routing, workflow4824a79, queue/cron and other activation gates are preserved. Unrelated newer event code on public main was not promoted to production execution.
+
+Actual macro-only publication reused the reviewed capture through exact runtime873cea37 and separately verified policy36bd84bf/hash. No additional source/LLM/Telegram calls. Receipt1d0532d9 is remote-confirmed; only macro current/history/index+manifest changed. Final data SHA CI40217744493 passed7464/1skip787.11s, Ruff823/mypy346, Node/policy/strictdocs/Material/Calendar. Pages40217744504 succeeded. Actual HTTPS10files/3snapshots match, production Chromium12cases/contrast and representative visual inspection pass. Source-preview16cases and focused65/88/production-runtime+policy88 pass. Independent reviews have C/H/M0; reviewer directly ran35tests and permission/retention withdrawal seams.
+
+Source rights, API response, manual publication and genuine scheduled acceptance remain separate. The three modules each remain0/5; first nominal is2026-10-26 07KST. No operational completion checkbox is checked. License-held19definitions remain closed. Rollback closes the three NY Fed permissions and cleans current/rolling history before reverting execution to0025497d. Dirty root and concurrent work remain preserved.
+
+Evidence: [decision](../../aidlc-docs/construction/public-insights-20261012/nyfed-qualification-decision.md), [validation](../../aidlc-docs/construction/public-insights-20261012/nyfed-qualification-validation.json), [runbook](../../aidlc-docs/construction/public-insights-20261012/operations-runbook.md).

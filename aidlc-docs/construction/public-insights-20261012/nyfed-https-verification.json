@@ -1,0 +1,82 @@
+{
+  "checked_at": "2026-10-25T17:45:04.705498+00:00",
+  "kind": "actual HTTPS served bytes compared to confirmed publication tree",
+  "files": [
+    {
+      "path": "insights/_data/manifest.json",
+      "http_status": 200,
+      "sha256": "d2b86e5ac3a7bf5bfed15cac9896054232d8b5e210904c561084d75ea63fc04f"
+    },
+    {
+      "path": "insights/_data/NOTICE.txt",
+      "http_status": 200,
+      "sha256": "0e3b42268d6b1b0db7a2f98121c584e8d00a288b0ac95c7dd36220b0a4f94277"
+    },
+    {
+      "path": "insights/_data/macro/current.json",
+      "http_status": 200,
+      "sha256": "f6163622e3027b0bc0e2740287c3f6b37af56ccf9d54f7fb4f30b79b3df85fad"
+    },
+    {
+      "path": "insights/_data/macro/history.json",
+      "http_status": 200,
+      "sha256": "c3a0c1a458ac2d99039480e5d10fc693609063d67cf1ced0f579772266ab38f7"
+    },
+    {
+      "path": "insights/_data/calendar/current.json",
+      "http_status": 200,
+      "sha256": "eb2a005a906be81cf2635d89bb6a0e1e6cd68b5edcfd7e691c108dcb943ae866"
+    },
+    {
+      "path": "insights/_data/crypto/current.json",
+      "http_status": 200,
+      "sha256": "3ebe2c2d21eae8126575896e923e54a1c37a4efb753f88bb88b466def88dc5ec"
+    },
+    {
+      "path": "insights/_data/crypto/history.json",
+      "http_status": 200,
+      "sha256": "e8c2e644b6f27740808c1f0acc93f39aa171963420c0ee920e80c16cc2482002"
+    },
+    {
+      "path": "assets/insights.css",
+      "http_status": 200,
+      "sha256": "7edcad4e1405f36ae76e7a8fb8a15d7f38f8d156508b9d4e352de4c634cbfb19"
+    },
+    {
+      "path": "assets/insights.js",
+      "http_status": 200,
+      "sha256": "3732e2af5386b47fbea38d91ec1b990580d46956dadfee4aa34b43e84ed6bbea"
+    },
+    {
+      "path": "assets/insights-calendar.js",
+      "http_status": 200,
+      "sha256": "547b517af468b7c2fc8f410575011102a2482590b25f5483e1ea7442927386f3"
+    }
+  ],
+  "modules": [
+    {
+      "module": "macro",
+      "snapshot_id": "a99db4e9184373ac456b7e5a220ed63940b0a6e533568717162d6e64cc418922",
+      "metrics": 12,
+      "events": 0,
+      "html_status": 200,
+      "html_snapshot_match": true
+    },
+    {
+      "module": "calendar",
+      "snapshot_id": "fa42507af37ba2cab47f97e12eef992b721cae9464b6113a528b388cdebe49f8",
+      "metrics": 0,
+      "events": 19,
+      "html_status": 200,
+      "html_snapshot_match": true
+    },
+    {
+      "module": "crypto",
+      "snapshot_id": "ca242d6ab47a3c228de01e4da3f14f583493fd0bf52124debf65dd3c600d3769",
+      "metrics": 1,
+      "events": 0,
+      "html_status": 200,
+      "html_snapshot_match": true
+    }
+  ]
+}

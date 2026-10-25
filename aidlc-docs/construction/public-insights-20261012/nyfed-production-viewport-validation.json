@@ -1,0 +1,114 @@
+{
+  "kind": "actual HTTPS deployed production Pages in temporary Chromium profile",
+  "browser": "154.0.8037.0",
+  "cases": [
+    {
+      "module": "macro",
+      "viewport": "mobile",
+      "theme": "default",
+      "http_status": 200,
+      "page_overflow": false,
+      "text_contrast": "at least4.5:1",
+      "page_errors": []
+    },
+    {
+      "module": "macro",
+      "viewport": "mobile",
+      "theme": "slate",
+      "http_status": 200,
+      "page_overflow": false,
+      "text_contrast": "at least4.5:1",
+      "page_errors": []
+    },
+    {
+      "module": "macro",
+      "viewport": "desktop",
+      "theme": "default",
+      "http_status": 200,
+      "page_overflow": false,
+      "text_contrast": "at least4.5:1",
+      "page_errors": []
+    },
+    {
+      "module": "macro",
+      "viewport": "desktop",
+      "theme": "slate",
+      "http_status": 200,
+      "page_overflow": false,
+      "text_contrast": "at least4.5:1",
+      "page_errors": []
+    },
+    {
+      "module": "calendar",
+      "viewport": "mobile",
+      "theme": "default",
+      "http_status": 200,
+      "page_overflow": false,
+      "text_contrast": "at least4.5:1",
+      "page_errors": []
+    },
+    {
+      "module": "calendar",
+      "viewport": "mobile",
+      "theme": "slate",
+      "http_status": 200,
+      "page_overflow": false,
+      "text_contrast": "at least4.5:1",
+      "page_errors": []
+    },
+    {
+      "module": "calendar",
+      "viewport": "desktop",
+      "theme": "default",
+      "http_status": 200,
+      "page_overflow": false,
+      "text_contrast": "at least4.5:1",
+      "page_errors": []
+    },
+    {
+      "module": "calendar",
+      "viewport": "desktop",
+      "theme": "slate",
+      "http_status": 200,
+      "page_overflow": false,
+      "text_contrast": "at least4.5:1",
+      "page_errors": []
+    },
+    {
+      "module": "crypto",
+      "viewport": "mobile",
+      "theme": "default",
+      "http_status": 200,
+      "page_overflow": false,
+      "text_contrast": "at least4.5:1",
+      "page_errors": []
+    },
+    {
+      "module": "crypto",
+      "viewport": "mobile",
+      "theme": "slate",
+      "http_status": 200,
+      "page_overflow": false,
+      "text_contrast": "at least4.5:1",
+      "page_errors": []
+    },
+    {
+      "module": "crypto",
+      "viewport": "desktop",
+      "theme": "default",
+      "http_status": 200,
+      "page_overflow": false,
+      "text_contrast": "at least4.5:1",
+      "page_errors": []
+    },
+    {
+      "module": "crypto",
+      "viewport": "desktop",
+      "theme": "slate",
+      "http_status": 200,
+      "page_overflow": false,
+      "text_contrast": "at least4.5:1",
+      "page_errors": []
+    }
+  ]
+}

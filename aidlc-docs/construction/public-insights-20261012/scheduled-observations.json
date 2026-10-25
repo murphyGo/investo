@@ -1,22 +1,25 @@
 {
   "checked_at": "2026-10-25T11:05:57.890624+00:00",
   "status": "awaiting first genuine scheduled run",
-  "implementation_sha": "0025497d4280d9bd72bcafd04ffafe026b8ad6fc",
+  "implementation_sha": "873cea37c878da3f9363d2457aa2a4c5a01db3fb",
   "runtime_variables_readback": [
     {
+      "created_at": "2026-10-25T10:14:32Z",
       "name": "INVESTO_INSIGHTS_MODE",
       "updated_at": "2026-10-25T10:14:32Z",
       "value": "active"
     },
     {
+      "created_at": "2026-10-25T10:14:31Z",
       "name": "INVESTO_INSIGHTS_MODULES",
       "updated_at": "2026-10-25T10:19:06Z",
       "value": "macro,calendar,crypto"
     },
     {
+      "created_at": "2026-09-09T13:00:04Z",
       "name": "REVIEWED_CODE_SHA",
-      "updated_at": "2026-10-25T10:14:24Z",
-      "value": "0025497d4280d9bd72bcafd04ffafe026b8ad6fc"
+      "updated_at": "2026-10-25T17:32:14Z",
+      "value": "873cea37c878da3f9363d2457aa2a4c5a01db3fb"
     }
   ],
   "configured_cron": [
@@ -80,15 +83,74 @@
     }
   },
   "live_https_recheck": {
-    "checked_at": "2026-10-25T10:39:51.538920+00:00",
-    "kind": "actual HTTPS Pages bytes compared to remote-confirmed local publication tree",
+    "checked_at": "2026-10-25T17:45:04.705498+00:00",
+    "kind": "actual HTTPS served bytes compared to confirmed publication tree",
+    "files": [
+      {
+        "path": "insights/_data/manifest.json",
+        "http_status": 200,
+        "sha256": "d2b86e5ac3a7bf5bfed15cac9896054232d8b5e210904c561084d75ea63fc04f"
+      },
+      {
+        "path": "insights/_data/NOTICE.txt",
+        "http_status": 200,
+        "sha256": "0e3b42268d6b1b0db7a2f98121c584e8d00a288b0ac95c7dd36220b0a4f94277"
+      },
+      {
+        "path": "insights/_data/macro/current.json",
+        "http_status": 200,
+        "sha256": "f6163622e3027b0bc0e2740287c3f6b37af56ccf9d54f7fb4f30b79b3df85fad"
+      },
+      {
+        "path": "insights/_data/macro/history.json",
+        "http_status": 200,
+        "sha256": "c3a0c1a458ac2d99039480e5d10fc693609063d67cf1ced0f579772266ab38f7"
+      },
+      {
+        "path": "insights/_data/calendar/current.json",
+        "http_status": 200,
+        "sha256": "eb2a005a906be81cf2635d89bb6a0e1e6cd68b5edcfd7e691c108dcb943ae866"
+      },
+      {
+        "path": "insights/_data/crypto/current.json",
+        "http_status": 200,
+        "sha256": "3ebe2c2d21eae8126575896e923e54a1c37a4efb753f88bb88b466def88dc5ec"
+      },
+      {
+        "path": "insights/_data/crypto/history.json",
+        "http_status": 200,
+        "sha256": "e8c2e644b6f27740808c1f0acc93f39aa171963420c0ee920e80c16cc2482002"
+      },
+      {
+        "path": "assets/insights.css",
+        "http_status": 200,
+        "sha256": "7edcad4e1405f36ae76e7a8fb8a15d7f38f8d156508b9d4e352de4c634cbfb19"
+      },
+      {
+        "path": "assets/insights.js",
+        "http_status": 200,
+        "sha256": "3732e2af5386b47fbea38d91ec1b990580d46956dadfee4aa34b43e84ed6bbea"
+      },
+      {
+        "path": "assets/insights-calendar.js",
+        "http_status": 200,
+        "sha256": "547b517af468b7c2fc8f410575011102a2482590b25f5483e1ea7442927386f3"
+      }
+    ],
     "modules": [
+      {
+        "module": "macro",
+        "snapshot_id": "a99db4e9184373ac456b7e5a220ed63940b0a6e533568717162d6e64cc418922",
+        "metrics": 12,
+        "events": 0,
+        "html_status": 200,
+        "html_snapshot_match": true
+      },
       {
         "module": "calendar",
         "snapshot_id": "fa42507af37ba2cab47f97e12eef992b721cae9464b6113a528b388cdebe49f8",
         "metrics": 0,
         "events": 19,
-        "collection_completed_at": "2026-10-25T09:39:44.882009Z",
         "html_status": 200,
         "html_snapshot_match": true
       },
@@ -97,70 +159,13 @@
         "snapshot_id": "ca242d6ab47a3c228de01e4da3f14f583493fd0bf52124debf65dd3c600d3769",
         "metrics": 1,
         "events": 0,
-        "collection_completed_at": "2026-10-25T09:39:44.882009Z",
         "html_status": 200,
         "html_snapshot_match": true
-      },
-      {
-        "module": "macro",
-        "snapshot_id": "d9311bae2ae3e85e97ea44ea8137955d0b93c5d770fe49badf964a4db8d8e84d",
-        "metrics": 6,
-        "events": 0,
-        "collection_completed_at": "2026-10-25T09:39:44.882009Z",
-        "html_status": 200,
-        "html_snapshot_match": true
-      }
-    ],
-    "files": [
-      {
-        "path": "insights/_data/manifest.json",
-        "sha256": "fddb10d08878643234c7c71ea743150c07c1d53195ac43e92e359c780565b3e4",
-        "status": 200
-      },
-      {
-        "path": "insights/_data/calendar/current.json",
-        "sha256": "eb2a005a906be81cf2635d89bb6a0e1e6cd68b5edcfd7e691c108dcb943ae866",
-        "status": 200
-      },
-      {
-        "path": "insights/_data/crypto/current.json",
-        "sha256": "3ebe2c2d21eae8126575896e923e54a1c37a4efb753f88bb88b466def88dc5ec",
-        "status": 200
-      },
-      {
-        "path": "insights/_data/crypto/history.json",
-        "sha256": "e8c2e644b6f27740808c1f0acc93f39aa171963420c0ee920e80c16cc2482002",
-        "status": 200
-      },
-      {
-        "path": "insights/_data/macro/current.json",
-        "sha256": "32a4abeba7bc06174e2767a8cf4da1d1260bfa5827276e14fa8742de472dadd4",
-        "status": 200
-      },
-      {
-        "path": "insights/_data/macro/history.json",
-        "sha256": "9472654f318c59818992c0f16f88dec7a128fbcaf4ac875e3e5b95dac70ec6cc",
-        "status": 200
-      },
-      {
-        "path": "assets/insights.css",
-        "sha256": "7edcad4e1405f36ae76e7a8fb8a15d7f38f8d156508b9d4e352de4c634cbfb19",
-        "status": 200
-      },
-      {
-        "path": "assets/insights.js",
-        "sha256": "3732e2af5386b47fbea38d91ec1b990580d46956dadfee4aa34b43e84ed6bbea",
-        "status": 200
-      },
-      {
-        "path": "assets/insights-calendar.js",
-        "sha256": "547b517af468b7c2fc8f410575011102a2482590b25f5483e1ea7442927386f3",
-        "status": 200
       }
     ]
   },
   "acceptance_boundary": "Nominal slots are not actual runs. Artifact candidate requires separate source/receipt/ancestry/Pages review.",
-  "last_checked_at": "2026-10-25T11:29:11.259319+00:00",
+  "last_checked_at": "2026-10-25T18:00:36.344927+00:00",
   "capture_configuration": {
     "private_workflow_sha": "4824a795e5a6b6c1cd6d8437e2ed1a8b0ae73a20",
     "status": "applied; awaiting first scheduled run",
@@ -168,5 +173,8 @@
     "retention_days": 7,
     "maximum_report_bytes": 16384,
     "actual_upload_observed": false
-  }
+  },
+  "qualification_policy_sha": "36bd84bf177d69e8f6b83bde84d0edb08e8d78b2",
+  "qualification_policy_sha256": "2ac7295452d2fdc5f5c86af850d667f363bfd0a16537950e1dbe98988c7e28f5",
+  "current_macro_publication_sha": "1d0532d96efb9027c7d69957081bc3bcd5ee31de"
 }

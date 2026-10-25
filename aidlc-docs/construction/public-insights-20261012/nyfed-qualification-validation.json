@@ -1,0 +1,189 @@
+{
+  "checked_at": "2026-10-25T18:00:36.344927+00:00",
+  "status": "qualified NY Fed3 enabled; macro remote-confirmed; production Pages and HTTPS/browser verified; genuine scheduled0/5",
+  "runtime_base_sha": "0025497d4280d9bd72bcafd04ffafe026b8ad6fc",
+  "runtime_execution_sha": "873cea37c878da3f9363d2457aa2a4c5a01db3fb",
+  "public_stage1_sha": "e6ede833b0b471c0748dac5f69f6278db2039024",
+  "policy_sha": "36bd84bf177d69e8f6b83bde84d0edb08e8d78b2",
+  "policy_sha256": "2ac7295452d2fdc5f5c86af850d667f363bfd0a16537950e1dbe98988c7e28f5",
+  "private_workflow_sha": "4824a795e5a6b6c1cd6d8437e2ed1a8b0ae73a20",
+  "runtime_release_changed_files": [
+    "README.md",
+    "ops/insights_source_qualification.json",
+    "site_docs/insights/_data/NOTICE.txt",
+    "src/investo/publisher/insights/macro.py",
+    "tests/unit/publisher/test_macro_insights_render_u181.py"
+  ],
+  "runtime_variables_before": [
+    {
+      "created_at": "2026-10-25T10:14:32Z",
+      "name": "INVESTO_INSIGHTS_MODE",
+      "updated_at": "2026-10-25T10:14:32Z",
+      "value": "active"
+    },
+    {
+      "created_at": "2026-10-25T10:14:31Z",
+      "name": "INVESTO_INSIGHTS_MODULES",
+      "updated_at": "2026-10-25T10:19:06Z",
+      "value": "macro,calendar,crypto"
+    },
+    {
+      "created_at": "2026-09-09T13:00:04Z",
+      "name": "REVIEWED_CODE_SHA",
+      "updated_at": "2026-10-25T10:14:24Z",
+      "value": "0025497d4280d9bd72bcafd04ffafe026b8ad6fc"
+    }
+  ],
+  "runtime_variables_after": [
+    {
+      "created_at": "2026-10-25T10:14:32Z",
+      "name": "INVESTO_INSIGHTS_MODE",
+      "updated_at": "2026-10-25T10:14:32Z",
+      "value": "active"
+    },
+    {
+      "created_at": "2026-10-25T10:14:31Z",
+      "name": "INVESTO_INSIGHTS_MODULES",
+      "updated_at": "2026-10-25T10:19:06Z",
+      "value": "macro,calendar,crypto"
+    },
+    {
+      "created_at": "2026-09-09T13:00:04Z",
+      "name": "REVIEWED_CODE_SHA",
+      "updated_at": "2026-10-25T17:32:14Z",
+      "value": "873cea37c878da3f9363d2457aa2a4c5a01db3fb"
+    }
+  ],
+  "old_queued_or_running_daily_before_pin": [],
+  "quality": [
+    {
+      "sha": "873cea37c878da3f9363d2457aa2a4c5a01db3fb",
+      "run_id": 40215762782,
+      "conclusion": "success",
+      "passed": 7347,
+      "skipped": 1,
+      "pytest_seconds": 762.59,
+      "ruff_files": 818,
+      "mypy_sources": 344
+    },
+    {
+      "sha": "e6ede833b0b471c0748dac5f69f6278db2039024",
+      "run_id": 40215768595,
+      "conclusion": "success",
+      "passed": 7454,
+      "skipped": 1,
+      "pytest_seconds": 778.32,
+      "ruff_files": 823,
+      "mypy_sources": 346
+    },
+    {
+      "sha": "7470923e83d3d321138cef3be03780fb458fbae2",
+      "run_id": 40216204493,
+      "conclusion": "success",
+      "passed": 7454,
+      "skipped": 1,
+      "pytest_seconds": 545.89,
+      "ruff_files": 823,
+      "mypy_sources": 346
+    },
+    {
+      "sha": "36bd84bf177d69e8f6b83bde84d0edb08e8d78b2",
+      "run_id": 40217671794,
+      "conclusion": "success"
+    },
+    {
+      "sha": "1d0532d96efb9027c7d69957081bc3bcd5ee31de",
+      "run_id": 40217744493,
+      "conclusion": "success",
+      "passed": 7464,
+      "skipped": 1,
+      "pytest_seconds": 787.11,
+      "ruff_files": 823,
+      "mypy_sources": 346
+    }
+  ],
+  "local_focused": {
+    "runtime_stage1": 65,
+    "public_stage2": 88,
+    "exact_runtime_stage2_cwd_policy": 88,
+    "reviewer_direct": 35
+  },
+  "independent_review_unresolved": {
+    "critical": 0,
+    "high": 0,
+    "medium": 0
+  },
+  "local_viewport_cases": 16,
+  "stage1_notice_served_sha256": "0e3b42268d6b1b0db7a2f98121c584e8d00a288b0ac95c7dd36220b0a4f94277",
+  "stage1_notice_pages_run": 40215768547,
+  "source_probe_kind": "development-only existing collector, not GHA/scheduled acceptance",
+  "source_probe_http_calls": 14,
+  "source_probe_http_200": 14,
+  "source_probe_projected_metrics": 12,
+  "scheduled_accepted": {
+    "macro": 0,
+    "calendar": 0,
+    "crypto": 0
+  },
+  "scheduled_required_each": 5,
+  "reviewed_policy_sha": "7470923e83d3d321138cef3be03780fb458fbae2",
+  "policy_publication_sha": "1d0532d96efb9027c7d69957081bc3bcd5ee31de",
+  "production_pages": {
+    "sha": "1d0532d96efb9027c7d69957081bc3bcd5ee31de",
+    "run_id": 40217744504,
+    "conclusion": "success"
+  },
+  "production_browser_cases": 12,
+  "calendar_crypto_files_unchanged": true,
+  "permission_counts": {
+    "allowed": 27,
+    "blocked": 19
+  },
+  "macro_counts": {
+    "slots": 13,
+    "observations": 12,
+    "fresh_daily": 9,
+    "unknown_monthly": 3,
+    "history_rows": 9,
+    "nyfed_history_definitions": 3
+  },
+  "owner_states": {
+    "private_daily": "active",
+    "public_daily": "disabled_manually"
+  },
+  "manual_publication": {
+    "kind": "manual macro refresh through reviewed phase; not genuine GHA scheduled acceptance",
+    "execution_code_sha": "873cea37c878da3f9363d2457aa2a4c5a01db3fb",
+    "qualification_policy_sha": "36bd84bf177d69e8f6b83bde84d0edb08e8d78b2",
+    "qualification_policy_sha256": "2ac7295452d2fdc5f5c86af850d667f363bfd0a16537950e1dbe98988c7e28f5",
+    "source_capture_sha256": "09182b1ddf63b3755b11ed8ddbdde702e94a1a520399f4f68ab28cbe278e845f",
+    "source_collection_completed_at": "2026-10-25T16:56:58.534945+00:00",
+    "result": {
+      "mode": "active",
+      "modules": [
+        "macro"
+      ],
+      "status": "remote_confirmed",
+      "receipt": {
+        "run_id": "insights-d333f659efa54a41be439dc7b1f56589",
+        "local_sha": "1d0532d96efb9027c7d69957081bc3bcd5ee31de",
+        "remote_ref": "refs/heads/main",
+        "baseline_metadata_hash": "564d397ace4c473bccb759050e432662d310d958c47793c63eef7a76bfa54dfa",
+        "status": "remote_confirmed",
+        "content_hash": "45150986ae96b423db76e160c7d8370e0d49adb18798c6e8f5037029da82224f"
+      }
+    },
+    "projected": [
+      {
+        "module": "macro",
+        "sha256": "f6163622e3027b0bc0e2740287c3f6b37af56ccf9d54f7fb4f30b79b3df85fad",
+        "metrics": 12,
+        "events": 0,
+        "availability": "limited"
+      }
+    ],
+    "source_http_calls": 0,
+    "llm_calls": 0,
+    "telegram_calls": 0
+  }
+}
