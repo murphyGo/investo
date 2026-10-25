@@ -106,11 +106,30 @@ def verify_short_disclaimer_first_viewport(briefing_md: str, segment: MarketSegm
     return detect in head
 
 
+def verify_event_disclaimer_footer(briefing_md: str, segment: MarketSegment) -> bool:
+    """NFR-004: native v3 keeps one canonical disclaimer at the very end.
+
+    The user moved general notices below the articles on 2026-10-26. This
+    replaces native first-viewport placement; legacy checks remain separate.
+    """
+    footer = DISCLAIMER_CRYPTO_V3 if segment == "crypto" else DISCLAIMER_V3
+    canonical_count = sum(
+        briefing_md.count(text)
+        for text in (DISCLAIMER_V3, DISCLAIMER_CRYPTO_V3, DISCLAIMER, DISCLAIMER_CRYPTO)
+    )
+    return (
+        "<!-- investo:edition schema=3 -->" in briefing_md
+        and canonical_count == 1
+        and briefing_md.rstrip().endswith(footer)
+    )
+
+
 # Re-exports for the short disclaimer constants so callers can import
 # the gate + the text from a single module.
 __all__ = [
     "SHORT_DISCLAIMER_CRYPTO",
     "SHORT_DISCLAIMER_EQUITY",
     "verify_disclaimer",
+    "verify_event_disclaimer_footer",
     "verify_short_disclaimer_first_viewport",
 ]

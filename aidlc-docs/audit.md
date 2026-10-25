@@ -8240,3 +8240,23 @@ Preview-only pin was updated to this tested SHA and read back; production
 `0025497d4280d9bd72bcafd04ffafe026b8ad6fc`/schema-two active was preserved. No new live
 producer run or source access occurred. Closeout changes documentation only and preserves
 the exact tested application tree. Human/source/viewport/runtime gates and unit counts remain pending.
+
+## 2026-10-26 — Event v3 footer-notice refinement
+
+User: “면책조항같은 내용과 관련 없는것들은 제일 하단으로 뺼 수 없어?”
+Apply the direct display decision in isolated `codex/event-v3-footer-notes-20261026`
+from current main `e6ede833`, preserving concurrent NY Fed/insights changes and root dirty
+work. FR-024/C4 and the bounded NFR-004 amendment place general collection/price/window
+notes below the articles and the unchanged canonical segment disclaimer last, once.
+The duplicated native short disclaimer is removed. Native E1/E5 enforce the footer;
+schema-two/legacy first-viewport enforcement stays intact. Event conditions/sources and
+empty-edition reasons remain with the content. No production activation or archive rewrite.
+
+Three-market native finalize/write/read and eight invalid-footer cases exercise both
+finalizer rejection and E5 rejection before any filesystem write; legacy regressions are
+included. Independent QA's extra opposite/legacy-variant footer finding was fixed by counting
+all four canonical variants together. Final independent60+synthetic16 PASS/openP1-P2=0.
+Final local focused183, Ruff/format823, mypy346 and strict docs pass. Updated historical
+developer reference2 uses zero live LLM/new HTTP and places all general notices after both
+articles. DOM/HTTP checks do not claim viewport acceptance. Independent QA and final remote
+delivery evidence follow; human/source/runtime counts remain unchanged.

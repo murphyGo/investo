@@ -80,3 +80,30 @@ published Markdown is not rewritten. Actual automatic content readiness, human r
 viewport, source, performance and cutover gates remain pending.
 
 Design and acceptance: [article-first policy](../../aidlc-docs/construction/event-news-v3/article-first-editorial-policy-20261025.md).
+
+## 2026-10-26 footer refinement
+
+The user requested that disclaimers and other non-article information move to the bottom.
+The isolated follow-up starts from current main `e6ede833`, retaining concurrent insights
+work. General collection/price-reference/news-window notes follow all reader content;
+the native duplicated short disclaimer is removed and the unchanged canonical segment
+disclaimer appears once at the very end. E1/E5 enforce this placement. Schema-two/legacy
+first-viewport checks, event-specific sources/conditions/corrections/causal limits and
+empty-edition reasons remain intact. FR-024/C4 and the explicit NFR-004 amendment record
+the user-directed display change, without new operational activation or archive rewrites.
+
+Focused regression selection passed 183 tests in 13.08s, including native three-market
+finalize/write/read, eight missing/wrong/misplaced/duplicate/suffixed/extra-variant footer cases rejected
+by finalizer and independent E5 before I/O, existing containment and legacy disclaimer gates.
+Independent QA reproduced an extra wrong-segment disclaimer alongside the correct footer;
+the final check counts all four canonical schema/segment variants together and rejects it.
+Final independent review reported no open P1/P2, with 60 regression tests and 16 additional
+synthetic footer/E1 cases passed.
+Ruff/format823, mypy346 and strict docs passed. Updated historical authored replay examples
+remain local/ignored, with zero live model calls/new source HTTP. Their Markdown hashes are
+`a50718bda927f5f1b3c2eb5d181a24282639aac26d37ffff12501fe3ca235ece` and
+`a8caa54c4fd168cd469427a3eed09d5407d016b73f34c26682ca330b4726ea84`.
+The updated viewer at <http://127.0.0.1:58755/> places all development metadata, document
+notes and both disclaimers after the two article sections; DOM ownership and HTTP200 were
+checked. Opening Chrome/DOM checks do not establish viewport acceptance. Actual producer,
+human/source/slot/scheduled acceptance and the production pin remain unchanged.

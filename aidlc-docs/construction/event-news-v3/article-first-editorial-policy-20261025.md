@@ -66,3 +66,23 @@ See [delivery evidence](../../../docs/sessions/2026-10-25-event-v3-article-prose
 
 Actual daily content/source/HTTP/viewport/performance/cutover gates remain pending. This
 editorial change does not assert that the thin automatic preview became content-rich.
+
+## Footer refinement — 2026-10-26 user decision
+
+The user requested that disclaimers and other material unrelated to the article move to
+the very bottom. FR-024/C4 now places collection/price-date/news-window notes after all
+reader content and the canonical segment disclaimer last. The repeated short disclaimer
+at the top is removed for native schema three; the full canonical text is retained once.
+When there are no articles, the reason remains in the body so the result is intelligible.
+Event-specific sources, conditions, corrections and causal limits stay with their article.
+The reference viewer likewise gathers document notes/disclaimers and development metadata
+after both example articles rather than interrupting them with an introductory notice.
+
+NFR-004 refinement: native E1/E5 requires the correct canonical disclaimer exactly once
+at the end; it replaces the native first-viewport short-disclaimer rule. Schema-two and
+legacy first-viewport enforcement remain unchanged. No disclaimer text, compliance scan,
+public projection, source policy, operational activation or historical archive is changed.
+This bounded user-directed presentation decision is its own design/NFR amendment; no new
+unit or separate approval cycle is needed. Existing development/commit-push authorization
+continues. Acceptance is native finalize/write success plus missing/wrong/misplaced footer
+rejection before filesystem writes, legacy regression checks, and an updated local reference.

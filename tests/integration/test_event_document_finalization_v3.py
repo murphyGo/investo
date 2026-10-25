@@ -6,13 +6,21 @@ from pathlib import Path
 
 import pytest
 
+from investo._internal.disclaimer import (
+    DISCLAIMER,
+    DISCLAIMER_CRYPTO,
+    DISCLAIMER_CRYPTO_V3,
+    DISCLAIMER_V3,
+)
 from investo.briefing._core.orchestration import GenerationPolicy
 from investo.briefing.generation_contract import GenerationInput, NativeEventGenerationResult
 from investo.briefing.watchlist import WatchlistConfig
 from investo.models.event_config import EventGenerationPolicy
 from investo.models.event_context import ContextClassificationResult
 from investo.models.event_document import EventDigest, EventEditionContent
+from investo.models.segments import MarketSegment
 from investo.orchestrator.event_preview import preview_event_briefing
+from investo.publisher.errors import PublisherDisclaimerError
 from investo.publisher.event_archive_reader import (
     event_edition_sidecar_path,
     read_published_event_edition,
@@ -20,6 +28,10 @@ from investo.publisher.event_archive_reader import (
 from investo.publisher.public_document import (
     PublicDocumentFinalizationError,
     finalize_public_bundle,
+)
+from investo.publisher.verifier import (
+    verify_event_disclaimer_footer,
+    verify_short_disclaimer_first_viewport,
 )
 from investo.publisher.writer import write_finalized_document
 from tests._helpers.event_context_v3 import NOW
@@ -106,14 +118,21 @@ def test_native_trust_block_retains_valid_market_sibling() -> None:
     assert [o.state for o in bundle.segment_outcomes] == ["finalized", "trust_blocked"]
 
 
+@pytest.mark.parametrize("segment", ["domestic-equity", "us-equity", "crypto"])
 def test_native_writer_and_reader_bind_both_hashes(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, segment: MarketSegment
 ) -> None:
     monkeypatch.setattr("investo.publisher.paths.ARCHIVE_ROOT", tmp_path)
-    item, draft = native_case()
+    item, draft = native_case(segment)
     sealed = finalize_public_bundle(
         {draft.segment: draft}, context=native_context((item, draft))
     ).documents[0]
+    markdown = sealed.rendered_markdown
+    assert verify_event_disclaimer_footer(markdown, segment)
+    assert not verify_short_disclaimer_first_viewport(markdown, segment)
+    assert markdown.index(draft.articles[0].what_changed) < markdown.index("## 자료 안내")
+    assert markdown.index("## 자료 안내") < markdown.index("가격 기준일:")
+    assert markdown.index("가격 기준일:") < markdown.index("## 면책조항")
     path = write_finalized_document(sealed)
     assert sha256(path.read_bytes()).hexdigest() == sealed.markdown_sha256
     read = read_published_event_edition(draft.segment, TARGET)
@@ -123,6 +142,74 @@ def test_native_writer_and_reader_bind_both_hashes(
     assert read_published_event_edition(draft.segment, TARGET).status == "hash_mismatch"
     event_edition_sidecar_path(draft.segment, TARGET).unlink()
     assert read_published_event_edition(draft.segment, TARGET).status == "missing"
+
+
+@pytest.mark.parametrize(
+    "defect",
+    [
+        "missing",
+        "wrong_segment",
+        "misplaced",
+        "duplicate",
+        "suffix",
+        "opposite_extra",
+        "legacy_extra",
+        "legacy_crypto_extra",
+    ],
+)
+def test_native_bad_footer_blocks_finalization_and_writer_before_io(
+    defect: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from investo.publisher import event_edition
+
+    archive_root = tmp_path / "uncreated-archive"
+    monkeypatch.setattr("investo.publisher.paths.ARCHIVE_ROOT", archive_root)
+    item, draft = native_case()
+    sealed = finalize_public_bundle(
+        {draft.segment: draft}, context=native_context((item, draft))
+    ).documents[0]
+    original_render = event_edition.render_event_edition
+
+    def corrupt(markdown: str) -> str:
+        prefix = markdown.removesuffix(DISCLAIMER_V3 + "\n")
+        assert prefix != markdown
+        if defect == "missing":
+            return prefix
+        if defect == "wrong_segment":
+            return prefix + DISCLAIMER_CRYPTO_V3
+        if defect == "misplaced":
+            return DISCLAIMER_V3 + "\n\n" + prefix
+        if defect == "duplicate":
+            return markdown + DISCLAIMER_V3
+        extras = {
+            "opposite_extra": DISCLAIMER_CRYPTO_V3,
+            "legacy_extra": DISCLAIMER,
+            "legacy_crypto_extra": DISCLAIMER_CRYPTO,
+        }
+        if defect in extras:
+            return extras[defect] + "\n\n" + markdown
+        return markdown + "\n추가 본문입니다."
+
+    assert not verify_event_disclaimer_footer(corrupt(sealed.rendered_markdown), draft.segment)
+    monkeypatch.setattr(
+        event_edition,
+        "render_event_edition",
+        lambda *args, **kwargs: corrupt(original_render(*args, **kwargs)),
+    )
+    with pytest.raises(PublicDocumentFinalizationError):
+        finalize_public_bundle({draft.segment: draft}, context=native_context((item, draft)))
+
+    # Recompute the outer digest to exercise the independent E5 disclaimer gate.
+    # An invalid footer must fail before archive/sidecar/projection I/O.
+    assert sealed.edition_view is not None
+    altered = corrupt(sealed.rendered_markdown)
+    object.__setattr__(
+        sealed, "payload", sealed.edition_view.model_copy(update={"rendered_markdown": altered})
+    )
+    object.__setattr__(sealed, "markdown_sha256", sha256(altered.encode()).hexdigest())
+    with pytest.raises(PublisherDisclaimerError):
+        write_finalized_document(sealed)
+    assert not archive_root.exists()
 
 
 async def test_native_preview_runs_exactly_two_existing_provider_stages_without_io() -> None:
@@ -170,7 +257,11 @@ async def test_native_empty_preview_preserves_quiet_without_provider_calls() -> 
     assert runner.prompts == []
     assert result.finalized.documents[0].edition_view is not None
     assert result.finalized.documents[0].edition_view.edition.availability.status == "quiet"
+    body = result.finalized.documents[0].rendered_markdown.split("## 자료 안내", 1)[0]
+    assert "새로운 주요 사건" in body
     limited = await preview_event_briefing(replace(request, data_limited=True))
     assert (
         limited.finalized.documents[0].edition_view.edition.availability.status == "source_limited"
     )
+    body = limited.finalized.documents[0].rendered_markdown.split("## 자료 안내", 1)[0]
+    assert "출처 수집이 제한" in body

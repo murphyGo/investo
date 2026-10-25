@@ -142,6 +142,7 @@
 - **Priority**: Should-have (NFR-001 quality 보강 + NFR-003 재현성).
 
 ### FR-012: Compliance language enforcement + segment-aware disclaimer (u56 compliance-language-and-observational-tags)
+- **native schema3 표시 위치 보완 (2026-10-26)**: 사용자 지시에 따라 상단 중복 짧은 면책 대신 문서 맨 끝의 canonical 전문을 검증한다. 아래 first-viewport AC는 schema2/legacy에 유지한다. NFR-004와 C4 참조.
 - **Description**: 시황의 advisory wording / quantified outcome / Korean retail-coded language 를 publish 게이트에서 차단한다. (1) `src/investo/models/compliance_phrases.py` 의 단일 source 가 briefing prompt + publisher gate 양쪽 import 대상. (2) `publisher/compliance_language.py` 의 `scan_compliance(markdown, segment) -> ComplianceReport` 가 P0 phrase 발견 시 `ComplianceLanguageError` raise (orchestrator 가 publish 차단); P1 hit 은 WARN + structured extra; 6-token-window context-aware classifier 가 `진입/청산/목표가/편입` 의 quotative / fact-pattern 사용을 INFO 로 demote. (3) `briefing/disclaimer.py` 에 `DISCLAIMER_CRYPTO` (가상자산이용자보호법 2024-07-19 시행 §10·§19 reference) 분리; `append_disclaimer(markdown, segment)` + `verify_disclaimer(briefing_md, segment, *, legacy)` 시그니처 확장; 기존 1-arg call 은 default 인자로 byte-compat. (4) `publisher/reader_format.py::emit_first_viewport_disclaimer` 가 `## 한눈에 보기` 직전에 segment-aware short disclaimer blockquote 를 1줄 emit; `verify_short_disclaimer_first_viewport` 가 *additive* gate. (5) ActionTag 5종 (`[관망] [변동성↑] [강세] [약세] [혼조]`) → 4종 observation 라벨 (`[상승 관찰] [하락 관찰] [혼재] [변동성 확대]`) + `[데이터부족]` 마이그레이션. `LEGACY_TAG_ALIASES` 가 LLM cutover 동안 legacy 입력을 normalise. (6) `check_sentence_ending_diversity` + `check_filler_phrase_density` — 본문 surface 종결 어미 dominance > 60% / filler 빈도 > 8.0/1000 chars → WARN-only.
 - **User Story**: As a 시황 reader, I want 자동 생성된 시황이 advisory wording / quantified outcome / retail 토착어 / 단방향 stance 라벨 / 단일 종결 어미 일색의 자동 생성물 시그니처를 피하기를, so that 한국 자본시장법 §17 / 가상자산이용자보호법 §10·§19 와 거리상 안전하고 reader UX 가 retail 자동물처럼 보이지 않도록.
 - **Acceptance Criteria**:
@@ -315,6 +316,7 @@
 - **Status**: 2026-10-12 native 구현 완료; 실제 사람/viewport/source/runtime 수용 pending. checked criteria는 구현 회귀이며 현재 production 전환 보장이 아니다.
 - **Description**: 문서 전체를 지난 발행 이후의 새 변화·확인된 사실·시장 관련성·반응·다음 확인으로 조직한다. v3는 고정7섹션과6개freebody,anchor-first,정확히3요약채우기,중복topcallout,80자본문첫문장,price-onlynews영향을 폐기한다. 정상 사건0건과수집/생성/신뢰한계를구별한다. 숫자 자체가 뉴스인 정책/실적은 충분히 설명한다.
 - **2026-10-25 사용자 편집 결정**: 사건별 섹션 안에서는 종합적인 뉴스 기사형 산문을 기본으로 한다. 사건/배경/의미/반응은 내부 근거 역할이며 독자용 고정 소제목을 강제하지 않는다. 주제에 따라 문단·일반 목록·항목명 목록·검증된 사실 표를 선택하고, 필요한 요소만 분리한다. 빈 역할을 채우는 문장을 만들지 않으며 사실·조건·인과 한계·시점·출처 검증은 유지한다. [편집 정책](../aidlc-docs/construction/event-news-v3/article-first-editorial-policy-20261025.md).
+- **2026-10-26 사용자 편집 결정**: 자료 안내·기준일·관측창·면책은 본문 뒤 하단으로 모으고, 기사별 출처·조건·인과 한계는 해당 기사 곁에 둔다. 기사0건의 이유는 본문에 유지한다. 면책 전문 보존과 E1/E5 위치 검증은 NFR-004를 따른다.
 - **Acceptance Criteria**:
   - [x] actor/fact와별도인background/comparison/meaning/reaction/follow_upchunk가같은사건의sourceownership/정확한span/예산을통해실제모델입력과최종본문에전달된다. u167.
   - [x] 발생/발표/보도/수집시각·통계기준기간과precision을구분하고,내용/time/history/locator/meaning/reaction품질을독립계측한다. source없는시각·actual/forecast/단위를발명하지않는다. u167/u173.
@@ -372,6 +374,7 @@
 
 ### NFR-004: Compliance / Disclaimer
 - 모든 시황에 면책조항 자동 삽입: 투자 자문이 아니며 정보 제공 목적이라는 명시 + 손실 책임 면책
+- **2026-10-26 사용자 편집 결정 (native schema3)**: 기사와 무관한 자료 안내와 면책은 문서 하단에 둔다. 상단 중복 짧은 면책은 제거하고 시장별 canonical 면책 전문을 마지막에 1회 유지하며 E1/E5가 누락·시장 불일치·하단 위치를 검증한다. FR-012의 first-viewport 추가 gate는 기존 schema2/legacy에 유지한다. [정책](../aidlc-docs/construction/event-news-v3/article-first-editorial-policy-20261025.md).
 - 시황은 한국어로 작성, 종목명/티커는 영문 원문
 
 ### NFR-005: Maintainability

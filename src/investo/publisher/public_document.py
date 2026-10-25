@@ -159,6 +159,7 @@ from investo.publisher.reader_format.tldr import tldr_fallback_items
 from investo.publisher.segment_reader_format import apply_reader_format_to_segments
 from investo.publisher.verifier import (
     verify_disclaimer,
+    verify_event_disclaimer_footer,
     verify_short_disclaimer_first_viewport,
 )
 from investo.publisher.watchpoint_matrix import (
@@ -4426,8 +4427,8 @@ def _seal_native_document(
             codes.add("compliance.language")
         if not verify_disclaimer(markdown, draft.segment):
             codes.add("disclaimer.canonical")
-        if not verify_short_disclaimer_first_viewport(markdown, draft.segment):
-            codes.add("disclaimer.first_viewport")
+        if not verify_event_disclaimer_footer(markdown, draft.segment):
+            codes.add("disclaimer.footer")
         return tuple(sorted(codes))
 
     original_codes = hard_codes(original)
