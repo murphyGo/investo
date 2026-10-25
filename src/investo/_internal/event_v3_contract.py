@@ -107,9 +107,36 @@ def validate_text_actions(
     documents: Sequence[EventContextDocument],
     *,
     require_assertion: bool = False,
+    proof_refs: Sequence[ContextRef] = (),
 ) -> None:
     """Keep literal actions and modality bound to source assertion frames."""
     lookup = context_lookup(documents)
+
+    def whole_assertion(ref: ContextRef) -> bool:
+        doc = lookup[(ref.document_id, ref.revision_id)]
+        chunk = next(c for c in doc.chunks if c.chunk_id == ref.chunk_id)
+        if chunk.source_locator == "source_metadata":
+            return False
+        separators = tuple(re.finditer(r"[!?。]|(?<!\d)\.(?!\d)", chunk.text))
+        start = max((m.end() for m in separators if m.end() <= ref.start), default=0)
+        end = min((m.end() for m in separators if m.end() >= ref.end), default=len(chunk.text))
+        enclosing = chunk.text[start:end].strip().rstrip(".!。")
+        return resolve_context_ref(ref, documents).strip().rstrip(".!。") == enclosing
+
+    # Optional context has its own assigned evidence, independently of facts.
+    # A literal full-span source statement preserves its attribution/modality;
+    # it does not need to repeat the article's primary action.
+    if (
+        not require_assertion
+        and proof_refs
+        and any(
+            whole_assertion(ref)
+            and text.strip().rstrip(".!。")
+            == resolve_context_ref(ref, documents).strip().rstrip(".!。")
+            for ref in proof_refs
+        )
+    ):
+        return
     text_frames = []
     for fact in source.facts:
         if fact.value_kind == "text" and fact.status_refs:
@@ -364,7 +391,12 @@ def validate_event_edition(
                 raise EventEditionValidationError("event.evidence_invalid")
             validate_claim(article.background, article.background_refs, draft)
             if any(f.value_kind == "text" for f in plan.source_event.facts):
-                validate_text_actions(article.background, plan.source_event, draft.documents)
+                validate_text_actions(
+                    article.background,
+                    plan.source_event,
+                    draft.documents,
+                    proof_refs=article.background_refs,
+                )
         elif article.background_refs:
             raise EventEditionValidationError("event.evidence_invalid")
         meaning = article.meaning
@@ -375,7 +407,9 @@ def validate_event_edition(
             if any(f.value_kind == "text" for f in plan.source_event.facts):
                 for text in (meaning.text, meaning.mechanism, *meaning.assumptions):
                     if text:
-                        validate_text_actions(text, plan.source_event, draft.documents)
+                        validate_text_actions(
+                            text, plan.source_event, draft.documents, proof_refs=meaning.refs
+                        )
             if meaning.mechanism is not None:
                 validate_claim(meaning.mechanism, meaning.refs, draft)
             for assumption in meaning.assumptions:
@@ -388,7 +422,12 @@ def validate_event_edition(
                 raise EventEditionValidationError("event.evidence_invalid")
             validate_claim(reaction.text or "", reaction.refs, draft)
             if any(f.value_kind == "text" for f in plan.source_event.facts):
-                validate_text_actions(reaction.text or "", plan.source_event, draft.documents)
+                validate_text_actions(
+                    reaction.text or "",
+                    plan.source_event,
+                    draft.documents,
+                    proof_refs=reaction.refs,
+                )
             if reaction.observed_at is not None and reaction.observed_at > observed_at:
                 raise EventEditionValidationError("event.reaction_unbound")
             if reaction.status == "observed":

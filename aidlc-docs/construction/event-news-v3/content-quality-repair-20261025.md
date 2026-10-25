@@ -41,7 +41,7 @@ authorization continues to apply. Original dirty work and the prior preview are 
   and finalizer boundaries. No inferred `actual` metadata or general verb whitelist bypass.
 - [x] Distinguish Korean grammar/common concepts from actual new entity names while
   retaining unsupported names, numbers, roles and source ownership failures.
-- [ ] Verify representative normal news plus hard negatives and the existing native57,
+- [x] Verify representative source-backed news plus hard negatives and the existing native57,
   required-actual, schema-two/shadow, budget and no-public-I/O regressions. Independent QA
   must have no open P1/P2 in the delivered scope.
 - [ ] Produce a fresh real private preview containing source-backed normal news and its
@@ -83,3 +83,19 @@ their original representation.
 
 The current runtime production pin was independently advanced by concurrent insights work
 to `0025497d`; it is preserved. Only the isolated event preview pin may be updated here.
+
+## Actual reader result and remaining work
+
+Actual run `40186613927` (`b06147c9`) sealed one US article with two model calls, but
+its background/meaning are empty. It does not meet the normal content-positive criterion
+above. Two separately labeled developer-authored historical source examples demonstrate
+background/meaning through offline native replay and finalization, with zero live LLM/HTTP
+calls. They do not replace actual producer acceptance. Full evidence and limitations:
+[content-quality session](../../../docs/sessions/2026-10-25-event-v3-content-quality.md).
+
+Optional context can prove a different action using its own assigned complete source
+assertion, including polarity/attribution/conditions; taking a substring or cutting at a
+newline cannot discard that scope. Primary assertions still require their own fact frames.
+Calendar-category documents without scheduled_at can include already-published official
+releases; future schedules remain references. These changes preserve independent context
+and legacy source taxonomy without inferring actual facts from source health.

@@ -63,6 +63,13 @@ def text_case(sentence, predicate, action, value, *, status="actual", subject="A
         ("Acme approved the merger", "decision", "approved", "the merger", "Acme"),
         ("Acme announced the decision", "statement", "announced", "the decision", "Acme"),
         (
+            "Acme releases rules for Widget and Gizmo",
+            "statement",
+            "releases",
+            "rules for Widget and Gizmo",
+            "Acme",
+        ),
+        (
             "Acme today announced Widget\u2019s 2026 agenda.",
             "statement",
             "announced",
@@ -98,6 +105,7 @@ def test_literal_performed_news_keeps_a_canonical_fact(sentence, predicate, acti
         ("Acme announced it will launch Widget", "launch"),
         ('Acme quoted "Beta launched Widget"', "launched"),
         ("Acme launched Widget if approval comes", "launched"),
+        ("Acme launched Widget and Beta launched Gizmo", "launched"),
     ],
 )
 def test_nonperformed_or_other_actor_action_cannot_become_actual(sentence, action):
@@ -219,6 +227,63 @@ def test_optional_text_surface_cannot_invent_a_known_action():
         validate_text_actions("Acme가 Widget을 취소했습니다", event, (doc,))
 
 
+def test_optional_action_uses_its_own_assigned_source_span():
+    doc, event = text_case(
+        "Acme launched Widget. Demand increased after launch. Other context remains.",
+        "launch",
+        "launched",
+        "Widget",
+    )
+    event = event.model_copy(
+        update={
+            "facts": (
+                event.facts[0].model_copy(
+                    update={
+                        "status_refs": (ref(doc, "Acme launched Widget."),),
+                    }
+                ),
+            )
+        }
+    )
+    validate_context_event(event, (doc,), observed_at=NOW)
+    proof = ref(doc, "Demand increased after launch.")
+    validate_text_actions("Demand increased after launch.", event, (doc,), proof_refs=(proof,))
+    with pytest.raises(EventEditionValidationError):
+        validate_text_actions("Demand decreased after launch.", event, (doc,), proof_refs=(proof,))
+
+
+@pytest.mark.parametrize(
+    "prefix",
+    [
+        "It is false that ",
+        "Beta claimed ",
+        "If approval fails ",
+        "Beta said:\n",
+        "If approval fails,\n",
+        "It is false that\n",
+    ],
+)
+def test_optional_literal_span_cannot_drop_its_enclosing_qualifier(prefix):
+    doc, event = text_case(
+        "Acme launched Widget. " + prefix + "Acme cancelled Widget.", "launch", "launched", "Widget"
+    )
+    event = event.model_copy(
+        update={
+            "facts": (
+                event.facts[0].model_copy(
+                    update={
+                        "status_refs": (ref(doc, "Acme launched Widget."),),
+                    }
+                ),
+            )
+        }
+    )
+    validate_context_event(event, (doc,), observed_at=NOW)
+    proof = ref(doc, "Acme cancelled Widget.")
+    with pytest.raises(EventEditionValidationError):
+        validate_text_actions("Acme cancelled Widget.", event, (doc,), proof_refs=(proof,))
+
+
 def test_opposite_text_actions_change_fact_identity_in_the_same_slot():
     from investo._internal.event_text_proof import canonical_text_action
 
@@ -275,6 +340,7 @@ def test_observed_series_is_not_a_source_confirmed_new_release():
         raw_metadata={"series_id": "OLD", "release_date": "2026-08-01"},
     )
     assert is_event_reference_item(item)
+    assert not is_event_reference_item(item.model_copy(update={"category": "calendar"}))
     assert not is_event_reference_item(
         item.model_copy(
             update={

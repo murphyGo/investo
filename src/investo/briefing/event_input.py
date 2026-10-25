@@ -76,7 +76,9 @@ def is_event_reference_item(item: NormalizedItem) -> bool:
     """
     if item.scheduled_at is not None:
         return True
-    if item.category == "news":
+    if item.category in {"news", "calendar"}:
+        # Legacy taxonomy also puts already-published official releases in
+        # calendar. Only a real scheduled_at above makes those a schedule.
         return False
     return not (
         (

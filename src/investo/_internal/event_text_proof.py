@@ -65,6 +65,8 @@ _ACTIONS = {
         "결정했습니다",
     ),
     "statement": (
+        "released",
+        "releases",
         "announced",
         "announces",
         "reported",
@@ -167,7 +169,7 @@ _FUTURE = re.compile(
     re.I,
 )
 _NESTED = re.compile(
-    r"[\"'\u201c\u201d\u2018\u2019]|\b(?:that|according|reportedly|although|while|because|and|but)\b",
+    r"[\"'\u201c\u201d\u2018\u2019]|\b(?:that|according|reportedly|although|while|because|but)\b",
     re.I,
 )
 _NAMED_YEAR = re.compile(
@@ -250,6 +252,8 @@ def prove_text_assertion(
     )
     if _NEGATIVE.search(assertion) or _NESTED.search(nested):
         return None
+    if re.search(r"\band\b", value, re.I) and performed_actions(value):
+        return None  # Coordinated nouns do not license another action clause.
     if status == "actual" and _FUTURE.search(assertion):
         return None
     subject_re, value_re = re.escape(subject), re.escape(value)
