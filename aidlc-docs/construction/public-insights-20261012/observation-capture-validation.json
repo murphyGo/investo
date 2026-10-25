@@ -99,6 +99,41 @@
   },
   "source_application_and_site_changes": 0,
   "runtime_pin_changed": false,
-  "private_application": "pending public CI and remote delivery",
-  "genuine_scheduled_observations": 0
+  "private_application": {
+    "sha": "4824a795e5a6b6c1cd6d8437e2ed1a8b0ae73a20",
+    "workflow_state": "active",
+    "remote_bytes_match": true,
+    "capture_block_sha256": "00cd3f5d266535bb905cb3123b7ed532c3a1ca7fa0ead541750642f626f23662",
+    "runtime_variables_unchanged": true,
+    "readback": [
+      {
+        "name": "INVESTO_INSIGHTS_MODE",
+        "updated_at": "2026-10-25T10:14:32Z",
+        "value": "active"
+      },
+      {
+        "name": "INVESTO_INSIGHTS_MODULES",
+        "updated_at": "2026-10-25T10:19:06Z",
+        "value": "macro,calendar,crypto"
+      },
+      {
+        "name": "REVIEWED_CODE_SHA",
+        "updated_at": "2026-10-25T10:14:24Z",
+        "value": "0025497d4280d9bd72bcafd04ffafe026b8ad6fc"
+      }
+    ],
+    "cron_and_queue_preserved": true,
+    "actual_artifact_upload_observed": false,
+    "genuine_scheduled_observations": 0
+  },
+  "genuine_scheduled_observations": 0,
+  "public_delivery": {
+    "sha": "47394b8869ce20b2d502a02bd4ffdb8a8b608de6",
+    "quality_run_id": 40187571372,
+    "conclusion": "success",
+    "passed": 7367,
+    "skipped": 1,
+    "pytest_seconds": 788.12,
+    "strict_docs_seconds": 8.35
+  }
 }

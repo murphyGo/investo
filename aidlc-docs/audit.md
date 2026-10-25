@@ -8175,3 +8175,8 @@ Officialactionlint1.7.12 publictemplatePASS; privatebaseline queue:max unsupport
 preserved production field and validated copy omitting only that known key.
 ActualpublicDTO localreplay2802B/PASS/candidatefalse is not GHA evidence.
 Public/private application pending exact-CI and delivery; observed counts remain0/5.
+
+
+## 2026-10-25 Public insights observation capture delivery
+
+Exact public47394b8869ce20b2d502a02bd4ffdb8a8b608de6 quality40187571372 SUCCESS7367pass/1knownskip788.12s, Ruff819/mypy344/policy/Node/docs8.35s/Material/Calendar PASS. No private jobs in flight before apply. Pushed private4824a795e5a6b6c1cd6d8437e2ed1a8b0ae73a20; remote fullworkflowbytes and capture00cd3f5d hash match. Existingapplicationpin0025497d/modeactive/modules3/cron/queue:max unchanged by exact variables and configuration readback. Workflowregistry active; genuine scheduled0/5/actualuploadnotyetobserved. Future nominal10/26 07KST is not a counted run. Primary app/site frozen; only private allowlist metadata retention configured. Final docs record this delivery without declaring unit final operational steps complete.

@@ -159,5 +159,14 @@
       }
     ]
   },
-  "acceptance_boundary": "Nominal slots are not actual runs. Artifact candidate requires separate source/receipt/ancestry/Pages review."
+  "acceptance_boundary": "Nominal slots are not actual runs. Artifact candidate requires separate source/receipt/ancestry/Pages review.",
+  "last_checked_at": "2026-10-25T11:29:11.259319+00:00",
+  "capture_configuration": {
+    "private_workflow_sha": "4824a795e5a6b6c1cd6d8437e2ed1a8b0ae73a20",
+    "status": "applied; awaiting first scheduled run",
+    "artifact_name": "insights-observation-<run_id>-<attempt>",
+    "retention_days": 7,
+    "maximum_report_bytes": 16384,
+    "actual_upload_observed": false
+  }
 }
