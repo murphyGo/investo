@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, time
+from decimal import Decimal
 from typing import Any, ClassVar
 from zoneinfo import ZoneInfo
 
@@ -11,6 +12,8 @@ import httpx
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
+from investo.models.insights import InsightTime, SourceInsightEnvelope
+from investo.models.insights_macro import MACRO_BY_ID
 from investo.sources._config import format_float
 from investo.sources._fanout import gather_with_error_isolation
 from investo.sources._parse import parse_json_response
@@ -93,9 +96,27 @@ class NyfedReferenceRatesAdapter:
         if not isinstance(row, dict):
             return None
         try:
-            return _row_to_item(
+            item = _row_to_item(
                 row, config=config, source_name=self.name, target_date=window.target_date
             )
+            if window.insights_enabled and config.code in {"sofr", "effr"}:
+                try:
+                    # Preserve original JSON decimal tokens; never convert legacy float metadata.
+                    original = response.json(parse_float=Decimal)["refRates"][0]
+                    clock = InsightTime(
+                        basis="effective_date",
+                        precision="date",
+                        local_date=date.fromisoformat(str(original["effectiveDate"])),
+                        source_timezone="America/New_York",
+                    )
+                    envelope = SourceInsightEnvelope(
+                        source_name=self.name,
+                        metrics=(MACRO_BY_ID[config.code].metric(original["percentRate"], clock),),
+                    )
+                    item = item.model_copy(update={"insight_envelope": envelope})
+                except (KeyError, IndexError, TypeError, ValueError):
+                    pass  # Invalid optional insight must preserve the legacy sibling item.
+            return item
         except (KeyError, TypeError, ValueError, ValidationError):
             return None
 

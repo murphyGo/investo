@@ -473,3 +473,25 @@ and AC-155.1–AC-155.12 in its Code Generation plan.
 - **시황 출력 포맷 디테일** — 섹션은 정해졌으나 각 섹션 길이/스타일 가이드 필요
 - **Claude Code CLI 호출 패턴** — `-p` 비대화형 모드, prompt 입력 방식, output 파싱 전략 (구현 시 결정)
 - **GitHub Pages 사이트 디자인** — MkDocs Material 기본 테마 사용 가정
+
+## u180–u183 — Public Insights requirements (2026-10-12 design amendment)
+
+아래 FR은 사용자가 선택한 세 제품을 구체화한다. 후속 진행 지시로 FR-026/u180의 로컬 구현·검증 7/8을 기록했다. FR-027/u181도 2026-10-25 로컬 구현·검증7/8을 기록했다. FR-028/u182도 2026-10-25 로컬 구현·검증6/7을 기록했다. FR-029/u183도2026-10-25 로컬구현·검증7/8을기록했다. 요청한세화면의로컬구현은완료했고 실제source/runtime/운영수용은pending이다. NFR-001~008/R10/R13 및기존기록을보존한다.
+
+### FR-026: 독립된 공개 인사이트 데이터·게시 기반 (u180)
+
+기존 collection1 회에서 source-backedtypedobservations 를분리하여단위/시간/권리/상태를검증하고 boundedhistory 와현재화면을한 scopedremote-confirmedpublication 으로게시한다. LLM/기존시황 failure 와 dashboard 결과를구별하며 Pages 필요신호도별도로전달한다. defaultoff·shadow/dryrun/replaypublicwrite0,raw/secret 유출 0,unknownreceipt 의이력진전 0. 수용기준은 AC-180.1–8 이다.
+
+### FR-027: 매크로 환경판 (u181 / US-011)
+
+Treasury4 만기·두 spread,SOFR/EFFR·같은유효일 spread,FREDDEXKOUS H.10 관측,BLS SA CPI/core index·실업률의 13slot 을 source/time/unit 과함께제공한다. 같은시점/정의의 compatiblehistory 만변화값에사용한다. H.10daily 관측/weekly 공표를 freshness 에반영한다. current-onlyfirstrelease,synthetic 시각/YoY/달러지수/금리확률/점수발명 0. 수용기준 AC-181.1–7.
+
+### FR-028: 주요 예정 일정 (u182 / US-012)
+
+기존 Fed/FRED/BEA/FiscalData 공식예정일정을 7 일기본/30 일선택목록과종류필터로제공한다. 원천현지날짜-only·확인된 exactKST·기간·출처·sourcecap 를보존하고 conservativeoccurrencekey 로중복을관리한다. 경과로발표완료/결과/consensus/surprise 를만들지않는다. 첫버전 earnings/newICS/actualjoin 제외. 수용기준 AC-182.1–6.
+
+### FR-029: 크립토 시장 내부 (u183 / US-013)
+
+marketcap/BTCdominance,USD-linkedstablecoinsupply/chainTVL,BTCfunding/OI,optionalFNG 의 7slot 을 source/provider/instrument/cycle·unit/time 과함께제공한다. 미확인 rights/time/basis 는숫자공개 0. compatibleUTCdailycollectionsamples 만 7 일변화에사용하며 provider/contract 전환연결 0. supply/TVL 을 netflow,venueOI 를전체시장,주기 funding 을 24h 평균으로표시하지않는다. 수용기준 AC-183.1–7.
+
+normative 초안: [Program](../aidlc-docs/construction/public-insights-20261012/README.md), [공통계약](../aidlc-docs/construction/public-insights-20261012/contracts.md).

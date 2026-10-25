@@ -80,6 +80,7 @@ async def collect_sources(
     held_news_sources: frozenset[str] = frozenset(),
     evidence_received_at: datetime | None = None,
     price_snapshot_at: datetime | None = None,
+    insights_enabled: bool = False,
 ) -> SourceCollectionReport:
     """Run every registered adapter concurrently and return a full report.
 
@@ -125,6 +126,9 @@ async def collect_sources(
             name: replace(window, price_snapshot_at=price_snapshot_at)
             for name, window in windows.items()
         }
+
+    if insights_enabled:
+        windows = {name: replace(window, insights_enabled=True) for name, window in windows.items()}
 
     active = [adapter for adapter in adapters if adapter.name not in skip_reasons]
     results: list[_TimedAdapterResult] = []
@@ -220,6 +224,12 @@ async def collect_sources(
                     target_date,
                 )
                 continue
+            if item.insight_envelope is not None:
+                envelope = item.insight_envelope
+                envelope = envelope.model_copy(update={"origin_adapter_name": adapter.name})
+                item = item.model_copy(
+                    update={"insight_envelope": envelope if insights_enabled else None}
+                )
             kept.append(item)
         # u136 Contract #6 — per-source count of returned items carrying
         # a harvested raw_metadata.image_url. Diagnostics only: no KPI,

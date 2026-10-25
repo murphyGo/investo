@@ -1,0 +1,296 @@
+{
+  "kind": "actual local Chromium renders of explicitly synthetic schedules",
+  "browser": "154.0.8037.0",
+  "cases": [
+    {
+      "name": "mobile",
+      "theme": "default",
+      "zoom": 1,
+      "js": true,
+      "events": 8,
+      "initial_visible": 6,
+      "overflow": {
+        "page": false,
+        "module": false
+      },
+      "page_errors": [],
+      "data_requests": 0,
+      "text_contrast": ">=4.5:1",
+      "keyboard_filters": "pass"
+    },
+    {
+      "name": "mobile",
+      "theme": "default",
+      "zoom": 1,
+      "js": false,
+      "events": 8,
+      "initial_visible": 8,
+      "overflow": {
+        "page": false,
+        "module": false
+      },
+      "page_errors": [],
+      "data_requests": 0,
+      "text_contrast": ">=4.5:1",
+      "keyboard_filters": "noJS30 list"
+    },
+    {
+      "name": "mobile",
+      "theme": "default",
+      "zoom": 2,
+      "js": true,
+      "events": 8,
+      "initial_visible": 6,
+      "overflow": {
+        "page": false,
+        "module": false
+      },
+      "page_errors": [],
+      "data_requests": 0,
+      "text_contrast": ">=4.5:1",
+      "keyboard_filters": "pass"
+    },
+    {
+      "name": "mobile",
+      "theme": "default",
+      "zoom": 2,
+      "js": false,
+      "events": 8,
+      "initial_visible": 8,
+      "overflow": {
+        "page": false,
+        "module": false
+      },
+      "page_errors": [],
+      "data_requests": 0,
+      "text_contrast": ">=4.5:1",
+      "keyboard_filters": "noJS30 list"
+    },
+    {
+      "name": "mobile",
+      "theme": "slate",
+      "zoom": 1,
+      "js": true,
+      "events": 8,
+      "initial_visible": 6,
+      "overflow": {
+        "page": false,
+        "module": false
+      },
+      "page_errors": [],
+      "data_requests": 0,
+      "text_contrast": ">=4.5:1",
+      "keyboard_filters": "pass"
+    },
+    {
+      "name": "mobile",
+      "theme": "slate",
+      "zoom": 1,
+      "js": false,
+      "events": 8,
+      "initial_visible": 8,
+      "overflow": {
+        "page": false,
+        "module": false
+      },
+      "page_errors": [],
+      "data_requests": 0,
+      "text_contrast": ">=4.5:1",
+      "keyboard_filters": "noJS30 list"
+    },
+    {
+      "name": "mobile",
+      "theme": "slate",
+      "zoom": 2,
+      "js": true,
+      "events": 8,
+      "initial_visible": 6,
+      "overflow": {
+        "page": false,
+        "module": false
+      },
+      "page_errors": [],
+      "data_requests": 0,
+      "text_contrast": ">=4.5:1",
+      "keyboard_filters": "pass"
+    },
+    {
+      "name": "mobile",
+      "theme": "slate",
+      "zoom": 2,
+      "js": false,
+      "events": 8,
+      "initial_visible": 8,
+      "overflow": {
+        "page": false,
+        "module": false
+      },
+      "page_errors": [],
+      "data_requests": 0,
+      "text_contrast": ">=4.5:1",
+      "keyboard_filters": "noJS30 list"
+    },
+    {
+      "name": "desktop",
+      "theme": "default",
+      "zoom": 1,
+      "js": true,
+      "events": 8,
+      "initial_visible": 6,
+      "overflow": {
+        "page": false,
+        "module": false
+      },
+      "page_errors": [],
+      "data_requests": 0,
+      "text_contrast": ">=4.5:1",
+      "keyboard_filters": "pass"
+    },
+    {
+      "name": "desktop",
+      "theme": "default",
+      "zoom": 1,
+      "js": false,
+      "events": 8,
+      "initial_visible": 8,
+      "overflow": {
+        "page": false,
+        "module": false
+      },
+      "page_errors": [],
+      "data_requests": 0,
+      "text_contrast": ">=4.5:1",
+      "keyboard_filters": "noJS30 list"
+    },
+    {
+      "name": "desktop",
+      "theme": "default",
+      "zoom": 2,
+      "js": true,
+      "events": 8,
+      "initial_visible": 6,
+      "overflow": {
+        "page": false,
+        "module": false
+      },
+      "page_errors": [],
+      "data_requests": 0,
+      "text_contrast": ">=4.5:1",
+      "keyboard_filters": "pass"
+    },
+    {
+      "name": "desktop",
+      "theme": "default",
+      "zoom": 2,
+      "js": false,
+      "events": 8,
+      "initial_visible": 8,
+      "overflow": {
+        "page": false,
+        "module": false
+      },
+      "page_errors": [],
+      "data_requests": 0,
+      "text_contrast": ">=4.5:1",
+      "keyboard_filters": "noJS30 list"
+    },
+    {
+      "name": "desktop",
+      "theme": "slate",
+      "zoom": 1,
+      "js": true,
+      "events": 8,
+      "initial_visible": 6,
+      "overflow": {
+        "page": false,
+        "module": false
+      },
+      "page_errors": [],
+      "data_requests": 0,
+      "text_contrast": ">=4.5:1",
+      "keyboard_filters": "pass"
+    },
+    {
+      "name": "desktop",
+      "theme": "slate",
+      "zoom": 1,
+      "js": false,
+      "events": 8,
+      "initial_visible": 8,
+      "overflow": {
+        "page": false,
+        "module": false
+      },
+      "page_errors": [],
+      "data_requests": 0,
+      "text_contrast": ">=4.5:1",
+      "keyboard_filters": "noJS30 list"
+    },
+    {
+      "name": "desktop",
+      "theme": "slate",
+      "zoom": 2,
+      "js": true,
+      "events": 8,
+      "initial_visible": 6,
+      "overflow": {
+        "page": false,
+        "module": false
+      },
+      "page_errors": [],
+      "data_requests": 0,
+      "text_contrast": ">=4.5:1",
+      "keyboard_filters": "pass"
+    },
+    {
+      "name": "desktop",
+      "theme": "slate",
+      "zoom": 2,
+      "js": false,
+      "events": 8,
+      "initial_visible": 8,
+      "overflow": {
+        "page": false,
+        "module": false
+      },
+      "page_errors": [],
+      "data_requests": 0,
+      "text_contrast": ">=4.5:1",
+      "keyboard_filters": "noJS30 list"
+    }
+  ],
+  "zoom": "200% equivalent half CSS viewport and DPR2",
+  "errors": [],
+  "hub_reentry": "pass: filters reset once and respond",
+  "theme_toggle": "pass",
+  "original_sectors_url": "HTTP200",
+  "thirty_anchor": "pass",
+  "status": "pass",
+  "screenshots": [
+    {
+      "path": "/private/tmp/u182-browser/desktop-default.png",
+      "sha256": "9a21ae757aa7cff15bdafae03a4e6ccb428f2d3a97fea07099ad9f3d381d1ae8",
+      "scope": "temporary synthetic UI rendering"
+    },
+    {
+      "path": "/private/tmp/u182-browser/desktop-slate.png",
+      "sha256": "fbd52d48ff7e8779fcb0c7909863aa098b89cf1e278021dca1a33c02b0d56b0c",
+      "scope": "temporary synthetic UI rendering"
+    },
+    {
+      "path": "/private/tmp/u182-browser/mobile-default.png",
+      "sha256": "b32bb76bfb9cb7fc990746f19a5a54c6511a86ea5428f6891be2416ad64f1d0d",
+      "scope": "temporary synthetic UI rendering"
+    },
+    {
+      "path": "/private/tmp/u182-browser/mobile-full.png",
+      "sha256": "d1b6a7995e7ad41b436bf601e75d75cea2dfdeaa4e2122a2c80341380f6ddcd7",
+      "scope": "temporary synthetic UI rendering"
+    },
+    {
+      "path": "/private/tmp/u182-browser/mobile-slate.png",
+      "sha256": "a206c485790b51f2a079a9b51111cb52791ae99ff6bf62661e8413902b8d3911",
+      "scope": "temporary synthetic UI rendering"
+    }
+  ]
+}

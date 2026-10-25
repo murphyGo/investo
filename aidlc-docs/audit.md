@@ -8079,3 +8079,53 @@ closeout changes evidence docs only; root dirty work preserved. Session:
 ## 2026-10-10 — u174–u179 verified public and runtime delivery
 
 Exact main application24ad770d Quality38044175630 SUCCESS6921/470.87s,1 known migrated-dataset skip, Node29 and all guards. Pages38044709772 build/deploy SUCCESS. Actual HTTPS30cases PASS;8CSS/JS/JSON assets byte-match. Bounded runtime35ea6c6e Quality38035946859 SUCCESS6322/289.46s; REVIEWED_CODE_SHA promoted at10:26:29UTC with exact immediate readback and zero queued/running private jobs. Production1/eventactive/news-shadow/enrichmentoff and original daily workflow unchanged. No manual briefing/Telegram or historical-body rewrite. First scheduled new-UI publication remains unobserved; v3/source/event operational acceptance stays separate. Final closeout docs only; all991 frozen application/test/workflow/config/index inputs unchanged and original dirty root preserved. Full evidence: `construction/ui-modernization-20261010/deployment-closeout.md`.
+
+## 2026-10-12 — u180–u183 public insights unit design
+
+사용자: “매크로 환경판 → 주요 일정 → 크립토 시장 내부 순서로 진행하자. 먼저 유닛 설계부터 진행해줘”. 제품 선택과 설계 허가로 적용했다. 현재 origin/main `55c00fc8` 확인 후 별도 branch `codex/public-insights-unit-design-20261012`와 worktree `.tmp/public-insights-unit-design-20261012`에서 u180–u183 을 등록하고 FD/NFR·focused Infrastructure(u180)·실행 계획·시나리오를 작성했다. 기존 root dirty/38 commit 차이·u167–u179 상태와 gate 를 보존했다.
+
+현재코드대조로 FREDcalendar 의 explicitmacroeventkey 와기존 publication_committed/Page 조건을확인했다. H.10daily 관측/weekly 공표·NYFedrate 별공표예외는 primary 문서로대조했다. sourcepermission 미확인·정의/clock 모호함은 blocked 로설계하고가짜승인/현재운영값으로표시하지않았다.
+
+새 Functional/NFR/Infrastructure 산출물승인·코드/테스트·commit/push·Pages/privateruntimeactivation 은미실행이다. 문서검증·main-agentreview 는[reviewrecord](construction/public-insights-20261012/review-record.md)에기록한다. 별도 agentreview 를수행했다고기록하지않는다.
+
+## 2026-10-12 u180 implementation authorization
+
+User: "유닛 하나씩 진행시켜". u180 design/FD/NFR/infrastructure and code plan adopted for sequential implementation. Local implementation and verification authorized; commit/push and private runtime activation not performed.
+
+## 2026-10-12 — u180 local implementation and verification 7/8
+
+사용자 “유닛 하나씩 진행시켜” 지시에 따라 u180 FD/NFR/focused Infrastructure를 채택하고 Code Generation Steps1–7을 구현·검증했다. typed private/public DTO, collector opt-in/capture strip, source/time/semantic qualification, bounded confirmed history, durable snapshot store, 기존 receipt/CAS와 독립 pre-LLM publication, optional GHA/Pages template signal을 연결했다. default off와 실제 qualification 빈 목록을 유지한다.
+
+전체 suite checkpoint6987 passed/1 known migrated-dataset skip, 이후 related704 passed, 최종 scoped173 passed42.52s, Ruff/format755·mypy319·정책/strictMkDocs/Material/Calendar/actionlint PASS. registry44 확인. 재현 가능한 합성 near-cap 64metrics/128events/8,013,025B history의 실제 새 커밋·로컬 bare Git push/remote-confirmation resource gate PASS.
+
+독립 review에서 High H180-01 crash-after-add owned index 복구 누락을 실제 재현했고 durable initial HEAD·owned index identity·scoped reset·HEAD 변화 시 unknown 보존을 추가했다. reviewer 직접29 tests 통과 및 최종 미해결 C/H/M0. 전체 review와 좁은 수정 재검토, lead 검증을 구별한다.
+
+Step8의 실제 source qualification·reviewed private pin/mode·Pages/live identity·5회 scheduled는 consumer 구현 이후 운영 수용으로 pending. 원격 application commit/push·실서비스 deploy/activation·새 알림 미실행. root dirty 및 기존 유닛/debt/gate 보존. 다음 코드 대상 u181. 증거: `construction/u180-public-insights-snapshot-and-publication/code/summary.md`, `docs/cross-checks/2026-10-12-u180-public-insights-foundation.md`.
+
+## 2026-10-25 — u181 implementation authorization
+
+User: “진행시켜”. Continues the announced next unit u181; adopts its existing FD/NFR/code plan for local implementation and verification. u180 changes remain in the original isolated worktree; current remote is dd113ae42846f4c704f3a8f06a3f377bedf84714, while this uncommitted dependent work remains based on55c00fc8. Source adapters and UI assets for u181 have no upstream changes; current-main integration/push/runtime activation is separate. No commit, push, production mode/pin or notification is authorized by this continuation.
+
+## 2026-10-25 — u181 local implementation and verification7/8
+
+User “진행시켜” 채택 범위에서 macro13 recipes·네 기존 source opt-in Decimal envelope·same-date exact spreads·부모 권한/retention·월간 known-period unknown-freshness·current UI/4point SVG표·exact5일 비교·lazy30observations/hash gate·hub/nav를 구현했다. 기존 미국섹터 이름/URL 및 원천 요청·legacy JSON bytes를 보존했다.
+
+전체 collection7046의 full4 shards, 수정 shard, final scoped를 node별 대조해7045pass/1known skip·누락0. final scoped112pass, reviewer29pass 및 최종 C/H/M0. 새 관련시황 날짜는 confirmed remote Git tree에서만 선택한다. 390x844/1440x900, 두테마·JS유무·등가200%16 real localChromium cases, native theme/keyboard/hub return/기존sectors200, history2requests 및 hash/snapshot mismatch 차단을 확인했다. source9allow/4blocked와 개발 HTTP200/503·실제 Treasury typed6개 및 runtime미확인을 구별한다.
+
+Ruff/format763·mypy322·정책/strictMkDocs/Material/Calendar·resource gate 증거를 기록했다. Browser connector 설치경로 오류로 별도임시 headless Chromium 사용; 사용자profile/세션 또는 기존u145waiver 승계없음. source/prod 운영·private pin/mode/Pages/5회 관찰은 Step8 pending. commit/push/deploy/신규알림 미실행. base55c00fc8의 기존 격리worktree/u180미커밋과 rootdirty를 보존했다. remote dd113ae4 대조, 최신main통합수용과 구별. 다음 u182. 증거 `construction/u181-macro-environment-dashboard/code/summary.md`.
+
+## 2026-10-25 u182 implementation entry
+
+User continuation: “진행시켜”. The prior reply identified u182 upcoming-events-dashboard as next. Adopt existing FD/NFR/code plan for one-unit local implementation and validation; Step7 production activation remains separate. Continue the existing isolated worktree, preserve u180/u181 and unrelated root changes, default mode off. Refreshed origin/main 817b356c75e7e7cf32235cd1b217707e2993e211; no upstream delta in the four calendar adapters. Steps1–4 source mappings, opt-in envelopes, projection and rendering validated by focused synthetic/recorded tests; browser/integrated checks pending.
+
+## 2026-10-25 u182 local verification closeout
+
+Steps1–6 verified, Step7 operations pending. Current7092 collected nodes:7091pass/1existing skip from four full file shards plus final236 focused; missing/unmatched0. Full checkpoint7091 nodes(7090pass/1skip), then added Fed recording regression. Independent reviewer initial45pass, final fix regression1pass, unresolved C/H/M0. Ruff/format772/mypy325/policy/strictMkDocs/Material/Calendar/resource PASS. Separate temporary Chromium154 actual16cases/keyboard/theme/nav/noJS PASS; Browser connector remains unavailable. Calendar24 definitions14allow/10FREDblocked; development3HTTP200 and replay10/9/4 typed, not production. Defaultoff, no commit/push/main integration/private pin/mode/Pages/Telegram activation. Preserve u180/u181/root work. Next code unitu183. Summary and exact modified-input hashes: construction/u182-upcoming-events-dashboard/code/summary.md and validation.json.
+
+## 2026-10-25 u183 implementation entry
+
+User continuation: “진행시켜”, following the explicit next target u183. Adopt FD/NFR/code plan for one-unit local implementation. Continue existing isolated worktree and preserve u180/u181/u182/root dirty changes. Base55c00fc8/start-origin0768d780; no integration. Steps1–6 implemented: same-response typed observations,7slot/9definitions,provider/cycle/time guards,daily sampling/history/current UI and nav. Production Step8 separate/defaultoff. Independent review C/H/M0. Whole-suite checkpoint found existing DST equality PBT failure, reproduced onHEAD andcurrent; JSON/UTC instant preserved, test assertion repaired and3DST regressions added. Full failed-shard rerun/validation closeout pending.
+
+## 2026-10-25 u183 local verification closeout
+
+Steps1–7 verified; Step8 operations pending. Current7143 nodes latest unique7142pass/1existing skip; missing/unmatched0. Finalfocused211pass/63.61s, DSTroundtrip9pass/2.26s; repaired fullshard1789pass/284.53s. Existing PEP495 model-equality failure reproduced onHEAD/current; JSON/UTC preserved, test-only repair+3regressions. Independent C/H/M0(core47,clock2,DST9direct). Ruff/format781/mypy328/policy/strictMkDocs/Material/Calendar/resource PASS. Actual temporaryChromium154 crypto16+macro16cases, lazy56+6rows/hash gatesPASS. FNG1allow/8crypto definitionsblocked;7development endpoint200/9typed replay, no rawfixtures public copy or sourcekey read. Defaultoff, modulesdefaultmacro, no mainintegration/commit/push/privatepin/mode/Pages/Telegramactivation. All requested three screens locally implemented; production/5scheduled acceptance remains separate. Evidence: construction/u183-crypto-market-internals-dashboard/code/summary.md and validation.json.

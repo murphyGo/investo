@@ -1,0 +1,21 @@
+{
+  "kind": "actual foundation phase with synthetic three-module local bare-Git baseline and push",
+  "metrics": 64,
+  "events": 128,
+  "history_bytes": 8013025,
+  "status": "remote_confirmed",
+  "new_commit_remote_confirmed": true,
+  "additional_rss_bytes": 58966016,
+  "cpu_seconds": 1.906498,
+  "wall_seconds": 4.224448749911971,
+  "source_http_calls": 0,
+  "llm_calls": 0,
+  "telegram_calls": 0,
+  "synthetic_fixture": true,
+  "production_push": false,
+  "rss_limit_bytes": 100663296,
+  "cpu_limit_seconds": 5,
+  "phase_limit_seconds": 60,
+  "reproduce": "PYTHONPATH=src:. .venv/bin/python scripts/benchmark_insights_resource.py",
+  "measurement_checkpoint": "after final Python/publication changes, before CSS-only palette refinements"
+}

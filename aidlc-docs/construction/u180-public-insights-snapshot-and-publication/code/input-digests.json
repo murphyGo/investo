@@ -1,0 +1,31 @@
+{
+  "base_sha": "55c00fc85e2828f62cd69d5583afd3761ef86d45",
+  "changed_inputs_sha256": "0e0c00cd9d1025af407096c329f3bd29061de425295baa990af145314422f217",
+  "files": {
+    "ops/insights_source_qualification.json": "df834d7bc2adcf577a38a96cf34dc17b41ef64b1f1ff1749b8115e0656f4d28e",
+    "ops/private-runtime/production-briefing.yml": "f40211dfe8451fbbdb0cd8cc82eed4f1e1c2c1ce4c2b2c14b89fbb8e579e5ca4",
+    "scripts/benchmark_insights_resource.py": "74ced4702c52ec8eeb64935380379d450672024c348739e19d6cdd533c123875",
+    "src/investo/__main__.py": "c4a22479fc627d0db1dad5771902dc186f490b28a8e5c683791e1cbac1ebc4f7",
+    "src/investo/models/insights.py": "f85cb8202b10eca15c13f721a236d4bfc1b7ba4d8e3528b1a553a6c381aa2746",
+    "src/investo/models/insights_calendar.py": "e656dfeaa782319daebc7ea57d2658b342ac53034e46f490f4f6e2426d16093d",
+    "src/investo/models/items.py": "7b294f7e849d3b50bb273065de05f614ff8907852fb6530bfba11baf440e6067",
+    "src/investo/models/results.py": "bc88a8b9484fb16f61405c5cdcb18ca00e6773589d9a2e7e5e8387b18edf4812",
+    "src/investo/orchestrator/insights.py": "aa337331e74c68835bf374a67b54b75d59efec0d20bdfb191508ed0e46c221f8",
+    "src/investo/orchestrator/insights_projection.py": "fa9d2ecf5f1678c99bd10fd1f7fec140652a5f56f012a58534db3b1deadacc7a",
+    "src/investo/orchestrator/insights_publication.py": "335deb57b2a096675aa881c12d92531c065b6e917760891ae2cc703c29183688",
+    "src/investo/orchestrator/pipeline.py": "13496a7038ad7eb479086889a1df43e01c089d8b9b3243b229af791bb32ecb8a",
+    "src/investo/orchestrator/stages.py": "e81d469dec7292c69b3c46086cca06ca40f49a3cf99b6734bce21bbdaa8c9a6d",
+    "src/investo/publisher/insights/__init__.py": "007ec7b726954587357de773c87b8290a73f253e56d7de975d1b824ef2d14f46",
+    "src/investo/publisher/insights/store.py": "1889f5b7f56d3b922eb1bd2af792776aa7a4f05b2add6891dbb41f5ac8e19297",
+    "src/investo/sources/_window.py": "9c1d2c3ab354efc59d01d9292d48a10acd4c1b81ffac17b5fc842c722017cc94",
+    "src/investo/sources/aggregator.py": "a0e8de4e383a49ab99341eff708bbc3008542ad31fd94c8cd0bbbafed40cb51f",
+    "tests/_helpers/insights.py": "79597be21bd51d90e7ad8142a7e5000ca6a6b3f739ed771ae7cbb7396fcd85c5",
+    "tests/integration/test_insights_publication_u180.py": "f3b0088e0871112e4d6de8fae969073b37ca957dce342d771683318f1c8b82c2",
+    "tests/unit/models/test_insights_contracts_u180.py": "ef209d8387fbaedae93c91525d31bc249f8e93ff0f17ad6cb60bb3f5247d48bb",
+    "tests/unit/orchestrator/test_insights_capture_u180.py": "86ef650464385da3a982aa0151815536aa1833d7d5d7a964b2ee1a69c6d213cd",
+    "tests/unit/orchestrator/test_insights_projection_u180.py": "82fc4d4f35f9e3607958f03d6cb2669efd8f00147b298a223c96d220cfa47356",
+    "tests/unit/orchestrator/test_insights_resources_u180.py": "e2f5a3021573d7b96c0d569c9f4665f0aebdea9653cdd3f3a7ccfffe895a46a0",
+    "tests/unit/orchestrator/test_private_publication_u155.py": "43da2c9adf39dd44a1e0fdc56dda5504f74301e5c89a84c7016e8a94dce838e6",
+    "tests/unit/publisher/test_insights_store_u180.py": "eb26eed6501020d670c401749a1fe9a0f89caa6fb71d9ed2e0d2e8fb8eb4d9c6"
+  }
+}

@@ -221,3 +221,14 @@ pure deterministic assembly, no new I/O, dependency, provider or notification
 policy. Code Generation, full Build and Test, independent review and scoped
 cross-check are required. Current configured Markdown HTML is tested; viewport
 pixel acceptance and event human/scheduled observations are not inferred.
+
+## u180–u183 — Public Insights (2026-10-12)
+
+| Unit | Functional Design | NFR Requirements | NFR Design | Infrastructure Design | Code Generation |
+| --- | --- | --- | --- | --- | --- |
+| u180 | Required, adopted | Required, adopted | Focused C3–C7 adopted/implemented | Focused existing private job/Pages template validated; activation pending | Local verified7/8, ops Step8 pending |
+| u181 | Required, adopted | Required, adopted | Shared + NF181 implemented | Reuseu180; activation pending | Local verified7/8; ops Step8 pending |
+| u182 | Adopted 2026-10-25 | Adopted focused NF182 | Reuse shared + unitNF182 | Reuseu180; separate skip | Local verified6/7; Step7 operations pending |
+| u183 | Adopted 2026-10-25 | Adopted focused NF183 | Reuse shared + unitNF183 | Reuseu180; separate skip | Local verified7/8; Step8 operations pending |
+
+Initial instruction authorized design. Subsequent user instruction “유닛 하나씩 진행시켜” adopted u180 FD/NFR/Infrastructure for local implementation; Steps1–7 validated, operational Step8 pending. u181/u182 were adopted by subsequent continuation and are locally verified7/8 and6/7; their operating steps remain pending. u183 was subsequently adopted and locally verified7/8; operational activation remains pending. Implementation orderu180→u181→u182→u183; existingunits/gatesstayunchanged. Newfeaturesdefaultoffandshadowwrite0. Codevalidation,sourcepermissions,privatepin/Pages,and5scheduledobservationsareseparateevidence. [Program](../../construction/public-insights-20261012/README.md).

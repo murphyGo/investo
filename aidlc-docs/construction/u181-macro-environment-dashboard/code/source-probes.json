@@ -1,0 +1,42 @@
+{
+  "kind": "development one-shot existing endpoint checks; not scheduled or production acceptance",
+  "results": [
+    {
+      "source": "treasury",
+      "date": "2026-10-25",
+      "http_status": 200,
+      "response_sha256": "66e4a4d07a95ea323d298013046b775331a454b19b8e5ac3dedc6d1c9a48c6e8",
+      "raw_response_committed": false,
+      "recorded_response_parser_replay": {
+        "typed_metric_count": 6,
+        "source_dates": [
+          "2026-10-23"
+        ],
+        "additional_http_calls": 0
+      }
+    },
+    {
+      "source": "sofr",
+      "date": "2026-10-25",
+      "http_status": 200,
+      "response_sha256": "8c1745623b1515db0fb2d7f24d51af6b30ab8af48309ff4cb0485b91a6376dd4",
+      "raw_response_committed": false,
+      "recorded_response_parser_replay": {
+        "typed_metric_count": 1,
+        "source_dates": [
+          "2026-10-22"
+        ],
+        "additional_http_calls": 0
+      }
+    },
+    {
+      "source": "bls",
+      "date": "2026-10-25",
+      "http_status": 503,
+      "response_sha256": null,
+      "raw_response_committed": false
+    }
+  ],
+  "fred": "not called; no key lookup or URL with secret recorded",
+  "treasury_page": "Web fetch 404; direct HTTPS timed out. Existing literal source URL retained; data XML endpoint HTTP200. Source page access remains unverified."
+}

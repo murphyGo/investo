@@ -12,6 +12,8 @@ import httpx
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
+from investo.models.insights import InsightTime, SourceInsightEnvelope
+from investo.models.insights_macro import MACRO_BY_ID
 from investo.sources._config import SUMMARY_MAX_LEN, format_float
 from investo.sources._core_fact_map import core_fact_for_ticker, core_fact_metadata_key
 from investo.sources._parse import parse_json_response
@@ -94,6 +96,32 @@ class FredFxCloseAdapter:
             close=close,
             previous_close=previous_close,
         )
+        if item is not None and window.insights_enabled:
+            original = next(
+                (
+                    row
+                    for row in observations
+                    if isinstance(row, dict)
+                    and row.get("date") == source_date.isoformat()
+                    and row.get("value") not in (None, _PLACEHOLDER)
+                ),
+                None,
+            )
+            if original is not None:
+                try:
+                    clock = InsightTime(
+                        basis="effective_date",
+                        precision="date",
+                        local_date=source_date,
+                        source_timezone="America/New_York",
+                    )
+                    envelope = SourceInsightEnvelope(
+                        source_name=self.name,
+                        metrics=(MACRO_BY_ID["usd_krw_h10"].metric(original["value"], clock),),
+                    )
+                    item = item.model_copy(update={"insight_envelope": envelope})
+                except (KeyError, ValueError):
+                    pass
         return [item] if item is not None else []
 
 

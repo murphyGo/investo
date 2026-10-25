@@ -108,6 +108,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Any, ClassVar, Final
 
@@ -115,6 +116,14 @@ import httpx
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
+from investo.models.insights import (
+    InsightTime,
+    SourceInsightEnvelope,
+    SourceScheduleCoverage,
+    canonical_bytes,
+    digest,
+)
+from investo.models.insights_events import AUCTION_RECIPE
 from investo.sources._config import SUMMARY_MAX_LEN, parse_symbol_list
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
@@ -246,6 +255,21 @@ class TreasuryAuctionsAdapter:
                 target_published_at=target_published_at,
             )
             if normalized is not None:
+                if window.insights_enabled:
+                    normalized = normalized.model_copy(
+                        update={
+                            "insight_envelope": _insight_auction(
+                                row,
+                                auction_date,
+                                SourceScheduleCoverage(
+                                    start_date=window.target_date,
+                                    end_date=forward_end,
+                                    upstream_cap=500,
+                                    cap_reached=len(rows) >= 500,
+                                ),
+                            )
+                        }
+                    )
                 items.append(normalized)
         return items
 
@@ -312,6 +336,55 @@ class TreasuryAuctionsAdapter:
             )
         except ValidationError:
             return None
+
+
+def _insight_auction(
+    row: dict[str, Any], day: date, coverage: SourceScheduleCoverage
+) -> SourceInsightEnvelope | None:
+    security_type = _clean_str(row.get("security_type")) or ""
+    term = _clean_str(row.get("security_term")) or ""
+    if security_type not in {"Note", "Bond", "TIPS Note", "TIPS Bond", "FRN Note", "Bill", "CMB"}:
+        return None
+    if term and not re.fullmatch(
+        r"\d{1,3}-(?:Year|Month|Week|Day)(?: \d{1,3}-(?:Month|Day))?", term
+    ):
+        return None
+    reopening = (_clean_str(row.get("reopening")) or "unknown").lower()
+    if reopening not in {"yes", "no"}:
+        reopening = "unknown"
+    cusip = _clean_str(row.get("cusip"))
+    # Missing CUSIP stays source-local. Never merge by day/title alone.
+    own_key = digest(
+        canonical_bytes(
+            {
+                key: _clean_str(row.get(key))
+                for key in (
+                    "security_type",
+                    "security_term",
+                    "issue_date",
+                    "announcemt_date",
+                    "reopening",
+                )
+            }
+        )
+    )
+    official_id = (
+        f"treasury:{cusip}"
+        if cusip and re.fullmatch(r"[A-Z0-9]{9}", cusip)
+        else f"treasury:own:{own_key}"
+    )
+    clock = InsightTime(
+        basis="schedule", precision="date", local_date=day, source_timezone="America/New_York"
+    )
+    return AUCTION_RECIPE.envelope(
+        AUCTION_RECIPE.event(
+            clock,
+            official_id,
+            instrument=f"{term} {security_type}".strip(),
+            reopening=reopening,
+        ),
+        coverage,
+    )
 
 
 def _resolve_auction_types() -> frozenset[str]:

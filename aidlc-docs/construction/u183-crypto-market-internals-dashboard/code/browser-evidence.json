@@ -1,0 +1,275 @@
+{
+  "kind": "actual local Chromium renders of explicitly synthetic data",
+  "cases": [
+    {
+      "name": "mobile",
+      "theme": "default",
+      "zoom": 1,
+      "js": true,
+      "overflow": {
+        "page": false,
+        "insights": false
+      },
+      "card_count": 7,
+      "history_requests_before_interaction": 0,
+      "page_errors": [],
+      "text_contrast": "at least4.5:1"
+    },
+    {
+      "name": "mobile",
+      "theme": "default",
+      "zoom": 1,
+      "js": false,
+      "overflow": {
+        "page": false,
+        "insights": false
+      },
+      "card_count": 7,
+      "history_requests_before_interaction": 0,
+      "page_errors": [],
+      "text_contrast": "at least4.5:1"
+    },
+    {
+      "name": "mobile",
+      "theme": "default",
+      "zoom": 2,
+      "js": true,
+      "overflow": {
+        "page": false,
+        "insights": false
+      },
+      "card_count": 7,
+      "history_requests_before_interaction": 0,
+      "page_errors": [],
+      "text_contrast": "at least4.5:1"
+    },
+    {
+      "name": "mobile",
+      "theme": "default",
+      "zoom": 2,
+      "js": false,
+      "overflow": {
+        "page": false,
+        "insights": false
+      },
+      "card_count": 7,
+      "history_requests_before_interaction": 0,
+      "page_errors": [],
+      "text_contrast": "at least4.5:1"
+    },
+    {
+      "name": "mobile",
+      "theme": "slate",
+      "zoom": 1,
+      "js": true,
+      "overflow": {
+        "page": false,
+        "insights": false
+      },
+      "card_count": 7,
+      "history_requests_before_interaction": 0,
+      "page_errors": [],
+      "text_contrast": "at least4.5:1"
+    },
+    {
+      "name": "mobile",
+      "theme": "slate",
+      "zoom": 1,
+      "js": false,
+      "overflow": {
+        "page": false,
+        "insights": false
+      },
+      "card_count": 7,
+      "history_requests_before_interaction": 0,
+      "page_errors": [],
+      "text_contrast": "at least4.5:1"
+    },
+    {
+      "name": "mobile",
+      "theme": "slate",
+      "zoom": 2,
+      "js": true,
+      "overflow": {
+        "page": false,
+        "insights": false
+      },
+      "card_count": 7,
+      "history_requests_before_interaction": 0,
+      "page_errors": [],
+      "text_contrast": "at least4.5:1"
+    },
+    {
+      "name": "mobile",
+      "theme": "slate",
+      "zoom": 2,
+      "js": false,
+      "overflow": {
+        "page": false,
+        "insights": false
+      },
+      "card_count": 7,
+      "history_requests_before_interaction": 0,
+      "page_errors": [],
+      "text_contrast": "at least4.5:1"
+    },
+    {
+      "name": "desktop",
+      "theme": "default",
+      "zoom": 1,
+      "js": true,
+      "overflow": {
+        "page": false,
+        "insights": false
+      },
+      "card_count": 7,
+      "history_requests_before_interaction": 0,
+      "page_errors": [],
+      "text_contrast": "at least4.5:1"
+    },
+    {
+      "name": "desktop",
+      "theme": "default",
+      "zoom": 1,
+      "js": false,
+      "overflow": {
+        "page": false,
+        "insights": false
+      },
+      "card_count": 7,
+      "history_requests_before_interaction": 0,
+      "page_errors": [],
+      "text_contrast": "at least4.5:1"
+    },
+    {
+      "name": "desktop",
+      "theme": "default",
+      "zoom": 2,
+      "js": true,
+      "overflow": {
+        "page": false,
+        "insights": false
+      },
+      "card_count": 7,
+      "history_requests_before_interaction": 0,
+      "page_errors": [],
+      "text_contrast": "at least4.5:1"
+    },
+    {
+      "name": "desktop",
+      "theme": "default",
+      "zoom": 2,
+      "js": false,
+      "overflow": {
+        "page": false,
+        "insights": false
+      },
+      "card_count": 7,
+      "history_requests_before_interaction": 0,
+      "page_errors": [],
+      "text_contrast": "at least4.5:1"
+    },
+    {
+      "name": "desktop",
+      "theme": "slate",
+      "zoom": 1,
+      "js": true,
+      "overflow": {
+        "page": false,
+        "insights": false
+      },
+      "card_count": 7,
+      "history_requests_before_interaction": 0,
+      "page_errors": [],
+      "text_contrast": "at least4.5:1"
+    },
+    {
+      "name": "desktop",
+      "theme": "slate",
+      "zoom": 1,
+      "js": false,
+      "overflow": {
+        "page": false,
+        "insights": false
+      },
+      "card_count": 7,
+      "history_requests_before_interaction": 0,
+      "page_errors": [],
+      "text_contrast": "at least4.5:1"
+    },
+    {
+      "name": "desktop",
+      "theme": "slate",
+      "zoom": 2,
+      "js": true,
+      "overflow": {
+        "page": false,
+        "insights": false
+      },
+      "card_count": 7,
+      "history_requests_before_interaction": 0,
+      "page_errors": [],
+      "text_contrast": "at least4.5:1"
+    },
+    {
+      "name": "desktop",
+      "theme": "slate",
+      "zoom": 2,
+      "js": false,
+      "overflow": {
+        "page": false,
+        "insights": false
+      },
+      "card_count": 7,
+      "history_requests_before_interaction": 0,
+      "page_errors": [],
+      "text_contrast": "at least4.5:1"
+    }
+  ],
+  "errors": [],
+  "browser": "154.0.8037.0",
+  "zoom": "200% equivalent CSS viewport divided by two and DPR2",
+  "lazy_history": {
+    "requests": 2,
+    "table_rows": 56,
+    "keyboard_enter": true
+  },
+  "theme_toggle": "pass",
+  "hub_reentry": "pass",
+  "original_sectors_url": "pass",
+  "hash_mismatch": "blocked; current cards preserved",
+  "snapshot_mismatch": "blocked; current cards preserved",
+  "status": "pass",
+  "screenshots": [
+    {
+      "path": "/private/tmp/u183-browser/desktop-default.png",
+      "sha256": "1f0167ecf95afaa6be3c0dc1017247d792dfc38d91bb9e34c73deb2dfe0364cd",
+      "scope": "temporary synthetic UI render"
+    },
+    {
+      "path": "/private/tmp/u183-browser/desktop-slate.png",
+      "sha256": "f4e81039642dcd6520e638a840a3e2d0fd04711860b477617b6a721db7aee374",
+      "scope": "temporary synthetic UI render"
+    },
+    {
+      "path": "/private/tmp/u183-browser/history-open.png",
+      "sha256": "699a39be21af77fac9259146fd0f0cdb441a4871a83f54df56410d03479dfc19",
+      "scope": "temporary synthetic UI render"
+    },
+    {
+      "path": "/private/tmp/u183-browser/mobile-default.png",
+      "sha256": "658c86db20f9624aaf20bb068941435d1b402a08dc6ef79823fd2e5d415efd8c",
+      "scope": "temporary synthetic UI render"
+    },
+    {
+      "path": "/private/tmp/u183-browser/mobile-full.png",
+      "sha256": "d8271ba874828569e027c309d75c880eaf78df48b392f202f159f06a2afa6ec1",
+      "scope": "temporary synthetic UI render"
+    },
+    {
+      "path": "/private/tmp/u183-browser/mobile-slate.png",
+      "sha256": "169d4782ecad3de5907a9840067ff7579befc71d3246a663e3231da789fcc48b",
+      "scope": "temporary synthetic UI render"
+    }
+  ]
+}

@@ -1,0 +1,225 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-11T13:37:36.299413+00:00",
+  "planning_date": "2026-10-11",
+  "reference_sha": "55c00fc85e2828f62cd69d5583afd3761ef86d45",
+  "reference_scope": "Fetched origin/main; detached read-only inspection worktree",
+  "live_dashboard": {
+    "html_url": "https://murphygo.github.io/investo/sectors/",
+    "json_url": "https://murphygo.github.io/investo/sectors/latest.json",
+    "html_http_result": "curl -fsSL succeeded",
+    "json_http_result": "curl -fsSL succeeded",
+    "json_file_sha256": "bbb429b2210a1b7d019f04c2ac53684f6a08149c078ca677924aac79d61ed2f0",
+    "html_file_sha256": "9a9bf31b7b88d8a549ecd89fd6792b1bfc74fe4a1f5e2d6de553d3b313cb4be4",
+    "snapshot_id": "sha256:8a1e76ae65b4c8514a7c541ac31acdba69bb55556fd6a9dad0fe2b7b0fe3604a",
+    "snapshot_id_present_in_html": true,
+    "schema_version": 3,
+    "as_of_date": "2026-10-09",
+    "freshness": "fresh",
+    "sector_count": 11,
+    "available_group_count": 14,
+    "comparable_group_count": 14
+  },
+  "actions": {
+    "pages": {
+      "database_id": 38044709772,
+      "head_sha": "24ad770d56526709055de878a3a67e44d1e08512",
+      "conclusion": "success",
+      "url": "https://github.com/murphyGo/investo/actions/runs/38044709772"
+    },
+    "sector_refresh": {
+      "database_id": 38036114019,
+      "head_sha": "3d0e5570afab82354d216ff8cdc9ea38cd843d7e",
+      "conclusion": "success",
+      "url": "https://github.com/murphyGo/investo/actions/runs/38036114019"
+    }
+  },
+  "coverage_review": {
+    "reference_path": "archive/_meta/coverage.jsonl",
+    "selection": "Last stored row for each target_date; latest 10 distinct dates",
+    "dates": [
+      "2026-09-28",
+      "2026-09-29",
+      "2026-09-30",
+      "2026-10-01",
+      "2026-10-02",
+      "2026-10-05",
+      "2026-10-06",
+      "2026-10-07",
+      "2026-10-08",
+      "2026-10-09"
+    ],
+    "sources": {
+      "treasury-rates": {
+        "observed_date_count": 10,
+        "status_counts": {
+          "ok": 10
+        },
+        "latest_item_count": 1
+      },
+      "nyfed-reference-rates": {
+        "observed_date_count": 10,
+        "status_counts": {
+          "ok": 10
+        },
+        "latest_item_count": 5
+      },
+      "fred-macro": {
+        "observed_date_count": 10,
+        "status_counts": {
+          "ok": 10
+        },
+        "latest_item_count": 3
+      },
+      "fred-fx-close": {
+        "observed_date_count": 10,
+        "status_counts": {
+          "ok": 10
+        },
+        "latest_item_count": 1
+      },
+      "fomc-calendar": {
+        "observed_date_count": 10,
+        "status_counts": {
+          "ok": 10
+        },
+        "latest_item_count": 19
+      },
+      "fred-economic-calendar": {
+        "observed_date_count": 10,
+        "status_counts": {
+          "ok": 10
+        },
+        "latest_item_count": 10
+      },
+      "us-economic-calendar": {
+        "observed_date_count": 10,
+        "status_counts": {
+          "ok": 10
+        },
+        "latest_item_count": 4
+      },
+      "nasdaq-earnings-calendar": {
+        "observed_date_count": 10,
+        "status_counts": {
+          "ok": 10
+        },
+        "latest_item_count": 4
+      },
+      "cftc-cot-positioning": {
+        "observed_date_count": 10,
+        "status_counts": {
+          "ok": 10
+        },
+        "latest_item_count": 9
+      },
+      "defillama-market-structure": {
+        "observed_date_count": 10,
+        "status_counts": {
+          "ok": 10
+        },
+        "latest_item_count": 2
+      },
+      "coingecko-global-market": {
+        "observed_date_count": 10,
+        "status_counts": {
+          "ok": 10
+        },
+        "latest_item_count": 1
+      },
+      "alternative-fng": {
+        "observed_date_count": 10,
+        "status_counts": {
+          "ok": 10
+        },
+        "latest_item_count": 1
+      },
+      "bybit-derivatives": {
+        "observed_date_count": 10,
+        "status_counts": {
+          "ok": 10
+        },
+        "latest_item_count": 2
+      },
+      "okx-derivatives": {
+        "observed_date_count": 10,
+        "status_counts": {
+          "ok": 10
+        },
+        "latest_item_count": 2
+      },
+      "cboe-volatility-indices": {
+        "observed_date_count": 10,
+        "status_counts": {
+          "zero": 10
+        },
+        "latest_item_count": 0
+      },
+      "krx-foreign-flows": {
+        "observed_date_count": 10,
+        "status_counts": {
+          "zero": 10
+        },
+        "latest_item_count": 0
+      },
+      "fsc-krx-index-price": {
+        "observed_date_count": 10,
+        "status_counts": {
+          "zero": 9,
+          "failed": 1
+        },
+        "latest_item_count": 0
+      }
+    },
+    "limitation": "Recorded adapter ok/item counts do not establish numeric truth, current-SHA stability, timing precision or public display rights."
+  },
+  "read_only_endpoint_probes": {
+    "nyfed_sofr": {
+      "endpoint": "https://markets.newyorkfed.org/api/rates/secured/sofr/last/1.json",
+      "row_count": 1,
+      "latest_effective_date": "2026-10-08"
+    },
+    "cftc_tff": {
+      "endpoint": "https://publicreporting.cftc.gov/resource/gpe5-46if.json",
+      "query_scope": "limit=1, order by report_date descending",
+      "row_count": 1,
+      "latest_report_date": "2026-10-06T00:00:00.000",
+      "release_date_field_present": false
+    },
+    "okx_funding": {
+      "endpoint": "https://www.okx.com/api/v5/public/funding-rate",
+      "instrument": "BTC-USD-SWAP",
+      "response_code": "0",
+      "row_count": 1,
+      "response_time_fields": [
+        "fundingTime",
+        "nextFundingTime",
+        "prevFundingTime",
+        "ts"
+      ],
+      "limitation": "Endpoint availability and timestamps are not public redistribution qualification or proof of a UTC-24h average."
+    },
+    "defillama_chains": {
+      "endpoint": "https://api.llama.fi/v2/chains",
+      "row_count": 468,
+      "first_row_field_names": [
+        "gecko_id",
+        "gasTokenGeckoId",
+        "tvl",
+        "tokenSymbol",
+        "cmcId",
+        "name",
+        "chainId"
+      ],
+      "limitation": "Retrieval time differs from source observation time; public display and retention terms not qualified in this planning turn."
+    }
+  },
+  "existing_work_dependencies": {
+    "u145": "Live flat market groups; history surface is a proposed extension.",
+    "u168": "Canonical identity and fact delta in progress in reference state.",
+    "u169_u170_u171_u172": "Planned in reference state; story board depends on sealed stories and actual acceptance.",
+    "DEBT-079": "Schedule/actual identity join needs attention before completed/result calendar cards.",
+    "DEBT-071_DEBT-072": "Liquidation and exchange netflow source constraints remain outside first release."
+  },
+  "scope": "Planning docs only; no source, site, workflow, AIDLC state, activation, commit or push changes."
+}

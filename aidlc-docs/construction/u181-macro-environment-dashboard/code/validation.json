@@ -1,0 +1,123 @@
+{
+  "unit": "u181-macro-environment-dashboard",
+  "date": "2026-10-25",
+  "base_sha": "55c00fc85e2828f62cd69d5583afd3761ef86d45",
+  "remote_checked_at_start": "dd113ae42846f4c704f3a8f06a3f377bedf84714",
+  "branch": "codex/public-insights-unit-design-20261012",
+  "working_changes_committed": false,
+  "remote_integration_performed": false,
+  "changed_inputs_sha256": "9ed77b4a24974cff68012d155df382700c8e8fcfa4d10b84da15b6b386f92535",
+  "changed_input_count": 43,
+  "implementation": "local_verified",
+  "plan": {
+    "complete": 7,
+    "total": 8,
+    "pending": "source/runtime/Pages/exact implementation SHA/five scheduled observations"
+  },
+  "tests": {
+    "current_collected": 7046,
+    "latest_unique_results": {
+      "passed": 7045,
+      "skipped": 1
+    },
+    "missing": 0,
+    "method": "four disjoint full file shards plus rerun of failed shard and final scoped suite; latest result per current node, no duplicate counting",
+    "source": "test-coverage.json",
+    "initial_failure": "test_site_shell_u176 menu name; restored original 미국 섹터 label and reran shard",
+    "final_scoped": {
+      "passed": 112,
+      "seconds": 53.67,
+      "log": "/private/tmp/u181-final-scoped.log"
+    },
+    "reviewer": {
+      "passed": 29,
+      "seconds": 1.46,
+      "scope": "source/domain/render after precision correction; no claim of independent full suite"
+    },
+    "skip": "existing sector schema2 committed dataset migration fixture"
+  },
+  "checks": {
+    "ruff": "pass",
+    "format": {
+      "status": "pass",
+      "files": 763
+    },
+    "mypy": {
+      "status": "pass",
+      "source_files": 322
+    },
+    "no_paid_apis": "pass",
+    "no_anthropic_sdk": "pass",
+    "curated_assets": "pass:19 filed0deferred",
+    "image_store": "pass:0 binaries",
+    "strict_mkdocs": "pass",
+    "material_theme": "pass including built stylesheet/rendered pairs",
+    "calendar_render": "pass",
+    "javascript_syntax": "pass",
+    "diff_check": "pass",
+    "registered_sources": 44
+  },
+  "page_budget": {
+    "initial_html_bytes_synthetic_fixture": 11857,
+    "html_limit_bytes": 102400,
+    "new_css_bytes": 4080,
+    "new_js_bytes": 6052,
+    "new_css_js_gzip_bytes": 3511,
+    "gzip_limit_bytes": 51200,
+    "history_inline": false
+  },
+  "browser": {
+    "evidence": "browser-evidence.json",
+    "script": "tests/browser/macro_insights.cjs",
+    "preview_builder": "tests/_helpers/macro_insights_preview.py",
+    "connector": "unavailable: installed plugin service path differs from tool worker path",
+    "backend": "separate temporary local headless Chromium; no user profile",
+    "user_browser_controlled": false,
+    "u145_waiver_inherited": false,
+    "zoom_method": "200% equivalent half CSS viewport and DPR2; not OS browser chrome zoom",
+    "preview": "http://127.0.0.1:8873/insights/macro/",
+    "fixture": "explicit synthetic-data banner; not current market or production evidence",
+    "status": "pass",
+    "rendered_cases": 16,
+    "text_contrast": "checked sidebar links, metric labels and source dates >=4.5:1 after theme transitions finish",
+    "evidence_sha256": "937639a3492b1cf6b67f19c5f54a15eefc6b040fccfe71dd01e0f4c5f4e8eeab"
+  },
+  "source_qualification": {
+    "definitions": 13,
+    "rights_allowed": 9,
+    "rights_blocked": 4,
+    "allowed_sources": [
+      "Treasury",
+      "BLS"
+    ],
+    "blocked_sources": [
+      "NY Fed notice/distribution conditions",
+      "FRED terms scope"
+    ],
+    "actual_response_parser_replay": "source-probes.json",
+    "production_runtime_accepted": false
+  },
+  "independent_review": {
+    "initial": "review-u181-initial.md",
+    "final": "review-u181-final.md",
+    "unresolved_confirmed_findings": {
+      "critical": 0,
+      "high": 0,
+      "medium": 0
+    }
+  },
+  "operating_state": {
+    "mode_default": "off",
+    "private_pin_mode_changed": false,
+    "production_deployed": false,
+    "production_telegram_sent": false,
+    "five_scheduled_runs": "pending"
+  },
+  "limits": [
+    "test results are a union of named checkpoints; final scoped tests cover later Python corrections",
+    "CSS-only palette refinements followed full/scoped regression and were checked by live renders, budgets and static guards",
+    "actual source access, rights review, synthetic fixtures, local Git publication and production acceptance are distinct",
+    "Treasury homepage link access unverified; existing literal retained",
+    "source FRED seven-day input age filter retained; weekly projection does not change legacy eligibility"
+  ]
+}

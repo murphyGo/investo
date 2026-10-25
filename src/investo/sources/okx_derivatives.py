@@ -34,6 +34,8 @@ import httpx
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
+from investo.models.insights import InsightTime, SourceInsightEnvelope
+from investo.models.insights_crypto import derivative_recipe, envelope, epoch, safe_metric
 from investo.sources._config import format_float
 from investo.sources._parse import parse_json_response
 from investo.sources._registry import register
@@ -119,7 +121,68 @@ async def fetch_okx_items(
             message="OKX funding-rate / open-interest missing expected fields",
             transient=False,
         )
+    if window.insights_enabled:
+        items[0] = items[0].model_copy(
+            update={"insight_envelope": _insight_okx(funding_payload, oi_payload)}
+        )
     return items
+
+
+def _insight_okx(funding_payload: Any, oi_payload: Any) -> SourceInsightEnvelope | None:
+    def row_for(payload: Any) -> dict[str, Any] | None:
+        data = (
+            payload.get("data")
+            if isinstance(payload, dict) and payload.get("code") == "0"
+            else None
+        )
+        if not isinstance(data, list) or len(data) != 1 or not isinstance(data[0], dict):
+            return None
+        row = data[0]
+        return row if row.get("instId") == _INST_ID and row.get("instType") == "SWAP" else None
+
+    metrics = []
+    oi = row_for(oi_payload)
+    if oi is not None:
+        stamp = epoch(oi.get("ts"), milliseconds=True)
+        clock = (
+            InsightTime(basis="source_response", precision="exact", exact_at=stamp)
+            if stamp
+            else InsightTime(basis="source_response", precision="unknown")
+        )
+        metrics.append(safe_metric(derivative_recipe("btc_oi_usd", "OKX"), oi.get("oiUsd"), clock))
+    funding = row_for(funding_payload)
+    if funding is not None and funding.get("method") == "current_period":
+        stamp = epoch(funding.get("ts"), milliseconds=True)
+        start = epoch(funding.get("prevFundingTime"), milliseconds=True)
+        end = epoch(funding.get("fundingTime"), milliseconds=True)
+        next_end = epoch(funding.get("nextFundingTime"), milliseconds=True)
+        # Use the explicit previous boundary; the documented next interval is a
+        # cross-check, not an assumed universal 8h cycle. Unknown schedules suppress only funding.
+        if (
+            start
+            and end
+            and next_end
+            and stamp
+            and start <= stamp < end
+            and end - start == next_end - end
+        ):
+            seconds = int((end - start).total_seconds())
+            if 0 < seconds <= 7 * 86400:
+                clock = InsightTime(
+                    basis="source_response",
+                    precision="exact",
+                    exact_at=stamp,
+                    applicable_start=start,
+                    applicable_end=end,
+                )
+                metrics.append(
+                    safe_metric(
+                        derivative_recipe("btc_funding", "OKX", interval_seconds=seconds),
+                        funding.get("fundingRate"),
+                        clock,
+                    )
+                )
+    return envelope("okx-derivatives", metrics)
 
 
 async def _fetch_json(

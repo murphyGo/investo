@@ -89,6 +89,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Any, ClassVar, Final
 
@@ -96,6 +97,14 @@ import httpx
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
+from investo.models.insights import (
+    InsightTime,
+    SourceInsightEnvelope,
+    SourceScheduleCoverage,
+    canonical_bytes,
+    digest,
+)
+from investo.models.insights_events import FED_RECIPES
 from investo.sources._config import SUMMARY_MAX_LEN
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
@@ -193,6 +202,17 @@ class FomcCalendarAdapter:
                 forward_end=forward_window_end,
             )
             if normalized is not None:
+                if window.insights_enabled:
+                    normalized = normalized.model_copy(
+                        update={
+                            "insight_envelope": _insight_event(
+                                event,
+                                SourceScheduleCoverage(
+                                    start_date=window.target_date, end_date=forward_window_end
+                                ),
+                            )
+                        }
+                    )
                 items.append(normalized)
         return items
 
@@ -318,6 +338,68 @@ def _resolve_lookahead_days() -> int:
         )
         return _LOOKAHEAD_MAX_DAYS
     return value
+
+
+def _insight_event(
+    event: dict[str, Any], coverage: SourceScheduleCoverage
+) -> SourceInsightEnvelope | None:
+    """Preserve every declared meeting day; never promote synthetic midnight."""
+    title = _clean_str(event.get("title")) or ""
+    event_type = _clean_str(event.get("type"))
+    key = (
+        {
+            "FOMC Meeting": "meeting",
+            "FOMC Statement": "statement",
+            "FOMC Press Conference": "press_conference",
+            "FOMC Minutes": "minutes",
+        }.get(title)
+        if event_type == "FOMC"
+        else {
+            "Speeches": "speech",
+            "Beige": "beige",
+            "Stat": "statistics",
+            "Testimony": "testimony",
+            "Other": "holiday",
+        }.get(event_type or "")
+    )
+    if key is None:
+        return None
+    month, days = _clean_str(event.get("month")), _clean_str(event.get("days"))
+    if not month or not days or not re.fullmatch(r"\d{1,2}(?:\s*,\s*\d{1,2})*", days):
+        return None
+    try:
+        dates = [date.fromisoformat(f"{month}-{int(day):02d}") for day in days.split(",")]
+        if not 1 <= len(dates) <= 7 or dates != [
+            dates[0] + timedelta(days=i) for i in range(len(dates))
+        ]:
+            return None
+        clock = InsightTime(
+            basis="schedule",
+            precision="date",
+            source_timezone="America/New_York",
+            **(
+                {"local_date": dates[0]}
+                if len(dates) == 1
+                else {"start_date": dates[0], "end_date": dates[-1]}
+            ),
+        )
+        recipe = FED_RECIPES[key]
+        # No official ID is supplied. Distinct same-speaker events on the same
+        # day remain distinct; these source fields establish identity only,
+        # never a public exact timestamp or copied prose.
+        own_key: dict[str, object] = {
+            key: _clean_str(event.get(key))
+            for key in (
+                "title",
+                "time",
+                "location",
+                "description",
+            )
+        }
+        official_id = "fed:own:" + digest(canonical_bytes(own_key))
+        return recipe.envelope(recipe.event(clock, official_id), coverage)
+    except (ValueError, ValidationError):
+        return None
 
 
 def _clean_str(value: Any) -> str | None:

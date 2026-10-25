@@ -6,7 +6,8 @@ model must round-trip losslessly through ``model_dump_json()`` ↔
 
 We use :func:`hypothesis.strategies.builds` (or a ``@composite`` strategy
 where cross-field validators apply) to generate valid model instances,
-then assert that the JSON round-trip produces an equal instance.
+then assert that the JSON-visible fields round-trip without loss. ISO JSON
+preserves datetime offsets/instants, not the original IANA timezone identity.
 
 Strategy choices favour predictability over coverage breadth:
 
@@ -22,9 +23,11 @@ Strategy choices favour predictability over coverage breadth:
 
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from typing import Any
+from zoneinfo import ZoneInfo
 
+import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
@@ -140,7 +143,24 @@ _TRACEBACK_EXCERPT = st.one_of(
 def _assert_roundtrip(model: Any) -> None:
     json_str = model.model_dump_json()
     restored = type(model).model_validate_json(json_str)
-    assert restored == model
+    # PEP 495 makes IANA-vs-fixed-offset equality false at ambiguous/imaginary
+    # local times even when both the UTC instant and serialized offset agree.
+    assert restored.model_dump(mode="json") == model.model_dump(mode="json")
+
+
+@pytest.mark.parametrize(
+    "at",
+    [
+        datetime(2024, 3, 10, 2, tzinfo=ZoneInfo("America/Boise")),
+        datetime(2024, 11, 3, 1, 30, tzinfo=ZoneInfo("America/Boise"), fold=0),
+        datetime(2024, 11, 3, 1, 30, tzinfo=ZoneInfo("America/Boise"), fold=1),
+    ],
+)
+def test_dst_roundtrip_preserves_json_offset_and_utc_instant(at: datetime) -> None:
+    item = NormalizedItem(source_name="fixture", category="news", title="fixture", published_at=at)
+    _assert_roundtrip(item)
+    restored = NormalizedItem.model_validate_json(item.model_dump_json())
+    assert restored.published_at.astimezone(UTC) == at.astimezone(UTC)
 
 
 # ---------------------------------------------------------------------------

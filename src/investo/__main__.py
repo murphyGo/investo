@@ -363,7 +363,7 @@ def _write_github_outputs(result: PipelineResult) -> None:
     if not output_path:
         return
     expected_segments, finalized_segments, published_segments = _public_result_counts(result)
-    lines = (
+    lines: tuple[str, ...] = (
         f"pipeline_status={result.status}",
         f"content_completeness={result.content_completeness}",
         f"publication_committed={str(result.publication_committed).lower()}",
@@ -371,6 +371,16 @@ def _write_github_outputs(result: PipelineResult) -> None:
         f"finalized_segments={finalized_segments}",
         f"published_segments={published_segments}",
     )
+    if result.insights is not None:
+        receipt = result.insights.receipt
+        confirmed = (
+            result.insights.status == "remote_confirmed"
+            and receipt is not None
+            and receipt.status == "remote_confirmed"
+        )
+        lines += (f"insights_publication_committed={str(confirmed).lower()}",)
+        if confirmed and receipt is not None:
+            lines += (f"insights_published_sha={receipt.local_sha}",)
     try:
         with Path(output_path).open("a", encoding="utf-8") as output_file:
             output_file.write("\n".join(lines) + "\n")

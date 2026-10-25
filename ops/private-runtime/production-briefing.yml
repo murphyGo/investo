@@ -142,6 +142,8 @@ jobs:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
           # Optional free CoinGecko Demo plan; no Pro API fallback (u164).
           COINGECKO_DEMO_API_KEY: ${{ secrets.COINGECKO_DEMO_API_KEY }}
+          INVESTO_INSIGHTS_MODE: ${{ vars.INVESTO_INSIGHTS_MODE || 'off' }}
+          INVESTO_INSIGHTS_MODULES: ${{ vars.INVESTO_INSIGHTS_MODULES || 'macro' }}
           INVESTO_SOURCE_ENABLE: ${{ vars.INVESTO_SOURCE_ENABLE }}
           INVESTO_SOURCE_DISABLE: ${{ vars.INVESTO_SOURCE_DISABLE }}
           BEA_API_KEY: ${{ secrets.BEA_API_KEY }}
@@ -167,11 +169,11 @@ jobs:
           exit 0
 
       - name: Ensure Pages deployment
-        if: steps.pipeline.outputs.publication_committed == 'true'
+        if: steps.pipeline.outputs.publication_committed == 'true' || steps.pipeline.outputs.insights_publication_committed == 'true'
         timeout-minutes: 2
         env:
           GH_TOKEN: ${{ secrets.INVESTO_PUBLIC_PUBLISH_TOKEN }}
-          PUBLISHED_SHA: ${{ steps.pipeline.outputs.published_sha }}
+          PUBLISHED_SHA: ${{ steps.pipeline.outputs.publication_committed == 'true' && steps.pipeline.outputs.published_sha || steps.pipeline.outputs.insights_published_sha }}
           PIPELINE_STARTED_AT: ${{ steps.pipeline.outputs.started_at }}
         shell: bash
         run: |

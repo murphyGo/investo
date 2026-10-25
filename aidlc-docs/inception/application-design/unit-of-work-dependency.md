@@ -120,3 +120,14 @@
 
 u139 and u140 can proceed independently. Public construction remains blocked until both
 the domain contract and source gate are complete. u138 completion does not satisfy u140.
+
+## u180–u183 — Public Insights (2026-10-12)
+
+| Unit | Hard dependencies | Delivery order | Not required |
+| --- | --- | --- | --- |
+| u180 | 기존 source/plugin·receipt/CAS·privateplatform 계약 | first | 신규화면·v3nativecutover |
+| u181 | u180 | macro first screen | 추가 FREDseries·CFTC·u169/u172 |
+| u182 | u180 공통, u181 hub/nav | after macro | 신규 BLSICS·actualjoin·DEBT079 전체해결 |
+| u183 | u180 공통, u181 hub/nav | after u182 | liquidation/netflow·Demoactivation·v3story |
+
+u182 와 u183 은 source/domain 상서로독립이지만사용자지정제품순서를위해전달의존성을등록한다. 새 sharedDTO 는 u180 이먼저정의하고 downstream 유닛이재선언하지않는다. sourcepermisson/GHA·calendar/timing 의실제검증은유닛별활성화 gate 다. [Program](../../construction/public-insights-20261012/README.md).

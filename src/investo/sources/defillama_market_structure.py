@@ -4,13 +4,23 @@ from __future__ import annotations
 
 import asyncio
 import math
+from dataclasses import dataclass
 from datetime import UTC, datetime
+from decimal import Decimal, localcontext
 from typing import Any, ClassVar
 
 import httpx
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
+from investo.models.insights import InsightTime, SourceInsightEnvelope
+from investo.models.insights_crypto import (
+    LLAMA_SUPPLY,
+    LLAMA_TVL,
+    decimal_value,
+    envelope,
+    safe_metric,
+)
 from investo.sources._config import format_float
 from investo.sources._parse import parse_json_response
 from investo.sources._registry import register
@@ -21,6 +31,14 @@ from investo.sources.protocol import SourceFetchError
 _CHAINS_URL = "https://api.llama.fi/v2/chains"
 _STABLECOINS_URL = "https://stablecoins.llama.fi/stablecoins"
 _DATA_PAGE_URL = "https://defillama.com/"
+
+
+@dataclass(frozen=True, slots=True)
+class _ObservedPayload:
+    legacy: Any
+    precise: Any
+    start: datetime
+    end: datetime
 
 
 @register
@@ -36,8 +54,18 @@ class DefiLlamaMarketStructureAdapter:
         window: FetchWindow,
     ) -> list[NormalizedItem]:
         results = await asyncio.gather(
-            self._fetch_json(client, _CHAINS_URL, params=None),
-            self._fetch_json(client, _STABLECOINS_URL, params={"includePrices": "true"}),
+            self._fetch_json(
+                client,
+                _CHAINS_URL,
+                params=None,
+                **({"insights_enabled": True} if window.insights_enabled else {}),
+            ),
+            self._fetch_json(
+                client,
+                _STABLECOINS_URL,
+                params={"includePrices": "true"},
+                **({"insights_enabled": True} if window.insights_enabled else {}),
+            ),
             return_exceptions=True,
         )
         if all(isinstance(result, SourceFetchError) for result in results):
@@ -45,6 +73,16 @@ class DefiLlamaMarketStructureAdapter:
         items: list[NormalizedItem] = []
         now_utc = window.end_utc.astimezone(UTC)
         chains_payload, stablecoins_payload = results
+        chains_observation = (
+            chains_payload if isinstance(chains_payload, _ObservedPayload) else None
+        )
+        stable_observation = (
+            stablecoins_payload if isinstance(stablecoins_payload, _ObservedPayload) else None
+        )
+        if chains_observation:
+            chains_payload = chains_observation.legacy
+        if stable_observation:
+            stablecoins_payload = stable_observation.legacy
         invalid_schema_count = 0
         if isinstance(chains_payload, BaseException):
             if not isinstance(chains_payload, SourceFetchError):
@@ -52,6 +90,10 @@ class DefiLlamaMarketStructureAdapter:
         else:
             chain_item = _chains_to_item(chains_payload, source_name=self.name, now_utc=now_utc)
             if chain_item is not None:
+                if chains_observation:
+                    chain_item = chain_item.model_copy(
+                        update={"insight_envelope": _insight_sum(chains_observation, stable=False)}
+                    )
                 items.append(chain_item)
             elif not isinstance(chains_payload, list):
                 invalid_schema_count += 1
@@ -65,6 +107,10 @@ class DefiLlamaMarketStructureAdapter:
                 now_utc=now_utc,
             )
             if stablecoin_item is not None:
+                if stable_observation:
+                    stablecoin_item = stablecoin_item.model_copy(
+                        update={"insight_envelope": _insight_sum(stable_observation, stable=True)}
+                    )
                 items.append(stablecoin_item)
             else:
                 pegged_assets = (
@@ -88,9 +134,88 @@ class DefiLlamaMarketStructureAdapter:
         url: str,
         *,
         params: dict[str, str] | None,
+        insights_enabled: bool = False,
     ) -> Any:
+        start = datetime.now(UTC) if insights_enabled else None
         response = await retry_get(client, url, source_name=self.name, params=params)
-        return parse_json_response(response, source_name=self.name)
+        end = datetime.now(UTC) if insights_enabled else None
+        legacy = parse_json_response(response, source_name=self.name)
+        if start is None or end is None:
+            return legacy
+        try:
+            precise = response.json(parse_float=Decimal)
+        except ValueError:
+            precise = None
+        return _ObservedPayload(legacy, precise, start, end)
+
+
+def _insight_sum(observed: _ObservedPayload, *, stable: bool) -> SourceInsightEnvelope | None:
+    payload = observed.precise
+    rows = (
+        payload.get("peggedAssets")
+        if stable and isinstance(payload, dict)
+        else payload
+        if not stable
+        else None
+    )
+    if not isinstance(rows, list) or len(rows) > 10000:
+        return None
+    values = []
+    seen = set()
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        name = (
+            str(row.get("symbol") or row.get("name") or "").strip()
+            if stable
+            else str(row.get("name") or "").strip()
+        )
+        circulation = row.get("circulating")
+        raw = (
+            circulation.get("peggedUSD")
+            if stable and isinstance(circulation, dict)
+            else row.get("tvl")
+            if not stable
+            else None
+        )
+        # Apply the existing positive/named-row rule, then retain original Decimal tokens.
+        legacy = _parse_float(raw)
+        if not name or legacy is None or legacy <= 0:
+            continue
+        value = decimal_value(raw)
+        if value is None:
+            return None
+        identity = (
+            str(row.get("id"))
+            if stable and row.get("id") is not None
+            else name
+            if not stable
+            else None
+        )
+        if identity is not None:
+            if identity in seen:
+                return None
+            seen.add(identity)
+        values.append(value)
+    if not values:
+        return None
+    with localcontext() as context:
+        context.prec = 256
+        total = sum(values, Decimal(0))
+    clock = (
+        InsightTime(
+            basis="collection_window",
+            precision="exact",
+            window_start=observed.start,
+            window_end=observed.end,
+        )
+        if observed.start < observed.end
+        else InsightTime(basis="source_response", precision="unknown")
+    )
+    return envelope(
+        "defillama-market-structure",
+        [safe_metric(LLAMA_SUPPLY if stable else LLAMA_TVL, total, clock)],
+    )
 
 
 def _chains_to_item(payload: Any, *, source_name: str, now_utc: datetime) -> NormalizedItem | None:
