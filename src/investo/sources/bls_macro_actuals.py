@@ -10,6 +10,8 @@ import httpx
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
+from investo.models.insights import InsightTime, SourceInsightEnvelope
+from investo.models.insights_macro import MACRO_RECIPES
 from investo.sources._config import SUMMARY_MAX_LEN
 from investo.sources._parse import parse_json_response
 from investo.sources._registry import register
@@ -135,7 +137,7 @@ class BlsMacroActualsAdapter:
             raw_metadata["previous_value"] = prior_value
 
         try:
-            return NormalizedItem(
+            item = NormalizedItem(
                 source_name=self.name,
                 category=self.category,
                 title=f"{series.label} actual: {actual_value} ({release_period})",
@@ -146,6 +148,26 @@ class BlsMacroActualsAdapter:
             )
         except ValidationError:
             return None
+        if window.insights_enabled:
+            recipe = next((r for r in MACRO_RECIPES if r.field_scope == series.series_id), None)
+            if recipe is not None:
+                try:
+                    clock = InsightTime(
+                        basis="period",
+                        precision="month",
+                        period=release_period,
+                        source_timezone="America/New_York",
+                    )
+                    item = item.model_copy(
+                        update={
+                            "insight_envelope": SourceInsightEnvelope(
+                                source_name=self.name, metrics=(recipe.metric(actual_value, clock),)
+                            )
+                        }
+                    )
+                except ValueError:
+                    pass
+        return item
 
 
 def _extract_series_data(payload: Any, series_id: str, *, source_name: str) -> list[Any]:

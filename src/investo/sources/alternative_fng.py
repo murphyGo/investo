@@ -35,6 +35,8 @@ import httpx
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
+from investo.models.insights import InsightTime
+from investo.models.insights_crypto import FNG, envelope, safe_metric
 from investo.sources._parse import parse_json_response
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
@@ -123,6 +125,23 @@ class AlternativeFearGreedAdapter:
                     url="https://alternative.me/crypto/fear-and-greed-index/",
                     published_at=published_at,
                     raw_metadata=raw_metadata,
+                    insight_envelope=envelope(
+                        self.name,
+                        [
+                            safe_metric(
+                                FNG,
+                                value_raw,
+                                InsightTime(
+                                    basis="source_response",
+                                    precision="exact",
+                                    exact_at=published_at,
+                                    source_updated_at=published_at,
+                                ),
+                            )
+                        ],
+                    )
+                    if window.insights_enabled
+                    else None,
                 )
             ]
         except ValidationError as exc:

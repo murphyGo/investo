@@ -158,7 +158,10 @@ def test_production_is_gated_and_preserves_publication_boundaries() -> None:
         if step.get("uses", "").startswith("actions/checkout@")
     )
     pages = next(step for step in steps if step["name"] == "Ensure Pages deployment")
-    assert pages["if"] == "steps.pipeline.outputs.publication_committed == 'true'"
+    assert pages["if"] == (
+        "steps.pipeline.outputs.publication_committed == 'true' || "
+        "steps.pipeline.outputs.insights_publication_committed == 'true'"
+    )
     assert "--repo murphyGo/investo" in pages["run"]
     assert "--commit" in pages["run"]
     assert steps[-1]["if"] == "always()"

@@ -1,0 +1,15 @@
+{
+  "base_sha": "55c00fc85e2828f62cd69d5583afd3761ef86d45",
+  "scope": "read HEAD source into isolated Python module and compare with current; no product changes",
+  "cases": [
+    "2024-03-10T02:00 America/Boise imaginary",
+    "2024-11-03T01:30 America/Boise fold=0",
+    "2024-11-03T01:30 America/Boise fold=1"
+  ],
+  "base_and_current": {
+    "model_equal": false,
+    "json_visible_fields_equal": true,
+    "utc_instant_equal": true
+  },
+  "independent_verification": "review-u183-final.md"
+}

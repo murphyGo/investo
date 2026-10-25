@@ -68,8 +68,11 @@ class FetchWindow:
     news_observation: bool = False
     evidence_received_at: datetime | None = None
     price_snapshot_at: datetime | None = None
+    insights_enabled: bool = False
 
     def __post_init__(self) -> None:
+        if type(self.insights_enabled) is not bool:
+            raise ValueError("insights_enabled must be boolean")
         # Both bounds must be tz-aware so the half-open comparison in
         # :meth:`contains` is unambiguous.
         _ensure_tz_aware(self.start_utc, label="start_utc")
@@ -142,6 +145,7 @@ class FetchWindow:
             news_observation=self.news_observation,
             evidence_received_at=self.evidence_received_at,
             price_snapshot_at=self.price_snapshot_at,
+            insights_enabled=self.insights_enabled,
         )
 
     def overlaps_local_date(self, value: date, tz: ZoneInfo) -> bool:

@@ -1,0 +1,115 @@
+{
+  "kind": "actual local live source and shadow projection; not GitHub runtime or scheduled acceptance",
+  "started_at": "2026-10-25T09:38:49.677934+00:00",
+  "completed_at": "2026-10-25T09:39:44.882009+00:00",
+  "status": "shadow",
+  "envelope_count": 25,
+  "public_writes": 0,
+  "llm_calls": 0,
+  "telegram_calls": 0,
+  "sources": [
+    {
+      "name": "alternative-fng",
+      "status": "ok",
+      "count": 1
+    },
+    {
+      "name": "bls-macro-actuals",
+      "status": "zero",
+      "count": 0
+    },
+    {
+      "name": "fomc-calendar",
+      "status": "ok",
+      "count": 15
+    },
+    {
+      "name": "treasury-auctions",
+      "status": "ok",
+      "count": 4
+    },
+    {
+      "name": "treasury-rates",
+      "status": "ok",
+      "count": 1
+    },
+    {
+      "name": "us-economic-calendar",
+      "status": "ok",
+      "count": 9
+    }
+  ],
+  "modules": [
+    {
+      "module": "macro",
+      "availability": "available",
+      "reasons": [],
+      "metrics": [
+        {
+          "id": "ust_10y",
+          "availability": "available",
+          "freshness": "fresh",
+          "reasons": []
+        },
+        {
+          "id": "ust_10y_2y_bp",
+          "availability": "available",
+          "freshness": "fresh",
+          "reasons": []
+        },
+        {
+          "id": "ust_10y_3m_bp",
+          "availability": "available",
+          "freshness": "fresh",
+          "reasons": []
+        },
+        {
+          "id": "ust_2y",
+          "availability": "available",
+          "freshness": "fresh",
+          "reasons": []
+        },
+        {
+          "id": "ust_30y",
+          "availability": "available",
+          "freshness": "fresh",
+          "reasons": []
+        },
+        {
+          "id": "ust_3m",
+          "availability": "available",
+          "freshness": "fresh",
+          "reasons": []
+        }
+      ],
+      "events": 0,
+      "sha256": "5706ca8e853d73d00c5ff5ed680fb7b3af636fca5690c7a6b15daf83a9605055"
+    },
+    {
+      "module": "calendar",
+      "availability": "limited",
+      "reasons": [
+        "rights_unverified",
+        "source_skipped"
+      ],
+      "metrics": [],
+      "events": 19,
+      "sha256": "ef01e8c79021be2b482c7a4ecdb3430e3225123ea120f938101efbc1fbee8397"
+    },
+    {
+      "module": "crypto",
+      "availability": "limited",
+      "reasons": [],
+      "metrics": [
+        {
+          "id": "fear_greed_index",
+          "availability": "available",
+          "freshness": "fresh",
+          "reasons": []
+        }
+      ],
+      "events": 0,
+      "sha256": "b65e337811a9024c0c22a3d9704a7e5152f05eb29d293440024faa10388365f5"
+    }
+  ]
+}

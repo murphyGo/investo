@@ -27,6 +27,7 @@ from pydantic import (
 
 from investo.models._validators import ensure_tz_aware, reject_blank_strict
 from investo.models.events import EvidenceDocument
+from investo.models.insights import SourceInsightEnvelope
 
 Category = Literal["news", "price", "macro", "calendar", "earnings"]
 
@@ -61,6 +62,8 @@ class NormalizedItem(BaseModel):
     scheduled_at: datetime | None = None
     raw_metadata: dict[str, _MetadataValue] = Field(default_factory=dict)
     event_evidence: EvidenceDocument | None = Field(default=None, repr=False)
+
+    insight_envelope: SourceInsightEnvelope | None = Field(default=None, repr=False, exclude=True)
 
     @model_serializer(mode="wrap")
     def _serialize_compatible(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:

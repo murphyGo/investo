@@ -340,3 +340,24 @@ Source permission remains unverified under the u145 exception; Browser is
 권장 순서: **u174 → u175 → u176 → u177 → u178 → u179**. u174/u175는 독립적인 기존 동작 복구이며 u176–u179는 새 제품 계약 확정을 위한 FD/NFR부터 진행한다. 기존 u145/소스/이벤트/private runtime 운영 조건은 그대로 둔다. v3의 문서·요약·reader payload 의미는 u169/u171이 소유하고, UI는 해당 입력의 표현·탐색만 확장한다. u154의 legacy 문서 형식을 v3에 강제하지 않으며 u172의 semantic/운영 전환 인수를 대체하지 않는다. 2026-10-10 UI 관측과 디자인 후보는 이전 화면의 시점 고정 증거이며 새로운 기능의 인수 증거가 아니다. 개요·중복 대조·증거·리뷰: [Web UI program](construction/ui-modernization-20261010/README.md).
 
 UI 개발·배포 완료: u174–u179 유닛별 커밋, main 통합·푸시, 정확한 SHA Quality와 Pages 배포 완료. 실제 HTTPS30case/자산8byte-match, bounded runtime35ea6c6e 적용·즉시 재조회 완료; 기존 운영 모드 보존. [배포 증거](construction/ui-modernization-20261010/deployment-closeout.md). 최초 새 UI 예약 발행과 v3/source/event 운영 인수는 별도 관측이며 수동 발행은 실행하지 않았다. 기존 문서화 시점의 NOT STARTED는 초기 상태다.
+
+## u180–u183 — Public Insights (2026-10-12)
+
+사용자가 매크로 환경판→주요 일정→크립토 시장 내부의 순서를 선택하고 유닛 설계를 지시했다. 현행원격 55c00fc8 에서별도 worktree 로등록·Functional/NFR/실행계획초안을작성했다. 기존 u167–u179 상태/운영 gate 와 rootdirty 는보존했다. 설계지시로새산출물승인·코드·커밋/푸시·배포·pin/flag 활성화를완료처리하지않는다.
+
+| Unit | Functional Design | NFR Requirements | Code Generation | Notes |
+| --- | --- | --- | --- | --- |
+| u180 public-insights-snapshot-and-publication | ADOPTED — user sequential implementation instruction | ADOPTED — focused requirements | LOCAL VERIFIED — 7/8; Step 8 operations pending | typed 입력·권리/시간·bounded history·remote-confirmed 게시 기반. 최종 scoped 173 tests, 독립 리뷰 C/H/M 0, resource/static/build PASS. default off; u180 검증 당시 qualification empty(u181에서 source별 관리); commit/push/activation 미실행; [Plan](construction/plans/u180-public-insights-snapshot-and-publication-code-generation-plan.md). |
+| u181 macro-environment-dashboard | ADOPTED — 2026-10-25 user continuation | ADOPTED — focused requirements | LOCAL VERIFIED — 7/8; Step8 operations pending | macro13/source envelopes/current UI/exact history/lazy reader/hub 구현. 7045pass/1known skip, final scoped112, independent C/H/M0; actual Chromium16cases. Defaultoff, source rights9allow/4blocked; [Plan](construction/plans/u181-macro-environment-dashboard-code-generation-plan.md). |
+| u182 upcoming-events-dashboard | ADOPTED — 2026-10-25 user continuation | ADOPTED — focused requirements | LOCAL VERIFIED — 6/7; Step7 operations pending | 공식 일정·date/range/exact DST·보수적 identity/refs·128선택·7/30분류·noJS·hub 구현. 7091pass/1known skip, final focused236, independent C/H/M0, actual Chromium16cases. Defaultoff; calendar14allow/10blocked. [Plan](construction/plans/u182-upcoming-events-dashboard-code-generation-plan.md). |
+| u183 crypto-market-internals-dashboard | ADOPTED — 2026-10-25 user continuation | ADOPTED — focused requirements | LOCAL VERIFIED — 7/8; Step8 operations pending | 7slot/9definitions·5source same-response·provider/cycle/time guards·UTC daily/history·current/noJS/lazy·hub 구현. 7142pass/1known skip, final focused211+DST9; independent C/H/M0; crypto16+macro16actualrenders. Defaultoff; FNG1allow/8blocked. [Plan](construction/plans/u183-crypto-market-internals-dashboard-code-generation-plan.md). |
+
+실행순서 u180→u181→u182→u183. source-qualified 카드만 공개하며추가 HTTP/LLM/Telegram0, 기존 collector1 회,defaultoff,LLM 실패와 dashboard/Pages 결과분리,원격확정이력/CAS 를설계했다. H.10daily 관측/weekly 공표·NYFedrate 별휴일·date-only 일정·CPIindex·funding 주기/venue 를명시한다. u180 만 focused 기존 runtime/PagesInfrastructure 초안을포함한다.
+
+[Program](construction/public-insights-20261012/README.md). 사용자 후속 “유닛 하나씩 진행시켜” 지시로 u180 설계를 채택하고 로컬 구현 Steps 1–7을 검증했다. [구현/검증](construction/u180-public-insights-snapshot-and-publication/code/summary.md), [cross-check](../docs/cross-checks/2026-10-12-u180-public-insights-foundation.md). u181도 2026-10-25 로컬7/8 검증을 마쳤고 u182도 2026-10-25 로컬6/7 검증을 마쳤고 u183도 2026-10-25 로컬7/8을 마쳐 요청한 세 화면의 로컬 구현을 완료했다. u180 Step 8의 reviewed private pin/mode, source qualification, Pages/live identity, 5회 scheduled observation은 후속 모듈 이후 운영 수용이며 8/8 완료로 표시하지 않는다. 각 유닛의 운영 수용과 다른 유닛 gate는 유지한다.
+
+2026-10-25 u181: [구현/검증](construction/u181-macro-environment-dashboard/code/summary.md), [AC](../docs/cross-checks/2026-10-25-u181-macro-environment-dashboard.md). 실제 배포/운영은 별도이며 기존 root dirty와 유닛 gate를 보존했다.
+
+2026-10-25 u182: [구현/검증](construction/u182-upcoming-events-dashboard/code/summary.md), [AC](../docs/cross-checks/2026-10-25-u182-upcoming-events-dashboard.md). 운영 Step7은 별도이며 source runtime/권리·private pin·Pages/5회 수용을 코드 완료와 구별한다. root dirty·u180/u181 미커밋 작업·다른 유닛 gate를 유지한다.
+
+2026-10-25 u183: [구현/검증](construction/u183-crypto-market-internals-dashboard/code/summary.md), [AC](../docs/cross-checks/2026-10-25-u183-crypto-market-internals-dashboard.md). 매크로→일정→크립토 로컬 구현을 마쳤다. 다음은 별도 범위의 최신main 통합/commit·push·source 조건/Pages/private pin·mode/5회 예약 운영 수용이다. 실제 활성화나전체운영Complete로표시하지않는다.

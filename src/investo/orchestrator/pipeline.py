@@ -160,7 +160,7 @@ from investo.models import (
     SourceOutcome,
 )
 from investo.models.bundle_context import BundleContext
-from investo.models.coverage import SourceWindowCoverage
+from investo.models.coverage import SourceCollectionReport, SourceWindowCoverage
 from investo.models.enrichment import (
     DEFAULT_ENRICHMENT_POLICY,
     EnrichmentPolicy,
@@ -185,6 +185,7 @@ from investo.models.event_quality import (
 from investo.models.event_story import StoryRecord
 from investo.models.events import EventIdentityReceipt
 from investo.models.facts import FactId, VerifiedFactBundle
+from investo.models.insights import InsightRunOutcome
 from investo.models.news_quality import NewsObservationQuality
 from investo.models.news_window import (
     DEFAULT_NEWS_WINDOW_CONFIG,
@@ -235,6 +236,8 @@ from investo.orchestrator.event_receipts import (
     persist_publication_receipt,
     snapshot_git_index,
 )
+from investo.orchestrator.insights import InsightsConfig, capture_insights
+from investo.orchestrator.insights_publication import run_insights_phase
 from investo.orchestrator.news_window import (
     filter_news_items_for_segment,
     load_committed_news_cursors,
@@ -619,12 +622,18 @@ class _CollectionClockOptions(TypedDict, total=False):
     price_snapshot_at: datetime
 
 
+class _CollectionOptions(_CollectionClockOptions, total=False):
+    insights_enabled: bool
+
+
 async def _stage_collect(
     target_date: date,
     *,
     fetch: CollectCallable | None = None,
     evidence_received_at: datetime | None = None,
     price_snapshot_at: datetime | None = None,
+    insights_enabled: bool = False,
+    report_sink: Callable[[SourceCollectionReport], None] | None = None,
 ) -> tuple[list[NormalizedItem], tuple[SourceOutcome, ...]]:
     """Run u1's source aggregator and gate on a non-empty result.
 
@@ -665,12 +674,16 @@ async def _stage_collect(
         items = await fetch(target_date)
         outcomes: tuple[SourceOutcome, ...] = ()
     else:
-        collection_options: _CollectionClockOptions = {}
+        collection_options: _CollectionOptions = {}
         if evidence_received_at is not None:
             collection_options["evidence_received_at"] = evidence_received_at
         if price_snapshot_at is not None:
             collection_options["price_snapshot_at"] = price_snapshot_at
+        if insights_enabled:
+            collection_options["insights_enabled"] = True
         report = await _default_collect_sources(target_date, **collection_options)
+        if report_sink is not None:
+            report_sink(report)
         items = list(report.items)
         outcomes = report.outcomes
     _logger.info("[collect] returned %d items outcomes=%d", len(items), len(outcomes))
@@ -3067,6 +3080,8 @@ class CollectStage:
         window_coverage: tuple[SourceWindowCoverage, ...] = ()
         enrichment: EnrichmentResult | None = None
         enrichment_timings: dict[str, float] = {}
+        reports: list[SourceCollectionReport] = []
+        insights: InsightRunOutcome | None = None
         if ctx.news_window_config.mode != "off":
             run_id = "news-" + uuid4().hex
             if (
@@ -3137,7 +3152,7 @@ class CollectStage:
             if news_plan is not None and news_plan.mode == "active"
             else ctx.event_observed_at or ctx.run_started_at or datetime.now(UTC)
         )
-        evidence_options = (
+        evidence_options: _CollectionClockOptions = (
             {"evidence_received_at": evidence_clock} if ctx.event_config.uses_v2 else {}
         )
         if not ctx.news_replay and ctx.run_started_at is not None:
@@ -3146,14 +3161,24 @@ class CollectStage:
             if news_plan is not None and news_plan.mode == "active":
                 if fetch is None:
                     union = union_news_windows(news_plan)
+                    insight_options: _CollectionOptions = {}
+                    if "evidence_received_at" in evidence_options:
+                        insight_options["evidence_received_at"] = evidence_options[
+                            "evidence_received_at"
+                        ]
+                    if "price_snapshot_at" in evidence_options:
+                        insight_options["price_snapshot_at"] = evidence_options["price_snapshot_at"]
+                    if ctx.insights_config.mode != "off":
+                        insight_options["insights_enabled"] = True
                     report = await _default_collect_sources(
                         ctx.target_date,
                         news_windows=union,
                         held_news_sources=frozenset(
                             source for source, _ in news_plan.windows if source not in union
                         ),
-                        **evidence_options,
+                        **insight_options,
                     )
+                    reports.append(report)
                     items, source_outcomes = list(report.items), report.outcomes
                     window_coverage = report.window_coverages
                 else:
@@ -3162,9 +3187,20 @@ class CollectStage:
                 if not items:
                     raise EmptyCollectError("news observation returned no usable items")
             else:
-                items, source_outcomes = await _stage_collect(
-                    ctx.target_date, fetch=fetch, **evidence_options
-                )
+                if ctx.insights_config.mode != "off":
+                    items, source_outcomes = await _stage_collect(
+                        ctx.target_date,
+                        fetch=fetch,
+                        **evidence_options,
+                        insights_enabled=True,
+                        report_sink=reports.append,
+                    )
+                else:
+                    items, source_outcomes = await _stage_collect(
+                        ctx.target_date, fetch=fetch, **evidence_options
+                    )
+            if ctx.insights_config.mode != "off":
+                items, insights = await _capture_and_publish_insights(ctx, items, source_outcomes)
             if ctx.event_config.uses_v2 and ctx.event_enrichment_policy.mode == "active":
                 enrichment_start = time.monotonic()
                 enrichment = await _enrich_collected_events(
@@ -3173,7 +3209,15 @@ class CollectStage:
                 items = list(enrichment.items)
                 enrichment_timings["collect_event_enrichment"] = time.monotonic() - enrichment_start
         except EmptyCollectError as exc:
+            failed_data: dict[str, object] | None = None
+            if ctx.insights_config.mode != "off":
+                report = reports[-1] if reports else SourceCollectionReport(items=(), outcomes=())
+                _, insights = await _capture_and_publish_insights(
+                    ctx, list(report.items), report.outcomes
+                )
+                failed_data = {"insights": insights, "source_outcomes": report.outcomes}
             return StageResult(
+                data=failed_data,
                 status="failed",
                 error=exc,
                 stage_notes={
@@ -3188,6 +3232,7 @@ class CollectStage:
             status="ok",
             data={
                 "items": items,
+                **({"insights": insights} if insights is not None else {}),
                 "source_outcomes": source_outcomes,
                 "news_window_plan": news_plan,
                 "news_cursor_baseline": news_baseline,
@@ -3202,6 +3247,25 @@ class CollectStage:
             stage_notes={"collect": "ok"},
             timings={"collect": time.monotonic() - start, **enrichment_timings},
         )
+
+
+async def _capture_and_publish_insights(
+    ctx: PipelineContext,
+    items: list[NormalizedItem],
+    outcomes: tuple[SourceOutcome, ...],
+) -> tuple[list[NormalizedItem], InsightRunOutcome]:
+    completed = datetime.now(UTC)
+    clean, capture = capture_insights(items, outcomes)
+    result = await run_insights_phase(
+        ctx.insights_config,
+        capture,
+        run_started_at=ctx.run_started_at or completed,
+        collection_completed_at=completed,
+        evaluated_at=datetime.now(UTC),
+        write_allowed=not _is_dry_run() and not ctx.news_replay,
+        runner=cast("GitRunner | None", ctx.git_runner),
+    )
+    return clean, result
 
 
 def _build_public_document_context(
@@ -4507,6 +4571,7 @@ async def run_pipeline(
         or not math.isfinite(event_enrichment_deadline)
     ):
         raise ValueError("event enrichment deadline must be finite")
+    insights_config = InsightsConfig.from_env()
     news_replay = target_date is not None
     news_window_config.validate_publication(replay=news_replay, dry_run=_is_dry_run())
     if news_manifest_path is not None:
@@ -4545,6 +4610,7 @@ async def run_pipeline(
         event_enrichment_deadline=event_enrichment_deadline,
         news_window_config=news_window_config,
         run_started_at=run_clock,
+        insights_config=insights_config,
         news_replay=news_replay,
         news_replay_windows=news_replay_windows,
     )
@@ -4692,6 +4758,7 @@ async def _execute_pipeline_stages(
 
     if failed_status is not None:
         return _build_result(
+            insights=cast("InsightRunOutcome | None", accumulated.get("insights")),
             target_date=target_date,
             status=failed_status,
             stages=stage_status,
@@ -4714,6 +4781,7 @@ async def _execute_pipeline_stages(
         )
 
     return _build_result(
+        insights=cast("InsightRunOutcome | None", accumulated.get("insights")),
         target_date=target_date,
         status=status,
         stages=stage_status,
@@ -4829,6 +4897,7 @@ def _build_result(
     event_coverage: dict[MarketSegment, EventCoverage] | None = None,
     published_event_coverage: PublishedEventCoverage | None = None,
     publication_receipts: tuple[PublishReceipt, ...] = (),
+    insights: InsightRunOutcome | None = None,
 ) -> PipelineResult:
     """Final ``PipelineResult`` constructor + closing INFO log."""
     duration = time.monotonic() - pipeline_start
@@ -4852,6 +4921,7 @@ def _build_result(
         event_coverage=event_coverage,
         published_event_coverage=published_event_coverage,
         publication_receipts=publication_receipts,
+        insights=insights,
     )
 
 

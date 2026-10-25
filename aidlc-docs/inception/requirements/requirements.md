@@ -40,3 +40,11 @@ Tech environment: `docs/tech-env.md`
 
 - LLM 호출은 **Claude Code CLI**(GitHub Secrets 토큰)로만. Anthropic SDK 직접 사용 금지 — NFR-002·FR-002에 강제 명시.
 - 데이터 소스 정확한 조합은 Open Question으로 남겨둠 (구현 단계 PoC에서 결정).
+
+## u180–u183 — Public Insights (2026-10-12)
+
+사용자의세제품선택과유닛설계지시에따라 FR-026common/FR-027macro/FR-028calendar/FR-029crypto 초안을등록한다. 세부요구/AC 의단일본문은[docs/requirements.md](../../../docs/requirements.md)의 2026-10-12amendment 와[공통계약](../../construction/public-insights-20261012/contracts.md)이다. 기존 Inception 완료기록이나 newsource/runtime 승인을변경하지않는다.
+
+2026-10-25: 사용자 후속 진행 지시로 FR-028/u182의 기존 설계를 채택하고 로컬 구현·검증6/7을 기록했다. source별14allow/10blocked와 실제 운영 Step7은 별도다. [구현 증거](../../construction/u182-upcoming-events-dashboard/code/summary.md).
+
+2026-10-25: FR-029/u183의기존설계를채택해로컬구현·검증7/8을기록했다. 세화면로컬구현완료와운영수용은구별한다. [증거](../../construction/u183-crypto-market-internals-dashboard/code/summary.md).

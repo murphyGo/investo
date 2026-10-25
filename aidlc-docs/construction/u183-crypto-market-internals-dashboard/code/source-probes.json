@@ -1,0 +1,118 @@
+{
+  "date": "2026-10-25",
+  "scope": "development read-only existing endpoint fetches and offline adapter replay; not production or redistribution approval",
+  "sources": [
+    {
+      "source": "coingecko-global-market",
+      "legacy_items": 1,
+      "typed_metrics": 2,
+      "definitions": [
+        "crypto.btc_dominance.coingecko.v1",
+        "crypto.market_cap_usd.coingecko.v1"
+      ],
+      "clock_bases": [
+        "source_response"
+      ],
+      "development_responses": [
+        {
+          "name": "global",
+          "http_status": 200,
+          "body_sha256": "643362302deb6611d77cb422937e89673e704a221c5d5c1b88b63e52cf914193"
+        }
+      ],
+      "replay_http_count": 1
+    },
+    {
+      "source": "defillama-market-structure",
+      "legacy_items": 2,
+      "typed_metrics": 2,
+      "definitions": [
+        "crypto.chain_tvl_sum.defillama.v1",
+        "crypto.usd_stablecoin_supply.defillama.v1"
+      ],
+      "clock_bases": [
+        "collection_window"
+      ],
+      "development_responses": [
+        {
+          "name": "chains",
+          "http_status": 200,
+          "body_sha256": "69d10de093e51506408a1df875b375be550b63fbd686b98a3f113207d486ad72"
+        },
+        {
+          "name": "stablecoins",
+          "http_status": 200,
+          "body_sha256": "fb9676515a332083004d4584778d4a5d9258aed857a100215a09abaf22079ba2"
+        }
+      ],
+      "replay_http_count": 2
+    },
+    {
+      "source": "bybit-derivatives",
+      "legacy_items": 2,
+      "typed_metrics": 2,
+      "definitions": [
+        "crypto.btc_funding.bybit.indicative.28800s.v1",
+        "crypto.btc_oi_usd.bybit.v1"
+      ],
+      "clock_bases": [
+        "source_response"
+      ],
+      "development_responses": [
+        {
+          "name": "bybit",
+          "http_status": 200,
+          "body_sha256": "35869bb4cf9b8137446fda624ab6b74eb706716c646acb2e3be034106cf6903c"
+        }
+      ],
+      "replay_http_count": 1
+    },
+    {
+      "source": "okx-derivatives",
+      "legacy_items": 2,
+      "typed_metrics": 2,
+      "definitions": [
+        "crypto.btc_funding.okx.indicative.28800s.v1",
+        "crypto.btc_oi_usd.okx.v1"
+      ],
+      "clock_bases": [
+        "source_response"
+      ],
+      "development_responses": [
+        {
+          "name": "okx-funding",
+          "http_status": 200,
+          "body_sha256": "598fc14120068ef4f03c2bb33ccf0bcdb6697e32c4a34374118073ddacddf9c0"
+        },
+        {
+          "name": "okx-oi",
+          "http_status": 200,
+          "body_sha256": "e166ec3296609b997a06847efdfb3d5462cdb4749e8719b71b768855cb3f641b"
+        }
+      ],
+      "replay_http_count": 2
+    },
+    {
+      "source": "alternative-fng",
+      "legacy_items": 1,
+      "typed_metrics": 1,
+      "definitions": [
+        "crypto.fear_greed_index.alternative.me.v1"
+      ],
+      "clock_bases": [
+        "source_response"
+      ],
+      "development_responses": [
+        {
+          "name": "fng",
+          "http_status": 200,
+          "body_sha256": "6bf0a2b628f75c31f53452d660b58e4a5cd968fddf76c27df22d81c3ca8275a2"
+        }
+      ],
+      "replay_http_count": 1
+    }
+  ],
+  "source_key_read": false,
+  "additional_runtime_source_http": 0,
+  "raw_bodies_committed": false
+}

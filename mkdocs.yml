@@ -80,7 +80,12 @@ theme:
 nav:
   - 최신 시황: index.md
   - 관심 자산: watchlist/index.md
-  - 미국 섹터: sectors/index.md
+  - 대시보드:
+      - 모음: insights/index.md
+      - 미국 섹터: sectors/index.md
+      - 매크로 환경: insights/macro/index.md
+      - 주요 일정: insights/calendar/index.md
+      - 크립토 시장 내부: insights/crypto/index.md
   - 아카이브:
       - 최신: archive/index.md
       - 국내 증시: archive/domestic-equity/index.md
@@ -150,6 +155,7 @@ extra_css:
   - assets/u29.css
   - assets/investo-ui.css
   - assets/sector-radar.css
+  - assets/insights.css
 
 # u50 lightweight-charts-embed: self-hosted TradingView Lightweight
 # Charts (Apache-2.0) plus the project's progressive-enhancement init
@@ -163,6 +169,8 @@ extra_css:
 # loudly).
 extra_javascript:
   - assets/sector-radar.js
+  - assets/insights.js
+  - assets/insights-calendar.js
   - assets/lightweight-charts.standalone.production.js
   - assets/investo-chart-init.js
   - assets/investo-navigation.js

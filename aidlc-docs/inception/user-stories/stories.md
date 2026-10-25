@@ -238,3 +238,37 @@ NFR-006(Testing), NFR-007(Security), NFR-008(Data rights)은 별도 스토리화
 | US-008 | ✅ | — |
 | US-009 | ✅ | — |
 | US-010 | ✅ | ✅ |
+
+## u180–u183 — Public Insights (2026-10-12)
+
+현재 US-010 이섹터대시보드를소유하므로새화면은 US-011~013 을사용한다. 아래새 AC 는미완료이며제품선택·설계작성과제품수용을구별한다.
+
+### US-011 (FR-027): 시장 배경을 매크로 환경판에서 확인한다
+
+As a P1/P2, I want 금리·원달러·물가·고용의현재값과관측기준을한화면에서확인하기를, so that 분야별가격움직임과시장배경을함께읽을수있도록.
+
+- [ ] 원천단위·시점·주기·범위가보존된 13slot 과같은기준일 spread 를제공한다.
+- [ ] current-only 사용가능,compatiblehistory 만비교하며 missing/rights/FREDoptionalkey 상태를보존한다.
+- [ ] source 별발표일정/H.10weeklyfreshness 와모바일·noJS·출처/면책이명확하다.
+
+### US-012 (FR-028): 다음 확인 일정을 조회한다
+
+As a P1/P2, I want 공식경제지표·중앙은행·입찰예정일정을 7/30 일목록에서조회하기를, so that 다음확인날짜와공식출처를쉽게찾을수있도록.
+
+- [ ] date-only/정확 KST/DST/회의기간과 sourcecoverage/cap 를보존한다.
+- [ ] semanticoccurrenceidentity 로보수적으로중복하고일정경과로발표결과를생성하지않는다.
+- [ ] mobilelist·keyboard·noJS 와살아있는원출처링크를제공한다.
+
+### US-013 (FR-029): 크립토 가격 외 관찰을 구별한다
+
+As a P1/P2, I want 공급·시장규모·TVL·BTC 거래소파생지표를원천/계약/주기와함께보기를, so that 관찰범위를알고가격외시장상태를살펴볼수있도록.
+
+- [ ] 검증된 7slot 과정확한 unit/provider/instrument/time/fundingbasis 를표시한다.
+- [ ] supply/TVL/OI/funding 의범위를확대하지않고 provider 전환전후변화값생성 0.
+- [ ] 일부실패·rightsblocked·이력부족을표시하며 raw/secret·유료 source·새 LLM 호출 0.
+
+공통 FR-026 은세 story 의 typedinput·boundedhistory·원격확정게시·private/runtime/Pages 결속을 u180 이소유한다. [Program](../../construction/public-insights-20261012/README.md)와유닛별 AC 가후속수용의기준이다.
+
+2026-10-25 US-012 로컬 구현: u182의7/30일·3분류·정확한 시각/현지 날짜·공식 링크·source coverage를 구현·검증했다. code6/7이며 운영 Step7/private pin·Pages·5회 수용은 pending이다. [증거](../../construction/u182-upcoming-events-dashboard/code/summary.md).
+
+2026-10-25: US-013의7개crypto관찰/제공자·단위·계약·시간·호환이력·부분상태를로컬구현·검증했다. Source9정의1allow/8blocked, Step8운영수용은pending이다. [증거](../../construction/u183-crypto-market-internals-dashboard/code/summary.md).

@@ -1,0 +1,140 @@
+{
+  "unit": "u180-public-insights-snapshot-and-publication",
+  "date": "2026-10-12",
+  "base_sha": "55c00fc85e2828f62cd69d5583afd3761ef86d45",
+  "branch": "codex/public-insights-unit-design-20261012",
+  "working_changes_committed": false,
+  "changed_inputs_sha256": "0e0c00cd9d1025af407096c329f3bd29061de425295baa990af145314422f217",
+  "changed_input_count": 25,
+  "implementation": "local_verified",
+  "plan_progress": {
+    "completed": 7,
+    "total": 8,
+    "pending": "Step 8 provider/runtime/Pages/scheduled operational acceptance after consumer units"
+  },
+  "tests": [
+    {
+      "scope": "initial full suite checkpoint, before later review/resource changes",
+      "command": ".venv/bin/python -m pytest -q",
+      "passed": 6987,
+      "skipped": 1,
+      "seconds": 1220.08,
+      "skip_reason": "tests/unit/sector_dashboard/test_public_groups.py:333 committed schema2 dataset migrated, schema2 fixture tested separately",
+      "log": "/private/tmp/u180-full-tests.log"
+    },
+    {
+      "scope": "related regression checkpoint before final recovery correction",
+      "passed": 704,
+      "seconds": 277.76,
+      "log": "/private/tmp/u180-final-related.log"
+    },
+    {
+      "scope": "final scoped regression after all recovery and projection corrections",
+      "command": ".venv/bin/python -m pytest -q tests/unit/models/test_insights_contracts_u180.py tests/unit/orchestrator/test_insights_capture_u180.py tests/unit/orchestrator/test_insights_projection_u180.py tests/unit/orchestrator/test_insights_resources_u180.py tests/unit/publisher/test_insights_store_u180.py tests/integration/test_insights_publication_u180.py tests/unit/orchestrator/test_private_publication_u155.py tests/unit/sources/test_aggregator.py",
+      "passed": 173,
+      "seconds": 42.52,
+      "log": "/private/tmp/u180-final-scope.log"
+    },
+    {
+      "scope": "independent reviewer narrow recovery verification, before final literal-SHA reset strengthening",
+      "command": ".venv/bin/python -m pytest -q tests/unit/publisher/test_insights_store_u180.py tests/integration/test_insights_publication_u180.py",
+      "passed": 29,
+      "seconds": 36.96,
+      "report": "review-final.md"
+    }
+  ],
+  "checks": {
+    "ruff": {
+      "command": ".venv/bin/ruff check src tests scripts",
+      "status": "pass"
+    },
+    "format": {
+      "command": ".venv/bin/ruff format --check src tests scripts",
+      "status": "pass",
+      "file_count": 755
+    },
+    "mypy": {
+      "command": ".venv/bin/mypy src",
+      "status": "pass",
+      "source_files": 319
+    },
+    "no_paid_apis": {
+      "command": ".venv/bin/python scripts/check_no_paid_apis.py",
+      "status": "pass"
+    },
+    "no_anthropic_sdk": {
+      "command": ".venv/bin/python scripts/check_no_anthropic_sdk.py",
+      "status": "pass"
+    },
+    "curated_assets": {
+      "command": ".venv/bin/python scripts/check_curated_assets.py",
+      "status": "pass",
+      "filed": 19,
+      "deferred": 0
+    },
+    "image_store": {
+      "command": ".venv/bin/python scripts/check_image_store.py",
+      "status": "pass",
+      "binaries": 0
+    },
+    "mkdocs": {
+      "command": ".venv/bin/mkdocs build --strict",
+      "status": "pass",
+      "seconds": 7.41,
+      "log": "/private/tmp/u180-final-mkdocs.log"
+    },
+    "material": {
+      "command": ".venv/bin/python scripts/check_material_theme_contract.py",
+      "status": "pass",
+      "built_stylesheets": 2,
+      "rendered_pair": "pass"
+    },
+    "calendar": {
+      "command": ".venv/bin/python scripts/check_calendar_render_contract.py",
+      "status": "pass"
+    },
+    "workflow": {
+      "command": "/private/tmp/actionlint-u180/actionlint -shellcheck='' ops/private-runtime/production-briefing.yml",
+      "version": "1.7.12",
+      "status": "pass",
+      "shellcheck": "disabled; not installed"
+    },
+    "diff_check": {
+      "command": "git diff --check",
+      "status": "pass"
+    },
+    "source_registry": {
+      "command": ".venv/bin/python -c 'from investo.sources import list_sources; print(len(list_sources()))'",
+      "status": "pass",
+      "registered_sources": 44
+    }
+  },
+  "resource_evidence": "resource-evidence.json",
+  "review": {
+    "initial": "review-initial.md",
+    "final": "review-final.md",
+    "unresolved_confirmed_findings": {
+      "critical": 0,
+      "high": 0,
+      "medium": 0
+    }
+  },
+  "requirements_cross_check": "docs/cross-checks/2026-10-12-u180-public-insights-foundation.md",
+  "operational_acceptance": {
+    "status": "pending",
+    "mode_default": "off",
+    "production_qualification_entries": 0,
+    "provider_recordings": "not implemented in foundation",
+    "source_permission_review": "consumer qualification pending",
+    "commit_push": "not performed",
+    "production_pages": "not performed",
+    "private_pin_mode": "unchanged",
+    "five_scheduled_observations": "pending"
+  },
+  "evidence_limits": [
+    "full suite result is a checkpoint, not a rerun of the final changed input digest",
+    "final scoped tests and static/resource checks cover the final changed input digest",
+    "local bare Git and synthetic permission fixtures are not production provider or deployment evidence",
+    "foundation has no standalone consumer UI or viewport acceptance claim"
+  ]
+}

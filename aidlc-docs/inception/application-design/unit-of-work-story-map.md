@@ -667,3 +667,14 @@ Evidence: `aidlc-docs/construction/source-reliability-20261009/review.md`. Four 
 | u173 official-event-source-slot-qualification | 공식 사건 소스 정보 슬롯 자격검증 | US-001/002/007/008/009; FR-001/002/008/017/021/023/024; NFR-001/002/003/005/006/007/008 | u161bodyqualification/u165source lifecycle/u102registry 확장; 새provider/활성화와분리; discovery독립; typedchunk출력u167후; 새source는별도boundedadapter계획 |
 
 등록은문서계획이며구현완료/사람수용/productionrelease를뜻하지않는다. 구조폐기와레거시이력보존범위는[event-news-v3](../../construction/event-news-v3/migration-and-retirement.md)를따른다.
+
+## u180–u183 — Public Insights (2026-10-12)
+
+| Unit | Stories | Requirements | Existing owners / dependencies |
+| --- | --- | --- | --- |
+| u180 public-insights-snapshot-and-publication | US-011/012/013 | FR-026; 기존 FR-001/003/005/006/010/011/017/021 | 기존 u102 source registry, u113 scoped publish, u144 sealed/public boundary, u155 private runtime, u164 temporal truth, u165 source lifecycle. 새 화면 및 event/news v3 미완료를 prerequisite 로 추가하지 않는다. |
+| u181 macro-environment-dashboard | US-011 | FR-027/026; 기존 FR-003/011/014/015/018 | u180 코드·공통 source/time/permission/publication 계약. u176/u178 사이트 토큰·탐색·가독성 재사용. v3 native document 완료는 hard dependency 가 아니다. |
+| u182 upcoming-events-dashboard | US-012 | FR-028/026; 기존 FR-003/020/011 | u180 shared time/snapshot/publication, u181 hub/nav 구현 이후 전달한다. u35/u43 기존 calendar sources 재사용. 새 source/actual join/DEBT-079 closeout 는 prerequisite 가 아니다. |
+| u183 crypto-market-internals-dashboard | US-013 | FR-029/026; 기존 FR-003/011/013/018 | u180 typed gate/history/receipt, u181/u182 사용자 순서 전달, u66/u74 기존 crypto indicator 의미와 u164 source-vs-query time 재사용. 소스별 public display/retention 은 activation prerequisite 이며 코드 fixture 작업의 가짜 승인으로 만들지 않는다. |
+
+사용자제품선택/유닛설계허가에따른추가매핑이다. u180→u181→u182→u183 순서로전달하며 v3story 나 u145sectorhistory 를재등록하지않는다. [Program](../../construction/public-insights-20261012/README.md)과각 unit 계획의 AC 를적용한다. 구현/승인/운영미실행.

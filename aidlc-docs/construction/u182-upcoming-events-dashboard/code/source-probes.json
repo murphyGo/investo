@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-25",
+  "scope": "development read-only fetch and offline replay; not production",
+  "sources": [
+    {
+      "source": "fomc-calendar",
+      "development_http_status": 200,
+      "body_sha256": "de23ee88a2faa571b1f4daaf2514eb147e05c864c73380b8687ac0d53d906d7b",
+      "replay_http_count": 1,
+      "legacy_items": 15,
+      "typed_events": 10,
+      "precisions": [
+        "date"
+      ],
+      "definitions": [
+        "calendar.fed.holiday.v1",
+        "calendar.fed.meeting.v1",
+        "calendar.fed.minutes.v1",
+        "calendar.fed.press_conference.v1",
+        "calendar.fed.statistics.v1"
+      ]
+    },
+    {
+      "source": "us-economic-calendar",
+      "development_http_status": 200,
+      "body_sha256": "434c49802b8b41b3fca1adb2eadfc02d8105386227ca1f179f5346ec30741c98",
+      "replay_http_count": 1,
+      "legacy_items": 9,
+      "typed_events": 9,
+      "precisions": [
+        "exact"
+      ],
+      "definitions": [
+        "calendar.bea.gdp.v1",
+        "calendar.bea.other.v1",
+        "calendar.bea.pce.v1",
+        "calendar.bea.trade.v1"
+      ]
+    },
+    {
+      "source": "treasury-auctions",
+      "development_http_status": 200,
+      "body_sha256": "80fe963aab9bfec192d3418517289fcf349793c51cfaa72f8d7cd8d487a90d57",
+      "replay_http_count": 1,
+      "legacy_items": 4,
+      "typed_events": 4,
+      "precisions": [
+        "date"
+      ],
+      "definitions": [
+        "calendar.treasury.auction.v1"
+      ]
+    }
+  ],
+  "fred": "No key read or API request; existing recordings and synthetic fixtures only"
+}
