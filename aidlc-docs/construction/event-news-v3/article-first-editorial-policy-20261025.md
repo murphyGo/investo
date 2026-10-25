@@ -56,7 +56,13 @@ discoverable below each article; collection-limited availability remains visible
 - [x] Produce and open updated historical source-backed developer reference examples,
   clearly separate from current automatic producer/human acceptance.
 - [x] Independent QA with no open P1/P2; local regression/static/policy/docs checks.
-- [ ] Exact-source full CI, scoped commit/push and remote delivery evidence.
+- [x] Exact-source full CI, scoped commit/push and remote delivery evidence.
+
+Implementation `35d1dcca3391d9194c88ce404d492e1a88c937ca` was pushed to main and
+the scoped feature branch. [Exact-source quality run](https://github.com/murphyGo/investo/actions/runs/40202461444)
+passed 7,451 tests / one existing skip, all static/policy/docs checks and 29 client tests.
+The reviewed preview pin uses that exact implementation; production pin/mode are unchanged.
+See [delivery evidence](../../../docs/sessions/2026-10-25-event-v3-article-prose.md).
 
 Actual daily content/source/HTTP/viewport/performance/cutover gates remain pending. This
 editorial change does not assert that the thin automatic preview became content-rich.

@@ -55,6 +55,23 @@ They do not increment actual producer/human corpus/source-slot/scheduled accepta
 Raw source and reference artifacts remain local and ignored. Browser viewport acceptance
 is not claimed from HTTP/DOM checks or opening Chrome.
 
+## Delivery and exact-source CI
+
+Implementation `35d1dcca3391d9194c88ce404d492e1a88c937ca` was pushed to main and
+`codex/event-v3-article-prose-20261025`; both exact remote refs were confirmed.
+[Quality run 40202461444](https://github.com/murphyGo/investo/actions/runs/40202461444)
+completed successfully: **7,451 passed / one existing skip in 775.89s**, Ruff/format
+823 files, mypy 346 sources, Node 29/29, policy/assets/theme/calendar guards and strict
+MkDocs 8.75s. Final closeout only adds delivery documentation; the tested application,
+tests, scripts, source policies and build/workflow trees remain identical to this commit.
+
+On 2026-10-26 KST, `REVIEWED_EVENT_PREVIEW_SHA` was updated from `154b57a2` to the exact
+tested implementation above and read back. Production `REVIEWED_CODE_SHA` remains
+`0025497d4280d9bd72bcafd04ffafe026b8ad6fc` and `INVESTO_EVENT_BRIEFING_MODE=active`
+continues the existing schema-two path. No new automatic producer run was dispatched.
+The local reference is available at <http://127.0.0.1:54606/>; this process-local URL
+does not establish viewport or production content acceptance.
+
 ## Boundaries
 
 No active schema-three rollout, body HTTP permission, production pin, source activation,
