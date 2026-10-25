@@ -314,6 +314,7 @@
 
 - **Status**: 2026-10-12 native 구현 완료; 실제 사람/viewport/source/runtime 수용 pending. checked criteria는 구현 회귀이며 현재 production 전환 보장이 아니다.
 - **Description**: 문서 전체를 지난 발행 이후의 새 변화·확인된 사실·시장 관련성·반응·다음 확인으로 조직한다. v3는 고정7섹션과6개freebody,anchor-first,정확히3요약채우기,중복topcallout,80자본문첫문장,price-onlynews영향을 폐기한다. 정상 사건0건과수집/생성/신뢰한계를구별한다. 숫자 자체가 뉴스인 정책/실적은 충분히 설명한다.
+- **2026-10-25 사용자 편집 결정**: 사건별 섹션 안에서는 종합적인 뉴스 기사형 산문을 기본으로 한다. 사건/배경/의미/반응은 내부 근거 역할이며 독자용 고정 소제목을 강제하지 않는다. 주제에 따라 문단·일반 목록·항목명 목록·검증된 사실 표를 선택하고, 필요한 요소만 분리한다. 빈 역할을 채우는 문장을 만들지 않으며 사실·조건·인과 한계·시점·출처 검증은 유지한다. [편집 정책](../aidlc-docs/construction/event-news-v3/article-first-editorial-policy-20261025.md).
 - **Acceptance Criteria**:
   - [x] actor/fact와별도인background/comparison/meaning/reaction/follow_upchunk가같은사건의sourceownership/정확한span/예산을통해실제모델입력과최종본문에전달된다. u167.
   - [x] 발생/발표/보도/수집시각·통계기준기간과precision을구분하고,내용/time/history/locator/meaning/reaction품질을독립계측한다. source없는시각·actual/forecast/단위를발명하지않는다. u167/u173.

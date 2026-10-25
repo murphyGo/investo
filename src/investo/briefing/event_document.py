@@ -43,7 +43,21 @@ def parse_event_document(stdout: str) -> EventEditionContent:
 
 def render_event_document_prompt(evidence: str) -> str:
     return (
-        "Return only schema-three JSON matching this schema. Write Korean reader prose. "
+        "Return only schema-three JSON matching this schema. Write Korean news articles. "
+        "Use one section per event, with an integrated, coherent news narrative as the default. "
+        "Choose the structure for the topic: prose paragraphs normally, a short list or "
+        "separate factual table only where it improves understanding. The evidence roles "
+        "what_changed/background/meaning/reaction are internal proof slots, not a mandatory "
+        "reader outline. Do not write a repetitive questionnaire or fill unavailable roles. "
+        "display_blocks may group and order populated roles as paragraph, bullets "
+        "or labeled_list blocks; "
+        "Use unlabeled bullets for concise points; labeled_list is an explicit opt-in for "
+        "topics genuinely clearer as named elements, not the default. "
+        "include every populated role exactly once. Omit it for default prose. "
+        "Use transitions within the supported texts so grouped paragraphs read naturally. "
+        "Use show_facts=true only when a separate verified-fact table helps; facts otherwise "
+        "remain available in supporting details. Do not invent headings, causality or content "
+        "just to connect events. "
         "Use the exact ordered event IDs and fact IDs in the parent editorial plan. "
         "Every placement=article event needs one complete article "
         "(headline <=120, what_changed <=600). "

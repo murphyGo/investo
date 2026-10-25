@@ -8205,3 +8205,25 @@ work and the original dirty root were preserved. [Evidence](../docs/sessions/202
 ## 2026-10-25 Observation closeout concurrent-main preservation
 
 Remote advanced to154b57a2 while closeout a926ab07 was prepared. Normal push rejected; merged current main and kept both append-only audit sections. Application/tests/scripts/ops/site/build tree matches154b57a2 exactly, only observation documentation differs. Rechecked focused71pass58.69s, Ruff822/mypy346/strictdocs9.05s/policy/Material/Calendar. Exact-source upstream quality40188918992 tracks the incoming implementation. Private4824a79/capture00cd3f5d/applicationpin0025497d/modules/cron/queue unchanged; scheduled0/5 and other event gates preserved.
+
+## 2026-10-25 — Event v3 article-first editorial decision
+
+The user retained event sections and directly requested news prose as the default, with
+topic-dependent structured elements. Existing development/isolated-worktree/commit-push
+authorization applies to this bounded FR-024/C4 presentation refinement. Work proceeds in
+`codex/event-v3-article-prose-20261025` from current main `8e0342b9`; the dirty root and
+concurrent public-insights operational work remain preserved.
+
+Private display blocks group and order checked evidence roles exactly once; default prose,
+plain bullets, explicit labeled lists and optional fact tables are supported. Original facts
+remain scanned outside table masking. Native optional-context containment uses renderer-owned
+offsets so protected primary claims cannot be removed by changing presentation. The public
+semantic DTO and source/fact/causal/sole-finalizer gates remain unchanged. Focused regressions
+and independent QA cover layout mutation, separate fact subjects, original hard findings,
+three display styles and overlapping protected claims.
+
+The updated historical Fed/CFTC developer reference page uses offline authored replay and
+finalization, zero live model calls and zero new source HTTP requests. No actual producer,
+human, source-slot, viewport or scheduled acceptance is added. Production pins, body access,
+schema-three activation, publication and notification gates are unchanged. Delivery and
+exact-source full CI are recorded after validation. [Evidence](../docs/sessions/2026-10-25-event-v3-article-prose.md).

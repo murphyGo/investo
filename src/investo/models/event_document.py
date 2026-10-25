@@ -40,6 +40,12 @@ ContentEditionAvailability = Literal["normal", "quiet", "source_limited"]
 Headline = Annotated[str, Field(strict=True, min_length=1, max_length=120)]
 ShortText = Annotated[str, Field(strict=True, min_length=1, max_length=180)]
 ArticleContextRefs = Annotated[tuple[ContextRef, ...], Field(min_length=1, max_length=64)]
+ArticlePart = Literal["what_changed", "background", "meaning", "reaction"]
+
+
+class ArticleDisplayBlock(EventModel):
+    kind: Literal["paragraph", "bullets", "labeled_list"] = "paragraph"
+    parts: Annotated[tuple[ArticlePart, ...], Field(min_length=1, max_length=4)]
 
 
 class EditionAvailability(EventModel):
@@ -100,6 +106,48 @@ class EventArticle(EventModel):
     background_refs: ContextRefs = ()
     meaning: MeaningContext = MeaningContext(mode="unavailable")
     reaction: ReactionContext = ReactionContext(status="unavailable", attribution="unavailable")
+    display_blocks: Annotated[tuple[ArticleDisplayBlock, ...], Field(max_length=4)] = ()
+    show_facts: bool = False
+
+    def text_parts(self) -> dict[ArticlePart, str]:
+        """Evidence roles are internal; display blocks may combine and reorder them."""
+        parts: dict[ArticlePart, str] = {"what_changed": self.what_changed}
+        if self.background is not None:
+            parts["background"] = self.background
+        if self.meaning.text is not None:
+            parts["meaning"] = self.meaning.text
+        if self.reaction.text is not None:
+            parts["reaction"] = self.reaction.text
+        return parts
+
+    def check_display(self) -> None:
+        if (self.meaning.mode == "unavailable" and self.meaning.text is not None) or (
+            self.reaction.status == "unavailable" and self.reaction.text is not None
+        ):
+            raise ValueError("event.schema_invalid")
+        if self.display_blocks:
+            seen: list[ArticlePart] = []
+            for block in self.display_blocks:
+                if not isinstance(block, ArticleDisplayBlock) or block.kind not in {
+                    "paragraph",
+                    "bullets",
+                    "labeled_list",
+                }:
+                    raise ValueError("event.schema_invalid")
+                if not 1 <= len(block.parts) <= 4:
+                    raise ValueError("event.schema_invalid")
+                seen.extend(block.parts)
+            if (
+                len(self.display_blocks) > 4
+                or len(set(seen)) != len(seen)
+                or set(seen) != set(self.text_parts())
+            ):
+                raise ValueError("event.schema_invalid")
+
+    @model_validator(mode="after")
+    def valid_display(self) -> Self:
+        self.check_display()
+        return self
 
 
 class EventDigest(EventModel):

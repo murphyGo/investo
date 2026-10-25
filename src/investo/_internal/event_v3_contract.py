@@ -311,6 +311,10 @@ def validate_event_edition(
     plan_by_id = {p.event_id: p for p in plans}
     lookup = context_lookup(draft.documents)
     for article in draft.articles:
+        try:
+            article.check_display()  # Also reject model_copy mutations at E1.
+        except ValueError:
+            raise EventEditionValidationError("event.schema_invalid") from None
         binding = bindings[article.event_id]
         plan = plan_by_id[article.event_id]
         validate_context_event(plan.source_event, draft.documents, observed_at=observed_at)

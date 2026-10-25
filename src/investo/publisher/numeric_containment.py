@@ -36,15 +36,18 @@ def contain_event_numeric_context(
     anchors stay protected. The caller must collect all original hard findings
     before invoking this owner and must rerun terminal gates afterwards.
     """
-    from investo._internal.event_public_text import markdown_literal
     from investo.models.event_context import MeaningContext, ReactionContext
+    from investo.publisher.event_edition import render_article_body
 
     if draft.segment != "domestic-equity" or not findings:
         return None
     removed: dict[int, set[str]] = defaultdict(set)
     outcomes: list[NumericContainmentOutcome] = []
     for finding in findings:
-        if finding.segment != draft.segment or finding.line_kind != "prose_sentence":
+        if finding.segment != draft.segment or finding.line_kind not in {
+            "prose_sentence",
+            "list_or_callout",
+        }:
             return None
         owners: list[tuple[int, str]] = []
         for index, article in enumerate(draft.articles):
@@ -54,21 +57,15 @@ def contain_event_numeric_context(
             end = markdown.find(closing, start)
             if start < 0 or end < 0:
                 return None
-            reaction_text = article.reaction.text
-            if reaction_text and article.reaction.attribution == "coincidence_only":
-                reaction_text += " 사건과의 인과관계는 확인되지 않았습니다."
-            fields = (
-                ("meaning", "의미: ", article.meaning.text),
-                ("meaning", "작동 경로: ", article.meaning.mechanism),
-                ("meaning", "전제: ", "; ".join(article.meaning.assumptions) or None),
-                ("reaction", "반응: ", reaction_text),
-            )
-            for field, prefix, text in fields:
-                if text is None:
-                    continue
-                literal = prefix + markdown_literal(text)
-                offset = markdown.find(literal, start, end)
-                if offset >= 0 and offset <= finding.start < finding.end <= offset + len(literal):
+            body = render_article_body(article)
+            offset = markdown.find(body.markdown, start, end)
+            if offset < 0 or markdown.find(body.markdown, offset + 1, end) >= 0:
+                return None
+            for field, field_start, field_end in body.field_ranges:
+                if (
+                    field in {"meaning", "reaction"}
+                    and offset + field_start <= finding.start < finding.end <= offset + field_end
+                ):
                     owners.append((index, field))
         if len(owners) != 1:
             return None
@@ -89,6 +86,12 @@ def contain_event_numeric_context(
             updates["meaning"] = MeaningContext(mode="unavailable")
         if "reaction" in removed[index]:
             updates["reaction"] = ReactionContext(status="unavailable", attribution="unavailable")
+        if removed[index] and article.display_blocks:
+            updates["display_blocks"] = tuple(
+                block.model_copy(update={"parts": parts})
+                for block in article.display_blocks
+                if (parts := tuple(p for p in block.parts if p not in removed[index]))
+            )
         articles.append(article.model_copy(update=updates))
     return draft.model_copy(update={"articles": tuple(articles)}), tuple(outcomes)
 
