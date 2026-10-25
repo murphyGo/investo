@@ -82,3 +82,8 @@ LLM 실패 독립성은 `test_insights_capture_u180.py::test_confirmed_insights_
 64 지표·128 일정·약 8MiB 이력을 다루는 실제 `_phase`의 새 커밋/로컬 bare Git push·remote confirmation 합성 benchmark가 RSS 96MiB / CPU 5s / phase 60s 기준을 통과했다. [검증 기록](../u180-public-insights-snapshot-and-publication/code/validation.json), [resource evidence](../u180-public-insights-snapshot-and-publication/code/resource-evidence.json), [독립 review](../u180-public-insights-snapshot-and-publication/code/review-final.md), [AC 대조](../../../docs/cross-checks/2026-10-12-u180-public-insights-foundation.md).
 
 Step 8은 모듈 구현 이후 운영 수용이다. source permission·실서비스 Pages·private pin/mode·5회 scheduled는 pending이며 7/8 코드 수용을 운영 완료로 확대하지 않는다. 다음 코드 구현은 u181이다.
+
+
+## 2026-10-25 운영 연결 진행
+
+후속 사용자 지시에 따라 최신main 통합·commit/push·공개 조건별 순차 초기 게시와 기존 private 예약 갱신 연결을 수행했다. 실행pin0025497d/quality40182882842, 최종current게시1f6b37c6/quality40184291647/Pages40184291651 모두 확인했다. 실제HTTPS snapshot/hash·운영Chromium12조건과 기존코드7344pass/1knownskip. [운영 증거](../public-insights-20261012/operations-evidence-20261025.json). 모듈별 genuine scheduled0/5이므로 Step8 체크는 미완료로 유지한다. 로컬probe·수동초기게시를 예약관찰로 세지 않는다.

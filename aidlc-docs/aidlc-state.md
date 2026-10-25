@@ -364,3 +364,6 @@ UI 개발·배포 완료: u174–u179 유닛별 커밋, main 통합·푸시, 정
 
 
 2026-10-25 Public Insights 통합: 최신main0768d780 위 merge784626e1, 전체7344pass/1existing skip, Ruff818/mypy344/정책·strictdocs·Material·Calendar·Node29·실제임시Chromium48조건·resource PASS. 독립통합67pass/C/H/M0. [통합 검증](construction/public-insights-20261012/integration-validation.json), [운영 절차](construction/public-insights-20261012/operations-runbook.md). 원격전달/CI·privatepin·Pages/current 및 모듈별5회scheduled는 별도 운영 기록으로 확인하며 마지막 단계는 미완료로 유지한다.
+
+
+2026-10-25 Public Insights 운영 연결: 실행pin `0025497d4280d9bd72bcafd04ffafe026b8ad6fc` quality40182882842 SUCCESS7344pass/1knownskip. private workflow `b58c7f9`의4항목만 반영, queue:max/인증/기존schema2·v3gate 유지. modeactive/modulesmacro,calendar,crypto 원격readback 확인. macro9ad4b26e→calendare3659578→crypto1f6b37c6 순차remote-confirmed; 최신current SHA1f6b37c6의 quality40184291647/Pages40184291651 SUCCESS. 실제HTTPS9파일 byte일치/3HTMLsnapshot 일치, 운영Chromium12화면·대비PASS. 현재macro6/calendar19/FNG1이며BLSzero/미검증22정의닫힘. [운영 증거](construction/public-insights-20261012/operations-evidence-20261025.json), [마감](construction/public-insights-20261012/deployment-closeout.md). genuine scheduled모듈별0/5; u180/u181/u183 Step8와u182 Step7은 이 관찰 때문에 미완료다. 초기수동게시와GHA예약수용을구분한다.

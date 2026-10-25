@@ -67,3 +67,8 @@ sources/fomc_calendar.py/fred_economic_calendar.py/us_economic_calendar.py/treas
 ## 2026-10-25 구현 결과
 
 Steps1–6 로컬 검증 완료. [Summary](../u182-upcoming-events-dashboard/code/summary.md), [AC 대조](../../../docs/cross-checks/2026-10-25-u182-upcoming-events-dashboard.md). Fed occurrence 충돌을 기존 recording으로 재현·수정했다. 원천별14allow/10blocked, defaultoff, commit/push/production 변경 없음. Step7의 latest-main/exact implementation SHA·source 조건·private pin/mode·Pages·5회 scheduled 수용은 pending. 다음 코드 유닛은 u183이다.
+
+
+## 2026-10-25 운영 연결 진행
+
+후속 사용자 지시에 따라 최신main 통합·commit/push·공개 조건별 순차 초기 게시와 기존 private 예약 갱신 연결을 수행했다. 실행pin0025497d/quality40182882842, 최종current게시1f6b37c6/quality40184291647/Pages40184291651 모두 확인했다. 실제HTTPS snapshot/hash·운영Chromium12조건과 기존코드7344pass/1knownskip. [운영 증거](../public-insights-20261012/operations-evidence-20261025.json). 모듈별 genuine scheduled0/5이므로 Step7 체크는 미완료로 유지한다. 로컬probe·수동초기게시를 예약관찰로 세지 않는다.

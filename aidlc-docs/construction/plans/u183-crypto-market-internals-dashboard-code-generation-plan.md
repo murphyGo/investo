@@ -69,3 +69,8 @@ source/domain/render/integration 48cases와 실제browser QA를 구현했다. �
 ## 2026-10-25 로컬 구현 수용
 
 Steps1–7 PASS. [구현](../u183-crypto-market-internals-dashboard/code/summary.md), [AC](../../../docs/cross-checks/2026-10-25-u183-crypto-market-internals-dashboard.md). 독립C/H/M0, crypto16+기존macro16render PASS. Source5/9정의1allow·8blocked, 기존7endpoint개발200/typed9replay와production은구별한다. source별 source-role clock·history정의단절·인접attribution을검증했다. 전체회귀의기존DST PBT를HEAD에서도재현한후JSON보존계약에맞춰test만수정하고실패shard1789pass를확인했다. Step8 latest-main/exact implementationSHA·source권리·privatepin/mode·Pages·5회scheduled는pending. 새유닛진입없이요청한세화면의로컬구현을마쳤다.
+
+
+## 2026-10-25 운영 연결 진행
+
+후속 사용자 지시에 따라 최신main 통합·commit/push·공개 조건별 순차 초기 게시와 기존 private 예약 갱신 연결을 수행했다. 실행pin0025497d/quality40182882842, 최종current게시1f6b37c6/quality40184291647/Pages40184291651 모두 확인했다. 실제HTTPS snapshot/hash·운영Chromium12조건과 기존코드7344pass/1knownskip. [운영 증거](../public-insights-20261012/operations-evidence-20261025.json). 모듈별 genuine scheduled0/5이므로 Step8 체크는 미완료로 유지한다. 로컬probe·수동초기게시를 예약관찰로 세지 않는다.

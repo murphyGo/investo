@@ -1,0 +1,423 @@
+{
+  "recorded_at": "2026-10-25T10:32:08.522537+00:00",
+  "status": "deployed and configured active; genuine scheduled acceptance pending",
+  "implementation_sha": "0025497d4280d9bd72bcafd04ffafe026b8ad6fc",
+  "implementation_quality": {
+    "id": 40182882842,
+    "conclusion": "success",
+    "pytest_passed": 7344,
+    "pytest_skipped": 1,
+    "pytest_seconds": 771.34
+  },
+  "final_publication_sha": "1f6b37c6bcfea1f2ac11fa8716ce5219a441f337",
+  "final_publication_quality": {
+    "conclusion": "success",
+    "createdAt": "2026-10-25T10:19:25Z",
+    "databaseId": 40184291647,
+    "headSha": "1f6b37c6bcfea1f2ac11fa8716ce5219a441f337",
+    "status": "completed",
+    "updatedAt": "2026-10-25T10:28:23Z",
+    "url": "https://github.com/murphyGo/investo/actions/runs/40184291647",
+    "pytest_passed": 7344,
+    "pytest_skipped": 1,
+    "pytest_seconds": 506.9
+  },
+  "pages": {
+    "conclusion": "success",
+    "createdAt": "2026-10-25T10:19:25Z",
+    "databaseId": 40184291651,
+    "headSha": "1f6b37c6bcfea1f2ac11fa8716ce5219a441f337",
+    "status": "completed",
+    "updatedAt": "2026-10-25T10:20:14Z",
+    "url": "https://github.com/murphyGo/investo/actions/runs/40184291651"
+  },
+  "private_workflow_sha": "b58c7f9f6069062e274a855e472ab630cadbdcd1",
+  "private_workflow_validation": {
+    "minimal_four_fields_only": true,
+    "yaml_parse": "pass",
+    "before_sha256": "96d7feeaa325dae1e312ce67dd5a7e88c00d4bddc710011377522b76d55d4ba0",
+    "after_sha256": "3f9168cd050aabff4f7faaaedf33589866c61cb1a395f4ebe5cf254f056a9ca2",
+    "queue_preserved": true
+  },
+  "runtime_variables_readback": [
+    {
+      "name": "CODEX_PRODUCTION_ENABLED",
+      "updated_at": "2026-10-09T09:59:51Z",
+      "value": "1"
+    },
+    {
+      "name": "INVESTO_EVENT_BRIEFING_MODE",
+      "updated_at": "2026-10-09T14:47:50Z",
+      "value": "active"
+    },
+    {
+      "name": "INVESTO_INSIGHTS_MODE",
+      "updated_at": "2026-10-25T10:14:32Z",
+      "value": "active"
+    },
+    {
+      "name": "INVESTO_INSIGHTS_MODULES",
+      "updated_at": "2026-10-25T10:19:06Z",
+      "value": "macro,calendar,crypto"
+    },
+    {
+      "name": "REVIEWED_CODE_SHA",
+      "updated_at": "2026-10-25T10:14:24Z",
+      "value": "0025497d4280d9bd72bcafd04ffafe026b8ad6fc"
+    }
+  ],
+  "previous_reviewed_pin": "35ea6c6e8cb3e871bd06bbdb1810065b5d97949f",
+  "runtime_boundary": {
+    "owner": "murphyGo/automation-runtime/.github/workflows/daily-briefing.yml",
+    "private_workflow_state": "active",
+    "public_daily_state": "disabled_manually",
+    "private_jobs_in_progress_before_mutation": 0,
+    "event_schema": 2,
+    "event_v3_active_capability": false,
+    "news_mode_default": "shadow",
+    "direct_full_briefing_dispatches": 0,
+    "auth_secret_reads": 0,
+    "new_schedulers": 0
+  },
+  "qualification_sha256": "13fc7af76ad17d46e7cfeb473f1de6c505da1ebd7fe68d9458c90d7c96be9c67",
+  "allowed_definitions": 24,
+  "blocked_definitions": 22,
+  "local_live_collection": "local-live-shadow-20261025.json",
+  "initial_publications": {
+    "macro": {
+      "kind": "manual initial publication through reviewed production phase; not GHA scheduled acceptance",
+      "code_sha": "0025497d4280d9bd72bcafd04ffafe026b8ad6fc",
+      "module": "macro",
+      "source_collection_completed_at": "2026-10-25T09:39:44.882009+00:00",
+      "result": {
+        "mode": "active",
+        "modules": [
+          "macro"
+        ],
+        "status": "remote_confirmed",
+        "receipt": {
+          "run_id": "insights-ef86bd4d9ee341669cbb43801a14bce5",
+          "local_sha": "9ad4b26e6329aec287eae96c77147413e47f410b",
+          "remote_ref": "refs/heads/main",
+          "baseline_metadata_hash": "0399390f88808142c1c07a6ed1715c85cdd340cfd6ee1c477b1c6ab4d43b5cf6",
+          "status": "remote_confirmed",
+          "content_hash": "04ba44856c100f4a01d39667ece46025156656de1911768c0d4236bd479865e6"
+        }
+      },
+      "projected": [
+        {
+          "module": "macro",
+          "sha256": "32a4abeba7bc06174e2767a8cf4da1d1260bfa5827276e14fa8742de472dadd4",
+          "metrics": 6,
+          "events": 0,
+          "availability": "available"
+        }
+      ],
+      "source_http_calls": 0,
+      "llm_calls": 0,
+      "telegram_calls": 0
+    },
+    "calendar": {
+      "kind": "manual initial publication through reviewed production phase; not GHA scheduled acceptance",
+      "code_sha": "0025497d4280d9bd72bcafd04ffafe026b8ad6fc",
+      "module": "calendar",
+      "source_collection_completed_at": "2026-10-25T09:39:44.882009+00:00",
+      "result": {
+        "mode": "active",
+        "modules": [
+          "calendar"
+        ],
+        "status": "remote_confirmed",
+        "receipt": {
+          "run_id": "insights-639557dd3bce4337b8f3b5b148bf94bc",
+          "local_sha": "e36595786f7d00c86c703a0653a78ab5795a6134",
+          "remote_ref": "refs/heads/main",
+          "baseline_metadata_hash": "7314d491fe67f2de9699f376b92561bad87b3d133ce6fe467768417f6f3122a1",
+          "status": "remote_confirmed",
+          "content_hash": "f2a85ce8ba96f4cede3d47468bafda398f10b0cb9cc799d9822b5129039ca238"
+        }
+      },
+      "projected": [
+        {
+          "module": "calendar",
+          "sha256": "eb2a005a906be81cf2635d89bb6a0e1e6cd68b5edcfd7e691c108dcb943ae866",
+          "metrics": 0,
+          "events": 19,
+          "availability": "limited"
+        }
+      ],
+      "source_http_calls": 0,
+      "llm_calls": 0,
+      "telegram_calls": 0
+    },
+    "crypto": {
+      "kind": "manual initial publication through reviewed production phase; not GHA scheduled acceptance",
+      "code_sha": "0025497d4280d9bd72bcafd04ffafe026b8ad6fc",
+      "module": "crypto",
+      "source_collection_completed_at": "2026-10-25T09:39:44.882009+00:00",
+      "result": {
+        "mode": "active",
+        "modules": [
+          "crypto"
+        ],
+        "status": "remote_confirmed",
+        "receipt": {
+          "run_id": "insights-9ff7b1b7675f4915a5a18c142653dffe",
+          "local_sha": "1f6b37c6bcfea1f2ac11fa8716ce5219a441f337",
+          "remote_ref": "refs/heads/main",
+          "baseline_metadata_hash": "f0d2c0ef16b3d6d5b5ec64ac7f2a11264e130ea8a768f193b4b7c27ef2c30992",
+          "status": "remote_confirmed",
+          "content_hash": "4046525b02b78fb7e846188d16e63ae145e972c60a28261827f64eef76045ad4"
+        }
+      },
+      "projected": [
+        {
+          "module": "crypto",
+          "sha256": "3ebe2c2d21eae8126575896e923e54a1c37a4efb753f88bb88b466def88dc5ec",
+          "metrics": 1,
+          "events": 0,
+          "availability": "limited"
+        }
+      ],
+      "source_http_calls": 0,
+      "llm_calls": 0,
+      "telegram_calls": 0
+    }
+  },
+  "pages_by_module": {
+    "macro": {
+      "id": 40183971053,
+      "publication_sha": "9ad4b26e6329aec287eae96c77147413e47f410b",
+      "conclusion": "success"
+    },
+    "calendar": {
+      "id": 40184130560,
+      "publication_sha": "e36595786f7d00c86c703a0653a78ab5795a6134",
+      "conclusion": "success"
+    },
+    "crypto": {
+      "conclusion": "success",
+      "createdAt": "2026-10-25T10:19:25Z",
+      "databaseId": 40184291651,
+      "headSha": "1f6b37c6bcfea1f2ac11fa8716ce5219a441f337",
+      "status": "completed",
+      "updatedAt": "2026-10-25T10:20:14Z",
+      "url": "https://github.com/murphyGo/investo/actions/runs/40184291651"
+    }
+  },
+  "live_https": {
+    "checked_at": "2026-10-25T10:26:20.922006+00:00",
+    "kind": "actual HTTPS Pages bytes compared to remote-confirmed local publication tree",
+    "modules": [
+      {
+        "module": "calendar",
+        "snapshot_id": "fa42507af37ba2cab47f97e12eef992b721cae9464b6113a528b388cdebe49f8",
+        "metrics": 0,
+        "events": 19,
+        "collection_completed_at": "2026-10-25T09:39:44.882009Z",
+        "html_status": 200,
+        "html_snapshot_match": true
+      },
+      {
+        "module": "crypto",
+        "snapshot_id": "ca242d6ab47a3c228de01e4da3f14f583493fd0bf52124debf65dd3c600d3769",
+        "metrics": 1,
+        "events": 0,
+        "collection_completed_at": "2026-10-25T09:39:44.882009Z",
+        "html_status": 200,
+        "html_snapshot_match": true
+      },
+      {
+        "module": "macro",
+        "snapshot_id": "d9311bae2ae3e85e97ea44ea8137955d0b93c5d770fe49badf964a4db8d8e84d",
+        "metrics": 6,
+        "events": 0,
+        "collection_completed_at": "2026-10-25T09:39:44.882009Z",
+        "html_status": 200,
+        "html_snapshot_match": true
+      }
+    ],
+    "files": [
+      {
+        "path": "insights/_data/manifest.json",
+        "sha256": "fddb10d08878643234c7c71ea743150c07c1d53195ac43e92e359c780565b3e4",
+        "status": 200
+      },
+      {
+        "path": "insights/_data/calendar/current.json",
+        "sha256": "eb2a005a906be81cf2635d89bb6a0e1e6cd68b5edcfd7e691c108dcb943ae866",
+        "status": 200
+      },
+      {
+        "path": "insights/_data/crypto/current.json",
+        "sha256": "3ebe2c2d21eae8126575896e923e54a1c37a4efb753f88bb88b466def88dc5ec",
+        "status": 200
+      },
+      {
+        "path": "insights/_data/crypto/history.json",
+        "sha256": "e8c2e644b6f27740808c1f0acc93f39aa171963420c0ee920e80c16cc2482002",
+        "status": 200
+      },
+      {
+        "path": "insights/_data/macro/current.json",
+        "sha256": "32a4abeba7bc06174e2767a8cf4da1d1260bfa5827276e14fa8742de472dadd4",
+        "status": 200
+      },
+      {
+        "path": "insights/_data/macro/history.json",
+        "sha256": "9472654f318c59818992c0f16f88dec7a128fbcaf4ac875e3e5b95dac70ec6cc",
+        "status": 200
+      },
+      {
+        "path": "assets/insights.css",
+        "sha256": "7edcad4e1405f36ae76e7a8fb8a15d7f38f8d156508b9d4e352de4c634cbfb19",
+        "status": 200
+      },
+      {
+        "path": "assets/insights.js",
+        "sha256": "3732e2af5386b47fbea38d91ec1b990580d46956dadfee4aa34b43e84ed6bbea",
+        "status": 200
+      },
+      {
+        "path": "assets/insights-calendar.js",
+        "sha256": "547b517af468b7c2fc8f410575011102a2482590b25f5483e1ea7442927386f3",
+        "status": 200
+      }
+    ]
+  },
+  "production_browser": {
+    "kind": "actual HTTPS deployed production Pages in temporary Chromium profile",
+    "browser": "154.0.8037.0",
+    "cases": [
+      {
+        "module": "macro",
+        "viewport": "mobile",
+        "theme": "default",
+        "http_status": 200,
+        "page_overflow": false,
+        "text_contrast": "at least4.5:1",
+        "page_errors": []
+      },
+      {
+        "module": "macro",
+        "viewport": "mobile",
+        "theme": "slate",
+        "http_status": 200,
+        "page_overflow": false,
+        "text_contrast": "at least4.5:1",
+        "page_errors": []
+      },
+      {
+        "module": "macro",
+        "viewport": "desktop",
+        "theme": "default",
+        "http_status": 200,
+        "page_overflow": false,
+        "text_contrast": "at least4.5:1",
+        "page_errors": []
+      },
+      {
+        "module": "macro",
+        "viewport": "desktop",
+        "theme": "slate",
+        "http_status": 200,
+        "page_overflow": false,
+        "text_contrast": "at least4.5:1",
+        "page_errors": []
+      },
+      {
+        "module": "calendar",
+        "viewport": "mobile",
+        "theme": "default",
+        "http_status": 200,
+        "page_overflow": false,
+        "text_contrast": "at least4.5:1",
+        "page_errors": []
+      },
+      {
+        "module": "calendar",
+        "viewport": "mobile",
+        "theme": "slate",
+        "http_status": 200,
+        "page_overflow": false,
+        "text_contrast": "at least4.5:1",
+        "page_errors": []
+      },
+      {
+        "module": "calendar",
+        "viewport": "desktop",
+        "theme": "default",
+        "http_status": 200,
+        "page_overflow": false,
+        "text_contrast": "at least4.5:1",
+        "page_errors": []
+      },
+      {
+        "module": "calendar",
+        "viewport": "desktop",
+        "theme": "slate",
+        "http_status": 200,
+        "page_overflow": false,
+        "text_contrast": "at least4.5:1",
+        "page_errors": []
+      },
+      {
+        "module": "crypto",
+        "viewport": "mobile",
+        "theme": "default",
+        "http_status": 200,
+        "page_overflow": false,
+        "text_contrast": "at least4.5:1",
+        "page_errors": []
+      },
+      {
+        "module": "crypto",
+        "viewport": "mobile",
+        "theme": "slate",
+        "http_status": 200,
+        "page_overflow": false,
+        "text_contrast": "at least4.5:1",
+        "page_errors": []
+      },
+      {
+        "module": "crypto",
+        "viewport": "desktop",
+        "theme": "default",
+        "http_status": 200,
+        "page_overflow": false,
+        "text_contrast": "at least4.5:1",
+        "page_errors": []
+      },
+      {
+        "module": "crypto",
+        "viewport": "desktop",
+        "theme": "slate",
+        "http_status": 200,
+        "page_overflow": false,
+        "text_contrast": "at least4.5:1",
+        "page_errors": []
+      }
+    ]
+  },
+  "genuine_scheduled_observations": {
+    "macro": {
+      "required": 5,
+      "observed": 0,
+      "runs": [],
+      "status": "pending"
+    },
+    "calendar": {
+      "required": 5,
+      "observed": 0,
+      "runs": [],
+      "status": "pending"
+    },
+    "crypto": {
+      "required": 5,
+      "observed": 0,
+      "runs": [],
+      "status": "pending"
+    }
+  },
+  "acceptance_boundary": "Local source probe and manual bootstrap are not GHA runtime/scheduled observations. Do not complete the final unit steps before genuine scheduled evidence."
+}
