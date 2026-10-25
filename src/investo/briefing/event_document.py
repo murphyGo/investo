@@ -18,7 +18,7 @@ from investo.briefing.event_context import (
     support_vector,
 )
 from investo.briefing.event_identity import canonical_event_binding
-from investo.briefing.event_input import select_event_input_items
+from investo.briefing.event_input import is_event_reference_item, select_event_input_items
 from investo.briefing.generation_contract import GenerationInput, NativeEventGenerationResult
 from investo.models.event_context import ContextClassificationResult
 from investo.models.event_document import (
@@ -56,6 +56,13 @@ def render_event_document_prompt(evidence: str) -> str:
         "If prose repeats a numeric fact, include its literal source metric, value, "
         "unit, period "
         "and actual/forecast role. Source refs must be exact transmitted refs. "
+        "For nonnumeric facts whose status_refs include a complete assertion, copy it "
+        "verbatim as what_changed and any digest, even when that assertion is English. "
+        "If status_refs contain only a verb/status token, use a complete closed "
+        "subject-verb-value assertion from the literal component spans, never that token alone. "
+        "Preserve its full subject, value, attribution and modality. Do not insert "
+        "parenthetical aliases, translations, paraphrases, qualifiers or extra clauses. "
+        "Headlines and independently supported explanations remain Korean. "
         "Write no additional tables, sections, prices, dates, identities or facts. "
         "Background, meaning and reaction use their assigned refs independently; "
         "missing support means unavailable, never an invented causal explanation. "
@@ -90,7 +97,12 @@ async def generate_event_document(request: GenerationInput) -> NativeEventGenera
     buffer = build_context_prompt_buffer(
         documents,
         required_item_ids=frozenset(
-            i for i, item in enumerate(candidates, 1) if is_required_macro_actual(item)
+            i
+            for i, item in enumerate(candidates, 1)
+            if is_required_macro_actual(item) and not is_event_reference_item(item)
+        ),
+        preferred_item_ids=frozenset(
+            i for i, item in enumerate(candidates, 1) if not is_event_reference_item(item)
         ),
     )
     classification = (
@@ -120,6 +132,11 @@ async def generate_event_document(request: GenerationInput) -> NativeEventGenera
         bindings,
         buffer.documents,
         required_item_ids=buffer.required_prompt_item_ids,
+        reference_item_ids=frozenset(
+            n
+            for n, original in enumerate(buffer.item_ids, 1)
+            if is_event_reference_item(candidates[original - 1])
+        ),
         observed_at=observed_at,
     )
     vectors = tuple(

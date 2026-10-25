@@ -384,15 +384,18 @@ async def test_dart_outer_budget_includes_transport_and_preserves_partial_page(
     monkeypatch, after_page
 ) -> None:
     monkeypatch.setenv("OPENDART_API_KEY", "synthetic-test-key")
-    monkeypatch.setattr(DartDisclosureAdapter, "_WINDOW_BUDGET_S", 0.03)
+    monkeypatch.setattr(DartDisclosureAdapter, "_WINDOW_BUDGET_S", 0.1)
+    monkeypatch.setattr(DartDisclosureAdapter, "_PAGE_COUNT", 1)
     calls = []
 
     async def handler(request):
         calls.append(int(request.url.params["page_no"]))
         if after_page and len(calls) == 1:
-            return httpx.Response(
-                200, json=_page([_entry(i, relevant=i == 1) for i in range(1, 101)], total=101)
-            )
+            # Exercise the second transport deadline without spending the
+            # tiny test budget normalizing a production-sized first page.
+            payload = _page([_entry(1)], total=2)
+            payload.update(page_count=1, total_page=2)
+            return httpx.Response(200, json=payload)
         await asyncio.sleep(1)
         raise AssertionError("deadline must cancel transport")
 

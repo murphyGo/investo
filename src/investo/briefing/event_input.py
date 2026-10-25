@@ -67,6 +67,28 @@ def is_event_candidate_item(item: NormalizedItem) -> bool:
 _is_news = is_event_candidate_item
 
 
+def is_event_reference_item(item: NormalizedItem) -> bool:
+    """Separate native news/releases from recurring observations and schedules.
+
+    An inferred macro `actual` preserves the observed value, not a new release.
+    Explicit source release metadata and required-release flags retain their
+    existing protection. This does not change the legacy candidate selector.
+    """
+    if item.scheduled_at is not None:
+        return True
+    if item.category in {"news", "calendar"}:
+        # Legacy taxonomy also puts already-published official releases in
+        # calendar. Only a real scheduled_at above makes those a schedule.
+        return False
+    return not (
+        (
+            item.raw_metadata.get("macro_event_status") == "actual"
+            and macro_event_key(item) is not None
+        )
+        or str(item.raw_metadata.get("required_macro_actual", "")).casefold() == "true"
+    )
+
+
 def event_collection_limited(
     items: Sequence[NormalizedItem], outcomes: Sequence[SourceOutcome]
 ) -> bool:

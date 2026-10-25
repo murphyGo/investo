@@ -31,3 +31,7 @@ candidate는 source 범위·clock·receipt/원격 ancestry·실제 Pages snapsho
 [검증](../../aidlc-docs/construction/public-insights-20261012/observation-capture-validation.json) ·
 [독립 리뷰](../../aidlc-docs/construction/public-insights-20261012/observation-capture-review.md) ·
 [관찰 회차](../../aidlc-docs/construction/public-insights-20261012/scheduled-observations.json)
+
+## 동시 main 변경 보존
+
+마감 문서 전달 중 원격154b57a2의 이벤트 내용 보강과 이력이 추가돼 일반 push가 거절됐다. 새 main을 합치고 audit 양쪽 이력을 보존했다. 모든 src/tests/scripts/ops/site/build 입력은154b57a2와 같으며 추가 차이는 관찰 마감 문서뿐이다. 합친 tree에서 집중71pass58.69s, Ruff822/mypy346/strictdocs9.05s/Material/Calendar/policy를 다시 통과했다. 정확한 새 입력의 전체 CI는 [40188918992](https://github.com/murphyGo/investo/actions/runs/40188918992)로 연결한다. 기존47394b88의 관찰 블록과 private4824a79는 그대로이며 applicationpin0025497d를 승격하지 않았다. 다른 이벤트 수용 단계와genuine scheduled0/5도 유지한다.

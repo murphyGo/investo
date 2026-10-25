@@ -98,8 +98,8 @@ def metadata_ref(doc: EventContextDocument, key: str) -> ContextRef:
 def text_fact_case() -> tuple[EventContextDocument, ContextEventDraft]:
     evidence = make_evidence_document(
         source_name="official",
-        title=TITLE + " actual launch",
-        summary=FACT,
+        title="Acme launched Widget",
+        summary=FACT + ". " + TITLE,
         published_at=NOW,
         received_at=NOW,
     )
@@ -109,8 +109,14 @@ def text_fact_case() -> tuple[EventContextDocument, ContextEventDraft]:
         status="actual",
         value_kind="text",
         subject_refs=(ref(doc, "Acme"),),
-        predicate_refs=(ref(doc, "launch"),),
+        predicate_refs=(ref(doc, "launched"),),
         value_refs=(ref(doc, "Widget"),),
-        status_refs=(ref(doc, "actual"),),
+        status_refs=(ref(doc, "Acme launched Widget"),),
     )
-    return doc, draft(doc).model_copy(update={"event_kind": "product_service", "facts": (fact,)})
+    return doc, draft(doc).model_copy(
+        update={
+            "event_kind": "product_service",
+            "action_refs": (ref(doc, "launched"),),
+            "facts": (fact,),
+        }
+    )

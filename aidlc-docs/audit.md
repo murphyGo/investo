@@ -8180,3 +8180,28 @@ Public/private application pending exact-CI and delivery; observed counts remain
 ## 2026-10-25 Public insights observation capture delivery
 
 Exact public47394b8869ce20b2d502a02bd4ffdb8a8b608de6 quality40187571372 SUCCESS7367pass/1knownskip788.12s, Ruff819/mypy344/policy/Node/docs8.35s/Material/Calendar PASS. No private jobs in flight before apply. Pushed private4824a795e5a6b6c1cd6d8437e2ed1a8b0ae73a20; remote fullworkflowbytes and capture00cd3f5d hash match. Existingapplicationpin0025497d/modeactive/modules3/cron/queue:max unchanged by exact variables and configuration readback. Workflowregistry active; genuine scheduled0/5/actualuploadnotyetobserved. Future nominal10/26 07KST is not a counted run. Primary app/site frozen; only private allowlist metadata retention configured. Final docs record this delivery without declaring unit final operational steps complete.
+## 2026-10-25 — Event v3 reader-content correction
+
+The user rejected the shallow preview as insufficient to judge. Actual recorded US
+context had zero news after the 24KiB boundary despite 174 routed inputs. News priority,
+reference separation and source-bound text assertions now retain real news and preserve
+action, polarity, attribution and fact/history identity. Independently assigned optional
+evidence and unscheduled official releases remain usable. A DART timing-test fixture was
+reduced to one valid row so the transport deadline is exercised without racing 100-row
+normalization; production behavior is unchanged. Independent bounded code QA has no open
+P1/P2; final focused264/static/mypy/docs pass. Exact-source quality `40185091175` passed
+7,386 tests. Follow-up `40185897748` exposed the reproduced DART test race and is retained
+as failure evidence rather than hidden.
+
+Actual private `40186613927` (`b06147c9`) sealed one article / two calls, but no background
+or meaning. It remains too shallow for normal content acceptance. Two separately labeled
+developer-authored historical Fed/CFTC reference examples have source-backed background
+and meaning through offline replay/finalization, with zero live LLM/HTTP calls. They do not
+increment live producer, human, source-slot or scheduled acceptance. Body HTTP, production
+pin/capability, notification and publication gates remain unchanged. Concurrent insights
+work and the original dirty root were preserved. [Evidence](../docs/sessions/2026-10-25-event-v3-content-quality.md).
+
+
+## 2026-10-25 Observation closeout concurrent-main preservation
+
+Remote advanced to154b57a2 while closeout a926ab07 was prepared. Normal push rejected; merged current main and kept both append-only audit sections. Application/tests/scripts/ops/site/build tree matches154b57a2 exactly, only observation documentation differs. Rechecked focused71pass58.69s, Ruff822/mypy346/strictdocs9.05s/policy/Material/Calendar. Exact-source upstream quality40188918992 tracks the incoming implementation. Private4824a79/capture00cd3f5d/applicationpin0025497d/modules/cron/queue unchanged; scheduled0/5 and other event gates preserved.

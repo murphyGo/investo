@@ -13,6 +13,7 @@ from typing import Literal
 
 from pydantic import ValidationError
 
+from investo._internal.event_text_proof import TextFactFrame, prove_text_assertion
 from investo.models.event_context import (
     ContextClassificationResult,
     ContextEventDraft,
@@ -162,6 +163,49 @@ _STATUS_MARKERS = {
 }
 
 
+def text_fact_frame(fact: ContextFactDraft, documents: ContextLookup) -> TextFactFrame | None:
+    """Reconstruct a whole source assertion; generated labels are never proof."""
+    if fact.value_kind != "text" or not fact.status_refs:
+        return None
+    if len(fact.value_refs) != 1:
+        raise ContextEvidenceError("context.status_unbound")
+    value_ref = fact.value_refs[0]
+    owner = documents[(value_ref.document_id, value_ref.revision_id)]
+    chunk = next(c for c in owner.chunks if c.chunk_id == value_ref.chunk_id)
+    if chunk.source_locator == "source_metadata":
+        raise ContextEvidenceError("context.status_unbound")
+    separators = tuple(re.finditer(r"[;!?。\n]|(?<!\d)\.(?!\d)", chunk.text))
+    start = max((m.end() for m in separators if m.end() <= value_ref.start), default=0)
+    end = min((m.end() for m in separators if m.start() >= value_ref.end), default=len(chunk.text))
+    assertion = chunk.text[start:end].strip()
+    for proof in fact.status_refs:
+        if (proof.document_id, proof.revision_id, proof.chunk_id) != (
+            value_ref.document_id,
+            value_ref.revision_id,
+            value_ref.chunk_id,
+        ) or not start <= proof.start < proof.end <= end:
+            raise ContextEvidenceError("context.status_unbound")
+
+    def literal(refs: tuple[ContextRef, ...]) -> str:
+        return " ".join(resolve_context_ref(ref, documents).strip() for ref in refs)
+
+    frame = prove_text_assertion(
+        predicate=fact.predicate,
+        status=fact.status,
+        subject=literal(fact.subject_refs),
+        action=literal(fact.predicate_refs),
+        object_label=literal(fact.object_refs),
+        value=literal(fact.value_refs),
+        assertion=assertion,
+        status_proofs=tuple(
+            resolve_context_ref(ref, documents).strip() for ref in fact.status_refs
+        ),
+    )
+    if frame is None:
+        raise ContextEvidenceError("context.status_unbound")
+    return frame
+
+
 def validate_context_fact(fact: ContextFactDraft, documents: ContextLookup) -> None:
     """Validate literal source components; absence never becomes semantic proof."""
     if len({(ref.document_id, ref.revision_id) for ref in fact_context_refs(fact)}) != 1:
@@ -210,6 +254,7 @@ def validate_context_fact(fact: ContextFactDraft, documents: ContextLookup) -> N
             value = unicodedata.normalize("NFKC", resolve_context_ref(ref, documents)).strip()
             if not _NUMERIC_TOKEN.fullmatch(value):
                 raise ContextEvidenceError("context.fact_invalid")
+    text_frame = text_fact_frame(fact, documents)
     if fact.status_refs:
         for ref in fact.status_refs:
             field = metadata_ref_field(ref, documents)
@@ -232,7 +277,7 @@ def validate_context_fact(fact: ContextFactDraft, documents: ContextLookup) -> N
         values = {
             resolve_context_ref(ref, documents).strip().casefold() for ref in fact.status_refs
         }
-        if not values <= _STATUS_MARKERS[fact.status]:
+        if text_frame is None and not values <= _STATUS_MARKERS[fact.status]:
             raise ContextEvidenceError("context.status_unbound")
     status_fields = {"fact_status", "macro_status", "macro_event_status"}
     for owner_key in {(ref.document_id, ref.revision_id) for ref in fact.value_refs}:
@@ -531,12 +576,34 @@ class ContextPromptBuffer:
 
 
 def build_context_prompt_buffer(
-    documents: Sequence[EventContextDocument], *, required_item_ids: frozenset[int] = frozenset()
+    documents: Sequence[EventContextDocument],
+    *,
+    required_item_ids: frozenset[int] = frozenset(),
+    preferred_item_ids: frozenset[int] = frozenset(),
 ) -> ContextPromptBuffer:
-    """Reserve required source rows; count IDs, headers, time and all chunk bytes."""
-    if len(documents) > 96 or any(not 1 <= i <= len(documents) for i in required_item_ids):
+    """Reserve required facts, share news slots, then fill with reference rows."""
+    if len(documents) > 96 or any(
+        not 1 <= i <= len(documents) for i in required_item_ids | preferred_item_ids
+    ):
         raise ContextEvidenceError("context.budget_exhausted")
-    ordered = sorted(range(1, len(documents) + 1), key=lambda i: (i not in required_item_ids, i))
+    preferred: dict[str, list[int]] = {}
+    for i in sorted(preferred_item_ids - required_item_ids):
+        preferred.setdefault(documents[i - 1].source_name, []).append(i)
+    news_order = [
+        group[offset]
+        for offset in range(max(map(len, preferred.values()), default=0))
+        for group in preferred.values()
+        if offset < len(group)
+    ]
+    ordered = [
+        *sorted(required_item_ids),
+        *news_order,
+        *(
+            i
+            for i in range(1, len(documents) + 1)
+            if i not in required_item_ids | preferred_item_ids
+        ),
+    ]
     rows: list[dict[str, object]] = []
     selected: list[int] = []
     counts: Counter[str] = Counter()

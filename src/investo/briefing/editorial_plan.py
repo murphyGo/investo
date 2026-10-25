@@ -19,6 +19,7 @@ def build_editorial_plan(
     documents: Sequence[EventContextDocument],
     *,
     required_item_ids: frozenset[int] = frozenset(),
+    reference_item_ids: frozenset[int] = frozenset(),
     observed_at: datetime,
     max_articles: int = 5,
 ) -> tuple[EditorialPlan, tuple[CanonicalEventBinding, ...], str]:
@@ -47,10 +48,15 @@ def build_editorial_plan(
             reason = "low_importance"
         elif binding.novelty == "repeat":
             reason = "repeat"
-        elif event.timing in {"scheduled", "background"} or event.relation in {
-            "background",
-            "unrelated",
-        }:
+        elif (
+            event.timing in {"scheduled", "background"}
+            or event.relation
+            in {
+                "background",
+                "unrelated",
+            }
+            or set(event.item_ids) <= reference_item_ids
+        ):
             reason = "background"
         score = (
             {"systemic": 40, "sector": 25, "company": 15, "context": 0}[event.impact]
@@ -149,6 +155,7 @@ def build_editorial_plan(
             bindings,
             documents,
             required_item_ids=required_item_ids,
+            reference_item_ids=reference_item_ids,
             observed_at=observed_at,
             max_articles=max_articles - 1,
         )

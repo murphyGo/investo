@@ -135,5 +135,18 @@
     "skipped": 1,
     "pytest_seconds": 788.12,
     "strict_docs_seconds": 8.35
+  },
+  "concurrent_main_integration": {
+    "remote_base_sha": "154b57a2bb3555ff6657789f7e695ba8a3e704fc",
+    "all_application_tests_ops_site_and_build_inputs_match_remote": true,
+    "only_additional_changes": "observation closeout documentation",
+    "focused_passed": 71,
+    "focused_seconds": 58.69,
+    "ruff_files": 822,
+    "mypy_source_files": 346,
+    "strict_docs_seconds": 9.05,
+    "policy_material_calendar": "pass",
+    "upstream_exact_input_quality_run_id": 40188918992,
+    "runtime_pin_changed": false
   }
 }
