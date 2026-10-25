@@ -11,6 +11,7 @@ from investo._internal.event_context import (
     validate_context_event,
 )
 from investo._internal.event_identity import source_receipt
+from investo._internal.event_text_proof import canonical_text_action
 from investo._internal.event_v3_contract import fact_source_map
 from investo.models.event_context import ContextEventDraft, EventContextDocument
 from investo.models.event_evidence import event_digest
@@ -127,7 +128,9 @@ def observe_story(
     validate_context_event(source, documents, observed_at=observed_at)
     actual = [f for f in binding.facts if f.canonical.status == "actual"]
     values = {
-        f.canonical.value.casefold() for f in actual if f.canonical.predicate == "status_change"
+        canonical_text_action(f.canonical.value)
+        for f in actual
+        if f.canonical.predicate == "status_change"
     }
     stage = binding.identity.occurrence_stage
     signal: StoryTransitionSignal = "no_new_evidence"
@@ -318,7 +321,7 @@ def advance_story(
     explicit_completion = any(
         f.canonical.status == "actual"
         and f.canonical.predicate == "status_change"
-        and f.canonical.value.casefold() in _RESOLUTION
+        and canonical_text_action(f.canonical.value) in _RESOLUTION
         for f in binding.facts
     )
     if (

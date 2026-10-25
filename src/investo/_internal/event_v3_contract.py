@@ -6,14 +6,23 @@ import re
 import unicodedata
 from collections.abc import Sequence
 from datetime import datetime
+from itertools import pairwise
 
 from investo._internal.event_context import (
     context_lookup,
     event_context_refs,
     resolve_context_ref,
+    text_fact_frame,
     validate_context_event,
 )
 from investo._internal.event_identity import normalize_fact_bindings, source_receipt
+from investo._internal.event_text_proof import (
+    action_equivalents,
+    display_matches_frame,
+    performed_actions,
+    prove_text_assertion,
+)
+from investo._internal.korean_subjects import korean_entity_subjects
 from investo._internal.text import bound_at_sentence
 from investo.models.event_context import (
     ContextEventDraft,
@@ -30,34 +39,6 @@ _UNSAFE = re.compile(r"https?://|www\.|<!--|[<>{}`\r\n]|\]\(", re.I)
 _CONDITIONAL = re.compile(r"경우|라면|다면|수\s*있|가능성|조건|\b(?:if|could|may)\b", re.I)
 _IDENTIFIERS = re.compile(
     r"(?<![A-Za-z0-9_])(?:[A-Z][A-Za-z0-9_.-]*|[a-z][a-z0-9]*_[a-z0-9_]+)(?![A-Za-z0-9_])"
-)
-_KOREAN_SUBJECTS = re.compile(r"([가-힣A-Za-z][가-힣A-Za-z0-9_.-]{1,})[이가은는](?=\s)")
-_GENERIC_SUBJECTS = frozenset(
-    {
-        "의미",
-        "반응",
-        "시장",
-        "변화",
-        "조건",
-        "가능성",
-        "결과",
-        "전제",
-        "영향",
-        "배경",
-        "사건",
-        "확인",
-        "이",
-        "그",
-        "이번",
-        "수치",
-        "관측값",
-        "단위",
-        "일정",
-        "발표",
-        "내용",
-        "작동",
-        "경로",
-    }
 )
 _ROLE_STATUS = {
     "실제": "actual",
@@ -111,11 +92,7 @@ def validate_claim(text: str, refs: Sequence[ContextRef], draft: EventEditionDra
         raise EventEditionValidationError("event.fact_unsupported")
     source_words = set(re.findall(r"[A-Za-z0-9_.-]+", _normal(source).casefold()))
     source_normal = _normal(source).casefold()
-    if any(
-        match.group(1).casefold() not in _GENERIC_SUBJECTS
-        and match.group(1).casefold() not in source_normal
-        for match in _KOREAN_SUBJECTS.finditer(text)
-    ):
+    if any(label.casefold() not in source_normal for label in korean_entity_subjects(text)):
         raise EventEditionValidationError("event.entity_unsupported")
     if any(
         match.group().rstrip(".").casefold() not in source_words | _ORDINARY_WORDS
@@ -124,18 +101,81 @@ def validate_claim(text: str, refs: Sequence[ContextRef], draft: EventEditionDra
         raise EventEditionValidationError("event.entity_unsupported")
 
 
+def validate_text_actions(
+    text: str,
+    source: ContextEventDraft,
+    documents: Sequence[EventContextDocument],
+    *,
+    require_assertion: bool = False,
+) -> None:
+    """Keep literal actions and modality bound to source assertion frames."""
+    lookup = context_lookup(documents)
+    text_frames = []
+    for fact in source.facts:
+        if fact.value_kind == "text" and fact.status_refs:
+            frame = text_fact_frame(fact, lookup)
+            if frame is not None:
+                text_frames.append(frame)
+    if text_frames and (require_assertion or performed_actions(text)):
+        clauses = [
+            part.strip() for part in re.split(r"[;!?。\n]|(?<!\d)\.(?!\d)", text) if part.strip()
+        ]
+        if not clauses or any(
+            not any(display_matches_frame(clause, frame) for frame in text_frames)
+            for clause in clauses
+        ):
+            raise EventEditionValidationError("event.fact_unsupported")
+    if text_frames:
+        return
+    allowed_actions: set[str] = set()
+    # Identity actions can independently prove an announcement, e.g. an
+    # earnings release whose canonical facts are numeric results.
+    for ref in source.object_refs:
+        doc = lookup[(ref.document_id, ref.revision_id)]
+        chunk = next(c for c in doc.chunks if c.chunk_id == ref.chunk_id)
+        actor = " ".join(resolve_context_ref(r, documents) for r in source.actor_refs)
+        actor_refs = sorted(source.actor_refs, key=lambda r: r.start)
+        if (
+            actor_refs
+            and all(
+                (r.document_id, r.revision_id, r.chunk_id)
+                == (ref.document_id, ref.revision_id, ref.chunk_id)
+                for r in actor_refs
+            )
+            and all(
+                re.fullmatch(r"\s*(?:and|및|와|과|,|·|&)\s*", chunk.text[a.end : b.start])
+                for a, b in pairwise(actor_refs)
+            )
+        ):
+            actor = chunk.text[actor_refs[0].start : actor_refs[-1].end]
+        action = " ".join(resolve_context_ref(r, documents) for r in source.action_refs)
+        obj = resolve_context_ref(ref, documents)
+        for predicate in ("statement", "launch", "agreement", "decision", "status_change"):
+            if prove_text_assertion(
+                predicate=predicate,
+                status="actual",
+                subject=actor,
+                action=action,
+                object_label=obj,
+                value=obj,
+                assertion=chunk.text.strip(),
+                status_proofs=(action,),
+            ):
+                allowed_actions.update(action_equivalents(action))
+    if any(action not in allowed_actions for action in performed_actions(text)):
+        raise EventEditionValidationError("event.fact_unsupported")
+
+
 def validate_fact_roles(
     text: str,
     binding: CanonicalEventBinding,
     source: ContextEventDraft,
     documents: Sequence[EventContextDocument],
+    *,
+    require_assertion: bool = False,
 ) -> None:
-    """Bind each numeric assertion to its metric, status, unit and period slot.
-
-    Numeric facts may stay in deterministic fact rows. When prose repeats a
-    value it must name its source metric and role; a global value bag is not
-    evidence that two equal numbers have interchangeable meanings.
-    """
+    """Bind each numeric assertion to its metric, status, unit and period slot."""
+    validate_text_actions(text, source, documents, require_assertion=require_assertion)
     normalized = _normal(text).casefold().replace(",", "")
     sources = fact_source_map(binding, source, documents)
     metric_labels = {
@@ -298,7 +338,13 @@ def validate_event_edition(
         validate_claim(article.headline, article.source_refs, draft)
         validate_claim(article.what_changed, article.source_refs, draft)
         validate_fact_roles(article.headline, binding, plan.source_event, draft.documents)
-        validate_fact_roles(article.what_changed, binding, plan.source_event, draft.documents)
+        validate_fact_roles(
+            article.what_changed,
+            binding,
+            plan.source_event,
+            draft.documents,
+            require_assertion=True,
+        )
         entities = {e.entity.entity_id: e.entity for e in binding.entities}
         for entity_id in (*binding.identity.actor_ids, *binding.identity.object_ids):
             if not any(
@@ -317,6 +363,8 @@ def validate_event_edition(
             ):
                 raise EventEditionValidationError("event.evidence_invalid")
             validate_claim(article.background, article.background_refs, draft)
+            if any(f.value_kind == "text" for f in plan.source_event.facts):
+                validate_text_actions(article.background, plan.source_event, draft.documents)
         elif article.background_refs:
             raise EventEditionValidationError("event.evidence_invalid")
         meaning = article.meaning
@@ -324,6 +372,10 @@ def validate_event_edition(
             if not set(meaning.refs) <= set(plan.source_event.meaning_refs):
                 raise EventEditionValidationError("event.evidence_invalid")
             validate_claim(meaning.text or "", meaning.refs, draft)
+            if any(f.value_kind == "text" for f in plan.source_event.facts):
+                for text in (meaning.text, meaning.mechanism, *meaning.assumptions):
+                    if text:
+                        validate_text_actions(text, plan.source_event, draft.documents)
             if meaning.mechanism is not None:
                 validate_claim(meaning.mechanism, meaning.refs, draft)
             for assumption in meaning.assumptions:
@@ -335,6 +387,8 @@ def validate_event_edition(
             if not set(reaction.refs) <= set(plan.source_event.reaction_refs):
                 raise EventEditionValidationError("event.evidence_invalid")
             validate_claim(reaction.text or "", reaction.refs, draft)
+            if any(f.value_kind == "text" for f in plan.source_event.facts):
+                validate_text_actions(reaction.text or "", plan.source_event, draft.documents)
             if reaction.observed_at is not None and reaction.observed_at > observed_at:
                 raise EventEditionValidationError("event.reaction_unbound")
             if reaction.status == "observed":
@@ -388,6 +442,7 @@ def validate_event_edition(
             bindings[digest.event_id],
             plan_by_id[digest.event_id].source_event,
             draft.documents,
+            require_assertion=True,
         )
     if len({d.event_id for d in draft.digests}) != len(draft.digests):
         raise EventEditionValidationError("event.digest_unbound")

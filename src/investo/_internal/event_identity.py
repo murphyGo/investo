@@ -14,9 +14,11 @@ from investo._internal.event_context import (
     context_lookup,
     fact_context_refs,
     resolve_context_ref,
+    text_fact_frame,
     validate_context_event,
     validate_context_fact,
 )
+from investo._internal.event_text_proof import action_equivalents
 from investo.models.event_context import (
     ContextEventDraft,
     ContextFactDraft,
@@ -166,6 +168,20 @@ def normalize_fact_bindings(
         if draft.value_kind == "numeric":
             # Preserve signs, decimal spelling and scale; remove thousands commas only.
             value = value.replace(",", "")
+        else:
+            frame = text_fact_frame(draft, lookup)
+            if frame is not None and frame.action.casefold() == value.casefold():
+                value = action_equivalents(frame.action)[0]
+            elif frame is not None:
+                # One text slot can change from cancelled to completed. Preserve
+                # the proved action in its value identity, while original_value
+                # remains the exact reader-visible source phrase.
+                value = (
+                    "text-action:"
+                    + action_equivalents(frame.action)[0]
+                    + ":"
+                    + event_digest("text-assertion-value-v3", value)
+                )
         metric = _source_label(draft.metric_refs, context_documents) if draft.metric_refs else None
         unit = _source_label(draft.unit_refs, context_documents) if draft.unit_refs else None
         period = _source_label(draft.period_refs, context_documents) if draft.period_refs else None

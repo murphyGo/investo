@@ -324,6 +324,8 @@ Source permission remains unverified under the u145 exception; Browser is
 
 최종 exact-source quality `40125122575`는 7,123 PASS/1 skipped(765.72s), Node29와 전체 static/policy/docs 검사를 성공했다. 세 ciphertext의 복호화·Markdown/recording hash와 모든 게시/알림/운영 쓰기 false를 확인했고 최종 문서 검토도 P1/P2=0이다. Code/private-generation 증거와 human/source/runtime 수용 pending은 구별한다.
 
+2026-10-25 내용 품질 재검증: 사용자가 실제 프리뷰의 내용 부족을 지적했다. 위 sealed/CI 성공은 읽을 만한 뉴스 품질의 인수를 뜻하지 않는다. US 실제 Stage1 입력은 174개 라우팅 뒤 일정/정기 통계10개만 남아 뉴스0개였다. [내용 품질 수리](construction/event-news-v3/content-quality-repair-20261025.md)에서 실제 byte budget 뉴스 우선, 정기 관측 참고 분리, 일반 뉴스 행동의 원문 증명과 표시/이력 경계를 수리한다. 새 실제 프리뷰와 독립 QA는 별도 검증하며 사람 수용·활성화 상태와 완료 횟수는 늘리지 않는다.
+
 ### u174–u179 — Web UI Modernization (2026-10-10)
 
 **Source**: 사용자는 현재 웹 UI 분석과 로컬 홈 시안을 확인한 뒤 “굿 일단 유닛 문서화부터 진행해줘”라고 요청했다. 최초 코드 기준은 원격 main `48762793`, 최종 문서 통합 기준은 `838bed60`이다. 동시 등록된 사건·뉴스 v3 u167–u173을 보존하고 번호 충돌을 피해 UI u174–u179의 문서만 등록한다. 구현·기능 설계 승인·커밋/푸시·배포 인수를 뜻하지 않는다.
