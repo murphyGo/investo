@@ -37,7 +37,6 @@ from investo.models.event_document import (
 from investo.models.event_story import SealedStorySourceRef, StoryPublicationDelta
 from investo.models.segments import SEGMENT_LABELS
 from investo.publisher.event_quality import support_vector_reader_limits
-from investo.publisher.verifier import SHORT_DISCLAIMER_CRYPTO, SHORT_DISCLAIMER_EQUITY
 
 _AVAILABILITY = {
     "normal": "검증된 사건을 중심으로 정리했습니다.",
@@ -146,24 +145,12 @@ def render_event_edition(
     lines = [
         f"# {draft.target_date.isoformat()} {SEGMENT_LABELS[draft.segment]} 시황",
         "",
-        SHORT_DISCLAIMER_CRYPTO if draft.segment == "crypto" else SHORT_DISCLAIMER_EQUITY,
-        "",
         "<!-- investo:edition schema=3 -->",
         f"<!-- investo:availability {draft.availability.status} -->",
         "",
-        _AVAILABILITY[draft.availability.status],
-        "",
     ]
-    price = draft.price_reference_date.isoformat() if draft.price_reference_date else "확인 불가"
-    lines.extend((f"가격 기준일: {price}", ""))
-    if draft.news_window:
-        lines.extend(
-            (
-                f"뉴스 관측창: {draft.news_window.start_utc.isoformat()} ~ "
-                f"{draft.news_window.end_utc.isoformat()} (종료 미포함)",
-                "",
-            )
-        )
+    if not draft.articles:
+        lines.extend((_AVAILABILITY[draft.availability.status], ""))
     if draft.articles:
         digests = {
             d.event_id: d for d in draft.digests if retain_invalid_digests or usable_digest(d.text)
@@ -447,6 +434,19 @@ def render_event_edition(
             )
         lines.append("")
         lines.extend(("</details>", ""))
+    lines.extend(("## 자료 안내", ""))
+    if draft.articles:
+        lines.extend((_AVAILABILITY[draft.availability.status], ""))
+    price = draft.price_reference_date.isoformat() if draft.price_reference_date else "확인 불가"
+    lines.extend((f"가격 기준일: {price}", ""))
+    if draft.news_window:
+        lines.extend(
+            (
+                f"뉴스 관측창: {draft.news_window.start_utc.isoformat()} ~ "
+                f"{draft.news_window.end_utc.isoformat()} (종료 미포함)",
+                "",
+            )
+        )
     lines.extend((DISCLAIMER_CRYPTO_V3 if draft.segment == "crypto" else DISCLAIMER_V3, ""))
     return "\n".join(lines)
 

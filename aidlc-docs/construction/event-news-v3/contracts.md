@@ -80,7 +80,7 @@ canonical owner `models/event_document.py`: `EventEditionDraft`, `EditorialPlan`
 - 사실상 important event가0개면 중요 변화 없음/수집 제한/생성 또는 검증 실패를 `EditionAvailability`로 구별한다. filler, 최소 사건 할당량, 정확히3개 요약 채우기는 폐기한다.
 - context panel은 실제 사건을 설명할 때만 기본 본문에 노출한다. 새발표없는월간값/과거재무/주간포지션은reference panel에서 날짜와단위를명시한다. release-day required actual은 editorial plan의 필수 fact로 보호한다.
 
-고정 읽기 순서: 한 H1 → 짧은 면책/시장nav/가격일과뉴스창 → 한눈에보기0~3 → 주요사건0~5 → 진행상황/다음확인 → 사건관련자산영향 → 접힌시장참고/진단 → 면책본문. global macro/thesis/가격/watchlist별도상단callout이같은내용을반복하면생성하지않는다. hero는기본없음,실제사건이해에관련되고기존provenance를통과한경우에만주요사건후보조로1개허용한다.
+고정 읽기 순서: 한 H1/시장nav → 유효한 산문 개요0~3 → 주요사건0~5 → 진행상황/다음확인 → 사건관련자산영향 → 접힌시장참고 → 자료안내(수집범위/가격기준일/뉴스창) → canonical 면책본문1회. 2026-10-26 사용자 지시로 native schema3의 상단 중복 짧은 면책은 제거하고 전문의 마지막 위치를 E1/E5에서 검증한다. 사건0건이면 이유를 본문에 유지하며 사건별 출처·조건·정정·인과 한계는 해당 기사 곁에 둔다. global macro/thesis/가격/watchlist별도상단callout이같은내용을반복하면생성하지않는다. hero는기본없음,실제사건이해에관련되고기존provenance를통과한경우에만주요사건후보조로1개허용한다.
 
 ## C5. Finalizer·compatibility와 영구 이력 — u169
 

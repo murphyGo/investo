@@ -41,6 +41,7 @@ from investo.publisher.paths import archive_path
 from investo.publisher.public_document import FinalizedPublicDocument
 from investo.publisher.verifier import (
     verify_disclaimer,
+    verify_event_disclaimer_footer,
     verify_short_disclaimer_first_viewport,
 )
 
@@ -106,9 +107,12 @@ def write_finalized_document(document: FinalizedPublicDocument) -> Path:
         )
 
     path = archive_path(document.target_date, segment=document.segment)
-    if not verify_disclaimer(
-        markdown, document.segment
-    ) or not verify_short_disclaimer_first_viewport(markdown, document.segment):
+    placement_valid = (
+        verify_event_disclaimer_footer(markdown, document.segment)
+        if document.edition_view is not None
+        else verify_short_disclaimer_first_viewport(markdown, document.segment)
+    )
+    if not verify_disclaimer(markdown, document.segment) or not placement_valid:
         raise PublisherDisclaimerError(target_date=document.target_date)
 
     try:

@@ -328,6 +328,8 @@ Source permission remains unverified under the u145 exception; Browser is
 
 2026-10-25 사용자 편집 결정: 사건별 섹션은 유지하고 종합적인 기사형 산문을 기본으로 하며, 주제에 따라 필요한 문단·목록·표만 분리한다. FR-024/C4와 u169/u171의 [편집 정책](construction/event-news-v3/article-first-editorial-policy-20261025.md)에 반영했다. 내부 근거 역할을 고정 독자 소제목으로 강제하지 않으며, 검증된 원문 역할을 빠짐없이 재배치하는 private display plan만 추가했다. 사실·조건·인과 한계와 단일 finalizer는 유지한다. 과거 공식 원문 기반 개발자 reference2개의 새 편집은 실제 자동 생성·사람·slot·viewport 수용을 늘리지 않는다. [구현·검증](../docs/sessions/2026-10-25-event-v3-article-prose.md).
 
+2026-10-26 사용자 하단 배치 결정: native v3의 상단 중복 짧은 면책을 제거하고 일반 자료 안내·기준일·관측창을 본문 뒤에, canonical 전문을 맨 끝에 1회 둔다. NFR-004/C4 보완과 E1/E5 검증을 적용하며 schema2/legacy 상단 gate는 유지한다. 기사별 근거·조건과 기사0건 사유는 본문에 남긴다. 개발자 reference2개의 편집 변경이며 실제 사람·source·viewport·운영 수용과 완료 횟수는 늘리지 않는다. [증거](../docs/sessions/2026-10-25-event-v3-article-prose.md).
+
 ### u174–u179 — Web UI Modernization (2026-10-10)
 
 **Source**: 사용자는 현재 웹 UI 분석과 로컬 홈 시안을 확인한 뒤 “굿 일단 유닛 문서화부터 진행해줘”라고 요청했다. 최초 코드 기준은 원격 main `48762793`, 최종 문서 통합 기준은 `838bed60`이다. 동시 등록된 사건·뉴스 v3 u167–u173을 보존하고 번호 충돌을 피해 UI u174–u179의 문서만 등록한다. 구현·기능 설계 승인·커밋/푸시·배포 인수를 뜻하지 않는다.
