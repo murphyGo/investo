@@ -18,7 +18,12 @@ from investo.models.insights import (
     digest,
 )
 from investo.models.insights_calendar import previous_business_day
-from investo.models.insights_macro import MACRO_BY_ID, MACRO_RECIPES, difference_exact
+from investo.models.insights_macro import (
+    MACRO_BY_ID,
+    MACRO_RECIPES,
+    SPREAD_RECIPES,
+    difference_exact,
+)
 
 _GROUPS = (
     ("주요 관측", ("ust_2y", "ust_10y", "ust_10y_2y_bp", "usd_krw_h10")),
@@ -107,10 +112,12 @@ def _card(mid: str, row: ValidatedInsightMetric | None, history: InsightHistory 
         comparison = "5영업일 비교: 자료 부족 또는 비교 제외"
     else:
         unit = "bp" if row.unit == "percent" else _UNITS[row.unit]
-        comparison = f"5원천 영업일 변화 {change:+,f} {unit}"
+        comparison = f"Investo 계산 · 5원천 영업일 변화 {change:+,f} {unit}"
     state = "이전 확인값 · " if row.last_good else ""
     state += _STATES[row.freshness]
     adjustment = "1982-84=100 · 상승률 아님" if row.unit == "index" else ""
+    if mid in {spread[0] for spread in SPREAD_RECIPES}:
+        adjustment = "Investo 계산값 · 원천기관이 발표한 금리차가 아닙니다."
     if mid == "usd_krw_h10":
         adjustment = "H.10 뉴욕 정오 매입률 · 일별 관측/주간 공표"
     if row.cadence == "monthly":
@@ -199,9 +206,13 @@ def render_macro(
     ]
     for title, ids in _GROUPS:
         group_class = "insights-primary" if title == "주요 관측" else ""
-        body.append(
-            f'<section class="{group_class}" aria-label="{title}"><h2>{title}</h2><div class="insights-grid">'
-        )
+        body.append(f'<section class="{group_class}" aria-label="{title}"><h2>{title}</h2>')
+        # Preserve source-required notices with each presentation of its data,
+        # before numeric cards and before any optional history interaction.
+        notices = sorted({rows[mid].attribution for mid in ids if mid in rows})
+        for notice in notices:
+            body.append(f'<p class="insights-attribution">{escape(notice)}</p>')
+        body.append('<div class="insights-grid">')
         body.extend(_card(mid, rows.get(mid), history) for mid in ids)
         body.append("</div></section>")
         if title == "국채 만기와 금리차":
@@ -213,8 +224,7 @@ def render_macro(
         '<section class="insights-method"><h2>자료와 읽는 방법</h2>'
         "<p>1bp는 0.01%p입니다. 금리차는 같은 원천·같은 유효일의 금리로만 계산합니다. CPI는 계절조정 지수이며 물가 상승률이 아닙니다.</p>"
     )
-    for attribution in sorted({row.attribution for row in rows.values()}):
-        body.append(f"<p>{escape(attribution)}</p>")
+    body.append('<p><a href="../_data/NOTICE.txt">원천 데이터 이용 조건</a></p>')
     if briefing_date is not None:
         route = briefing_date.strftime("../../archive/us-equity/%Y/%m/%Y-%m-%d/")
         body.append(f'<p><a href="{route}">보관 시황 · {briefing_date.isoformat()}</a></p>')
