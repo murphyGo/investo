@@ -8175,3 +8175,24 @@ Officialactionlint1.7.12 publictemplatePASS; privatebaseline queue:max unsupport
 preserved production field and validated copy omitting only that known key.
 ActualpublicDTO localreplay2802B/PASS/candidatefalse is not GHA evidence.
 Public/private application pending exact-CI and delivery; observed counts remain0/5.
+
+## 2026-10-25 — Event v3 reader-content correction
+
+The user rejected the shallow preview as insufficient to judge. Actual recorded US
+context had zero news after the 24KiB boundary despite 174 routed inputs. News priority,
+reference separation and source-bound text assertions now retain real news and preserve
+action, polarity, attribution and fact/history identity. Independently assigned optional
+evidence and unscheduled official releases remain usable. A DART timing-test fixture was
+reduced to one valid row so the transport deadline is exercised without racing 100-row
+normalization; production behavior is unchanged. Independent bounded code QA has no open
+P1/P2; final focused264/static/mypy/docs pass. Exact-source quality `40185091175` passed
+7,386 tests. Follow-up `40185897748` exposed the reproduced DART test race and is retained
+as failure evidence rather than hidden.
+
+Actual private `40186613927` (`b06147c9`) sealed one article / two calls, but no background
+or meaning. It remains too shallow for normal content acceptance. Two separately labeled
+developer-authored historical Fed/CFTC reference examples have source-backed background
+and meaning through offline replay/finalization, with zero live LLM/HTTP calls. They do not
+increment live producer, human, source-slot or scheduled acceptance. Body HTTP, production
+pin/capability, notification and publication gates remain unchanged. Concurrent insights
+work and the original dirty root were preserved. [Evidence](../docs/sessions/2026-10-25-event-v3-content-quality.md).
