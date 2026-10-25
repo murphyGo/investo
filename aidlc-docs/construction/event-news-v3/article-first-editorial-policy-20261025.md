@@ -61,7 +61,8 @@ discoverable below each article; collection-limited availability remains visible
 Implementation `35d1dcca3391d9194c88ce404d492e1a88c937ca` was pushed to main and
 the scoped feature branch. [Exact-source quality run](https://github.com/murphyGo/investo/actions/runs/40202461444)
 passed 7,451 tests / one existing skip, all static/policy/docs checks and 29 client tests.
-The reviewed preview pin uses that exact implementation; production pin/mode are unchanged.
+At that delivery, the reviewed preview pin used that implementation; production pin/mode
+were unchanged. The footer refinement below records the subsequent preview version.
 See [delivery evidence](../../../docs/sessions/2026-10-25-event-v3-article-prose.md).
 
 Actual daily content/source/HTTP/viewport/performance/cutover gates remain pending. This
@@ -86,3 +87,21 @@ This bounded user-directed presentation decision is its own design/NFR amendment
 unit or separate approval cycle is needed. Existing development/commit-push authorization
 continues. Acceptance is native finalize/write success plus missing/wrong/misplaced footer
 rejection before filesystem writes, legacy regression checks, and an updated local reference.
+
+Footer implementation `658be680688c969116800e71d0ea9cf597007a9e` passed
+[exact-source quality 40216843514](https://github.com/murphyGo/investo/actions/runs/40216843514):
+7,464 passed/one existing skip, all static/policy/docs and29 client tests. Independent
+review closed the extra wrong-segment/legacy-footer finding, with no open P1/P2. The
+preview-only pin uses this tested code; concurrent production/NY Fed changes are preserved.
+
+## User editorial approval — 2026-10-26
+
+**Status: APPROVED.** After reviewing the article-first examples and the footer refinement,
+the user explicitly replied “승인”. This confirms event sections, news prose as the default,
+topic-dependent paragraphs/lists/tables, and general notices/disclaimers at the bottom.
+The approved reference is <http://127.0.0.1:58755/>, rendered with implementation
+`658be680688c969116800e71d0ea9cf597007a9e` and documented in delivery `1bc15d35`.
+
+This is editorial/presentation acceptance of the historical authored reference. It does
+not assign semantic corpus scores or qualify actual producer output, sources, measured
+viewports or production cutover. Those existing evidence gates and counters are unchanged.

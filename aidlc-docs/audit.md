@@ -8267,3 +8267,21 @@ delivery evidence follow; human/source/runtime counts remain unchanged.
 Exact bounded873cea37 quality40215762782 SUCCESS7347/1skip762.59s; publicStage1e6ede833 quality40215768595 SUCCESS7454/1skip778.32s; policy7470923e quality40216204493 SUCCESS7454/1skip545.89s. Independent Stage1/2 C/H/M0, focused65/88 and exact-runtime+cwd-policy88, reviewer35, actual-source local Chromium16. No old queued/running daily before pin/policy. Changed only private reviewed code variable to873cea37; modeactive/modules3 readback unchanged; workflow4824a79/queue:max/cron/schema2/v3gates preserved. Bounded release contains only five reviewed files over0025497d; unrelated incoming event code was preserved on public main and not promoted to private production. Stage2 main36bd84bf policy hash2ac72954 equals reviewed7470923e; nine flags only, other43 definitions identical. Latest concurrent658be680 retained; combined focused88/docs8.08s pass, policy/source contract files byte-identical to reviewed candidate.
 
 Reused actual01:56KST capture through exact873 macro-only phase; additional source/LLM/Telegram0, code and policy SHA/hash separately bound. Receipt1d0532d9 remote-confirmed; only macro current/history/index+manifest changed. Full publication quality40217744493 and Pages40217744504 SUCCESS. HTTPS10files/3snapshots byte-match, production Chromium12/contrastPASS and representative visual inspection. Macro12=9fresh daily+3unknown monthly; source clock remains actual2026-10-22 NYFed/2026-10-23 Treasury. History9actual daily rows; no invented comparisons. Calendar19/FNG1 and sibling bytes unchanged. Current/history full source notices preserved, software license distinct;27allowed/19blocked, no external license purchase/contact. Actual scheduled afteractivation0/5; initial/manual/CI/local probes not counted. Original dirty root unchanged. See nyfed qualification decision, validation, HTTPS and viewport evidence.
+
+Footer delivery: `658be680688c969116800e71d0ea9cf597007a9e` exact-source quality
+`40216843514` SUCCESS7,464pass/one existing skip514.88s, Node29 and full static/policy/docs.
+Preview-only pin readback is658be680. Concurrent insights work's current production
+pin873cea37/schema-two active and latest-main NY Fed changes were preserved. The footer
+implementation/test files are byte-identical to the tested source; closeout adds docs only.
+No live producer, new source HTTP, notification, archive or ledger write was performed.
+
+## 2026-10-26 — User approval of v3 editorial presentation
+
+User: “승인”, after the final article-first/footer preview and main delivery `1bc15d35`.
+Record approval of event sections, default news prose, topic-dependent structured elements
+and general notices/disclaimers at the bottom. The reviewed reference is historical authored
+replay at localhost58755 / implementation658be680; approval establishes the editorial
+baseline without inventing actual semantic scores, viewport measurements or runtime receipts.
+Unit/source/corpus/scheduled counts are unchanged. Documentation-only work continues in the
+clean isolated footer worktree; unrelated dirty root work is preserved. Live readback confirms
+preview658be680 / production873cea37 / existing schema-two active. No operational mutation.
