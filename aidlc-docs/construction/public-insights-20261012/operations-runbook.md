@@ -43,3 +43,15 @@ runtime 자체 회귀가 확인되면 이전 reviewed pin `35ea6c6e8cb3e871bd06b
 
 운영 evidence는 이 디렉터리의 integration/deployment 기록에 추가한다. 5회 관찰 대기는
 개발 미완료, 실제 운영 실패, 다른 유닛의 사람 검수 대기와 구분한다.
+
+## 예약 실행 후 확인할 private metadata
+
+기존 daily의 `insights-observation-<run_id>-<attempt>` artifact에는 allowlist metadata JSON 한 파일만 7일 보존한다.
+기록기 자체는 source/Git publication/LLM/Telegram을 호출하지 않고 로컬 Git만 읽는다.
+시황 실패와 별개로 관찰하며 225분 예산이 부족하면 skip한다. artifact가 없거나 unavailable이면 추정해서 채우지 않는다.
+
+GitHub event가 schedule인 서로 다른 run ID와 원래 attempt를 확인하고,
+execution_code_sha가 reviewed pin과 일치하는지 대조한다. published_sha/manifest/current hash와 공개 Git 원본을 확인하고,
+각 모듈의 run_started/collection_completed/evaluated와 원천 clock을 읽는다.
+마지막으로 실제 Pages 배포 SHA와 같은 snapshot을 결속한다. index/history hash는 manifest 선언값이므로 필요한 Git 파일을 추가로 재해시한다.
+candidate만으로 관찰5회를 자동 완료하지 않는다. [회차 기록](scheduled-observations.json)의 미래 nominal 슬롯은 실제 실행이 아니다.

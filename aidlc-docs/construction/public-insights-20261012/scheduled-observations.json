@@ -1,0 +1,163 @@
+{
+  "checked_at": "2026-10-25T11:05:57.890624+00:00",
+  "status": "awaiting first genuine scheduled run",
+  "implementation_sha": "0025497d4280d9bd72bcafd04ffafe026b8ad6fc",
+  "runtime_variables_readback": [
+    {
+      "name": "INVESTO_INSIGHTS_MODE",
+      "updated_at": "2026-10-25T10:14:32Z",
+      "value": "active"
+    },
+    {
+      "name": "INVESTO_INSIGHTS_MODULES",
+      "updated_at": "2026-10-25T10:19:06Z",
+      "value": "macro,calendar,crypto"
+    },
+    {
+      "name": "REVIEWED_CODE_SHA",
+      "updated_at": "2026-10-25T10:14:24Z",
+      "value": "0025497d4280d9bd72bcafd04ffafe026b8ad6fc"
+    }
+  ],
+  "configured_cron": [
+    "0 22 * * 0,1,2,3,4",
+    "0 0 * * 6"
+  ],
+  "scheduled_runs_after_activation": [],
+  "latest_pre_activation_run": {
+    "conclusion": "failure",
+    "created_at": "2026-10-24T03:45:17Z",
+    "event": "schedule",
+    "head_sha": "3a402e12349064b6cc4a2040a6c6318b7023195d",
+    "html_url": "https://github.com/murphyGo/automation-runtime/actions/runs/40059589474",
+    "id": 40059589474,
+    "run_attempt": 1,
+    "status": "completed",
+    "updated_at": "2026-10-24T03:52:48Z"
+  },
+  "nominal_slots": [
+    {
+      "utc": "2026-10-25T22:00:00+00:00",
+      "kst": "2026-10-26 07:00 KST",
+      "state": "not_observed"
+    },
+    {
+      "utc": "2026-10-26T22:00:00+00:00",
+      "kst": "2026-10-27 07:00 KST",
+      "state": "not_observed"
+    },
+    {
+      "utc": "2026-10-27T22:00:00+00:00",
+      "kst": "2026-10-28 07:00 KST",
+      "state": "not_observed"
+    },
+    {
+      "utc": "2026-10-28T22:00:00+00:00",
+      "kst": "2026-10-29 07:00 KST",
+      "state": "not_observed"
+    },
+    {
+      "utc": "2026-10-29T22:00:00+00:00",
+      "kst": "2026-10-30 07:00 KST",
+      "state": "not_observed"
+    }
+  ],
+  "modules": {
+    "macro": {
+      "observed": 0,
+      "required": 5,
+      "accepted_runs": []
+    },
+    "calendar": {
+      "observed": 0,
+      "required": 5,
+      "accepted_runs": []
+    },
+    "crypto": {
+      "observed": 0,
+      "required": 5,
+      "accepted_runs": []
+    }
+  },
+  "live_https_recheck": {
+    "checked_at": "2026-10-25T10:39:51.538920+00:00",
+    "kind": "actual HTTPS Pages bytes compared to remote-confirmed local publication tree",
+    "modules": [
+      {
+        "module": "calendar",
+        "snapshot_id": "fa42507af37ba2cab47f97e12eef992b721cae9464b6113a528b388cdebe49f8",
+        "metrics": 0,
+        "events": 19,
+        "collection_completed_at": "2026-10-25T09:39:44.882009Z",
+        "html_status": 200,
+        "html_snapshot_match": true
+      },
+      {
+        "module": "crypto",
+        "snapshot_id": "ca242d6ab47a3c228de01e4da3f14f583493fd0bf52124debf65dd3c600d3769",
+        "metrics": 1,
+        "events": 0,
+        "collection_completed_at": "2026-10-25T09:39:44.882009Z",
+        "html_status": 200,
+        "html_snapshot_match": true
+      },
+      {
+        "module": "macro",
+        "snapshot_id": "d9311bae2ae3e85e97ea44ea8137955d0b93c5d770fe49badf964a4db8d8e84d",
+        "metrics": 6,
+        "events": 0,
+        "collection_completed_at": "2026-10-25T09:39:44.882009Z",
+        "html_status": 200,
+        "html_snapshot_match": true
+      }
+    ],
+    "files": [
+      {
+        "path": "insights/_data/manifest.json",
+        "sha256": "fddb10d08878643234c7c71ea743150c07c1d53195ac43e92e359c780565b3e4",
+        "status": 200
+      },
+      {
+        "path": "insights/_data/calendar/current.json",
+        "sha256": "eb2a005a906be81cf2635d89bb6a0e1e6cd68b5edcfd7e691c108dcb943ae866",
+        "status": 200
+      },
+      {
+        "path": "insights/_data/crypto/current.json",
+        "sha256": "3ebe2c2d21eae8126575896e923e54a1c37a4efb753f88bb88b466def88dc5ec",
+        "status": 200
+      },
+      {
+        "path": "insights/_data/crypto/history.json",
+        "sha256": "e8c2e644b6f27740808c1f0acc93f39aa171963420c0ee920e80c16cc2482002",
+        "status": 200
+      },
+      {
+        "path": "insights/_data/macro/current.json",
+        "sha256": "32a4abeba7bc06174e2767a8cf4da1d1260bfa5827276e14fa8742de472dadd4",
+        "status": 200
+      },
+      {
+        "path": "insights/_data/macro/history.json",
+        "sha256": "9472654f318c59818992c0f16f88dec7a128fbcaf4ac875e3e5b95dac70ec6cc",
+        "status": 200
+      },
+      {
+        "path": "assets/insights.css",
+        "sha256": "7edcad4e1405f36ae76e7a8fb8a15d7f38f8d156508b9d4e352de4c634cbfb19",
+        "status": 200
+      },
+      {
+        "path": "assets/insights.js",
+        "sha256": "3732e2af5386b47fbea38d91ec1b990580d46956dadfee4aa34b43e84ed6bbea",
+        "status": 200
+      },
+      {
+        "path": "assets/insights-calendar.js",
+        "sha256": "547b517af468b7c2fc8f410575011102a2482590b25f5483e1ea7442927386f3",
+        "status": 200
+      }
+    ]
+  },
+  "acceptance_boundary": "Nominal slots are not actual runs. Artifact candidate requires separate source/receipt/ancestry/Pages review."
+}

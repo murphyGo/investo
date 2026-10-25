@@ -1,0 +1,104 @@
+{
+  "base_sha": "0b3780e50f0ffd9aba62bde7cb53dd4d6b100bd9",
+  "scope": "private workflow metadata capture and contract tests; application pin stays 0025497d",
+  "focused_tests": {
+    "passed": 71,
+    "seconds": 63.43
+  },
+  "independent_review": {
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "direct_tests": 41,
+    "budget_seams": 2
+  },
+  "ruff": {
+    "check": "pass",
+    "format_files": 819,
+    "embedded_python": "pass"
+  },
+  "mypy": {
+    "source_files": 344,
+    "status": "pass"
+  },
+  "policies": {
+    "paid_api": "pass",
+    "anthropic": "pass",
+    "curated": "19 filed / 0 deferred",
+    "image_store": "0 binaries"
+  },
+  "docs": {
+    "strict_mkdocs": "pass",
+    "material_css_and_rendered_pair": "pass",
+    "calendar_render_contract": "pass"
+  },
+  "workflow_lint": {
+    "actionlint_version": "1.7.12",
+    "binary_archive_sha256": "aba9ced2dee8d27fecca3dc7feb1a7f9a52caefa1eb46f3271ea66b6e0e6953f",
+    "public_template": "pass",
+    "private_direct": "existing queue:max unsupported by official linter; identical baseline failure",
+    "private_copy_omitting_only_existing_unsupported_queue_key": "pass",
+    "production_queue_removed": false,
+    "bash_n_all_blocks": "pass"
+  },
+  "actual_public_DTO_replay": {
+    "kind": "local synthetic workflow context over actual previously published DTOs; not GHA or scheduled acceptance",
+    "status": "captured",
+    "candidate": false,
+    "modules": [
+      {
+        "availability": "available",
+        "collected_in_this_run": false,
+        "collection_completed_at": "2026-10-25T09:39:44.882009+00:00",
+        "current_hash": "32a4abeba7bc06174e2767a8cf4da1d1260bfa5827276e14fa8742de472dadd4",
+        "evaluated_at": "2026-10-25T10:14:41.243203+00:00",
+        "event_count": 0,
+        "history_hash": "9472654f318c59818992c0f16f88dec7a128fbcaf4ac875e3e5b95dac70ec6cc",
+        "index_hash": "dc6b582c27acaf39605a4e47ee962b85d2ab4d72f810aab017faec6a86e213e1",
+        "metric_count": 6,
+        "module": "macro",
+        "run_started_at": "2026-10-25T09:38:49.677934+00:00",
+        "snapshot_id": "d9311bae2ae3e85e97ea44ea8137955d0b93c5d770fe49badf964a4db8d8e84d",
+        "source_clock_hash": "ae0def5530192760b9a701fffaabeed73557e31eca38982a7d88b851fb753dfb"
+      },
+      {
+        "availability": "limited",
+        "collected_in_this_run": false,
+        "collection_completed_at": "2026-10-25T09:39:44.882009+00:00",
+        "current_hash": "eb2a005a906be81cf2635d89bb6a0e1e6cd68b5edcfd7e691c108dcb943ae866",
+        "evaluated_at": "2026-10-25T10:16:56.088965+00:00",
+        "event_count": 19,
+        "history_hash": null,
+        "index_hash": "bab188aacaa9898913ba7b45ea194c3d825eaf9990def0d079bb00bc25aaab63",
+        "metric_count": 0,
+        "module": "calendar",
+        "run_started_at": "2026-10-25T09:38:49.677934+00:00",
+        "snapshot_id": "fa42507af37ba2cab47f97e12eef992b721cae9464b6113a528b388cdebe49f8",
+        "source_clock_hash": "90758a971f69aa466aa5e8f2ec91893467dd7614561d4dabf7a0bf94b16b6e59"
+      },
+      {
+        "availability": "limited",
+        "collected_in_this_run": false,
+        "collection_completed_at": "2026-10-25T09:39:44.882009+00:00",
+        "current_hash": "3ebe2c2d21eae8126575896e923e54a1c37a4efb753f88bb88b466def88dc5ec",
+        "evaluated_at": "2026-10-25T10:19:17.522651+00:00",
+        "event_count": 0,
+        "history_hash": "e8c2e644b6f27740808c1f0acc93f39aa171963420c0ee920e80c16cc2482002",
+        "index_hash": "a73514add00ada7aeb769a354a964e7ea583d861cd6a05b690eedbf5df3b4571",
+        "metric_count": 1,
+        "module": "crypto",
+        "run_started_at": "2026-10-25T09:38:49.677934+00:00",
+        "snapshot_id": "ca242d6ab47a3c228de01e4da3f14f583493fd0bf52124debf65dd3c600d3769",
+        "source_clock_hash": "b9fff2a0b68ea96b65443a810a585b956845f8265d70261272072e53a44ab49b"
+      }
+    ],
+    "report_bytes": 2802,
+    "source_http_calls": 0,
+    "llm_calls": 0,
+    "telegram_calls": 0
+  },
+  "source_application_and_site_changes": 0,
+  "runtime_pin_changed": false,
+  "private_application": "pending public CI and remote delivery",
+  "genuine_scheduled_observations": 0
+}

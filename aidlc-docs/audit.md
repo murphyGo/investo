@@ -8162,3 +8162,16 @@ User continuation authorized scoped integration and qualified operational linkag
 ## 2026-10-25 Public insights sequential deployment
 
 User continuation applied through remote delivery and qualified runtime linkage. Exact implementation0025497d quality40182882842 SUCCESS7344/1skip771.34s. Privateb58c7f9 changes only INSIGHTS env2/Pagescondition/SHA; queue:max, auth owner/timeouts/secrets/schema2 and v3inactive unchanged. Pin/mode/modules readback verified, only private daily enabled and no concurrent jobs. Manual initialization reused actual09:38:49–09:39:44UTC source capture through reviewed phase: macro9ad4b26e/calendar e3659578/crypto1f6b37c6 allremote-confirmed, no additional source/LLM/Telegram calls perinitialpublication. Finalpublished1f6b37c6 quality40184291647 SUCCESS7344/1skip506.90s; Pages40184291651 SUCCESS. HTTPS9files byte-match,3HTMLsnapshot-match; actualproductiontemporaryChromium12cases/contrastPASS and representative screenshots visually inspected after theme transitions. Policy24allowed/22blocked; currentmacro6/calendar19/FNG1,BLSzero. No historical rewrite or unrelated dirty root changes. Actual private scheduled evidence0/5each; finaloperationalsteps remain unchecked. See construction/public-insights-20261012/operations-evidence-20261025.json and deployment-closeout.md.
+
+## 2026-10-25 Public insights scheduled observation preparation
+
+User “진행시켜” continued existing Step8. Live API shows no genuine scheduled run after all-module activation10:19UTC;
+first nominal cron10/26 07KST. Current active/pin0025497d/modules3 and HTTPS9files/3snapshots rechecked.
+Added bounded private metadata-only observation capture/upload to existing daily, no new scheduler/source HTTP/LLM/Telegram/application promotion.
+Allowlist JSON16KiB/7days, private0700/0600 path,10sGitcapture,1minuteupload and75sallowance reserve/postchecks;
+continue-on-error preserves primary exit. Manual/retry/oldmodule/missingconfirmed/hash mismatch cannot produce accepted observation.
+IndependentC/H/M0,41directtests/two budget seams; focused71pass63.43s,static/policy/docs PASS.
+Officialactionlint1.7.12 publictemplatePASS; privatebaseline queue:max unsupported both before/after,
+preserved production field and validated copy omitting only that known key.
+ActualpublicDTO localreplay2802B/PASS/candidatefalse is not GHA evidence.
+Public/private application pending exact-CI and delivery; observed counts remain0/5.

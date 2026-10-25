@@ -165,7 +165,14 @@ def test_production_is_gated_and_preserves_publication_boundaries() -> None:
     assert "--repo murphyGo/investo" in pages["run"]
     assert "--commit" in pages["run"]
     assert steps[-1]["if"] == "always()"
-    assert "upload-artifact" not in raw
+    uploads = [
+        step for step in steps if step.get("uses", "").startswith("actions/upload-artifact@")
+    ]
+    assert len(uploads) == 1
+    assert uploads[0]["name"] == "Retain public insights observation metadata"
+    assert uploads[0]["with"]["path"] == "${{ steps.insights_observation.outputs.artifact_path }}"
+    assert uploads[0]["with"]["include-hidden-files"] == "false"
+    assert uploads[0]["with"]["retention-days"] == "7"
     for step in steps:
         if "run" in step:
             result = subprocess.run(
