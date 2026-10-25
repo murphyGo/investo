@@ -103,3 +103,6 @@ claude
 ## License
 
 MIT
+
+The MIT license applies to the software. Public source data retain their
+[provider-specific terms and notices](site_docs/insights/_data/NOTICE.txt).

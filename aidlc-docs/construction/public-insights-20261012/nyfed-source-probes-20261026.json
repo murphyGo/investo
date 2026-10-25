@@ -1,0 +1,223 @@
+{
+  "kind": "actual local existing-adapter collection and provisional in-memory qualification; no public write or scheduled acceptance",
+  "started_at": "2026-10-25T16:56:39.781425+00:00",
+  "completed_at": "2026-10-25T16:56:58.534945+00:00",
+  "sources": [
+    {
+      "name": "bls-macro-actuals",
+      "status": "ok",
+      "count": 8
+    },
+    {
+      "name": "nyfed-reference-rates",
+      "status": "ok",
+      "count": 5
+    },
+    {
+      "name": "treasury-rates",
+      "status": "ok",
+      "count": 1
+    }
+  ],
+  "http": [
+    {
+      "method": "GET",
+      "endpoint": "https://markets.newyorkfed.org/api/rates/secured/sofr/last/1.json",
+      "status": 200,
+      "bytes": 256,
+      "sha256": "8c1745623b1515db0fb2d7f24d51af6b30ab8af48309ff4cb0485b91a6376dd4",
+      "received_at": "2026-10-25T16:56:40.152978+00:00"
+    },
+    {
+      "method": "GET",
+      "endpoint": "https://markets.newyorkfed.org/api/rates/unsecured/obfr/last/1.json",
+      "status": 200,
+      "bytes": 255,
+      "sha256": "b64709bc838e87f9384b7dce578294183e5b9641577d9e989ccce5ad93858275",
+      "received_at": "2026-10-25T16:56:40.186976+00:00"
+    },
+    {
+      "method": "GET",
+      "endpoint": "https://markets.newyorkfed.org/api/rates/secured/tgcr/last/1.json",
+      "status": 200,
+      "bytes": 256,
+      "sha256": "e66e957543d2b5f571d8a474ba47e8447b3144cc3d2be5dda9fbe1427ca17df3",
+      "received_at": "2026-10-25T16:56:40.294306+00:00"
+    },
+    {
+      "method": "GET",
+      "endpoint": "https://markets.newyorkfed.org/api/rates/secured/bgcr/last/1.json",
+      "status": 200,
+      "bytes": 256,
+      "sha256": "899ec408bfbc9329449a762885b2476cc03ad254c96ed30908d9b9af3259e630",
+      "received_at": "2026-10-25T16:56:40.313257+00:00"
+    },
+    {
+      "method": "GET",
+      "endpoint": "https://markets.newyorkfed.org/api/rates/unsecured/effr/last/1.json",
+      "status": 200,
+      "bytes": 301,
+      "sha256": "eca3db078ef55125efcbc03d5e919b8b3a91d2f0d4629f435d3213a4e81d2791",
+      "received_at": "2026-10-25T16:56:40.356309+00:00"
+    },
+    {
+      "method": "GET",
+      "endpoint": "https://api.bls.gov/publicAPI/v2/timeseries/data/CUSR0000SA0",
+      "status": 200,
+      "bytes": 2056,
+      "sha256": "c8f9239d561fcf6514aba3c25800f8574bf6db575a875f07e99961ee0af16f0c",
+      "received_at": "2026-10-25T16:56:40.428552+00:00"
+    },
+    {
+      "method": "GET",
+      "endpoint": "https://api.bls.gov/publicAPI/v2/timeseries/data/CUSR0000SA0L1E",
+      "status": 200,
+      "bytes": 2059,
+      "sha256": "9402097c390ece4d0a23d8bfc235c8a17e011e2dcfb6ad7d0684fdb9d8145c69",
+      "received_at": "2026-10-25T16:56:40.778502+00:00"
+    },
+    {
+      "method": "GET",
+      "endpoint": "https://api.bls.gov/publicAPI/v2/timeseries/data/CES0000000001",
+      "status": 200,
+      "bytes": 2029,
+      "sha256": "3d72562bb0c24c39e0636a8becb25a39386d2e29cef76edc4f7622c73fcb1741",
+      "received_at": "2026-10-25T16:56:41.100805+00:00"
+    },
+    {
+      "method": "GET",
+      "endpoint": "https://api.bls.gov/publicAPI/v2/timeseries/data/LNS14000000",
+      "status": 200,
+      "bytes": 2142,
+      "sha256": "971183f6eaa8991418b4e83e13b84a4664102c76f0ecba29ebe6f26067fc9dee",
+      "received_at": "2026-10-25T16:56:41.424067+00:00"
+    },
+    {
+      "method": "GET",
+      "endpoint": "https://api.bls.gov/publicAPI/v2/timeseries/data/CES0500000003",
+      "status": 200,
+      "bytes": 2008,
+      "sha256": "67ef2a1485d878fc806125020c48ef99ad62a9d3ae82920e96fbe8f24ed6a4fa",
+      "received_at": "2026-10-25T16:56:41.770807+00:00"
+    },
+    {
+      "method": "GET",
+      "endpoint": "https://api.bls.gov/publicAPI/v2/timeseries/data/LNS11300000",
+      "status": 200,
+      "bytes": 2162,
+      "sha256": "7990842677614d41f48a8a11ce50766ba0e6a38b285baf92967830905b864037",
+      "received_at": "2026-10-25T16:56:42.093315+00:00"
+    },
+    {
+      "method": "GET",
+      "endpoint": "https://api.bls.gov/publicAPI/v2/timeseries/data/WPSFD4",
+      "status": 200,
+      "bytes": 2473,
+      "sha256": "3e8714b2f6efbc2886f1436c9ae789e69886e41c3f6291b7bd4fdce0dd7cb3da",
+      "received_at": "2026-10-25T16:56:42.409554+00:00"
+    },
+    {
+      "method": "GET",
+      "endpoint": "https://api.bls.gov/publicAPI/v2/timeseries/data/JTS000000000000000JOL",
+      "status": 200,
+      "bytes": 1937,
+      "sha256": "b9fe9026dd4461a8afe70ac78dc869875f3efd9c53ecbbec77a66872a9580a22",
+      "received_at": "2026-10-25T16:56:42.749941+00:00"
+    },
+    {
+      "method": "GET",
+      "endpoint": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml",
+      "status": 200,
+      "bytes": 315853,
+      "sha256": "890511968396b7d9682678467e702a1385cb40efb3c25d07e7dfeee988e1a09b",
+      "received_at": "2026-10-25T16:56:58.514424+00:00"
+    }
+  ],
+  "typed_origins": [
+    "bls-macro-actuals",
+    "nyfed-reference-rates",
+    "treasury-rates"
+  ],
+  "projected_metrics": [
+    {
+      "id": "core_cpi_sa_index",
+      "effective_date": "None",
+      "freshness": "unknown",
+      "availability": "limited"
+    },
+    {
+      "id": "cpi_sa_index",
+      "effective_date": "None",
+      "freshness": "unknown",
+      "availability": "limited"
+    },
+    {
+      "id": "effr",
+      "effective_date": "2026-10-22",
+      "freshness": "fresh",
+      "availability": "available"
+    },
+    {
+      "id": "sofr",
+      "effective_date": "2026-10-22",
+      "freshness": "fresh",
+      "availability": "available"
+    },
+    {
+      "id": "sofr_effr_bp",
+      "effective_date": "2026-10-22",
+      "freshness": "fresh",
+      "availability": "available"
+    },
+    {
+      "id": "unemployment_rate",
+      "effective_date": "None",
+      "freshness": "unknown",
+      "availability": "limited"
+    },
+    {
+      "id": "ust_10y",
+      "effective_date": "2026-10-23",
+      "freshness": "fresh",
+      "availability": "available"
+    },
+    {
+      "id": "ust_10y_2y_bp",
+      "effective_date": "2026-10-23",
+      "freshness": "fresh",
+      "availability": "available"
+    },
+    {
+      "id": "ust_10y_3m_bp",
+      "effective_date": "2026-10-23",
+      "freshness": "fresh",
+      "availability": "available"
+    },
+    {
+      "id": "ust_2y",
+      "effective_date": "2026-10-23",
+      "freshness": "fresh",
+      "availability": "available"
+    },
+    {
+      "id": "ust_30y",
+      "effective_date": "2026-10-23",
+      "freshness": "fresh",
+      "availability": "available"
+    },
+    {
+      "id": "ust_3m",
+      "effective_date": "2026-10-23",
+      "freshness": "fresh",
+      "availability": "available"
+    }
+  ],
+  "sofr_effr_decimal_calculation": "pass",
+  "notice_length": 924,
+  "public_writes": 0,
+  "llm_calls": 0,
+  "telegram_calls": 0,
+  "application_runtime_new_http_calls": 0,
+  "development_probe_http_calls": 14,
+  "snapshot_sha256": "0d91dd6d7911d9e9a5693170000fdb8b071ecee08394b8621cb9a460c8580097"
+}

@@ -8205,3 +8205,8 @@ work and the original dirty root were preserved. [Evidence](../docs/sessions/202
 ## 2026-10-25 Observation closeout concurrent-main preservation
 
 Remote advanced to154b57a2 while closeout a926ab07 was prepared. Normal push rejected; merged current main and kept both append-only audit sections. Application/tests/scripts/ops/site/build tree matches154b57a2 exactly, only observation documentation differs. Rechecked focused71pass58.69s, Ruff822/mypy346/strictdocs9.05s/policy/Material/Calendar. Exact-source upstream quality40188918992 tracks the incoming implementation. Private4824a79/capture00cd3f5d/applicationpin0025497d/modules/cron/queue unchanged; scheduled0/5 and other event gates preserved.
+
+
+## 2026-10-26 u181 NY Fed qualification Stage1
+
+User continuation advances existing operational Step8 only. Official NY Fed terms permit reproduction/storage/derived display under source conditions; full required 924-character notice is carried in current/history and before numeric cards, with explicit Investo calculation labels. Software MIT is separated from source data rights in README/NOTICE. All three NY Fed permission flags remain false until exact bounded-runtime CI and pin promotion. Other43 definitions retain existing24allowed/19blocked permissions. Existing14 collector requests all200; Treasury6/NYFed3/BLS3 project12metrics, BLSunknown/limited. No new endpoint, scheduler, LLM or Telegram calls. Independent C/H/M0 after labeling five-day comparisons; local focused65/static/docs PASS. Genuine scheduled remains0/5; code integration and production data delivery are pending separately.
