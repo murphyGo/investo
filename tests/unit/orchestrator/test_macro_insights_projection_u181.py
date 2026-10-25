@@ -169,7 +169,7 @@ def test_related_briefing_uses_only_confirmed_tree_and_valid_dates():
     assert verified_macro_briefing_date(Read(), "confirmed-sha", module()) == date(2026, 10, 23)
 
 
-def test_default_qualification_keeps_conditional_sources_blocked():
+def test_default_qualification_allows_noticed_nyfed_and_keeps_fred_blocked():
     from investo.orchestrator.insights import load_qualifications
 
     rights = tuple(
@@ -181,6 +181,13 @@ def test_default_qualification_keeps_conditional_sources_blocked():
         for q in rights
         if q.display_allowed and q.public_git_history_allowed
     }
-    assert len(allowed) == 9
-    assert not allowed & {"sofr", "effr", "sofr_effr_bp", "usd_krw_h10"}
+    assert len(allowed) == 12
+    assert {"sofr", "effr", "sofr_effr_bp"} <= allowed
+    assert "usd_krw_h10" not in allowed
+    for q in rights:
+        if q.source_name == "nyfed-reference-rates":
+            assert q.retention_allowed
+            assert "Investo is not affiliated with the New York Fed" in q.attribution
+            assert "DTCC Solutions LLC" in q.attribution
+            assert "Investo calculation" in q.attribution
     assert {r.metric_id for r in module(rights=rights).metrics} == allowed

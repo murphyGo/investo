@@ -250,9 +250,9 @@
           "calendar_policy": "sofr"
         }
       ],
-      "display_allowed": false,
-      "public_git_history_allowed": false,
-      "retention_allowed": false,
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": true,
       "revoked": false,
       "evidence_hrefs": [
         "https://www.newyorkfed.org/privacy/termsofuse.html",
@@ -288,9 +288,9 @@
           "calendar_policy": "effr"
         }
       ],
-      "display_allowed": false,
-      "public_git_history_allowed": false,
-      "retention_allowed": false,
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": true,
       "revoked": false,
       "evidence_hrefs": [
         "https://www.newyorkfed.org/privacy/termsofuse.html",
@@ -326,9 +326,9 @@
           "calendar_policy": "sofr"
         }
       ],
-      "display_allowed": false,
-      "public_git_history_allowed": false,
-      "retention_allowed": false,
+      "display_allowed": true,
+      "public_git_history_allowed": true,
+      "retention_allowed": true,
       "revoked": false,
       "evidence_hrefs": [
         "https://www.newyorkfed.org/privacy/termsofuse.html",
