@@ -169,6 +169,7 @@ extra_css:
 # loudly).
 extra_javascript:
   - assets/sector-radar.js
+  - assets/insights-charts.js
   - assets/insights.js
   - assets/insights-calendar.js
   - assets/lightweight-charts.standalone.production.js
