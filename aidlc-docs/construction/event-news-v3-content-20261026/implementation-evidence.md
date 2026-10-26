@@ -77,3 +77,6 @@ Fed 실제초안에 쓰인 인플레이션·실업률·성명 등 일반금융/�
 
 
 실제27c581d7 Fed40369909079도 작성schema·근거 소속은 통과했으나 entity_unsupported였다. 저장된5문장을 검사해 경제 활동의 ‘활동’, ‘물가상승률’, 동사형 수식어 ‘달성하겠다는’을 기관명으로 잡는 것을 확인했다. 일반금융/맥락 명사와 지정된 동사형 수식어를 구분했다. 명칭 표현 이라는/라는을 제외하는 우회는 추가하지 않았고 물가테크/인플레이션은행/경제활동테크는 계속거절한다. 원래source packet/5문장 재생은composition_valid. 독립51tests·Ruff/mypy PASS/잔여P1/P2없음이다. 실제 source/AIreview/봉인 인수는 다음실행으로 판정한다.
+
+
+3ce805f4 Fed40372062551은7문장 작성 schema와 근거 소속을 통과했으나 source-supported ‘도움이 될 것’의 ‘도움’을 기관명으로 잡았다. 일반 지원/효과·금융지표 명사를 exact concept 목록으로 정리했다. 고유자산명·번역alias는 추가하지 않았으며 도움증권/성장세은행/현금흐름테크 등 임의 확장 기관명은 계속탐지한다. 독립54tests/Ruff/mypy PASS·잔여P1/P2없음, 원래7문장 source 재생composition_valid다. 도움을 설명하는 한국어 source 양성과 가짜 기관명 음성을 추가했다. actualAI review·봉인은 계속별도다.

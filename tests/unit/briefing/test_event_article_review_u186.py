@@ -52,7 +52,9 @@ def test_fact_refs_are_required_even_for_source_explanation():
         validate_composition(altered, draft.article_readiness[0].packet, draft, observed_at=NOW)
 
 
-@pytest.mark.parametrize("organization", [None, "물가테크", "인플레이션은행", "경제활동테크"])
+@pytest.mark.parametrize(
+    "organization", [None, "물가테크", "인플레이션은행", "경제활동테크", "도움증권", "성장세은행"]
+)
 def test_translated_financial_concepts_are_not_new_organization_aliases(organization):
     _, draft, composition, _ = article_case(
         detail=(
@@ -88,6 +90,30 @@ def test_translated_financial_concepts_are_not_new_organization_aliases(organiza
             validate_composition(changed, draft.article_readiness[0].packet, draft, observed_at=NOW)
     else:
         validate_composition(changed, draft.article_readiness[0].packet, draft, observed_at=NOW)
+
+
+def test_source_explanation_can_describe_help_without_an_invented_entity():
+    _, draft, composition, _ = article_case(
+        detail="Acme explained that service access helps Widget revenue."
+    )
+    sentence = composition.narrative.sentences[1].model_copy(
+        update={"text": "Acme는 서비스 접근이 Widget의 revenue에 도움이 된다고 설명했습니다."}
+    )
+    changed = composition.model_copy(
+        update={
+            "narrative": composition.narrative.model_copy(
+                update={
+                    "blocks": (
+                        composition.narrative.blocks[0],
+                        composition.narrative.blocks[1].model_copy(
+                            update={"sentences": (sentence,)}
+                        ),
+                    ),
+                }
+            )
+        }
+    )
+    validate_composition(changed, draft.article_readiness[0].packet, draft, observed_at=NOW)
 
 
 @pytest.mark.parametrize(
