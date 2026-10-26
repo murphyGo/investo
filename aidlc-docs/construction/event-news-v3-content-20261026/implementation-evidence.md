@@ -73,4 +73,7 @@ SentenceClaim의 기존 runtime 조건을 모델용 JSON schema의 조건부allO
 Fed 실제초안에 쓰인 인플레이션·실업률·성명 등 일반금융/자료 개념이 기관명으로 오인될 수 있음을 수리했다. 알려진 개념의 조사결합만 제외하며 물가테크·인플레이션은행은 계속unknown organization으로 거절한다. 영어 원문에 근거한 자연스러운 한국어 문장의양성과 가짜기관명2종 음성으로 검증했다. 집중214 PASS/16.54초·Ruff841/mypy355, 독립52+30tests PASS/잔여P1/P2없음, 최대48KiB evidence 포함 작성prompt58,703bytes<64KiB를 확인했다. exact 후속CI와 실제생성 결과는 아래에 결속한다.
 
 
-8e182197의 실제 Fed40367604113은 분류와 작성 schema를 통과했다. private2calls 해시를 검증하고 원래packet/source passsages로 reader 검사를 재생한 결과6문장 모두 atoms가 유효했고, Implementation Note 날짜를 설명한 ‘자료에는 … 명시돼 있다’가 attribution_missing이었다. 기존 matcher에 명시/기재의 돼·되·됐·했 활용을 추가해 근거 있는 source metadata 표현을 인식했다. actor literal·같은packet·numeric·별도review 요구는 그대로며 bare assertion은 음성으로 거절한다. 원래 draft 재생은 composition_valid로 바뀌었지만 녹화 재생을 actual 합격으로 세지 않는다. 독립34tests/Ruff/mypy PASS·잔여P1/P2없음, 후속 실제 Stage3/봉인 검증은 계속한다.
+8e182197의 실제 Fed40367604113은 분류와 작성 schema를 통과했다. private2calls 해시를 검증하고 원래packet/source passages로 reader 검사를 재생한 결과6문장 모두 atoms가 유효했고, Implementation Note 날짜를 설명한 ‘자료에는 … 명시돼 있다’가 attribution_missing이었다. 기존 matcher에 명시/기재의 돼·되·됐·했 활용을 추가해 근거 있는 source metadata 표현을 인식했다. actor literal·같은packet·numeric·별도review 요구는 그대로며 bare assertion은 음성으로 거절한다. 원래 draft 재생은 composition_valid로 바뀌었지만 녹화 재생을 actual 합격으로 세지 않는다. 독립34tests/Ruff/mypy PASS·잔여P1/P2없음, 후속 실제 Stage3/봉인 검증은 계속한다.
+
+
+실제27c581d7 Fed40369909079도 작성schema·근거 소속은 통과했으나 entity_unsupported였다. 저장된5문장을 검사해 경제 활동의 ‘활동’, ‘물가상승률’, 동사형 수식어 ‘달성하겠다는’을 기관명으로 잡는 것을 확인했다. 일반금융/맥락 명사와 지정된 동사형 수식어를 구분했다. 명칭 표현 이라는/라는을 제외하는 우회는 추가하지 않았고 물가테크/인플레이션은행/경제활동테크는 계속거절한다. 원래source packet/5문장 재생은composition_valid. 독립51tests·Ruff/mypy PASS/잔여P1/P2없음이다. 실제 source/AIreview/봉인 인수는 다음실행으로 판정한다.

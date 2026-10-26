@@ -13,7 +13,8 @@ from investo.models.events import Digest, EventId, EventModel
 
 ARTICLE_POLICY = (
     "article-v2-20261027:literal-frame-hints:observation-reference:source-summary:"
-    "literal-proof:explicit-linked-evidence:reported-metadata:review:600,900,600,900,600:3900"
+    "literal-proof:explicit-linked-evidence:reported-metadata:grammar-topics:"
+    "review:600,900,600,900,600:3900"
 )
 ARTICLE_POLICY_HASH = sha256(ARTICLE_POLICY.encode()).hexdigest()
 ARTICLE_FAILURE_CODES = frozenset(

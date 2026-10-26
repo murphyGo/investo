@@ -52,17 +52,19 @@ def test_fact_refs_are_required_even_for_source_explanation():
         validate_composition(altered, draft.article_readiness[0].packet, draft, observed_at=NOW)
 
 
-@pytest.mark.parametrize("organization", [None, "물가테크", "인플레이션은행"])
+@pytest.mark.parametrize("organization", [None, "물가테크", "인플레이션은행", "경제활동테크"])
 def test_translated_financial_concepts_are_not_new_organization_aliases(organization):
     _, draft, composition, _ = article_case(
         detail=(
             "Acme explained that inflation remains elevated, productivity is strong "
-            "and the unemployment rate has changed little."
+            "and the unemployment rate has changed little. Economic activity is expanding. "
+            "Acme will deliver price stability."
         )
     )
     text = (
         "Acme는 인플레이션이 여전히 높고 생산성은 강하며 "
-        "실업률에는 변화가 거의 없다고 설명했습니다."
+        "실업률에는 변화가 거의 없고 경제 활동이 확대된다며 "
+        "물가상승률이 높은 상황에서 물가안정을 달성하겠다는 의지를 설명했습니다."
     )
     if organization:
         text = f"Acme는 {organization}가 Widget을 출시했다고 설명했습니다."
