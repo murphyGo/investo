@@ -158,7 +158,16 @@ def test_generic_committee_translation_requires_same_claim_source_role(source_ro
 
 
 @pytest.mark.parametrize(
-    "reporter", ["밝혔습니다", "명시돼 있습니다", "기재돼 있습니다", "기재됐습니다", None]
+    "reporter",
+    [
+        "밝혔습니다",
+        "명시돼 있습니다",
+        "기재돼 있습니다",
+        "기재됐습니다",
+        "발표했습니다",
+        "발표했다",
+        None,
+    ],
 )
 def test_reported_source_metadata_wording_still_requires_explicit_attribution(reporter):
     _, draft, composition, _ = article_case()

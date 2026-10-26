@@ -122,7 +122,8 @@ def validate_composition(
                 assert claim.attributed_actor_ref is not None
                 actor = resolve_context_ref(claim.attributed_actor_ref, draft.documents)
                 if actor not in sentence.text or not re.search(
-                    r"설명|밝혔|언급|따르면|평가|말했|전했|주장|명시(?:돼|되|됐|했)|기재(?:돼|되|됐|했)",
+                    r"설명|밝혔|언급|따르면|평가|말했|전했|주장|발표(?:했|하|한|됐|되|돼)"
+                    r"|명시(?:돼|되|됐|했)|기재(?:돼|되|됐|했)",
                     sentence.text,
                 ):
                     raise ValueError("article.attribution_missing")

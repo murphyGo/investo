@@ -14,7 +14,7 @@ from investo.models.events import Digest, EventId, EventModel
 ARTICLE_POLICY = (
     "article-v2-20261027:literal-frame-hints:observation-reference:source-summary:"
     "literal-proof:explicit-linked-evidence:reported-metadata:finance-topic-grammar:"
-    "source-role:material-details:"
+    "source-role:material-details:reported-announcement:"
     "review:600,900,600,900,600:3900"
 )
 ARTICLE_POLICY_HASH = sha256(ARTICLE_POLICY.encode()).hexdigest()

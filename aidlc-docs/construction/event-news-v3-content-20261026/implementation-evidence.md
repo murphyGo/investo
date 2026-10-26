@@ -85,3 +85,9 @@ Fed 실제초안에 쓰인 인플레이션·실업률·성명 등 일반금융/�
 b226fa50 Fed40374766459은 source The Committee를 일반 역할 ‘위원회’로 쓴2문장을 기관명으로 거절했다. source-bound 역할 대응은 위원회라는 정확한 단어와 **그 주장의 source refs**에 있는 committee만 연결한다. 다른packet의단어·subcommittee·가짜위원회·금융위원회는 허용하지 않고 canonical entity/alias도 추가하지 않는다. 원래4문장 source 재생은composition_valid, 독립58tests/Ruff/mypy PASS.
 
 내용상 기존 announcement fact만있다는 이유로 원문의 중요 변경폭/수준·비교를 생략하지 않도록 주제별what과writer/reviewer 지침을 구체화했다. 실제 원문에 있는 정보만 요구하고 수치·출처·최대5calls는 유지한다. missing material comparison→1회repair→재review→seal(1100USD가 최종본문에남음) 통합양성이 통과했다. 독립44tests/source4 정적PASS·최대evidence 포함작성prompt59,027bytes<64KiB·잔여P1/P2없음. 전체집중228 PASS/17.10초와정적검사PASS를 확인했다. actual의 최종내용합격은 다음producer에서 판정한다.
+
+589bebf7의 실제 Fed40380165736은8문장에 변경폭1/4 percentage point·새범위3-3/4 to4 percent·정책 이유를 담았으나2calls에서 composition_invalid였다. 원래packet으로 진단해8문장 모두 atoms_valid이며, fact와attributed claim을 함께 쓰는 첫문장의 ‘발표했다’만 attribution_missing임을 확인했다. reporter matcher에 발표의 실제 활용을 추가했다. literal actor·같은claim refs·numeric·별도 semantic review 요구는 유지하며 bare assertion은 계속거절한다. 원래기록의 reader 검사는 composition_valid, 집중38tests·Ruff/mypy PASS다. 녹화 재생은 실제review/봉인 인수로 합산하지 않는다.
+
+589bebf7의 exact 원격CI40380161708 SUCCESS: pytest7,565 PASS/1knownskip/639.70초, Node39·Ruff841·mypy355·strictMkDocs5.89초와 정책 guard 모두PASS. 후속발표표현 정책은 새source hash로 실제재실행한다.
+
+발표표현 후속 독립리뷰는29tests·Ruff/mypy PASS와 잔여P1/P2없음을 확인했다. 정책 hash도 갱신했고 actual 재실행과 exact CI는 병행한다.
