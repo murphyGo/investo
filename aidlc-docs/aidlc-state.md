@@ -387,7 +387,7 @@ UI 개발·배포 완료: u174–u179 유닛별 커밋, main 통합·푸시, 정
 
 ## u187 — Public Insights calendar and chart UI (2026-10-26)
 
-User requested calendar UI and meaningful graph axes/scales, then “gogo”. Focused design is adopted for this authorized UI implementation. [Plan](construction/plans/u187-public-insights-calendar-and-chart-ui-code-generation-plan.md), [design](construction/u187-public-insights-calendar-and-chart-ui/design.md). Step1/6 complete; implementation in isolated02a5ad7a worktree. u180–183 genuine scheduled acceptance remains separate.
+User requested calendar UI and meaningful graph axes/scales, then “gogo”. Focused design is adopted for this authorized UI implementation. [Plan](construction/plans/u187-public-insights-calendar-and-chart-ui-code-generation-plan.md), [design](construction/u187-public-insights-calendar-and-chart-ui/design.md). Step4/6 complete; Python41/Node39/Ruff/mypy/strict preview and Chromium48conditions+8failure/geometry checks passed. Independent review resolved H1/M1, final C/H/M0. Runtime candidate2619455c is bounded to current873cea37; exact CI and public delivery pending. Concurrent main reserved u184–u186, so this UI unit is u187. u180–183 genuine scheduled acceptance remains separate.
 ## u184–u186 — 실제 자동 기사 내용 충실도 (2026-10-26)
 
 사용자 “승인한 편집 방식으로 실제 자동 생성 기사도 충분한 내용을 갖추기까지 … 설계, 아키텍팅” 지시에 따라 [공통 설계](construction/event-news-v3-content-20261026/README.md)를 작성했다. dirty root를 보존하고 `02a5ad7a` 기반 별도 worktree에서 문서만 변경했다. 설계 작성과 후속 코드·사람·source·운영 수용을 구분한다.

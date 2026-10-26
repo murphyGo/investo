@@ -1,0 +1,452 @@
+{
+  "actual_source_render_matrix": {
+    "kind": "actual published data in local UI preview; no scheduled observations",
+    "cases": [
+      {
+        "viewport": "mobile",
+        "theme": "default",
+        "js": true,
+        "zoom": 1,
+        "module": "calendar",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "default",
+        "js": true,
+        "zoom": 1,
+        "module": "macro",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "default",
+        "js": true,
+        "zoom": 1,
+        "module": "crypto",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "default",
+        "js": true,
+        "zoom": 2,
+        "module": "calendar",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "default",
+        "js": true,
+        "zoom": 2,
+        "module": "macro",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "default",
+        "js": true,
+        "zoom": 2,
+        "module": "crypto",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "default",
+        "js": false,
+        "zoom": 1,
+        "module": "calendar",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "default",
+        "js": false,
+        "zoom": 1,
+        "module": "macro",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "default",
+        "js": false,
+        "zoom": 1,
+        "module": "crypto",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "default",
+        "js": false,
+        "zoom": 2,
+        "module": "calendar",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "default",
+        "js": false,
+        "zoom": 2,
+        "module": "macro",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "default",
+        "js": false,
+        "zoom": 2,
+        "module": "crypto",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "slate",
+        "js": true,
+        "zoom": 1,
+        "module": "calendar",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "slate",
+        "js": true,
+        "zoom": 1,
+        "module": "macro",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "slate",
+        "js": true,
+        "zoom": 1,
+        "module": "crypto",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "slate",
+        "js": true,
+        "zoom": 2,
+        "module": "calendar",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "slate",
+        "js": true,
+        "zoom": 2,
+        "module": "macro",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "slate",
+        "js": true,
+        "zoom": 2,
+        "module": "crypto",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "slate",
+        "js": false,
+        "zoom": 1,
+        "module": "calendar",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "slate",
+        "js": false,
+        "zoom": 1,
+        "module": "macro",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "slate",
+        "js": false,
+        "zoom": 1,
+        "module": "crypto",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "slate",
+        "js": false,
+        "zoom": 2,
+        "module": "calendar",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "slate",
+        "js": false,
+        "zoom": 2,
+        "module": "macro",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "slate",
+        "js": false,
+        "zoom": 2,
+        "module": "crypto",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "default",
+        "js": true,
+        "zoom": 1,
+        "module": "calendar",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "default",
+        "js": true,
+        "zoom": 1,
+        "module": "macro",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "default",
+        "js": true,
+        "zoom": 1,
+        "module": "crypto",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "default",
+        "js": true,
+        "zoom": 2,
+        "module": "calendar",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "default",
+        "js": true,
+        "zoom": 2,
+        "module": "macro",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "default",
+        "js": true,
+        "zoom": 2,
+        "module": "crypto",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "default",
+        "js": false,
+        "zoom": 1,
+        "module": "calendar",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "default",
+        "js": false,
+        "zoom": 1,
+        "module": "macro",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "default",
+        "js": false,
+        "zoom": 1,
+        "module": "crypto",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "default",
+        "js": false,
+        "zoom": 2,
+        "module": "calendar",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "default",
+        "js": false,
+        "zoom": 2,
+        "module": "macro",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "default",
+        "js": false,
+        "zoom": 2,
+        "module": "crypto",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "slate",
+        "js": true,
+        "zoom": 1,
+        "module": "calendar",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "slate",
+        "js": true,
+        "zoom": 1,
+        "module": "macro",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "slate",
+        "js": true,
+        "zoom": 1,
+        "module": "crypto",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "slate",
+        "js": true,
+        "zoom": 2,
+        "module": "calendar",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "slate",
+        "js": true,
+        "zoom": 2,
+        "module": "macro",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "slate",
+        "js": true,
+        "zoom": 2,
+        "module": "crypto",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "slate",
+        "js": false,
+        "zoom": 1,
+        "module": "calendar",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "slate",
+        "js": false,
+        "zoom": 1,
+        "module": "macro",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "slate",
+        "js": false,
+        "zoom": 1,
+        "module": "crypto",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "slate",
+        "js": false,
+        "zoom": 2,
+        "module": "calendar",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "slate",
+        "js": false,
+        "zoom": 2,
+        "module": "macro",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "slate",
+        "js": false,
+        "zoom": 2,
+        "module": "crypto",
+        "overflow": false,
+        "errors": []
+      }
+    ]
+  },
+  "synthetic_failure_and_geometry_seams": {
+    "status": "pass",
+    "checks": [
+      "actual uPlot maturity coordinates",
+      "actual plot elapsed days, null gap, negative percent",
+      "keyboard exact value and scaled unit",
+      "resize no page overflow",
+      "theme recreate one canvas",
+      "detached chart destroyed",
+      "vendor failure preserves labeled SVG and exact table",
+      "history hash mismatch blocks plotting"
+    ]
+  }
+}

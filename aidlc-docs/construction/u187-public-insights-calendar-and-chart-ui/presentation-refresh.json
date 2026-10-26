@@ -1,0 +1,93 @@
+{
+  "kind": "presentation-only refresh of existing validated publications",
+  "baseline_code": "d0740c368e7325ff61b4979da559e4c47500d998",
+  "changed": [
+    "site_docs/insights/_data/manifest.json",
+    "site_docs/insights/calendar/index.md",
+    "site_docs/insights/macro/index.md"
+  ],
+  "preserved_files": {
+    "site_docs/insights/_data/macro/current.json": "45d3e0ee70c45becd8d18a7b21f1222d27968b87f0c025fe22ced9e2e2bfefc6",
+    "site_docs/insights/_data/macro/history.json": "c3a0c1a458ac2d99039480e5d10fc693609063d67cf1ced0f579772266ab38f7",
+    "site_docs/insights/_data/calendar/current.json": "840aa7a9037b7e8b27b328d50a97efe62cb46d658cc04902d89c4955245b67c4",
+    "site_docs/insights/_data/crypto/current.json": "900eaf37c2adae7e035671efbea0045aa55b32a455c1575850d8955ce0926b60",
+    "site_docs/insights/_data/crypto/history.json": "e8c2e644b6f27740808c1f0acc93f39aa171963420c0ee920e80c16cc2482002"
+  },
+  "snapshots": {
+    "calendar": {
+      "snapshot_id": "eb83bc5543a7d719603fa43e467cd422dde092c84ce34c696189b3d0ce3bda11",
+      "evaluated_at": "2026-10-25T23:54:18.709964+00:00",
+      "metrics": 0,
+      "events": 19
+    },
+    "crypto": {
+      "snapshot_id": "870df3a24e39e63727141a0734b1f6588a0192662af6c043fc8cc1775525c24a",
+      "evaluated_at": "2026-10-25T23:54:18.709964+00:00",
+      "metrics": 1,
+      "events": 0
+    },
+    "macro": {
+      "snapshot_id": "803be3c68af11618d980445510a624ac180962cb8de2d8f8f4606525a980f96d",
+      "evaluated_at": "2026-10-25T23:54:18.709964+00:00",
+      "metrics": 12,
+      "events": 0
+    }
+  },
+  "manifest_before": {
+    "schema_version": 1,
+    "modules": [
+      {
+        "module": "calendar",
+        "snapshot_id": "eb83bc5543a7d719603fa43e467cd422dde092c84ce34c696189b3d0ce3bda11",
+        "current_hash": "840aa7a9037b7e8b27b328d50a97efe62cb46d658cc04902d89c4955245b67c4",
+        "index_hash": "8af958b7b1c11677d889dc34fabb75b3562c3a2c1d180fcef37deb5394341e4e",
+        "history_hash": null
+      },
+      {
+        "module": "crypto",
+        "snapshot_id": "870df3a24e39e63727141a0734b1f6588a0192662af6c043fc8cc1775525c24a",
+        "current_hash": "900eaf37c2adae7e035671efbea0045aa55b32a455c1575850d8955ce0926b60",
+        "index_hash": "e98d0071b72b001b4661f73c4352b2385742be299e9bdcaf04cbc70e04004dde",
+        "history_hash": "e8c2e644b6f27740808c1f0acc93f39aa171963420c0ee920e80c16cc2482002"
+      },
+      {
+        "module": "macro",
+        "snapshot_id": "803be3c68af11618d980445510a624ac180962cb8de2d8f8f4606525a980f96d",
+        "current_hash": "45d3e0ee70c45becd8d18a7b21f1222d27968b87f0c025fe22ced9e2e2bfefc6",
+        "index_hash": "47e04bfc9f7a94da3abdb54de371676fb123359bb1c44e763a8c6b817da92c98",
+        "history_hash": "c3a0c1a458ac2d99039480e5d10fc693609063d67cf1ced0f579772266ab38f7"
+      }
+    ]
+  },
+  "manifest_after": {
+    "schema_version": 1,
+    "modules": [
+      {
+        "module": "calendar",
+        "snapshot_id": "eb83bc5543a7d719603fa43e467cd422dde092c84ce34c696189b3d0ce3bda11",
+        "current_hash": "840aa7a9037b7e8b27b328d50a97efe62cb46d658cc04902d89c4955245b67c4",
+        "index_hash": "f14240a5d2c7ccc0c2bf5885a68e911ed69f8103aa6cc2a9a9758ec9384f6733",
+        "history_hash": null
+      },
+      {
+        "module": "crypto",
+        "snapshot_id": "870df3a24e39e63727141a0734b1f6588a0192662af6c043fc8cc1775525c24a",
+        "current_hash": "900eaf37c2adae7e035671efbea0045aa55b32a455c1575850d8955ce0926b60",
+        "index_hash": "e98d0071b72b001b4661f73c4352b2385742be299e9bdcaf04cbc70e04004dde",
+        "history_hash": "e8c2e644b6f27740808c1f0acc93f39aa171963420c0ee920e80c16cc2482002"
+      },
+      {
+        "module": "macro",
+        "snapshot_id": "803be3c68af11618d980445510a624ac180962cb8de2d8f8f4606525a980f96d",
+        "current_hash": "45d3e0ee70c45becd8d18a7b21f1222d27968b87f0c025fe22ced9e2e2bfefc6",
+        "index_hash": "39f97bb1512cd57488f32e846143dc7e7564c55506103d45f1cb2e284b2a9ceb",
+        "history_hash": "c3a0c1a458ac2d99039480e5d10fc693609063d67cf1ced0f579772266ab38f7"
+      }
+    ]
+  },
+  "source_policy_sha256": "2ac7295452d2fdc5f5c86af850d667f363bfd0a16537950e1dbe98988c7e28f5",
+  "collection_calls": 0,
+  "llm_calls": 0,
+  "telegram_calls": 0,
+  "scheduled_acceptance_increment": 0
+}
