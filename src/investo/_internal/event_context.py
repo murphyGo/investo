@@ -580,10 +580,14 @@ def build_context_prompt_buffer(
     *,
     required_item_ids: frozenset[int] = frozenset(),
     preferred_item_ids: frozenset[int] = frozenset(),
+    assertion_hints: bool = False,
+    max_bytes: int = STAGE_ONE_CONTEXT_BYTES,
 ) -> ContextPromptBuffer:
     """Reserve required facts, share news slots, then fill with reference rows."""
-    if len(documents) > 96 or any(
-        not 1 <= i <= len(documents) for i in required_item_ids | preferred_item_ids
+    if (
+        not 0 < max_bytes <= STAGE_ONE_CONTEXT_BYTES
+        or len(documents) > 96
+        or any(not 1 <= i <= len(documents) for i in required_item_ids | preferred_item_ids)
     ):
         raise ContextEvidenceError("context.budget_exhausted")
     preferred: dict[str, list[int]] = {}
@@ -631,8 +635,17 @@ def build_context_prompt_buffer(
             "context": doc.model_dump(mode="json"),
             "metadata_spans": metadata_spans,
         }
+        if assertion_hints:
+            from investo._internal.event_text_proof import assertion_span_hints
+
+            row["assertion_hints"] = [
+                {"chunk_id": chunk.chunk_id, "frames": frames}
+                for chunk in doc.chunks
+                if chunk.source_locator != "source_metadata"
+                and (frames := assertion_span_hints(chunk.text))
+            ]
         proposed = _json({"schema_version": 3, "documents": [*rows, row]})
-        if len(proposed.encode("utf-8")) > STAGE_ONE_CONTEXT_BYTES:
+        if len(proposed.encode("utf-8")) > max_bytes:
             if i in required_item_ids:
                 raise ContextEvidenceError("context.budget_exhausted")
             continue

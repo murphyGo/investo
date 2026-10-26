@@ -36,7 +36,7 @@ Functional Design/NFR **EXECUTE — 공통 설계 작성됨**: [흐름](../event
 
 기존 `tests/integration/test_event_document_claim_boundaries_v3.py`, `tests/integration/test_event_document_v3_replay_u172.py`, `tests/integration/test_event_preview_native_v3.py`, `tests/unit/orchestrator/test_event_preview_boundary.py`를 포함한다. 기존 renderer/archive/notification test 파일은 구현 시 `rg --files tests`에서 해당 owner를 찾아 함께 실행한다.
 
-신규: `tests/unit/models/test_event_article_narrative_u185.py`(AC1/2), `tests/unit/briefing/test_event_article_composition_u185.py`(AC1/2/3), `tests/unit/publisher/test_event_article_projection_u185.py`(AC4/5/6), `tests/integration/test_event_article_surfaces_u185.py`(AC4/6). 합성 조건부 설명·법안/시행·귀속·multi-clause·비교기간·source role mixing을 포함한다.
+신규: `tests/unit/briefing/test_event_article_review_u186.py`(AC1/2/3), `tests/unit/publisher/test_event_article_projection_u185.py`(AC4/5/6), `tests/integration/test_event_article_acceptance_u186.py`(AC1–6). 최초 계획의 별도 narrative/composition/surfaces 파일은 이 회귀에 통합했다. 합성 조건부 설명·귀속·multi-clause·비교기간·source role mixing을 포함한다.
 
 u184와 같은 extras 설치 후 위 파일 `uv run python -m pytest -q`, Ruff check/format, `uv run mypy src`, `git diff --check`를 수행한다. 새 source/runtime 승인이나 실제 사람이 합격했다는 기록은 만들지 않는다. full/policy/docs/exact-SHA 인수는 u186/u172와 동일 결과에 결속한다.
 

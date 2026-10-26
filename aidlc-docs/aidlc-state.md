@@ -406,3 +406,6 @@ User requested calendar UI and meaningful graph axes/scales, then “gogo”. [P
 
 
 2026-10-26 source9605aa6f quality40272481858 SUCCESS7521/1skip/633.72s·Node39·Ruff840/mypy355/정책/docs PASS. u184코드5/6(source별Step5부분), u185/u186코드6/6. 비게시 preview pin9605aa6f·privatee3c63dc 입력17줄 배포 후 실제US40283909018은 composition_invalid 실패, 원래 모델/packet 재생으로 metric proof 누락 및 summary 맥락 손실을 확인·수리해 재검증 중. productionpin2619455c/schema2/기존mode와auth queue:max 보존. 실제human0/12·u173slot0/8·v3예약0·성능/viewport·release/cleanup pending은 유지한다.
+
+
+2026-10-27: 후속 source826eb3ee exactCI40285888771 SUCCESS7523/1skip. 실제40357554455/40357557379는 classification.status_unbound로 실패했다. clipped source span/unsupported actual frame과 관측 통계의 뉴스 예약 소모를 수리하고 영어·한국어 source hint/forecast·기관명 모호성/실제32KiB 전체 prompt를 검증했다(집중211/native57 PASS, 독립97 PASS). 후속 exact CI/actual 재실행 진행; productionpin2619455c·human0/12·source slots0/8·예약0과 기존 gate는 그대로다.

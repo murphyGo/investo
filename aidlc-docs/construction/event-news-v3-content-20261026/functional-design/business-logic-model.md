@@ -63,3 +63,10 @@ seal 직전 최종 narrative/packet/policy/review hash와 terminal survivor 집�
 | _internal/event_v3_contract.py | private/public shared invariant validation | LLM 의미 판정을 결정론적 proof로 표시 |
 | publisher/event_edition.py, public_document.py, event_archive_reader.py | render·terminal check·versioned projection·seal | 두 번째 finalizer·과거 archive rewrite |
 | models/event_quality.py, publisher/event_quality.py, scripts/_event_coverage_replay.py | readiness·실제 corpus 연계 | human 5/5 자동 생성 |
+
+
+## 실제 실행 후 분류 계약 구체화
+
+article_v2의 source 좌표 hint는 기존 closed text prover가 받아들인 원문의 완전한 frame만 제공한다. 한국어·영어와 지원하는 forecast를 구별하며, 모호한 한국어 기관명을 나눠 새 actor를 만들지 않는다. 원래 exact-ref 검증은 그대로다. source hints bytes와 schema overhead를 실제 계산한 Stage1 전체32KiB/evidence24KiB를 지킨다.
+
+BLS/BEA의 source-dated event가 없는 반복 관측값은 article_v2에서 참고 자료다. 이 판정은 후보96개에 들어가기 전의 뉴스24개 예약과 최종 editorial placement 모두에 적용한다. required actual과 source가 명시한 사건 날짜는 보호한다. 기존role_v1 경로와 생산 activation은 변경하지 않는다.

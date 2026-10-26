@@ -36,13 +36,13 @@ Functional Design/NFR **EXECUTE — 공통 설계 작성됨**: [처리](../event
 
 기존 `tests/unit/models/test_event_semantic_acceptance_u172.py`, `tests/integration/test_event_document_v3_replay_u172.py`, `tests/unit/orchestrator/test_event_v3_cutover_u172.py`, `tests/unit/orchestrator/test_event_preview_codex.py`, `tests/unit/orchestrator/test_event_preview_encryption.py`, `tests/unit/orchestrator/test_private_workflow_u155.py`.
 
-신규 `tests/unit/briefing/test_event_article_review_u186.py`(AC2/3/4), `tests/unit/briefing/test_event_article_budget_u186.py`(AC1/4), `tests/unit/publisher/test_event_article_readiness_u186.py`(AC5), `tests/integration/test_event_article_acceptance_u186.py`(AC2–6). fixed-clock fake runner는 실제 provider 품질을 증명하지 않는다. 실제 adversarial semantic 성능은 private corpus에서 사람이 다시 확인한다.
+신규 `tests/unit/briefing/test_event_article_review_u186.py`(AC2/3/4), `tests/unit/briefing/test_event_article_budget_u186.py`(AC1/4), `tests/unit/publisher/test_event_article_projection_u185.py`(AC5), `tests/integration/test_event_article_acceptance_u186.py`(AC2–6). readiness 검증은 별도 파일 대신 projection/acceptance 회귀에 통합했다. fixed-clock fake runner는 실제 provider 품질을 증명하지 않는다. 실제 adversarial semantic 성능은 private corpus에서 사람이 다시 확인한다.
 
 구현·통합 후 실행:
 
 ```sh
 uv sync --extra dev --extra docs --extra sector --extra operations
-uv run python -m pytest -q tests/unit/briefing/test_event_article_review_u186.py tests/unit/briefing/test_event_article_budget_u186.py tests/unit/publisher/test_event_article_readiness_u186.py tests/integration/test_event_article_acceptance_u186.py
+uv run python -m pytest -q tests/unit/briefing/test_event_article_review_u186.py tests/unit/briefing/test_event_article_budget_u186.py tests/unit/publisher/test_event_article_projection_u185.py tests/integration/test_event_article_acceptance_u186.py
 uv run python -m pytest
 uv run ruff check src tests scripts
 uv run ruff format --check src tests scripts
@@ -57,7 +57,7 @@ uv run python scripts/check_material_theme_contract.py
 git diff --check
 ```
 
-현재 설계에서 새 tests는 미작성이다. 위 명령은 구현 이후 실행 지시이며 PASS 기록이 아니다.
+위 명령은 재검증용이며 실제 실행 결과는 [구현 기록](../event-news-v3-content-20261026/implementation-evidence.md)에 적는다.
 
 
 ## 2026-10-26 개발 승인과 실행

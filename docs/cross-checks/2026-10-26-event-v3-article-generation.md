@@ -19,3 +19,5 @@
 실제 테스트: `tests/unit/orchestrator/test_event_evidence_preparation_u184.py`, `tests/unit/briefing/test_event_packet_budget_u184.py`, `tests/unit/briefing/test_event_article_budget_u186.py`, `tests/unit/briefing/test_event_article_review_u186.py`, `tests/unit/publisher/test_event_article_projection_u185.py`, `tests/integration/test_event_article_acceptance_u186.py`, 기존u172 semantic/cutover/native57 replay와 source/context/preview 회귀.
 
 로컬 full7502/1knownskip/1294.98초 이후 추가분 집중124+후속16 PASS, Ruff837/형식·mypy353·Node29·정책/strictMkDocs/Material을 확인했다. 최종 source SHA의 원격 전체 CI와 실제 비게시 producer는 [구현 기록](../../aidlc-docs/construction/event-news-v3-content-20261026/implementation-evidence.md)에 결속한다. AI reviewer2명은 인간 corpus의 검수자가 아니다. actualhuman0/12·slot0/8·v3예약0·DEBT-090·viewport와 운영 전환/cleanup은 미완료다.
+
+최종 후속 source826eb3ee: exact 원격CI40285888771 SUCCESS7,523 PASS/1knownskip/777.80초·Node39·Ruff840/mypy355·정책/strictMkDocs8.20초 PASS. 실제첫US40283909018은5편 모두 metric proof누락과1문장 내용 부족으로 실패한 표본이며 인수로 세지 않는다. source summary·literal proof 지침과4source28passage 경계를 수리한 집중104 PASS, 독립후속29tests PASS/잔여P1/P2없음. 새 실제 재시도와Fed발표일 실행은 구현 기록에서 별도로 판정한다.

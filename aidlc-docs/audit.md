@@ -8308,3 +8308,8 @@ After exact CI/Pages success and no queued/running daily jobs, private REVIEWED_
 ## 2026-10-26 — article_v2 actual preview 실패 재생과 입력 수리
 
 사용자 개발/계속 진행 승인 범위. source9605aa6f 원격CI40272481858 SUCCESS7521/1skip 후 비게시 preview pin과private preview 입력만 연결했다. productionpin2619455c와schema2/default/auth queue:max 보존. 실제US40283909018은 composition_invalid 실패이며 암호화 artifact의2calls 해시 검증·원래packet 재생에서5articles 모두 독립 metric proof 누락을 확인했다. 1문장 출력은 내용 합격으로 세지 않았다. full summary의 prior/scope 맥락 누락을 보완하고 literal numeric/proof prompt를 명시했다. 후속 독립 리뷰의4source×7passage 경계도28cap/회귀로 수정했다. focused104 PASS·Ruff840/mypy355·strictMkDocs7.44초 PASS. source qualification/actual12/human/viewport/성능/예약0은 별도이며 완료로 바꾸지 않는다.
+
+
+## 2026-10-27 — actual 분류 실패 수리
+
+사용자 개발/계속 진행 승인 지속. 후속 exact source826eb3ee CI40285888771 SUCCESS7523/1skip 후 두 실제 비게시 실행40357554455/40357557379를 수행했으나 classification.status_unbound로 실패했다. private 모델1call씩의 SHA와 원문을 대조해 잘린span·지원하지 않는actual frame을 확인했다. 기존 prover를 통과하는 source coordinate hint, 한국어 다중 단어 actor 모호성 보존, future/actual 구별, 후보/편집 모두의 관측 통계reference, 실제 Stage1전체32KiB 계산을 새profile에만 수리했다. 집중211/native57 PASS·Ruff841/mypy355·독립97tests PASS/잔여P1/P2없음. human/slot/예약 합격은 만들지 않았다. exact후속CI와actual결과는 구현증거에 계속 기록한다.

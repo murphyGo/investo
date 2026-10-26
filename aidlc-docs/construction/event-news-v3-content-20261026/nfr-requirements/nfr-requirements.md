@@ -10,6 +10,7 @@
 | fetch timeout | request8초, 전체20초; 전체 workflow deadline이 더 짧으면 그 값 |
 | 응답 | decoded500KiB/document, HTML allowlist parser만; zip/PDF/JS 실행 없음 |
 | 보관 excerpt | article_v2만 source당 최대6 passages/6,000 codepoints, passage당1,200; 기존 role_v1은1,200 유지 |
+| packet passage | 위 body6개와 기존 feed summary1개/source, source4개에서 최대28 passages; exact refs64·48KiB 한도 유지 |
 | Stage1 | 기존96 candidates/source24/lookahead12, typed drafts12; evidence24KiB, 전체 prompt32KiB |
 | Stage2 | evidence48KiB, 전체 prompt64KiB; required packet 우선, 초과 후순위 event deferred |
 | 수정 호출 | 같은 evidence48KiB + 이전 draft/검토 feedback 포함 전체 prompt96KiB; 새 source 추가 없음 |

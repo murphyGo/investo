@@ -21,14 +21,32 @@ from investo.models.events import EventIdentityReceipt, EventSelectionPlan, Evid
 from investo.models.segments import MarketSegment
 
 
-def render_context_classification_prompt(evidence_json: str, *, segment: MarketSegment) -> str:
+def render_context_classification_prompt(
+    evidence_json: str, *, segment: MarketSegment, assertion_hints: bool = False
+) -> str:
     """V3 Stage-one template; evidence is the exact 24KiB-accounted buffer."""
     import json
 
     from investo.models.event_context import ContextClassificationResult
 
     schema = json.dumps(ContextClassificationResult.model_json_schema(), ensure_ascii=False)
-    return (
+    hints_instruction = (
+        "For nonnumeric article facts select a complete supplied assertion_hints frame; "
+        "do not count or trim its text offsets again. Map subject/action/value/assertion "
+        "coordinates to subject_refs/predicate_refs/value_refs/status_refs in the same chunk. "
+        "Preserve the hint's actual/forecast status. Explicit source rows declaring their "
+        "status may still use their exact literal component spans under the existing rules. "
+        "Korean assertions without an unambiguous hint retain the original exact-ref "
+        "validation path: preserve the complete multiword source actor, never split a name "
+        "at a particle-like syllable. "
+        "A hint only proves that literal source assertion, never its importance or a causal "
+        "interpretation. Without a suitable frame or explicit status declaration, omit the fact; "
+        "do not force a proposal, financial amount or unsupported grammar into an actual frame. "
+        "Numeric required actuals continue to use their typed metadata_spans.\n"
+        if assertion_hints
+        else ""
+    )
+    return hints_instruction + (
         "Classify source-backed market events. Return only schema_version=3 JSON. "
         "Use transmitted item IDs and exact document/revision/chunk offsets. "
         "Offsets are zero-based Unicode codepoint indices with an exclusive end; "

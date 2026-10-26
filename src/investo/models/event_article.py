@@ -11,7 +11,10 @@ from investo.models.event_context import ContextRef, ReactionContext
 from investo.models.event_identity import EntityBinding, FactBinding
 from investo.models.events import Digest, EventId, EventModel
 
-ARTICLE_POLICY = "article-v2-20261026:source-summary:literal-proof:review:600,900,600,900,600:3900"
+ARTICLE_POLICY = (
+    "article-v2-20261027:literal-frame-hints:observation-reference:source-summary:"
+    "literal-proof:review:600,900,600,900,600:3900"
+)
 ARTICLE_POLICY_HASH = sha256(ARTICLE_POLICY.encode()).hexdigest()
 ARTICLE_FAILURE_CODES = frozenset(
     {

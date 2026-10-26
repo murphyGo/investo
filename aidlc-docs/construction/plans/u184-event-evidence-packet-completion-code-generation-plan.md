@@ -38,9 +38,9 @@ offline 설계 구현은 기존 u167/u168으로 착수 가능하다. live source
 
 기존: `tests/unit/sources/test_event_evidence.py`, `tests/unit/briefing/test_event_context_refs_v3.py`, `tests/unit/models/test_event_context_v3.py`, `tests/integration/test_event_context_handoff_v3.py`, `tests/unit/orchestrator/test_event_preview_boundary.py`, `tests/unit/orchestrator/test_event_preview_encryption.py`.
 
-신규 Step1–5: `tests/unit/models/test_event_article_packet_u184.py`, `tests/unit/orchestrator/test_event_evidence_preparation_u184.py`, `tests/unit/briefing/test_event_packet_budget_u184.py`, `tests/integration/test_event_packet_handoff_u184.py`. AC1/2→preparation/handoff, AC3/4→packet/budget, AC5/6→model/source/boundary에서 검증한다.
+신규 Step1–5: `tests/unit/orchestrator/test_event_evidence_preparation_u184.py`, `tests/unit/briefing/test_event_packet_budget_u184.py`, `tests/integration/test_event_article_acceptance_u186.py`. 최초 계획의 별도 model/handoff 파일은 이 회귀에 통합했다. AC1/2→preparation/handoff, AC3/4→packet/budget, AC5/6→model/source/boundary에서 검증한다.
 
-구현 후 `uv sync --extra dev --extra docs --extra sector --extra operations`, 위 파일에 대한 `uv run python -m pytest -q`, `uv run ruff check src tests scripts`, `uv run ruff format --check src tests scripts`, `uv run mypy src`, `git diff --check`를 수행한다. 정확한 통합 SHA의 full/policy/docs gate와 live source 수용은 [공통 인수](../event-news-v3-content-20261026/acceptance-and-handoff.md)에서 결속한다. 현재 문서 작업에서 새 tests가 존재하거나 실행됐다고 기록하지 않는다.
+재검증은 `uv sync --extra dev --extra docs --extra sector --extra operations`, 위 파일에 대한 `uv run python -m pytest -q`, `uv run ruff check src tests scripts`, `uv run ruff format --check src tests scripts`, `uv run mypy src`, `git diff --check`를 수행한다. 정확한 통합 SHA의 full/policy/docs gate와 live source 수용은 [공통 인수](../event-news-v3-content-20261026/acceptance-and-handoff.md)에서 결속하고, 실제 결과는 [구현 기록](../event-news-v3-content-20261026/implementation-evidence.md)을 따른다.
 
 
 ## 2026-10-26 개발 승인과 실행

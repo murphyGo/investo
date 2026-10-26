@@ -449,9 +449,12 @@ async def classify_context(
     segment: MarketSegment,
     observed_at: datetime,
     observation: Callable[[int, int, float], None] | None = None,
+    assertion_hints: bool = False,
 ) -> ContextClassificationResult:
     """Schema-three replacement for Stage 1, with the existing CLI/budget owner."""
-    prompt = render_context_classification_prompt(buffer.text, segment=segment)
+    prompt = render_context_classification_prompt(
+        buffer.text, segment=segment, assertion_hints=assertion_hints
+    )
     prompt += "\nRequired actual item IDs: " + json.dumps(sorted(buffer.required_prompt_item_ids))
     cause: ContextEvidenceError | None = None
     for attempt in range(policy.max_attempts):

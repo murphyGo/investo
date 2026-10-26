@@ -89,6 +89,23 @@ def is_event_reference_item(item: NormalizedItem) -> bool:
     )
 
 
+def is_article_reference_item(item: NormalizedItem) -> bool:
+    """Keep recurring API observations out of article_v2's news slots.
+
+    These two adapters stamp window.start as observed_at/published_at; their
+    latest actual value alone is not proof of a newly published release.
+    Preserve required actuals and explicitly source-dated event evidence.
+    """
+    if is_event_reference_item(item):
+        return True
+    return (
+        item.category == "macro"
+        and item.source_name in {"bls-macro-actuals", "bea-macro-actuals"}
+        and not is_required_macro_actual(item)
+        and evidence_document_from_item(item, received_at=item.published_at).event_time is None
+    )
+
+
 def event_collection_limited(
     items: Sequence[NormalizedItem], outcomes: Sequence[SourceOutcome]
 ) -> bool:
@@ -110,7 +127,7 @@ def event_collection_limited(
 
 
 def select_event_input_items(
-    items: Sequence[NormalizedItem], *, target_date: date | None
+    items: Sequence[NormalizedItem], *, target_date: date | None, article_v2: bool = False
 ) -> tuple[NormalizedItem, ...]:
     """Preserve protected lanes, reserve remaining news slots, then stable fill."""
     # Compute validated identity once per input. Tracking parameters cannot
@@ -134,6 +151,9 @@ def select_event_input_items(
     identities: set[str] = set()
     counts: dict[str, int] = defaultdict(int)
     lookahead = 0
+
+    def is_news(item: NormalizedItem) -> bool:
+        return not is_article_reference_item(item) if article_v2 else _is_news(item)
 
     def add(row: tuple[str, NormalizedItem]) -> None:
         nonlocal lookahead
@@ -170,16 +190,16 @@ def select_event_input_items(
             add(row)
     by_source: dict[str, list[tuple[str, NormalizedItem]]] = defaultdict(list)
     for row in ordered:
-        if _is_news(row[1]) and row[0] not in identities:
+        if is_news(row[1]) and row[0] not in identities:
             by_source[row[1].source_name].append(row)
     offset = 0
     while any(offset < len(rows) for rows in by_source.values()):
         for source in sorted(by_source):
             for row in by_source[source][offset : offset + 4]:
-                if sum(_is_news(row) for row in selected) >= 24:
+                if sum(is_news(row) for row in selected) >= 24:
                     break
                 add(row)
-        if len(selected) >= 96 or sum(_is_news(row) for row in selected) >= 24:
+        if len(selected) >= 96 or sum(is_news(row) for row in selected) >= 24:
             break
         offset += 4
     for row in ordered:

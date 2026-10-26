@@ -209,6 +209,98 @@ def performed_actions(text: str) -> tuple[str, ...]:
     return tuple(found)
 
 
+def assertion_span_hints(text: str) -> tuple[dict[str, object], ...]:
+    """Locate closed source frames already accepted by the existing prover.
+
+    These are source coordinates, not inferred facts or permission to ignore
+    modality. Unsupported grammar still has no hint and no new proof path.
+    """
+    hints: list[dict[str, object]] = []
+    start = 0
+    ends = [m.end() for m in re.finditer(r"[;!?。\n]|(?<!\d)\.(?!\d)", text)]
+    for end in (*ends, len(text)):
+        raw = text[start:end]
+        left = start + len(raw) - len(raw.lstrip())
+        right = end - (len(raw) - len(raw.rstrip()))
+        start = end
+        assertion = text[left:right]
+        if not assertion or len(assertion) > 240 or assertion.endswith(("?", "\uff1f")):
+            continue
+        for action in sorted(set(performed_actions(assertion))):
+            pattern = re.escape(action)
+            if action.isascii():
+                pattern = r"(?<![A-Za-z])" + pattern + r"(?![A-Za-z])"
+            for match in re.finditer(pattern, assertion, re.I):
+                status = "actual"
+                if action.isascii():
+                    prefix = assertion[: match.start()].rstrip()
+                    modal = re.search(r"\s+(?:will|plans\s+to|expects\s+to)$", prefix, re.I)
+                    if modal is not None:
+                        status = "forecast"
+                        prefix = prefix[: modal.start()]
+                    else:
+                        prefix = re.sub(
+                            r"\s+(?:(?:today|yesterday)\s+)?(?:has|have)$|\s+(?:today|yesterday)$",
+                            "",
+                            prefix,
+                            flags=re.I,
+                        )
+                    subject_start, subject_end = (
+                        4 if prefix.startswith("The ") else 0,
+                        len(prefix),
+                    )
+                    tail = assertion[match.end() :]
+                    value_start = match.end() + len(tail) - len(tail.lstrip())
+                    value_end = len(assertion.rstrip(".!。"))
+                else:
+                    boundaries = tuple(
+                        m
+                        for m in re.finditer(r"(?:이|가|은|는)\s+", assertion[: match.start()])
+                        if m.start() > 0
+                    )
+                    # A name ending in 이 before a space can look like a
+                    # particle (가람페이 증권이). Never propose a truncated actor.
+                    if len(boundaries) != 1:
+                        continue
+                    subject_start, subject_end = 0, boundaries[0].start()
+                    value_start = boundaries[0].end()
+                    value_end = len(assertion[: match.start()].rstrip())
+                    if value_end > value_start and assertion[value_end - 1] in "을를에":
+                        value_end -= 1
+                subject = assertion[subject_start:subject_end]
+                value = assertion[value_start:value_end]
+                action_sets = _ACTIONS if status == "actual" else _BASE_ACTIONS
+                for predicate, actions in action_sets.items():
+                    if (
+                        action.casefold() not in actions
+                        or prove_text_assertion(
+                            predicate=predicate,
+                            status=status,
+                            subject=subject,
+                            action=assertion[match.start() : match.end()],
+                            object_label="",
+                            value=value,
+                            assertion=assertion,
+                            status_proofs=(assertion,),
+                        )
+                        is None
+                    ):
+                        continue
+                    hint: dict[str, object] = {
+                        "predicate": predicate,
+                        "status": status,
+                        "subject": [left + subject_start, left + subject_end],
+                        "action": [left + match.start(), left + match.end()],
+                        "value": [left + value_start, left + value_end],
+                        "assertion": [left, right],
+                    }
+                    if hint not in hints:
+                        hints.append(hint)
+                    if len(hints) == 6:
+                        return tuple(hints)
+    return tuple(hints)
+
+
 def prove_text_assertion(
     *,
     predicate: str,

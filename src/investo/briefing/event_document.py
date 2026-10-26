@@ -19,7 +19,11 @@ from investo.briefing.event_context import (
     support_vector,
 )
 from investo.briefing.event_identity import canonical_event_binding
-from investo.briefing.event_input import is_event_reference_item, select_event_input_items
+from investo.briefing.event_input import (
+    is_article_reference_item,
+    is_event_reference_item,
+    select_event_input_items,
+)
 from investo.briefing.generation_contract import GenerationInput, NativeEventGenerationResult
 from investo.models.event_context import ContextClassificationResult
 from investo.models.event_document import (
@@ -105,13 +109,16 @@ async def generate_event_document(request: GenerationInput) -> NativeEventGenera
     article_v2 = bool(
         request.event_generation_policy and request.event_generation_policy.profile == "article_v2"
     )
+    reference_item = is_article_reference_item if article_v2 else is_event_reference_item
     started_at = time.monotonic()
     policy = replace(request.generation_policy or GenerationPolicy(), event_mode="preview")
     if article_v2:
         policy = replace(policy, timeout_s=600, max_attempts=1, total_budget_s=3900)
     budget = request.budget or RetryBudget(total_budget_s=policy.total_budget_s)
     observed_at = request.event_observed_at or datetime.now(UTC)
-    candidates = select_event_input_items(request.items, target_date=request.target_date)
+    candidates = select_event_input_items(
+        request.items, target_date=request.target_date, article_v2=article_v2
+    )
     documents = prepare_context_documents(
         candidates, received_at=observed_at, article_passages=article_v2
     )
@@ -122,16 +129,33 @@ async def generate_event_document(request: GenerationInput) -> NativeEventGenera
         documents = classification_documents(documents)
     if request.event_context_documents and request.event_context_documents != full_documents:
         raise ContextEvidenceError("context.buffer_conflict")
+    context_bytes = 24 * 1024
+    if article_v2:
+        from investo.briefing.event_prompt import render_context_classification_prompt
+
+        # Reserve the real schema/instructions and worst-case required-ID suffix.
+        context_bytes = min(
+            context_bytes,
+            32 * 1024
+            - len(
+                render_context_classification_prompt(
+                    "", segment=segment, assertion_hints=True
+                ).encode("utf-8")
+            )
+            - 512,
+        )
     buffer = build_context_prompt_buffer(
         documents,
         required_item_ids=frozenset(
             i
             for i, item in enumerate(candidates, 1)
-            if is_required_macro_actual(item) and not is_event_reference_item(item)
+            if is_required_macro_actual(item) and not reference_item(item)
         ),
         preferred_item_ids=frozenset(
-            i for i, item in enumerate(candidates, 1) if not is_event_reference_item(item)
+            i for i, item in enumerate(candidates, 1) if not reference_item(item)
         ),
+        assertion_hints=article_v2,
+        max_bytes=context_bytes,
     )
     article_calls = None
     if article_v2:
@@ -156,6 +180,7 @@ async def generate_event_document(request: GenerationInput) -> NativeEventGenera
             segment=segment,
             observed_at=observed_at,
             observation=article_calls.observe_classification if article_calls is not None else None,
+            assertion_hints=article_v2,
         )
         if buffer.documents
         else ContextClassificationResult(schema_version=3, events=())
@@ -186,7 +211,7 @@ async def generate_event_document(request: GenerationInput) -> NativeEventGenera
             reference_item_ids=frozenset(
                 n
                 for n, original in enumerate(buffer.item_ids, 1)
-                if is_event_reference_item(candidates[original - 1])
+                if reference_item(candidates[original - 1])
             ),
             observed_at=observed_at,
             max_articles=limit,

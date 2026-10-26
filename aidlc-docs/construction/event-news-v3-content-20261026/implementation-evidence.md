@@ -46,3 +46,19 @@ u184 Step1–4 구현, Step5는 Fed2개 확인·CFTC/SEC blocked·국내 정책/
 실제40283909018의 암호화 artifact를 로컬 복호화하고 모델2호출의 prompt/stdout SHA를 각각 확인했다. 작성 응답5편 모두 canonical fact의 독립 metric ref를 누락한 사실을 원래 packet으로 재생해 article.fact_proof_missing으로 확인했다. 본문은 각1문장에 그쳐 내용 합격도 아니다. actual/human/slot 표본에 합산하지 않는다. 원문 summary의 prior·범위 절이 packet에서 빠지는 입력 손실도 수리했다. 기존 body 우선·중복 제거·48KiB/64refs cap은 유지하며, writer에 canonical 전체 proof와 수치의 literal subject/metric/unit/period/status를 명시했다. profile policy hash를 새로 결속한다. 집중104 PASS·Ruff840/mypy355 PASS; 후속 exact CI와 실제 재생 결과는 별도 기록한다.
 
 독립 후속 리뷰에서 summary 추가 시4 sources×(6 body+1 summary)=28개 passage 경계를 확인해 typed cap28과4-source 회귀를 추가했다. 기존 source4·allowed refs64·UTF8 packet48KiB·6body/source 한도는 유지한다. strictMkDocs7.44초 PASS.
+
+
+후속 source826eb3eec21f4c29c7f7c53ddf87e683816f47af의 exact 원격CI40285888771 SUCCESS: pytest7,523 PASS/1knownskip/777.80초, Node39·Ruff840·mypy355·정책/strictMkDocs8.20초 모두PASS. 후속 독립 리뷰는29tests와source3개 정적 검사로 잔여P1/P2없음을 확인했다. source 전체body·summary cap과 실제 tests 경로를 설계/인계 문서에 맞췄다.
+
+2026-10-27 01:16KST 원격을 재확인한 preview pin826eb3ee·productionpin2619455c·private preview workflowblob7691faa1은 유지됐다. 실제 재시도40357554455(target2026-10-23)와 공식피드에 남아있는 Fed 발표일40357557379(target2026-09-16)을 같은 schema3/article_v2/Fed-body opt-in으로 dispatch했다. auth queue:max에 따라 순차 실행했고 두 실행 모두 분류 단계context.status_unbound로 실패했다. 두 recipient key와 raw자료는 ignored0700/0600에 보존한다.
+
+
+### 2026-10-27 분류 입력·관측값 정책 후속 수리
+
+두 실제 artifact의1call prompt/stdout SHA를 각각 확인했다. 40357554455는 SEC 공지의 complement/status span이 단어 중간에서 잘렸다. 40357557379는 제안(proposed)·지원하지 않는 복수형 release를 actual text frame으로 강제하고 일부 actor/value span도 잘랐다. Fed statement title 자체의 원문 frame은 유효했다. 검증기는 이 응답들을 계속 거절하며 출력0건을 합격으로 세지 않는다.
+
+article_v2에만 기존 prove_text_assertion을 통과한 원문의 subject/action/value/assertion 좌표 힌트를 제공한다. 영어·한국어를 지원하고 영어 will/plans to/expects to는forecast를 유지한다. 질문·부정·unsupported numeric text에는 actual hint를 만들지 않는다. 다중 단어 한국어 기관명에 조사처럼 보이는 음절이 중복되면 actor를 잘라 제안하지 않고 기존 exact-ref 경로를 유지한다. 검증기 허용 문법을 확장하거나 원문을 교정한 것이 아니다. source/frame hints bytes도24KiB evidence에 포함하며 schema/지시문/필수ID512bytes 여유를 실제 계산해 전체32KiB를 지킨다.
+
+BLS/BEA adapter가 window.start를 observed_at/published_at에 넣는 코드와 최신 observation 조회를 확인했다. 새 profile은 실제 source-dated event 또는 required actual이 없는 통계 관측값을 reference로 배치한다. 후보96개 이전의 news 예약24개에서도 이를 적용해 공식 발표·국내 뉴스가 관측 통계에 밀리지 않게 했다. 기존 role_v1의 기본 selector/buffer/prompt bytes는 그대로다. 과거 Fed target은 과거 원문을 현재 수집하는 시험이며 다른 최신 관측 통계를 과거 시점에 알려졌던 정보로 인수하지 않는다.
+
+최종 집중211 PASS/17.30초·native57variants/12groups PASS·Ruff841/mypy355 PASS. 독립 review의97tests PASS, 기존role_v1 0/1/5/25docs×3markets exact buffer/prompt bytes 동일을 확인했다. 발견한 질문 hint, 뉴스 예약, 한국어 누락/기관명 절단 지적을 회귀로 수리했고 잔여P1/P2없음을 재확인했다. 후속 exact source CI와 실제 재실행을 별도로 결속하며 human0/12·slot0/8·예약0은 유지한다.
