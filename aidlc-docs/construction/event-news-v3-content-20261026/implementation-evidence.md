@@ -62,3 +62,12 @@ article_v2에만 기존 prove_text_assertion을 통과한 원문의 subject/acti
 BLS/BEA adapter가 window.start를 observed_at/published_at에 넣는 코드와 최신 observation 조회를 확인했다. 새 profile은 실제 source-dated event 또는 required actual이 없는 통계 관측값을 reference로 배치한다. 후보96개 이전의 news 예약24개에서도 이를 적용해 공식 발표·국내 뉴스가 관측 통계에 밀리지 않게 했다. 기존 role_v1의 기본 selector/buffer/prompt bytes는 그대로다. 과거 Fed target은 과거 원문을 현재 수집하는 시험이며 다른 최신 관측 통계를 과거 시점에 알려졌던 정보로 인수하지 않는다.
 
 최종 집중211 PASS/17.30초·native57variants/12groups PASS·Ruff841/mypy355 PASS. 독립 review의97tests PASS, 기존role_v1 0/1/5/25docs×3markets exact buffer/prompt bytes 동일을 확인했다. 발견한 질문 hint, 뉴스 예약, 한국어 누락/기관명 절단 지적을 회귀로 수리했고 잔여P1/P2없음을 재확인했다. 후속 exact source CI와 실제 재실행을 별도로 결속하며 human0/12·slot0/8·예약0은 유지한다.
+
+
+### 분류 통과 후 작성 계약 후속 수리
+
+source a155ba49의 원격CI40362454442 SUCCESS: 7,548 PASS/1knownskip/778.52초·Node39·Ruff841/mypy355·strictMkDocs8.04초를 확인했다. 전체CI와 비게시 실험은 독립 검증으로 병행하며 어떤 preview 결과도 CI·사람 수용을 대신하지 않는다. 실제40362650269(target10-23),40362653934(target09-16)는 모두 분류를 통과한 뒤 composition_invalid로 실패했다. 각2calls의 recordings 해시를 확인했다. SEC 초안은2문단이지만 attributed_actor_ref가 claim.source_refs에 빠졌고, Fed 초안은8문장으로 공식 이유·경제활동·날짜를 설명했으나 fact kind4개에 canonicalfact_ids가 없었다. 최종봉인0이므로 actual 인수로 세지 않는다.
+
+SentenceClaim의 기존 runtime 조건을 모델용 JSON schema의 조건부allOf4개에 노출했다(빈factID, actor누락, 조건근거누락, 관측상태는 계속거절). 원문 상세는 기존 attributed_explanation에 source actor를 명시하고, entity.identity_refs·관련refs 포함 규칙을 prompt에 고정했다. 일반 topic은 한국어로 번역하고 숫자/기관명 원문 토큰은 보존한다. source scope나 validator를 완화한 것이 아니다.
+
+Fed 실제초안에 쓰인 인플레이션·실업률·성명 등 일반금융/자료 개념이 기관명으로 오인될 수 있음을 수리했다. 알려진 개념의 조사결합만 제외하며 물가테크·인플레이션은행은 계속unknown organization으로 거절한다. 영어 원문에 근거한 자연스러운 한국어 문장의양성과 가짜기관명2종 음성으로 검증했다. 집중214 PASS/16.54초·Ruff841/mypy355, 독립52+30tests PASS/잔여P1/P2없음, 최대48KiB evidence 포함 작성prompt58,703bytes<64KiB를 확인했다. exact 후속CI와 실제생성 결과는 아래에 결속한다.

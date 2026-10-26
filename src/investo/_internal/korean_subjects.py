@@ -76,6 +76,35 @@ _CONCEPTS = frozenset(
         "가정",
         "한계",
         "부분",
+        "성명",
+        "조치",
+        "목표",
+        "금리",
+        "기준금리",
+        "정책금리",
+        "목표범위",
+        "인상",
+        "인하",
+        "동결",
+        "인플레이션",
+        "물가",
+        "고용",
+        "실업률",
+        "경제활동",
+        "생산성",
+        "자본투자",
+        "투자",
+        "국내지출",
+        "지출",
+        "지급준비금",
+        "불확실성",
+        "증가",
+        "발행일",
+        "지표",
+        "실제치",
+        "비교값",
+        "이전값",
+        "수준",
     }
 )
 _MODIFIER = re.compile(r"[가-힣]+(?:하는|되는|있는|없는|같은|않는|따른|위한)$")
@@ -86,6 +115,10 @@ def korean_entity_subjects(text: str) -> Iterator[str]:
     for match in _SUBJECT.finditer(text):
         token = match.group().strip()
         label = match.group(1)
-        if _MODIFIER.fullmatch(token) or label in _CONCEPTS:
+        concept = label in _CONCEPTS or any(
+            label.endswith(suffix) and label[: -len(suffix)] in _CONCEPTS
+            for suffix in ("에", "에서", "에게", "에게서", "으로", "로")
+        )
+        if _MODIFIER.fullmatch(token) or concept:
             continue
         yield label

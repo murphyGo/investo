@@ -8313,3 +8313,8 @@ After exact CI/Pages success and no queued/running daily jobs, private REVIEWED_
 ## 2026-10-27 — actual 분류 실패 수리
 
 사용자 개발/계속 진행 승인 지속. 후속 exact source826eb3ee CI40285888771 SUCCESS7523/1skip 후 두 실제 비게시 실행40357554455/40357557379를 수행했으나 classification.status_unbound로 실패했다. private 모델1call씩의 SHA와 원문을 대조해 잘린span·지원하지 않는actual frame을 확인했다. 기존 prover를 통과하는 source coordinate hint, 한국어 다중 단어 actor 모호성 보존, future/actual 구별, 후보/편집 모두의 관측 통계reference, 실제 Stage1전체32KiB 계산을 새profile에만 수리했다. 집중211/native57 PASS·Ruff841/mypy355·독립97tests PASS/잔여P1/P2없음. human/slot/예약 합격은 만들지 않았다. exact후속CI와actual결과는 구현증거에 계속 기록한다.
+
+
+## 2026-10-27 — 분류 통과와 writer schema 정합 수리
+
+sourcea155ba49 CI40362454442 SUCCESS. 실제40362650269/40362653934는 분류를 통과했지만 actor proof 누락 및 빈 canonical fact ID로 composition_invalid다. Fed8문장도 봉인되지 않아 합격으로 세지 않는다. 기존 validator의4조건을 JSON schema에 명시하고 actor/ref/한국어topic 지침을 구체화했다. 일반금융개념과 조사결합의 entity falsepositive를 수정하며 unknown조직 음성을 유지했다. 집중214·독립52+30·정적검사 PASS, 원문/예산/운영/사람 gate 유지.

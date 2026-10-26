@@ -5,7 +5,7 @@ from __future__ import annotations
 from hashlib import sha256
 from typing import Annotated, Literal, Self
 
-from pydantic import Field, StrictInt, model_validator
+from pydantic import ConfigDict, Field, StrictInt, model_validator
 
 from investo.models.event_context import ContextRef, ReactionContext
 from investo.models.event_identity import EntityBinding, FactBinding
@@ -13,7 +13,7 @@ from investo.models.events import Digest, EventId, EventModel
 
 ARTICLE_POLICY = (
     "article-v2-20261027:literal-frame-hints:observation-reference:source-summary:"
-    "literal-proof:review:600,900,600,900,600:3900"
+    "literal-proof:explicit-linked-evidence:review:600,900,600,900,600:3900"
 )
 ARTICLE_POLICY_HASH = sha256(ARTICLE_POLICY.encode()).hexdigest()
 ARTICLE_FAILURE_CODES = frozenset(
@@ -156,6 +156,49 @@ class ArticleNarrative(EventModel):
 
 
 class SentenceClaim(EventModel):
+    # Expose the existing conditional requirements to the writer's JSON schema.
+    model_config = ConfigDict(
+        json_schema_extra={
+            "allOf": [
+                {
+                    "if": {"properties": {"kind": {"const": "fact"}}},
+                    "then": {"required": ["fact_ids"], "properties": {"fact_ids": {"minItems": 1}}},
+                },
+                {
+                    "if": {"properties": {"kind": {"const": "attributed_explanation"}}},
+                    "then": {
+                        "required": ["attributed_actor_ref"],
+                        "properties": {"attributed_actor_ref": {"not": {"type": "null"}}},
+                    },
+                },
+                {
+                    "if": {"properties": {"kind": {"const": "conditional_analysis"}}},
+                    "then": {
+                        "required": ["mechanism_refs", "assumption_refs"],
+                        "properties": {
+                            "mechanism_refs": {"minItems": 1},
+                            "assumption_refs": {"minItems": 1},
+                        },
+                    },
+                },
+                {
+                    "if": {"properties": {"kind": {"const": "observation"}}},
+                    "then": {
+                        "required": ["observation"],
+                        "properties": {
+                            "observation": {
+                                "not": {"type": "null"},
+                                "properties": {
+                                    "status": {"const": "observed"},
+                                    "attribution": {"const": "coincidence_only"},
+                                },
+                            }
+                        },
+                    },
+                },
+            ]
+        }
+    )
     claim_id: LocalId
     kind: Literal["fact", "attributed_explanation", "conditional_analysis", "observation"]
     fact_ids: Annotated[tuple[Digest, ...], Field(max_length=8)] = ()

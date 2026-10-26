@@ -52,6 +52,42 @@ def test_fact_refs_are_required_even_for_source_explanation():
         validate_composition(altered, draft.article_readiness[0].packet, draft, observed_at=NOW)
 
 
+@pytest.mark.parametrize("organization", [None, "물가테크", "인플레이션은행"])
+def test_translated_financial_concepts_are_not_new_organization_aliases(organization):
+    _, draft, composition, _ = article_case(
+        detail=(
+            "Acme explained that inflation remains elevated, productivity is strong "
+            "and the unemployment rate has changed little."
+        )
+    )
+    text = (
+        "Acme는 인플레이션이 여전히 높고 생산성은 강하며 "
+        "실업률에는 변화가 거의 없다고 설명했습니다."
+    )
+    if organization:
+        text = f"Acme는 {organization}가 Widget을 출시했다고 설명했습니다."
+    sentence = composition.narrative.sentences[1].model_copy(update={"text": text})
+    changed = composition.model_copy(
+        update={
+            "narrative": composition.narrative.model_copy(
+                update={
+                    "blocks": (
+                        composition.narrative.blocks[0],
+                        composition.narrative.blocks[1].model_copy(
+                            update={"sentences": (sentence,)}
+                        ),
+                    ),
+                }
+            )
+        }
+    )
+    if organization:
+        with pytest.raises(ValueError, match="entity_unsupported"):
+            validate_composition(changed, draft.article_readiness[0].packet, draft, observed_at=NOW)
+    else:
+        validate_composition(changed, draft.article_readiness[0].packet, draft, observed_at=NOW)
+
+
 def test_invented_observation_asset_time_and_values_are_not_source_proof():
     _, draft, composition, _ = article_case()
     claim = composition.claims[0]
