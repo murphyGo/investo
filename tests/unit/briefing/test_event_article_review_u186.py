@@ -88,6 +88,39 @@ def test_translated_financial_concepts_are_not_new_organization_aliases(organiza
         validate_composition(changed, draft.article_readiness[0].packet, draft, observed_at=NOW)
 
 
+@pytest.mark.parametrize(
+    "reporter", ["밝혔습니다", "명시돼 있습니다", "기재돼 있습니다", "기재됐습니다", None]
+)
+def test_reported_source_metadata_wording_still_requires_explicit_attribution(reporter):
+    _, draft, composition, _ = article_case()
+    text = "Acme 자료에는 Widget의 revenue에 서비스 접근 범위 확대가 반영됐다고 "
+    text = (
+        text + reporter + "."
+        if reporter
+        else "Acme Widget의 revenue에 서비스 접근 범위 확대가 반영됐다."
+    )
+    sentence = composition.narrative.sentences[1].model_copy(update={"text": text})
+    changed = composition.model_copy(
+        update={
+            "narrative": composition.narrative.model_copy(
+                update={
+                    "blocks": (
+                        composition.narrative.blocks[0],
+                        composition.narrative.blocks[1].model_copy(
+                            update={"sentences": (sentence,)}
+                        ),
+                    ),
+                }
+            )
+        }
+    )
+    if reporter:
+        validate_composition(changed, draft.article_readiness[0].packet, draft, observed_at=NOW)
+    else:
+        with pytest.raises(ValueError, match="attribution_missing"):
+            validate_composition(changed, draft.article_readiness[0].packet, draft, observed_at=NOW)
+
+
 def test_invented_observation_asset_time_and_values_are_not_source_proof():
     _, draft, composition, _ = article_case()
     claim = composition.claims[0]
