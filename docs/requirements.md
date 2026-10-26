@@ -502,6 +502,10 @@ marketcap/BTCdominance,USD-linkedstablecoinsupply/chainTVL,BTCfunding/OI,optiona
 
 normative 초안: [Program](../aidlc-docs/construction/public-insights-20261012/README.md), [공통계약](../aidlc-docs/construction/public-insights-20261012/contracts.md).
 
+
+### u187 amendment: calendar and interpretable chart presentation (2026-10-26)
+
+FR-028 now defaults to a30-day month grid with bounded month/day navigation and a selected-date agenda;7-day/category filters remain available. Exact KST and source date-only/period events keep explicit, distinct clock labels. FR-027/029 charts show named axes, units, linear scale and visible domain; maturity uses actual years and history uses actual day distances with gaps. Exact tables and source notices remain readable on script failure. No source, rights, model, collection or publication-clock change. AC187.1–7 and focused NFR/design: [u187](../aidlc-docs/construction/u187-public-insights-calendar-and-chart-ui/design.md).
 ## FR-024 후속 — 실제 자동 기사의 내용 충실도 (2026-10-26 설계)
 
 승인된 사건별 기사형 산문·선택적 표/목록·하단 공통 안내를 실제 자동 producer에서도 달성한다. 기존 FR-024 코드 완료 항목은 기반 버전에 대한 이력으로 유지하며 아래 확장은 미구현이다.

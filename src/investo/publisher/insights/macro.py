@@ -24,6 +24,7 @@ from investo.models.insights_macro import (
     SPREAD_RECIPES,
     difference_exact,
 )
+from investo.publisher.insights.chart_view import render_yield_curve
 
 _GROUPS = (
     ("주요 관측", ("ust_2y", "ust_10y", "ust_10y_2y_bp", "usd_krw_h10")),
@@ -131,47 +132,6 @@ def _card(mid: str, row: ValidatedInsightMetric | None, history: InsightHistory 
     )
 
 
-def _curve(rows: dict[str, ValidatedInsightMetric]) -> str:
-    ids = ("ust_3m", "ust_2y", "ust_10y", "ust_30y")
-    selected = [rows.get(mid) for mid in ids]
-    complete = all(row is not None and not row.last_good for row in selected)
-    dates = {row.time.local_date for row in selected if row is not None}
-    complete = complete and len(dates) == 1
-    table = (
-        "<table><caption>원천 기준일별 4개 만기 관측</caption><thead><tr>"
-        '<th scope="col">만기</th><th scope="col">금리</th><th scope="col">기준일</th>'
-        "</tr></thead><tbody>"
-    )
-    for mid in ids:
-        row = rows.get(mid)
-        value = number(row.value) + " %" if row else "—"
-        stamp = str(row.time.local_date) if row else "미확인"
-        table += f'<tr><th scope="row">{escape(MACRO_BY_ID[mid].label)}</th><td>{value}</td><td>{stamp}</td></tr>'
-    table += "</tbody></table>"
-    if not complete:
-        return "<p>같은 날짜의 네 만기 자료가 모이면 비교 그림을 표시합니다.</p>" + table
-    values = [row.value for row in selected if row is not None]
-    low, high = min(values), max(values)
-    span = high - low or Decimal(1)
-    points = [
-        (40 + i * 120, 120 - float((value - low) / span) * 80) for i, value in enumerate(values)
-    ]
-    poly = " ".join(f"{x},{y:.2f}" for x, y in points)
-    labels = "".join(
-        f'<text x="{x}" y="150" text-anchor="middle">{label}</text>'
-        for (x, _), label in zip(points, ("3M", "2Y", "10Y", "30Y"), strict=True)
-    )
-    return (
-        '<svg class="insights-curve" viewBox="0 0 440 170" role="img" aria-labelledby="macro-curve-title macro-curve-desc">'
-        '<title id="macro-curve-title">미 국채 네 만기 비교</title>'
-        '<desc id="macro-curve-desc">3개월, 2년, 10년, 30년의 관측점만 연결합니다. 만기 간격은 동일 간격으로 배치했습니다. 정확한 수치는 다음 표에 있습니다.</desc>'
-        f'<polyline points="{poly}" fill="none" stroke="currentColor" stroke-width="3"/>'
-        + labels
-        + "</svg>"
-        + table
-    )
-
-
 def _history(module: ValidatedInsightModule) -> str:
     return (
         "<p>선택하면 같은 정의의 최근 30개 관측을 불러옵니다.</p>"
@@ -216,7 +176,9 @@ def render_macro(
         body.extend(_card(mid, rows.get(mid), history) for mid in ids)
         body.append("</div></section>")
         if title == "국채 만기와 금리차":
-            body.append('<section aria-label="만기 비교">' + _curve(rows) + "</section>")
+            body.append(
+                '<section aria-label="만기 비교">' + render_yield_curve(rows) + "</section>"
+            )
     body.append(
         '<section aria-label="관측 이력"><h2>관측 이력</h2>' + _history(module) + "</section>"
     )

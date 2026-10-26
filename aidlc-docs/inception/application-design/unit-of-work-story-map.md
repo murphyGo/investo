@@ -688,3 +688,11 @@ Evidence: `aidlc-docs/construction/source-reliability-20261009/review.md`. Four 
 | u186 article-semantic-review-and-readiness | 사실과 내용이 검증된 자동 기사 | US-002/003/005/007; FR-002/006/007/017/021/023/024/025 | u169 runner/u159/u172 평가; u184/u185; actual/human/rollout은 u172 |
 
 [설계](../../construction/event-news-v3-content-20261026/README.md). FD/NFR 작성, 코드0/6씩. 새 FR 번호나 중복 source/rollout unit을 만들지 않는다. u184→u185→u186→기존u172 실제 인수 순서이며 u173 qualification은 별도 수행 가능하다. 편집 정책 승인·설계 작성은 실제 자동 생성/사람/운영 합격이 아니다.
+
+## u187 — Public Insights calendar and chart UI
+
+| Unit | User-visible outcome | Stories / requirements | Existing owner / dependencies |
+| --- | --- | --- | --- |
+| u187 public-insights-calendar-and-chart-ui | 월간 달력·날짜 상세와 의미·단위·스케일이 보이는 그래프 | US-011/012/013; FR-026/027/028/029; NFR-002/004/005/008 | u180 validated snapshots/publication, u181 macro, u182 calendar, u183 crypto; source permissions and scheduled acceptance unchanged |
+
+[Plan](../../construction/plans/u187-public-insights-calendar-and-chart-ui-code-generation-plan.md). Presentation only; no source collection, derived historical observations, schema changes or independent scheduler.

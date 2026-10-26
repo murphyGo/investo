@@ -3086,3 +3086,15 @@ Evidence: [25 executed runs /44 sources](../../construction/source-reliability-2
 **Module path**: briefing/event_article_review.py·event_document.py·_core/orchestration.py·claude_code.py, models/event_config.py·event_article.py·event_quality.py, publisher/event_quality.py·quality_consistency.py·public_document.py, scripts/_event_coverage_replay.py·check_event_coverage.py·preview_event_briefing.py, ops/private-runtime/event-preview.yml.
 
 **Definition of Done**: AC-186.1–6: normal3/최대5 calls·3900초 shared deadline, semantic/hard gate 분리, 단일 batch repair+재검증, terminal readiness, 실제 corpus/human 별도 인계. [구현 계획](../../construction/plans/u186-article-semantic-review-and-readiness-code-generation-plan.md). 유료 evaluator·무한 retry·human 점수 자동화·운영 활성화 없음.
+
+### u187: `public-insights-calendar-and-chart-ui` — 달력과 해석 가능한 그래프
+
+**Purpose**: 주요 일정을 월간 달력과 날짜별 상세로 탐색하고, 금리·관측 이력의 축 의미·단위·선형 범위를 읽는다.
+
+**Stories / FR / NFR**: US-011/012/013; FR-026/027/028/029; NFR-002/004/005/008.
+
+**Existing Coverage / Dependencies**: u180 validated snapshot/history/publication contract; u181 macro, u182 calendar, u183 crypto; existing Material theme and private runtime. Source qualification and genuine scheduled acceptance remain their existing owners.
+
+**Module path**: publisher/insights/calendar.py, calendar_grid.py, macro.py, chart_view.py; site_docs/assets/insights*.js/css; pinned uPlot1.6.32 and mkdocs.yml.
+
+**Definition of Done**: AC187.1–7: bounded month/day filters, explicit KST/source dates, actual maturity/date distances, visible axis/domain/exact-value table, honest gaps/one observation, failure/no-JS/lifecycle/accessibility verification, unchanged current/history/snapshot/source clocks with coherent manifest index hashes. [Plan](../../construction/plans/u187-public-insights-calendar-and-chart-ui-code-generation-plan.md).

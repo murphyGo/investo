@@ -52,7 +52,10 @@ jobs:
       - name: Chart client behavior
         run: |
           node --check site_docs/assets/investo-chart-init.js
-          node --test tests/js/test_investo_chart_init_u175.cjs
+          node --check site_docs/assets/insights-calendar.js
+          node --check site_docs/assets/insights-charts.js
+          node --check site_docs/assets/insights.js
+          node --test tests/js/test_investo_chart_init_u175.cjs tests/js/test_insights_charts_calendar_u187.cjs
 
       - name: Anthropic SDK guard
         run: uv run python scripts/check_no_anthropic_sdk.py

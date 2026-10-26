@@ -8290,3 +8290,16 @@ preview658be680 / production873cea37 / existing schema-two active. No operationa
 ## 2026-10-26 — article_v2 개발 승인·Code Generation
 
 사용자 “개발 진행시켜”, “gogo”로 u184–u186의 공통 Functional/NFR 설계와 구현 진행을 승인했다. dirty root를 보존한 별도 worktree, 기준4e3fccad에서 구현했다. 원문 packet→한국어 claim narrative→별도 CLI review/1회 repair→기존 finalizer를 연결했다. 독립 코드 reviewer2명의 실제 finding을 수리하고 전체/집중/정적/정책/docs 검증을 진행한다. Fed2개 scoped body 실측200/CFTC403 blocked를 기록하며 production source/profile 활성화와 사람 점수는 만들지 않는다. 상세: `construction/event-news-v3-content-20261026/implementation-evidence.md`.
+
+
+## 2026-10-26 u187 UI refinement entry
+
+User asked for a calendar UI and graphs with meaningful axes/scales and followed with “gogo”. Proceed with bounded presentation design/implementation/validation. Read current renderers, current source/policy/receipt contracts, existing Lightweight Charts usage and official uPlot documentation. Select native month grid and pinned MIT uPlot1.6.32 for temporal/numeric linear axes; current rights, source clocks and original tables remain authoritative. No new source/scheduler/LLM/Telegram. Focused FD/NFR recorded before code; dirty root preserved in isolated02a5ad7a checkout. No unit scheduled acceptance is inferred.
+
+## 2026-10-26 u187 calendar and chart delivery
+
+Concurrent main reserved u184–u186; the UI unit was renamedu187 without altering those designs. Focused design, month/calendar implementation, pinned self-hosted MIT uPlot1.6.32, explicit linear axis/domain/exact tables, source-date preservation, no-JS/failure/lifecycle behavior are complete. Independent review fixed Decimal tick termination and distributed128event HTML budget; final C/H/M0. Local Python41/Node39, strict build,48actual-source browser conditions and8geometry/failure checks passed; synthetic DST fall-back preserved exact instants/source dates.
+
+Publiccefb6f304e1bb49b6e309791ecf99707f72cf9e8 quality40256890563 SUCCESS7477/1knownskip and bounded runtime2619455c4099c33fbb1362655c4cc206aed8276c quality40256730014 SUCCESS7360/1knownskip; both Node39 and policy/static/build guards passed. Main fast-forward and Pages40258018352 SUCCESS were remote-confirmed. Production HTTPS14static files plus3HTMLsnapshots and12Chromium cases passed. Existing5current/history files,3snapshot/evaluated clocks and qualification hash2ac7295452d2fdc5f5c86af850d667f363bfd0a16537950e1dbe98988c7e28f5 were preserved. Manifest index_hash changed coherently for2new screen files. No source/LLM/Telegram call or scheduled increment.
+
+After exact CI/Pages success and no queued/running daily jobs, private REVIEWED_CODE_SHA changed873cea37→2619455c and was read back; active/macro,calendar,crypto and workflowblob48053314990ab7632a8d389d339a8529c820965d are unchanged. Other source/event/human gates remain separate. Root dirty files are identical to entry. Unit6/6 complete; follow-up documentation changes contain no application/site/runtime bytes.

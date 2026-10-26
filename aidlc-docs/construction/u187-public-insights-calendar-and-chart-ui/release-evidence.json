@@ -1,0 +1,212 @@
+{
+  "unit": "u187-public-insights-calendar-and-chart-ui",
+  "public_candidate": "cefb6f304e1bb49b6e309791ecf99707f72cf9e8",
+  "runtime_candidate": "2619455c4099c33fbb1362655c4cc206aed8276c",
+  "previous_runtime": "873cea37c878da3f9363d2457aa2a4c5a01db3fb",
+  "public_quality_run": 40256890563,
+  "runtime_quality_run": 40256730014,
+  "status": "delivered and live verified",
+  "local_validation": {
+    "focused_python_passed": 41,
+    "bounded_runtime_python_passed": 34,
+    "node_passed": 39,
+    "ruff_formatted_files": 826,
+    "mypy_source_files": 348,
+    "strict_preview": "pass",
+    "browser_actual_source_cases": 48,
+    "browser_geometry_failure_checks": 8,
+    "dst_fall_back_synthetic": "pass",
+    "independent_review_unresolved": {
+      "critical": 0,
+      "high": 0,
+      "medium": 0
+    }
+  },
+  "bounded_release_checks": {
+    "same_application_asset_test_files": 17,
+    "preserved_current_history_files": 5,
+    "source_policy_sha256": "2ac7295452d2fdc5f5c86af850d667f363bfd0a16537950e1dbe98988c7e28f5",
+    "source_calls": 0,
+    "llm_calls": 0,
+    "telegram_calls": 0,
+    "scheduled_acceptance_increment": 0
+  },
+  "public_quality": {
+    "run": 40256890563,
+    "conclusion": "success",
+    "python_passed": 7477,
+    "python_skipped": 1,
+    "python_seconds": 622.85,
+    "node_passed": 39
+  },
+  "runtime_quality": {
+    "run": 40256730014,
+    "conclusion": "success",
+    "python_passed": 7360,
+    "python_skipped": 1,
+    "python_seconds": 782.75,
+    "node_passed": 39
+  },
+  "pages": {
+    "run": 40258018352,
+    "conclusion": "success",
+    "head_sha": "cefb6f304e1bb49b6e309791ecf99707f72cf9e8"
+  },
+  "live_identity": {
+    "insights/_data/manifest.json": "d46e18188cf77d03adf06bc75b8ba4dbc8bb576726d6e4a21678ee744999b510",
+    "insights/_data/macro/current.json": "45d3e0ee70c45becd8d18a7b21f1222d27968b87f0c025fe22ced9e2e2bfefc6",
+    "insights/_data/macro/history.json": "c3a0c1a458ac2d99039480e5d10fc693609063d67cf1ced0f579772266ab38f7",
+    "insights/_data/calendar/current.json": "840aa7a9037b7e8b27b328d50a97efe62cb46d658cc04902d89c4955245b67c4",
+    "insights/_data/crypto/current.json": "900eaf37c2adae7e035671efbea0045aa55b32a455c1575850d8955ce0926b60",
+    "insights/_data/crypto/history.json": "e8c2e644b6f27740808c1f0acc93f39aa171963420c0ee920e80c16cc2482002",
+    "assets/insights-charts.js": "7197064a64a6a22f2e00c7258940bc580d4b4f2a91e4ea6737283afac5abc10d",
+    "assets/insights-calendar.js": "19b4289d83d4a33b70e4f7b72f5b8f091e5eb0f587068213563bd817d24df6e1",
+    "assets/insights.js": "03ec16ca3b856ca17852b2064eb4d3205b18da8d3709f3e254a39f6c69e5cf79",
+    "assets/insights.css": "0a6717a05ee34f7e689cd511a792e9188183e5009f2feb760e52a71c49989033",
+    "assets/vendor/uplot-1.6.32/uPlot.iife.min.js": "19c8d4c6ad88929a79f4ae49d6f7161566dfd0ba3d15cc495e974f787eb78f1f",
+    "assets/vendor/uplot-1.6.32/uPlot.min.css": "df630c6a8d6f8eeaff264b50f73ce5b114f646ffd9a0bb74f049b0a00135fa04",
+    "assets/vendor/uplot-1.6.32/LICENSE.txt": "8f989229699b4fe2f1a0432d0e9edc338a8a911e250e2d1b01ecd770a5f5b1bd",
+    "assets/vendor/uplot-1.6.32/provenance.json": "2da4d51fde08082c523edf3866e2d92e01f86d010deff7347f02d83d798d3137",
+    "insights/macro/": {
+      "snapshot_id": "803be3c68af11618d980445510a624ac180962cb8de2d8f8f4606525a980f96d",
+      "new_ui": true
+    },
+    "insights/calendar/": {
+      "snapshot_id": "eb83bc5543a7d719603fa43e467cd422dde092c84ce34c696189b3d0ce3bda11",
+      "new_ui": true
+    },
+    "insights/crypto/": {
+      "snapshot_id": "870df3a24e39e63727141a0734b1f6588a0192662af6c043fc8cc1775525c24a",
+      "new_ui": true
+    }
+  },
+  "live_browser": {
+    "kind": "production Pages; no scheduled acceptance increments",
+    "cases": [
+      {
+        "viewport": "mobile",
+        "theme": "default",
+        "js": true,
+        "zoom": 1,
+        "module": "calendar",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "default",
+        "js": true,
+        "zoom": 1,
+        "module": "macro",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "default",
+        "js": true,
+        "zoom": 1,
+        "module": "crypto",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "slate",
+        "js": true,
+        "zoom": 1,
+        "module": "calendar",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "slate",
+        "js": true,
+        "zoom": 1,
+        "module": "macro",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "mobile",
+        "theme": "slate",
+        "js": true,
+        "zoom": 1,
+        "module": "crypto",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "default",
+        "js": true,
+        "zoom": 1,
+        "module": "calendar",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "default",
+        "js": true,
+        "zoom": 1,
+        "module": "macro",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "default",
+        "js": true,
+        "zoom": 1,
+        "module": "crypto",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "slate",
+        "js": true,
+        "zoom": 1,
+        "module": "calendar",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "slate",
+        "js": true,
+        "zoom": 1,
+        "module": "macro",
+        "overflow": false,
+        "errors": []
+      },
+      {
+        "viewport": "desktop",
+        "theme": "slate",
+        "js": true,
+        "zoom": 1,
+        "module": "crypto",
+        "overflow": false,
+        "errors": []
+      }
+    ]
+  },
+  "runtime_promotion": {
+    "before": {
+      "REVIEWED_CODE_SHA": "873cea37c878da3f9363d2457aa2a4c5a01db3fb",
+      "INVESTO_INSIGHTS_MODE": "active",
+      "INVESTO_INSIGHTS_MODULES": "macro,calendar,crypto"
+    },
+    "after": {
+      "REVIEWED_CODE_SHA": "2619455c4099c33fbb1362655c4cc206aed8276c",
+      "INVESTO_INSIGHTS_MODE": "active",
+      "INVESTO_INSIGHTS_MODULES": "macro,calendar,crypto"
+    },
+    "workflow_blob_unchanged": "48053314990ab7632a8d389d339a8529c820965d",
+    "active_or_pending_runs": 0,
+    "exact_ci_and_pages_success": true
+  },
+  "root_dirty_work_preserved": true
+}

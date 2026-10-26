@@ -24,6 +24,10 @@ build/
 
 # Go
 vendor/
+# Pinned browser plotting package, audited with per-file hashes.
+!site_docs/assets/vendor/
+site_docs/assets/vendor/*
+!site_docs/assets/vendor/uplot-1.6.32/
 *.test
 *.out
 
