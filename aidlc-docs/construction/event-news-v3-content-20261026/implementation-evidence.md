@@ -80,3 +80,8 @@ Fed 실제초안에 쓰인 인플레이션·실업률·성명 등 일반금융/�
 
 
 3ce805f4 Fed40372062551은7문장 작성 schema와 근거 소속을 통과했으나 source-supported ‘도움이 될 것’의 ‘도움’을 기관명으로 잡았다. 일반 지원/효과·금융지표 명사를 exact concept 목록으로 정리했다. 고유자산명·번역alias는 추가하지 않았으며 도움증권/성장세은행/현금흐름테크 등 임의 확장 기관명은 계속탐지한다. 독립54tests/Ruff/mypy PASS·잔여P1/P2없음, 원래7문장 source 재생composition_valid다. 도움을 설명하는 한국어 source 양성과 가짜 기관명 음성을 추가했다. actualAI review·봉인은 계속별도다.
+
+
+b226fa50 Fed40374766459은 source The Committee를 일반 역할 ‘위원회’로 쓴2문장을 기관명으로 거절했다. source-bound 역할 대응은 위원회라는 정확한 단어와 **그 주장의 source refs**에 있는 committee만 연결한다. 다른packet의단어·subcommittee·가짜위원회·금융위원회는 허용하지 않고 canonical entity/alias도 추가하지 않는다. 원래4문장 source 재생은composition_valid, 독립58tests/Ruff/mypy PASS.
+
+내용상 기존 announcement fact만있다는 이유로 원문의 중요 변경폭/수준·비교를 생략하지 않도록 주제별what과writer/reviewer 지침을 구체화했다. 실제 원문에 있는 정보만 요구하고 수치·출처·최대5calls는 유지한다. missing material comparison→1회repair→재review→seal(1100USD가 최종본문에남음) 통합양성이 통과했다. 독립44tests/source4 정적PASS·최대evidence 포함작성prompt59,027bytes<64KiB·잔여P1/P2없음. 전체집중228 PASS/17.10초와정적검사PASS를 확인했다. actual의 최종내용합격은 다음producer에서 판정한다.

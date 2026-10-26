@@ -126,6 +126,15 @@ def build_article_packets(
             event.source_event.event_kind,
             "변경의 구체적 적용 범위와 확인된 맥락 또는 실행 조건은 무엇인가?",
         )
+        what = {
+            "monetary_policy": (
+                "무엇이 결정됐으며, 원문에 있는 변경 폭과 결정 후 금리 수준·범위는 무엇인가?"
+            ),
+            "earnings_result": (
+                "보고된 실제 결과와 기간은 무엇이며, 원문에 있는 주요 비교 기준은 무엇인가?"
+            ),
+            "regulation": "무엇이 발표·확정됐으며, 구체적인 적용 대상과 범위는 무엇인가?",
+        }.get(event.source_event.event_kind, "무엇이 실제로 달라졌는가?")
         packets.append(
             EventEvidencePacket(
                 event_id=event.event_id,
@@ -136,7 +145,7 @@ def build_article_packets(
                 passages=tuple(passages),
                 allowed_refs=tuple(dict.fromkeys(refs)),
                 questions=(
-                    ArticleQuestion(question_id="what", text="무엇이 실제로 달라졌는가?"),
+                    ArticleQuestion(question_id="what", text=what),
                     ArticleQuestion(question_id="when", text="언제 발생했으며 현재 어떤 상태인가?"),
                     ArticleQuestion(
                         question_id="why", text=why, required=event.source_event.impact != "context"

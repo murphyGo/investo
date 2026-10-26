@@ -22,7 +22,7 @@ from investo._internal.event_text_proof import (
     performed_actions,
     prove_text_assertion,
 )
-from investo._internal.korean_subjects import korean_entity_subjects
+from investo._internal.korean_subjects import is_source_role_subject, korean_entity_subjects
 from investo._internal.text import bound_at_sentence
 from investo.models.event_context import (
     ContextEventDraft,
@@ -92,7 +92,10 @@ def validate_claim(text: str, refs: Sequence[ContextRef], draft: EventEditionDra
         raise EventEditionValidationError("event.fact_unsupported")
     source_words = set(re.findall(r"[A-Za-z0-9_.-]+", _normal(source).casefold()))
     source_normal = _normal(source).casefold()
-    if any(label.casefold() not in source_normal for label in korean_entity_subjects(text)):
+    if any(
+        label.casefold() not in source_normal and not is_source_role_subject(label, source_words)
+        for label in korean_entity_subjects(text)
+    ):
         raise EventEditionValidationError("event.entity_unsupported")
     if any(
         match.group().rstrip(".").casefold() not in source_words | _ORDINARY_WORDS

@@ -192,3 +192,12 @@ def korean_entity_subjects(text: str) -> Iterator[str]:
         if _MODIFIER.fullmatch(token) or concept:
             continue
         yield label
+
+
+def is_source_role_subject(label: str, source_words: set[str]) -> bool:
+    """A generic role translation needs that role in the very same claim proof.
+
+    This does not license named bodies such as 금융위원회 or invented names
+    ending in 위원회, and never creates a canonical entity or alias.
+    """
+    return label == "위원회" and "committee" in source_words

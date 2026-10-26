@@ -117,6 +117,47 @@ def test_source_explanation_can_describe_help_without_an_invented_entity():
 
 
 @pytest.mark.parametrize(
+    "source_role,label",
+    [
+        ("Committee", "위원회"),
+        (None, "위원회"),
+        ("Committee", "가짜위원회"),
+        ("Committee", "금융위원회"),
+    ],
+)
+def test_generic_committee_translation_requires_same_claim_source_role(source_role, label):
+    detail = "Acme explained that "
+    detail += (
+        f"the {source_role} supports expanded service access."
+        if source_role
+        else "service access expands.\n\nThe Committee outlined rules."
+    )
+    _, draft, composition, _ = article_case(detail=detail)
+    sentence = composition.narrative.sentences[1].model_copy(
+        update={"text": f"Acme는 {label}가 서비스 접근 범위 확대를 지원한다고 설명했습니다."}
+    )
+    changed = composition.model_copy(
+        update={
+            "narrative": composition.narrative.model_copy(
+                update={
+                    "blocks": (
+                        composition.narrative.blocks[0],
+                        composition.narrative.blocks[1].model_copy(
+                            update={"sentences": (sentence,)}
+                        ),
+                    ),
+                }
+            )
+        }
+    )
+    if source_role and label == "위원회":
+        validate_composition(changed, draft.article_readiness[0].packet, draft, observed_at=NOW)
+    else:
+        with pytest.raises(ValueError, match="entity_unsupported"):
+            validate_composition(changed, draft.article_readiness[0].packet, draft, observed_at=NOW)
+
+
+@pytest.mark.parametrize(
     "reporter", ["밝혔습니다", "명시돼 있습니다", "기재돼 있습니다", "기재됐습니다", None]
 )
 def test_reported_source_metadata_wording_still_requires_explicit_attribution(reporter):

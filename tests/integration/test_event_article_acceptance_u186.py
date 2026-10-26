@@ -116,6 +116,77 @@ async def test_missing_explanation_repairs_batch_once():
 
 
 @pytest.mark.asyncio
+async def test_missing_material_source_comparison_is_repaired_and_survives_sealing():
+    item, draft, initial, review = article_case(
+        detail=(
+            "Acme explained that Widget revenue reflects expanded service access. "
+            "Acme presented FY2025 revenue of 1100 USD as the comparison."
+        )
+    )
+    sentence = initial.narrative.sentences[1].model_copy(
+        update={
+            "text": (
+                "Acme는 비교 기준인 FY2025 revenue 1100 USD를 제시하고 "
+                "서비스 접근 범위 확대가 Widget의 revenue에 반영됐다고 설명했습니다."
+            )
+        }
+    )
+    repaired = initial.model_copy(
+        update={
+            "narrative": initial.narrative.model_copy(
+                update={
+                    "blocks": (
+                        initial.narrative.blocks[0],
+                        initial.narrative.blocks[1].model_copy(update={"sentences": (sentence,)}),
+                    ),
+                }
+            ),
+            "answers": tuple(
+                a.model_copy(update={"sentence_ids": ("lead", "scope")})
+                if a.question_id == "what"
+                else a
+                for a in initial.answers
+            ),
+        }
+    )
+    missing = review.model_copy(
+        update={
+            "questions": tuple(
+                q.model_copy(update={"verdict": "missing"}) if q.question_id == "what" else q
+                for q in review.questions
+            )
+        }
+    )
+    accepted = review.model_copy(update={"draft_hash": repaired.draft_hash})
+    outputs = [
+        *responses(initial, missing, draft.editorial_plan.events[0].source_event),
+        ArticleCompositionBatch(articles=(repaired,)).model_dump_json(),
+        ArticleReviewBatch(articles=(accepted,)).model_dump_json(),
+    ]
+    calls = []
+
+    def runner(args, **kwargs):
+        calls.append(kwargs)
+        return subprocess.CompletedProcess(args, 0, outputs[len(calls) - 1], "")
+
+    result = await preview_event_briefing(
+        GenerationInput(
+            target_date=draft.target_date,
+            segment=draft.segment,
+            items=(item,),
+            runner=runner,
+            watchlist_config=WatchlistConfig(),
+            event_observed_at=NOW,
+            event_generation_policy=EventExecutionConfig(
+                mode="preview", document_schema=3, profile="article_v2"
+            ),
+        )
+    )
+    assert len(calls) == 5
+    assert "1100 USD" in result.finalized.documents[0].rendered_markdown
+
+
+@pytest.mark.asyncio
 async def test_semantic_causality_failure_cannot_publish_or_retry():
     item, draft, composition, review = article_case()
     failed = review.model_copy(
