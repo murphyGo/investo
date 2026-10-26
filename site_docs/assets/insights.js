@@ -46,7 +46,7 @@
           if (!definition || definition.metric.cadence !== (moduleId === "macro" ? "daily" : "snapshot") || definition.metric.metric_id !== card.dataset.metric || definition.metric.unit !== card.dataset.unit) continue;
           const rows = history.rows.filter(row => row.definition_key === card.dataset.comparisonKey && row.observation_key <= card.dataset.observation)
             .sort((a, b) => a.observation_key.localeCompare(b.observation_key)).slice(-30);
-          if (rows.length < 2) continue;
+          if (rows.length < 1) continue;
           if (rows.some(row => typeof row.value !== "string" || !Number.isFinite(Number(row.value)) || !/^\d{4}-\d{2}-\d{2}$/.test(row.observation_key))) throw new Error("value");
           const details = document.createElement("details");
           details.append(text("summary", `${definition.metric.label} · 최근 ${rows.length}개 관측`));
@@ -75,17 +75,8 @@
           }
           table.append(body); details.append(table); // Exact table survives optional chart failure.
           try {
-          const ns = "http://www.w3.org/2000/svg";
-          const svg = document.createElementNS(ns, "svg");
-          svg.setAttribute("viewBox", "0 0 440 140"); svg.setAttribute("role", "img");
-          svg.setAttribute("aria-label", `${definition.metric.label} 실제 표본 순서. 결측일 보간 없음. 정확한 날짜와 값은 앞 표.`);
-          svg.classList.add("insights-history");
-          const values = rows.map(row => Number(row.value)), low = Math.min(...values), high = Math.max(...values);
-          const line = document.createElementNS(ns, "polyline");
-          line.setAttribute("points", values.map((value, i) => `${20 + i * 400 / (values.length - 1)},${110 - (value - low) / (high - low || 1) * 80}`).join(" "));
-          line.setAttribute("fill", "none"); line.setAttribute("stroke", "currentColor"); line.setAttribute("stroke-width", "3");
-          svg.append(line); details.append(text("p", definition.attribution || definition.metric.provider), svg);
-          } catch { /* Keep the exact table if optional SVG enhancement fails. */ }
+            window.InvestoInsightCharts?.history(details, rows, definition, moduleId);
+          } catch { /* Preserve the exact table if a chart cannot represent the data. */ }
           fragment.append(details); groups++;
         }
         content.replaceChildren(fragment);

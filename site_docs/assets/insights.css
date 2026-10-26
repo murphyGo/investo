@@ -67,3 +67,65 @@ body:has(.insights-page) .investo-noscript-nav { background-color: var(--investo
 body:has(.insights-page) .md-sidebar .md-nav__link--active { color: var(--investo-accent) !important; }
 body:has(.insights-page) .investo-noscript-nav a,
 body:has(.insights-page) .investo-noscript-nav summary { color: var(--investo-ink); }
+
+/* u184: month grid and agenda. The source date basis is visible in every preview. */
+.insights-calendar .insights-hero { padding: 24px; }
+.insights-calendar .calendar-filters { display: flex; flex-wrap: wrap; gap: 12px; }
+.insights-calendar .calendar-filters fieldset { flex: 1 1 auto; padding: 4px 8px; margin: 12px 0; }
+.insights-calendar .calendar-filters button { margin: 2px; padding: 8px 12px; }
+.insights-calendar .calendar-board { margin-top: 16px; }
+.insights-calendar .calendar-month-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.insights-calendar .calendar-month-toolbar h2 { margin: 0; font-size: 1.45rem; font-weight: 700; }
+.insights-calendar .calendar-month-toolbar button { min-width: 44px; }
+.insights-calendar button:disabled { opacity: .45; cursor: default; }
+.insights-calendar .calendar-clock-key, .insights-calendar .calendar-window-note { font-size: .85rem; color: var(--investo-muted); }
+.insights-calendar .calendar-month-scroll { overflow-x: auto; border: 1px solid var(--investo-border); border-radius: 12px; }
+.insights-calendar .calendar-month-table { min-width: 322px; margin: 0; border: 0 !important; }
+.insights-calendar .calendar-month-table caption { padding: 12px; color: var(--investo-ink); font-weight: 700; }
+.insights-calendar .calendar-month-table th { width: 14.285%; text-align: center; padding: 10px 2px; background: var(--investo-soft); color: var(--investo-ink); }
+.insights-calendar .calendar-month-table td { width: 14.285%; vertical-align: top; padding: 0; border: 1px solid var(--investo-border); }
+.insights-calendar .calendar-day { display: block; min-height: 148px; height: 100%; padding: 6px; text-decoration: none; color: var(--investo-ink); border-radius: 4px; }
+.insights-calendar .calendar-day[aria-pressed="true"] { background: var(--investo-soft); outline: 3px solid var(--investo-accent); outline-offset: -3px; }
+.insights-calendar .calendar-day-number { display: inline-block; font-weight: 700; padding: 2px; }
+.insights-calendar .calendar-day-count { float: right; padding: 2px; font-size: .72rem; color: var(--investo-muted); }
+.insights-calendar .calendar-day-previews { display: grid; gap: 6px; margin-top: 6px; }
+.insights-calendar .calendar-preview { display: block; min-width: 0; padding: 5px; border-left: 3px solid var(--investo-accent); background: var(--investo-soft); border-radius: 3px; }
+.insights-calendar .calendar-preview[data-category="central_bank"] { border-left-style: double; border-left-width: 5px; }
+.insights-calendar .calendar-preview[data-category="treasury_auction"] { border-left-style: dashed; }
+.insights-calendar .calendar-preview-title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: .72rem; line-height: 1.4; font-weight: 600; }
+.insights-calendar .calendar-preview-clock, .insights-calendar .calendar-preview-category { display: block; font-size: .62rem; line-height: 1.5; margin-top: 2px; color: var(--investo-muted); }
+.insights-calendar .calendar-day-more { display: block; font-size: .7rem; margin-top: 3px; }
+.insights-calendar .calendar-outside { color: var(--investo-muted); background: var(--investo-soft); }
+.insights-calendar .calendar-outside-label { display: block; font-size: .6rem; padding: 4px; }
+.insights-calendar .calendar-agenda-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.insights-calendar .calendar-agenda-heading h2 { scroll-margin-top: 150px; }
+@media (max-width: 640px) {
+  .insights-calendar .calendar-day { min-height: 84px; padding: 4px; }
+  .insights-calendar .calendar-day-number { font-size: .85rem; }
+  .insights-calendar .calendar-day-count { float: none; display: block; padding: 0 2px; font-size: .65rem; }
+  .insights-calendar .calendar-preview { padding: 2px 0; border-left-width: 2px; }
+  .insights-calendar .calendar-preview-title, .insights-calendar .calendar-preview-clock { display: none; }
+  .insights-calendar .calendar-preview-category { font-size: .5rem; margin: 0; overflow-wrap: anywhere; }
+  .insights-calendar .calendar-day-previews { margin-top: 2px; gap: 2px; }
+}
+
+.insights-calendar .calendar-day-basis { display: none; }
+@media (max-width: 640px) {
+  .insights-calendar .calendar-day-basis { display: block; font-size: .6rem; line-height: 1.45; margin-top: 3px; color: var(--investo-muted); }
+  .insights-calendar .calendar-day-previews, .insights-calendar .calendar-day-more { display: none; }
+}
+
+/* u184: labeled numeric/time charts. Exact source tables remain readable. */
+.insights-page [hidden] { display: none !important; }
+.insights-page .insights-plot { margin: 16px 0; padding: 16px; border: 1px solid var(--investo-border); border-radius: 12px; background: var(--investo-surface); text-align: left; }
+.insights-page .insights-plot figcaption { text-align: left; font-size: 1rem; font-weight: 700; color: var(--investo-ink); margin: 0 0 12px; }
+.insights-page .insights-axis-note, .insights-page .insights-chart-note { font-size: .8rem; color: var(--investo-muted); line-height: 1.6; }
+.insights-page .insights-plot-canvas { min-width: 0; max-width: 100%; overflow-x: auto; }
+.insights-page .insights-plot .uplot { margin: 0; color: var(--investo-ink); }
+.insights-page .insights-chart-selector { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-block: 12px; font-size: .8rem; }
+.insights-page .insights-chart-selector select { min-height: 44px; max-width: 100%; padding: 8px; color: var(--investo-ink); background: var(--investo-surface); border: 1px solid var(--investo-border); border-radius: 6px; font: inherit; }
+.insights-page .insights-chart-readout { display: block; padding: 12px; border-left: 3px solid var(--investo-accent); background: var(--investo-soft); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.insights-page .insights-chart-grid { stroke: var(--investo-border); stroke-width: 1; }
+.insights-page .insights-plot .insights-curve text { font-size: 18px; }
+.insights-page .insights-plot .insights-curve circle { fill: var(--investo-accent); }
+.insights-page .insights-plot :focus-visible { outline: 3px solid var(--investo-accent); outline-offset: 2px; }

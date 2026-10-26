@@ -501,3 +501,8 @@ Treasury4 만기·두 spread,SOFR/EFFR·같은유효일 spread,FREDDEXKOUS H.10 
 marketcap/BTCdominance,USD-linkedstablecoinsupply/chainTVL,BTCfunding/OI,optionalFNG 의 7slot 을 source/provider/instrument/cycle·unit/time 과함께제공한다. 미확인 rights/time/basis 는숫자공개 0. compatibleUTCdailycollectionsamples 만 7 일변화에사용하며 provider/contract 전환연결 0. supply/TVL 을 netflow,venueOI 를전체시장,주기 funding 을 24h 평균으로표시하지않는다. 수용기준 AC-183.1–7.
 
 normative 초안: [Program](../aidlc-docs/construction/public-insights-20261012/README.md), [공통계약](../aidlc-docs/construction/public-insights-20261012/contracts.md).
+
+
+### u184 amendment: calendar and interpretable chart presentation (2026-10-26)
+
+FR-028 now defaults to a30-day month grid with bounded month/day navigation and a selected-date agenda;7-day/category filters remain available. Exact KST and source date-only/period events keep explicit, distinct clock labels. FR-027/029 charts show named axes, units, linear scale and visible domain; maturity uses actual years and history uses actual day distances with gaps. Exact tables and source notices remain readable on script failure. No source, rights, model, collection or publication-clock change. AC184.1–7 and focused NFR/design: [u184](../aidlc-docs/construction/u184-public-insights-calendar-and-chart-ui/design.md).

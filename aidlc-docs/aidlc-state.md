@@ -383,3 +383,8 @@ UI 개발·배포 완료: u174–u179 유닛별 커밋, main 통합·푸시, 정
 2026-10-26 u181 Step8 원천 자격 후속: NY Fed SOFR/EFFR/동일일 금리차 3개만 공식 이용 조건과 실제14요청200을 검증했다. 필수924자 고지·Investo 파생값 표기·데이터 별도 이용 조건을 Stage1에 준비하고 권한은 아직false다. 공개 main과 기존pin0025497d 기반 bounded runtime의 exact CI 후 실행pin을 먼저 승격하고 Stage2 권한을 적용한다. BLS3은 재조회 복구하되 최신 여부unknown/limited를 유지한다. [계획](construction/public-insights-20261012/nyfed-qualification-plan.md), [독립리뷰](construction/public-insights-20261012/nyfed-qualification-review.md). genuine scheduled0/5와 다른19개 미검증 정의·event gate는 유지한다.
 
 2026-10-26 u181 운영 자격 적용: bounded실행873cea37 quality40215762782 SUCCESS7347pass/1skip, 공개Stage1e6ede833 quality40215768595 SUCCESS7454/1skip, 정책7470923e quality40216204493 SUCCESS7454/1skip. 실행pin873cea37 원격readback 후 policy36bd84bf(검토본과동일hash2ac72954)를열었다. macro1d0532d9 remote-confirmed/quality40217744493·Pages40217744504 SUCCESS; 실제HTTPS10파일/3snapshot·운영Chromium12조건/대비PASS. macro6→12(Treasury6+NYFed3+BLS3unknown/limited), calendar19/cryptoFNG1·기존eventgate·private4824a79/cron/queue유지. 총27허용/19보류; [자격결정](construction/public-insights-20261012/nyfed-qualification-decision.md), [배포검증](construction/public-insights-20261012/nyfed-qualification-validation.json). genuine scheduled0/5, 다음nominal10/26 07KST이며 마지막운영단계미완료.
+
+
+## u184 — Public Insights calendar and chart UI (2026-10-26)
+
+User requested calendar UI and meaningful graph axes/scales, then “gogo”. Focused design is adopted for this authorized UI implementation. [Plan](construction/plans/u184-public-insights-calendar-and-chart-ui-code-generation-plan.md), [design](construction/u184-public-insights-calendar-and-chart-ui/design.md). Step1/6 complete; implementation in isolated02a5ad7a worktree. u180–183 genuine scheduled acceptance remains separate.

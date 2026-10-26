@@ -8285,3 +8285,8 @@ baseline without inventing actual semantic scores, viewport measurements or runt
 Unit/source/corpus/scheduled counts are unchanged. Documentation-only work continues in the
 clean isolated footer worktree; unrelated dirty root work is preserved. Live readback confirms
 preview658be680 / production873cea37 / existing schema-two active. No operational mutation.
+
+
+## 2026-10-26 u184 UI refinement entry
+
+User asked for a calendar UI and graphs with meaningful axes/scales and followed with “gogo”. Proceed with bounded presentation design/implementation/validation. Read current renderers, current source/policy/receipt contracts, existing Lightweight Charts usage and official uPlot documentation. Select native month grid and pinned MIT uPlot1.6.32 for temporal/numeric linear axes; current rights, source clocks and original tables remain authoritative. No new source/scheduler/LLM/Telegram. Focused FD/NFR recorded before code; dirty root preserved in isolated02a5ad7a checkout. No unit scheduled acceptance is inferred.
