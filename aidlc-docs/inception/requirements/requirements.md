@@ -48,3 +48,7 @@ Tech environment: `docs/tech-env.md`
 2026-10-25: 사용자 후속 진행 지시로 FR-028/u182의 기존 설계를 채택하고 로컬 구현·검증6/7을 기록했다. source별14allow/10blocked와 실제 운영 Step7은 별도다. [구현 증거](../../construction/u182-upcoming-events-dashboard/code/summary.md).
 
 2026-10-25: FR-029/u183의기존설계를채택해로컬구현·검증7/8을기록했다. 세화면로컬구현완료와운영수용은구별한다. [증거](../../construction/u183-crypto-market-internals-dashboard/code/summary.md).
+
+## FR-024 내용 충실도 후속 (2026-10-26)
+
+사용자가 승인된 편집 방식으로 실제 자동 생성 기사도 충분한 내용을 갖추도록 설계·아키텍팅을 요청했다. FR-024를 확장하고 u184–u186을 등록한다. 별도 FR-030을 만들지 않는다. [주 요구사항](../../../docs/requirements.md)의 FR-024 후속과 [공통 설계](../../construction/event-news-v3-content-20261026/README.md)가 기준이다. 설계 완료/코드0/실제 수용 pending을 구별한다.

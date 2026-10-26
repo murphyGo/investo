@@ -1,7 +1,7 @@
-<!-- insights-snapshot:a99db4e9184373ac456b7e5a220ed63940b0a6e533568717162d6e64cc418922 -->
-<div class="insights-page" data-insights-module="macro" data-snapshot="a99db4e9184373ac456b7e5a220ed63940b0a6e533568717162d6e64cc418922" data-current-hash="f6163622e3027b0bc0e2740287c3f6b37af56ccf9d54f7fb4f30b79b3df85fad">
+<!-- insights-snapshot:803be3c68af11618d980445510a624ac180962cb8de2d8f8f4606525a980f96d -->
+<div class="insights-page" data-insights-module="macro" data-snapshot="803be3c68af11618d980445510a624ac180962cb8de2d8f8f4606525a980f96d" data-current-hash="45d3e0ee70c45becd8d18a7b21f1222d27968b87f0c025fe22ced9e2e2bfefc6">
 <header class="insights-hero"><p class="insights-eyebrow">MACRO OBSERVATIONS</p><h1>매크로 환경판</h1><p>금리 · 원달러 · 물가 · 고용의 배경을 원천 관측으로 확인하세요.</p>
-<p>현재 값 12/13 · 게시 판단 2026-10-26 02:42 KST</p><p>각 카드의 관측일을 확인하세요. 이 화면의 시각은 모든 지표의 공표시각이 아닙니다.</p></header>
+<p>현재 값 12/13 · 게시 판단 2026-10-26 08:54 KST</p><p>각 카드의 관측일을 확인하세요. 이 화면의 시각은 모든 지표의 공표시각이 아닙니다.</p></header>
 <section class="insights-primary" aria-label="주요 관측"><h2>주요 관측</h2>
 <p class="insights-attribution">U.S. Department of the Treasury · Daily Treasury Par Yield Curve Rates. 금리차는 Investo 계산.</p>
 <div class="insights-grid">

@@ -1,4 +1,4 @@
-/* u182/u184: bounded month/date navigation over the published DOM; no fetch. */
+/* u182/u187: bounded month/date navigation over the published DOM; no fetch. */
 (() => {
   'use strict';
   const DAY = 86400000;

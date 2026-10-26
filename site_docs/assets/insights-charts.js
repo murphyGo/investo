@@ -1,4 +1,4 @@
-/* u184: same-origin uPlot enhancement; exact tables and static curve survive failure. */
+/* u187: same-origin uPlot enhancement; exact tables and static curve survive failure. */
 (() => {
   'use strict';
   const DAY = 86400000;

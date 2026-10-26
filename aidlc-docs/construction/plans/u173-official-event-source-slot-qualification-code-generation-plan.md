@@ -80,3 +80,7 @@ git diff --check
 In progress — 6/7; private parser capture pending. [공통 검증](../event-news-v3/implementation-evidence.md), [번호별 AC 대조](../../../docs/cross-checks/2026-10-12-event-news-v3.md), [private 수용·전환 handoff](../event-news-v3/private-acceptance-and-cutover-runbook.md). 구현과 실제 사람/운영 수용을 구별하며 v3 active는 false다.
 
 2026-10-25: 기존 Fed/CFTC feed 실제 응답 6개와 normalized item 36개를 private capture하고 u167 typed factory·원문 span 84개 대조를 통과했다. FSC adapter는 실패했다. [count/hash와 제한](../u173-official-event-source-slot-qualification/qualification-conclusions.md#2026-10-25-실제-feed-parser-capture). 전체 필수 slot·rights·body·runtime의 성공은 아니므로 Step 4와 verified 0/8을 유지한다.
+
+## 2026-10-26 article_v2 source 인계
+
+[u184](u184-event-evidence-packet-completion-code-generation-plan.md)는 existing source의 v3 preparation/passages/packet을 확장한다. 본 유닛은 access/rights/parser/retention/필수slot/runtime의 qualification owner로 남는다. 1,200→6,000자 private excerpt 범위와 해당 selector revision을 기존 qualification으로 자동 허용하지 않는다. 국내 정책/DART/SEC filing의 필요한 본문 확장은 source별 bounded substep으로 u184에 인계하고 미확인 endpoint/body권한은 blocked를 유지한다. 기존6/7·verified0/8은 그대로이며 [8개 slot별 인계](../event-news-v3-content-20261026/acceptance-and-handoff.md)를 적용한다.

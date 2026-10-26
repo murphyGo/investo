@@ -1,5 +1,5 @@
 # ruff: noqa: E501 -- HTML literals preserve tag boundaries.
-"""u184 month presentation; source dates never acquire an invented KST time."""
+"""u187 month presentation; source dates never acquire an invented KST time."""
 
 from __future__ import annotations
 

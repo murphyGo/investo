@@ -385,6 +385,17 @@ UI 개발·배포 완료: u174–u179 유닛별 커밋, main 통합·푸시, 정
 2026-10-26 u181 운영 자격 적용: bounded실행873cea37 quality40215762782 SUCCESS7347pass/1skip, 공개Stage1e6ede833 quality40215768595 SUCCESS7454/1skip, 정책7470923e quality40216204493 SUCCESS7454/1skip. 실행pin873cea37 원격readback 후 policy36bd84bf(검토본과동일hash2ac72954)를열었다. macro1d0532d9 remote-confirmed/quality40217744493·Pages40217744504 SUCCESS; 실제HTTPS10파일/3snapshot·운영Chromium12조건/대비PASS. macro6→12(Treasury6+NYFed3+BLS3unknown/limited), calendar19/cryptoFNG1·기존eventgate·private4824a79/cron/queue유지. 총27허용/19보류; [자격결정](construction/public-insights-20261012/nyfed-qualification-decision.md), [배포검증](construction/public-insights-20261012/nyfed-qualification-validation.json). genuine scheduled0/5, 다음nominal10/26 07KST이며 마지막운영단계미완료.
 
 
-## u184 — Public Insights calendar and chart UI (2026-10-26)
+## u187 — Public Insights calendar and chart UI (2026-10-26)
 
-User requested calendar UI and meaningful graph axes/scales, then “gogo”. Focused design is adopted for this authorized UI implementation. [Plan](construction/plans/u184-public-insights-calendar-and-chart-ui-code-generation-plan.md), [design](construction/u184-public-insights-calendar-and-chart-ui/design.md). Step1/6 complete; implementation in isolated02a5ad7a worktree. u180–183 genuine scheduled acceptance remains separate.
+User requested calendar UI and meaningful graph axes/scales, then “gogo”. Focused design is adopted for this authorized UI implementation. [Plan](construction/plans/u187-public-insights-calendar-and-chart-ui-code-generation-plan.md), [design](construction/u187-public-insights-calendar-and-chart-ui/design.md). Step1/6 complete; implementation in isolated02a5ad7a worktree. u180–183 genuine scheduled acceptance remains separate.
+## u184–u186 — 실제 자동 기사 내용 충실도 (2026-10-26)
+
+사용자 “승인한 편집 방식으로 실제 자동 생성 기사도 충분한 내용을 갖추기까지 … 설계, 아키텍팅” 지시에 따라 [공통 설계](construction/event-news-v3-content-20261026/README.md)를 작성했다. dirty root를 보존하고 `02a5ad7a` 기반 별도 worktree에서 문서만 변경했다. 설계 작성과 후속 코드·사람·source·운영 수용을 구분한다.
+
+| Unit | Functional Design | NFR | Code / readiness |
+| --- | --- | --- | --- |
+| u184 event-evidence-packet-completion | 작성 — 공통 처리/규칙/타입 | 작성 — HTTP/packet/권리 | 0/6; offline 착수 가능, live는 source별 qualification 필요 |
+| u185 claim-grounded-article-composition | 작성 — narrative/claim/version | 작성 — trust/compatibility | 0/6; u184 packet 선행, u186 없이 활성화 불가 |
+| u186 article-semantic-review-and-readiness | 작성 — Stage3/단일수정/readiness | 작성 — 총5 calls/3900초 | 0/6; u184/u185 선행, actual 인수는 u172 |
+
+기존 u169/u171 산문·footer 편집을 재구현하지 않는다. 새 article_v2 profile에서 근거 보강→한국어 기사→별도 의미 검증을 연결하고 기존 role_v1은 유지한다. C1/C4/C7의 두 단계/역할별180자/16KiB는 이 profile에 한해 명시적으로 개정하는 설계다. u172 5/9·u173 6/7, actual human0/12·slot0/8·v3예약0과 DEBT-090은 유지한다. 생산 코드·workflow·runtime pin·source policy·public archive 변경 없음. [계획 u184](construction/plans/u184-event-evidence-packet-completion-code-generation-plan.md), [u185](construction/plans/u185-claim-grounded-article-composition-code-generation-plan.md), [u186](construction/plans/u186-article-semantic-review-and-readiness-code-generation-plan.md), [실제 인계](construction/event-news-v3-content-20261026/acceptance-and-handoff.md).

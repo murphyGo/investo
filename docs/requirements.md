@@ -503,6 +503,16 @@ marketcap/BTCdominance,USD-linkedstablecoinsupply/chainTVL,BTCfunding/OI,optiona
 normative 초안: [Program](../aidlc-docs/construction/public-insights-20261012/README.md), [공통계약](../aidlc-docs/construction/public-insights-20261012/contracts.md).
 
 
-### u184 amendment: calendar and interpretable chart presentation (2026-10-26)
+### u187 amendment: calendar and interpretable chart presentation (2026-10-26)
 
-FR-028 now defaults to a30-day month grid with bounded month/day navigation and a selected-date agenda;7-day/category filters remain available. Exact KST and source date-only/period events keep explicit, distinct clock labels. FR-027/029 charts show named axes, units, linear scale and visible domain; maturity uses actual years and history uses actual day distances with gaps. Exact tables and source notices remain readable on script failure. No source, rights, model, collection or publication-clock change. AC184.1–7 and focused NFR/design: [u184](../aidlc-docs/construction/u184-public-insights-calendar-and-chart-ui/design.md).
+FR-028 now defaults to a30-day month grid with bounded month/day navigation and a selected-date agenda;7-day/category filters remain available. Exact KST and source date-only/period events keep explicit, distinct clock labels. FR-027/029 charts show named axes, units, linear scale and visible domain; maturity uses actual years and history uses actual day distances with gaps. Exact tables and source notices remain readable on script failure. No source, rights, model, collection or publication-clock change. AC187.1–7 and focused NFR/design: [u187](../aidlc-docs/construction/u187-public-insights-calendar-and-chart-ui/design.md).
+## FR-024 후속 — 실제 자동 기사의 내용 충실도 (2026-10-26 설계)
+
+승인된 사건별 기사형 산문·선택적 표/목록·하단 공통 안내를 실제 자동 producer에서도 달성한다. 기존 FR-024 코드 완료 항목은 기반 버전에 대한 이력으로 유지하며 아래 확장은 미구현이다.
+
+- [ ] **u184**: 허용된 공식 근거의 완결 passage와 핵심 설명을 실제 모델 입력까지 보존한다. 수집/전달/선정 손실을 서로 구별한다.
+- [ ] **u185**: 원문 assertion과 한국어 reader prose를 분리하고 모든 주장에 근거를 연결한다. 고정4역할 목차·최소분량 채우기를 강제하지 않는다. 과거 v3 bytes/hash를 보존한다.
+- [ ] **u186**: hard gate와 별도 semantic review, 최대1회 batch 수정으로 실제 내용 준비도를 검증한다. AI 평가를 인간 점수로 대체하지 않는다.
+- [ ] **u172 잔여 인수**: 실제12문서/시장별4/2일 이상/news-rich, 외부 must-cover100%·필수fact100%·unsupported event/causality0·사람5/5, 실제 표면·source·성능·운영 관찰을 충족한다.
+
+새 article_v2 profile의 Stage3, 최대5 calls/시장3900초, Stage2 evidence48KiB·prompt64KiB, Stage3 prompt96KiB, paragraph body 상한은 명시적 설계 개정이다. 기존 role_v1의 두 단계·기존 예산과 NFR-001 10분 목표/DEBT-090은 유지한다. source 자격·무료 API·private raw·canonical 면책·단일 finalizer/remote transaction은 바꾸지 않는다. [설계와 고정 계약](../aidlc-docs/construction/event-news-v3-content-20261026/README.md).

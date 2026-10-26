@@ -3046,3 +3046,43 @@ Evidence: [25 executed runs /44 sources](../../construction/source-reliability-2
 **Definition of Done**: [계획](../../construction/plans/u183-crypto-market-internals-dashboard-code-generation-plan.md)의 numbered AC 와 actualsource/time/rights·snapshot·remote/Pages 수용을 증명한다. FD/NFR 초안작성·코드완료·실제배포/운영은구별한다. 2026-10-25 로컬구현·검증7/8. 운영Step8은pending이다. [결과](../../construction/u183-crypto-market-internals-dashboard/code/summary.md).
 
 **Design**: [Business logic](../../construction/u183-crypto-market-internals-dashboard/functional-design/business-logic-model.md), [Business rules](../../construction/u183-crypto-market-internals-dashboard/functional-design/business-rules.md), [Entities](../../construction/u183-crypto-market-internals-dashboard/functional-design/domain-entities.md), [Focused NFR](../../construction/u183-crypto-market-internals-dashboard/nfr-requirements/nfr-requirements.md).
+
+## u184–u186 — 실제 자동 기사 내용 충실도 (2026-10-26)
+
+공통 Functional/NFR 설계는 [program](../../construction/event-news-v3-content-20261026/README.md)에 있다. 기존 u167–u173 구현과 사용자 승인 편집은 보존하며, 실제 producer의 근거·작성·검증 공백만 확장한다. 새 유닛의 코드 진행은 모두0/6이다.
+
+### u184: `event-evidence-packet-completion` — 사건 근거 패킷과 원문 보강 연결
+
+**Purpose**: 실제 모델에 사건의 핵심과 설명에 필요한 source passage를 전달한다.
+
+**Stories / FR / NFR**: US-001/002/007/008; FR-001/002/017/021/023/024; NFR-001/002/003/005/006/007/008.
+
+**Existing Coverage / Dependencies**: u160/u161/u165/u167/u168/u173 재사용. offline 착수 가능; source별 HTTP/retention/selector 자격은 live 선행조건이다.
+
+**Module path**: models/enrichment.py·event_article.py, sources/event_evidence.py, orchestrator/event_evidence.py·pipeline.py·event_preview.py, scripts/preview_event_briefing.py, briefing/event_context.py, _internal/event_context.py.
+
+**Definition of Done**: AC-184.1–6: 같은 preview/production packet, 실제6회/20초 shared HTTP cap, 완결 passage/원문 offset, Stage1/2 실제 bytes·필수 설명 보호, qualification 상태와 private boundary. [구현 계획](../../construction/plans/u184-event-evidence-packet-completion-code-generation-plan.md). 새 provider/crawler/source ledger·자동 source 승인 없음.
+
+### u185: `claim-grounded-article-composition` — 근거 기반 한국어 기사 구성
+
+**Purpose**: 승인된 산문 기본 편집을 문장별 근거가 있는 자유로운 한국어 기사로 생성한다.
+
+**Stories / FR / NFR**: US-002/003/004/006/007/009; FR-002/003/004/006/009/012/013/017/018/024/025; NFR-003/004/005/006/007/008.
+
+**Existing Coverage / Dependencies**: u169/u171 확장, u144/u167/u168/u170 재사용. u184 packet 선행, u186 readiness 없이 새 profile 공개 불가.
+
+**Module path**: models/event_article.py·event_document.py, briefing/event_article.py·event_document.py, _internal/event_v3_contract.py, publisher/event_edition.py·public_document.py·event_archive_reader.py, models/public_notification.py.
+
+**Definition of Done**: AC-185.1–6: 한국어 typed narrative, 전 문장 claim·조건·출처, hard gate 유지, terminal containment/review hash, v1 byte/hash 호환, 동일 reader surfaces/footer. [구현 계획](../../construction/plans/u185-claim-grounded-article-composition-code-generation-plan.md). 자유 Markdown·새 finalizer·과거 archive rewrite 없음.
+
+### u186: `article-semantic-review-and-readiness` — 기사 의미 검증·제한된 수정·내용 준비도
+
+**Purpose**: 실제 draft를 별도 호출로 검증하고 부족한 설명을 근거 안에서 한 번 수정한다.
+
+**Stories / FR / NFR**: US-002/003/005/007; FR-002/006/007/017/021/023/024/025; NFR-001~008.
+
+**Existing Coverage / Dependencies**: u184/u185 선행; u169 runner·u159/u172 평가·u144 seal·u155 auth 재사용. 사람 검수·source 자격·viewport·rollout은 기존 owner에 남긴다.
+
+**Module path**: briefing/event_article_review.py·event_document.py·_core/orchestration.py·claude_code.py, models/event_config.py·event_article.py·event_quality.py, publisher/event_quality.py·quality_consistency.py·public_document.py, scripts/_event_coverage_replay.py·check_event_coverage.py·preview_event_briefing.py, ops/private-runtime/event-preview.yml.
+
+**Definition of Done**: AC-186.1–6: normal3/최대5 calls·3900초 shared deadline, semantic/hard gate 분리, 단일 batch repair+재검증, terminal readiness, 실제 corpus/human 별도 인계. [구현 계획](../../construction/plans/u186-article-semantic-review-and-readiness-code-generation-plan.md). 유료 evaluator·무한 retry·human 점수 자동화·운영 활성화 없음.

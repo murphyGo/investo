@@ -19,16 +19,16 @@
 <h2 data-investo-field="market" markdown="0">미국 증시</h2>
 <p class="investo-market-date" data-investo-field="date" markdown="0">발행 2026-10-23</p>
 <p class="investo-market-status" data-investo-field="quality" markdown="0">근거 상태: 부분</p>
-<p class="investo-market-summary" markdown="span">SEC가 Fiscal Year 2027 Examination Priorities를 발표했습니다.</p>
+<p class="investo-market-summary" markdown="span">뉴스 수집이 제한되어 중요 사건을 판단하기 어렵습니다.</p>
 
 [미국 증시 2026-10-23 시황 읽기](archive/us-equity/2026/10/2026-10-23.md){ .investo-market-link }
 
 </article>
-<article id="crypto" markdown="1" class="investo-market-card" data-segment="crypto" data-target-date="2026-10-23" data-generated="true" data-quality="limited">
+<article id="crypto" markdown="1" class="investo-market-card" data-segment="crypto" data-target-date="2026-10-23" data-generated="true" data-quality="partial">
 <h2 data-investo-field="market" markdown="0">크립토</h2>
 <p class="investo-market-date" data-investo-field="date" markdown="0">발행 2026-10-23</p>
-<p class="investo-market-status" data-investo-field="quality" markdown="0">근거 상태: 제한</p>
-<p class="investo-market-summary" markdown="span">전체 가상자산 시가총액은 UTC 24시간 스냅샷(시점 자료)에서 **$2.73T**, 구간 내 **-3.80%** 하락했다. 본문 참고.</p>
+<p class="investo-market-status" data-investo-field="quality" markdown="0">근거 상태: 부분</p>
+<p class="investo-market-summary" markdown="span">확인된 요약이 부족합니다.</p>
 
 [크립토 2026-10-23 시황 읽기](archive/crypto/2026/10/2026-10-23.md){ .investo-market-link }
 

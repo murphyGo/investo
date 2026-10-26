@@ -1,4 +1,4 @@
-# u184 independent review
+# u187 independent review
 
 2026-10-26. dev-investo Step5.1 review by separate agent `/root/u180_code_review`, read-only.
 

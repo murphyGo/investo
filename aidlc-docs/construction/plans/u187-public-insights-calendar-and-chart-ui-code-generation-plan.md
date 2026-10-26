@@ -1,10 +1,10 @@
-# u184 Public Insights calendar and chart UI
+# u187 Public Insights calendar and chart UI
 
 2026-10-26. User: “주요일정이 캘린더 UI로 표시되면 좋겠어 … 축의 의미와 스케일을 알 수 있는 … 별도 라이브러리 …” then “gogo”. This authorizes implementing the requested presentation refinement and its ordinary validation/delivery choices. It does not change source permissions or scheduled acceptance.
 
 ## Stage decision
 
-Focused functional/NFR design is required for mixed date semantics, real axis distances, accessibility and a new browser dependency; it is recorded in [design](../u184-public-insights-calendar-and-chart-ui/design.md) before implementation. Existing FR-026–029, US-011–013 and NFR-002/004/005/008 remain the data, publication and cost contracts. No new source/model schema, API, scheduler, LLM or notification path. No separate infrastructure design is needed for self-hosted static assets.
+Focused functional/NFR design is required for mixed date semantics, real axis distances, accessibility and a new browser dependency; it is recorded in [design](../u187-public-insights-calendar-and-chart-ui/design.md) before implementation. Existing FR-026–029, US-011–013 and NFR-002/004/005/008 remain the data, publication and cost contracts. No new source/model schema, API, scheduler, LLM or notification path. No separate infrastructure design is needed for self-hosted static assets.
 
 ## Steps and acceptance
 

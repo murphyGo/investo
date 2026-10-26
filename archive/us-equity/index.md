@@ -25,7 +25,7 @@
 
 [2026-10-23](2026/10/2026-10-23.md){ .investo-archive-link }
 
-<p class="investo-archive-snippet" markdown="0">SEC가 Fiscal Year 2027 Examination Priorities를 발표했습니다.</p>
+<p class="investo-archive-snippet" markdown="0">뉴스 수집이 제한되어 중요 사건을 판단하기 어렵습니다.</p>
 </div>
 <div class="investo-archive-entry" data-date="2026-10-21" markdown="1">
 

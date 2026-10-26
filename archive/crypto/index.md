@@ -25,7 +25,7 @@
 
 [2026-10-23](2026/10/2026-10-23.md){ .investo-archive-link }
 
-<p class="investo-archive-snippet" markdown="0">전체 가상자산 시가총액은 UTC 24시간 스냅샷(시점 자료)에서 $2.73T, 구간 내 -3.80% 하락했다. 본문 참고.</p>
+<p class="investo-archive-snippet" markdown="0">확인된 요약이 부족합니다.</p>
 </div>
 <div class="investo-archive-entry" data-date="2026-10-22" markdown="1">
 

@@ -6,9 +6,11 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-10-23
 
-- [defillama-market-structure] **ticker**: DeFi TVL $89.9B; leader Ethereum
+- [coingecko-price] **ticker**: 조회 시점 가격 · SOL $100.95 (-1.29%)
+- [defillama-market-structure] **ticker**: DeFi TVL $89.3B; leader Ethereum
 
 <!-- u33 entry 2026-10-23 end -->
+
 <!-- u33 entry 2026-10-22 begin -->
 
 ## 2026-10-22

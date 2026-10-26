@@ -1,4 +1,4 @@
-# u184 focused functional and NFR design
+# u187 focused functional and NFR design
 
 ## Reader experience
 
@@ -18,10 +18,10 @@ Every interactive chart has visible units/date basis/domain, pointer readout and
 
 ## Acceptance boundaries
 
-AC184.1 Month/day navigation, category/range filters and no-JS list preserve all event identities and precision through year/month/DST boundaries.
-AC184.2 Calendar does not invent all-day status, KST timestamps, result/importance or out-of-window coverage; labels escape untrusted text.
-AC184.3 Maturity0.25/2/10/30 and irregular history dates have proportional x distances; units, y-domain and linear scale are readable.
-AC184.4 Empty/one-point/flat/negative/gapped/revised histories and fraction display preserve exact source tables and no imputation.
-AC184.5 Hash mismatch, CDN absence, vendor failure, no-JS, theme, resize and repeat navigation degrade safely with bounded resources.
-AC184.6 Mobile390x844/desktop1440x900, two schemes, JS on/off and200% equivalent zoom pass page containment and accessible controls; actual production data remains labeled as actual, synthetic stress fixtures as synthetic.
-AC184.7 Current/history bytes, snapshot identities, evaluated/source clocks and qualification permissions remain unchanged; manifest index_hash values are recomputed and validate_bundle must pass by presentation refresh; no source/LLM/Telegram calls or scheduled acceptance increments.
+AC187.1 Month/day navigation, category/range filters and no-JS list preserve all event identities and precision through year/month/DST boundaries.
+AC187.2 Calendar does not invent all-day status, KST timestamps, result/importance or out-of-window coverage; labels escape untrusted text.
+AC187.3 Maturity0.25/2/10/30 and irregular history dates have proportional x distances; units, y-domain and linear scale are readable.
+AC187.4 Empty/one-point/flat/negative/gapped/revised histories and fraction display preserve exact source tables and no imputation.
+AC187.5 Hash mismatch, CDN absence, vendor failure, no-JS, theme, resize and repeat navigation degrade safely with bounded resources.
+AC187.6 Mobile390x844/desktop1440x900, two schemes, JS on/off and200% equivalent zoom pass page containment and accessible controls; actual production data remains labeled as actual, synthetic stress fixtures as synthetic.
+AC187.7 Current/history bytes, snapshot identities, evaluated/source clocks and qualification permissions remain unchanged; manifest index_hash values are recomputed and validate_bundle must pass by presentation refresh; no source/LLM/Telegram calls or scheduled acceptance increments.

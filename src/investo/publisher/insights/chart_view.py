@@ -1,5 +1,5 @@
 # ruff: noqa: E501 -- HTML literals preserve tag boundaries.
-"""u184 exact-value table and proportionate, labeled no-JS yield-curve fallback."""
+"""u187 exact-value table and proportionate, labeled no-JS yield-curve fallback."""
 
 from __future__ import annotations
 

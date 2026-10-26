@@ -68,7 +68,7 @@ body:has(.insights-page) .md-sidebar .md-nav__link--active { color: var(--invest
 body:has(.insights-page) .investo-noscript-nav a,
 body:has(.insights-page) .investo-noscript-nav summary { color: var(--investo-ink); }
 
-/* u184: month grid and agenda. The source date basis is visible in every preview. */
+/* u187: month grid and agenda. The source date basis is visible in every preview. */
 .insights-calendar .insights-hero { padding: 24px; }
 .insights-calendar .calendar-filters { display: flex; flex-wrap: wrap; gap: 12px; }
 .insights-calendar .calendar-filters fieldset { flex: 1 1 auto; padding: 4px 8px; margin: 12px 0; }
@@ -115,7 +115,7 @@ body:has(.insights-page) .investo-noscript-nav summary { color: var(--investo-in
   .insights-calendar .calendar-day-previews, .insights-calendar .calendar-day-more { display: none; }
 }
 
-/* u184: labeled numeric/time charts. Exact source tables remain readable. */
+/* u187: labeled numeric/time charts. Exact source tables remain readable. */
 .insights-page [hidden] { display: none !important; }
 .insights-page .insights-plot { margin: 16px 0; padding: 16px; border: 1px solid var(--investo-border); border-radius: 12px; background: var(--investo-surface); text-align: left; }
 .insights-page .insights-plot figcaption { text-align: left; font-size: 1rem; font-weight: 700; color: var(--investo-ink); margin: 0 0 12px; }

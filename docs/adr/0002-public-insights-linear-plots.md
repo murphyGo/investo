@@ -1,6 +1,6 @@
 # ADR 0002: Linear public-insights plots and native calendar
 
-Date: 2026-10-26. Status: accepted for u184.
+Date: 2026-10-26. Status: accepted for u187.
 
 The calendar is a read-only view of at most128 validated events in30days. Native semantic month tables, local filters and an agenda cover its needs without a calendar dependency. Source-date precision and the published evaluation clock determine placement.
 
