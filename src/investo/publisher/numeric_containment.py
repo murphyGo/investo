@@ -39,6 +39,10 @@ def contain_event_numeric_context(
     from investo.models.event_context import MeaningContext, ReactionContext
     from investo.publisher.event_edition import render_article_body
 
+    if draft.content_contract_version == 2:
+        # A reviewed prose certificate cannot authorize rewriting its sentences.
+        # Keep the original hard finding and the existing market block policy.
+        return None
     if draft.segment != "domestic-equity" or not findings:
         return None
     removed: dict[int, set[str]] = defaultdict(set)

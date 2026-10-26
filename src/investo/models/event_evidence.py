@@ -22,6 +22,7 @@ def make_event_context_document(
     role_chunks: Sequence[tuple[str, str, str]] = (),
     metadata: Mapping[str, object] | None = None,
     item: NormalizedItem | None = None,
+    article_passages: bool = False,
 ) -> EventContextDocument:
     """Convert source-owned evidence without giving an LLM chunk authority.
 
@@ -37,6 +38,7 @@ def make_event_context_document(
         EvidenceChunk,
         ReferencePeriod,
     )
+    from investo.models.event_passages import passage_spans
 
     rows: list[dict[str, object]] = []
     limited = evidence.evidence_budget_limited
@@ -60,12 +62,30 @@ def make_event_context_document(
             ("detail_excerpt", "background"),
         ):
             source = getattr(evidence, field)
+            if article_passages and field == "detail_excerpt":
+                spans = passage_spans(source)
+                for start, end in spans:
+                    rows.append(
+                        {
+                            "role": role,
+                            "text": source[start:end],
+                            "source_locator": f"{field}:{start}:{end}",
+                        }
+                    )
+                cursor = 0
+                for start, end in spans:
+                    limited |= bool(source[cursor:start].strip())
+                    cursor = end
+                limited |= bool(source[cursor:].strip())
+                continue
             if source.strip():
                 text = source[:1200]
                 rows.append(
                     {"role": role, "text": text, "source_locator": f"{field}:0:{len(text)}"}
                 )
                 limited |= text != source
+    if len(rows) > (8 if article_passages else 4):
+        raise ValueError("context chunk budget exhausted")
     # Keep the field labels, since equal values can belong to different metrics.
     allowed = {
         "macro_event_status",
@@ -110,7 +130,7 @@ def make_event_context_document(
         source_metadata, sort_keys=True, ensure_ascii=False, separators=(",", ":")
     )
     if source_metadata:
-        if len(metadata_text) > 1200 or len(rows) >= 4:
+        if len(metadata_text) > 1200 or len(rows) >= (9 if article_passages else 4):
             raise ValueError("source metadata exceeds the context chunk budget")
         rows.append({"role": "fact", "text": metadata_text, "source_locator": "source_metadata"})
     chunks = tuple(
@@ -170,6 +190,7 @@ def make_event_context_document(
         period = ReferencePeriod(value=period_value, source_refs=source_ref(period_key))
     time_role = source_metadata.get("event_time_role", "occurred")
     return EventContextDocument(
+        content_contract_version=2 if article_passages else 1,
         document_id=evidence.document_id,
         revision_id=revision,
         origin_revision_id=evidence.origin_revision_id or evidence.revision_id,

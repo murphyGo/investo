@@ -395,3 +395,6 @@ UI 개발·배포 완료: u174–u179 유닛별 커밋, main 통합·푸시, 정
 | u186 article-semantic-review-and-readiness | 작성 — Stage3/단일수정/readiness | 작성 — 총5 calls/3900초 | 0/6; u184/u185 선행, actual 인수는 u172 |
 
 기존 u169/u171 산문·footer 편집을 재구현하지 않는다. 새 article_v2 profile에서 근거 보강→한국어 기사→별도 의미 검증을 연결하고 기존 role_v1은 유지한다. C1/C4/C7의 두 단계/역할별180자/16KiB는 이 profile에 한해 명시적으로 개정하는 설계다. u172 5/9·u173 6/7, actual human0/12·slot0/8·v3예약0과 DEBT-090은 유지한다. 생산 코드·workflow·runtime pin·source policy·public archive 변경 없음. [계획 u184](construction/plans/u184-event-evidence-packet-completion-code-generation-plan.md), [u185](construction/plans/u185-claim-grounded-article-composition-code-generation-plan.md), [u186](construction/plans/u186-article-semantic-review-and-readiness-code-generation-plan.md), [실제 인계](construction/event-news-v3-content-20261026/acceptance-and-handoff.md).
+
+
+2026-10-26 사용자 개발 승인/“gogo”: u184–u186 공통 FD/NFR를 구현 기준으로 채택했다. u184 Step1–4, u185/u186 Step1–5를 구현하고 검증 중이다. [구현 증거](construction/event-news-v3-content-20261026/implementation-evidence.md). source 접근 실측은 Fed2개200, CFTC403 blocked; u173slot0/8과 실제human0/12는 유지한다. 새 article_v2 preview는 explicit opt-in/Fed-only/pinned qualification, production capabilityfalse다. 전체CI/실제producer/운영 마감은 별도 갱신한다.

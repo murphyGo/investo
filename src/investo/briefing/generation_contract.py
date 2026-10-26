@@ -52,6 +52,7 @@ class GenerationInput:
     archive_root: Path | None = None
     macro_lineage_all_items: tuple[NormalizedItem, ...] | None = None
     event_observed_at: datetime | None = None
+    event_preparation_elapsed_s: float = 0
     event_baseline: tuple[EventIdentityReceipt, ...] = ()
     event_baseline_available: bool = True
     event_collection_items: tuple[NormalizedItem, ...] | None = None
@@ -82,6 +83,7 @@ class GenerationInput:
         archive_root: Path | None = None,
         macro_lineage_all_items: Sequence[NormalizedItem] | None = None,
         event_observed_at: datetime | None = None,
+        event_preparation_elapsed_s: float = 0,
         event_baseline: tuple[EventIdentityReceipt, ...] = (),
         event_baseline_available: bool = True,
         event_collection_items: Sequence[NormalizedItem] | None = None,
@@ -98,6 +100,11 @@ class GenerationInput:
         object.__setattr__(self, "canonical_event_baseline", tuple(canonical_event_baseline))
         object.__setattr__(self, "story_baseline", tuple(story_baseline))
         object.__setattr__(self, "news_window_consumptions", tuple(news_window_consumptions))
+        import math
+
+        if not math.isfinite(event_preparation_elapsed_s) or event_preparation_elapsed_s < 0:
+            raise ValueError("invalid event preparation elapsed time")
+        object.__setattr__(self, "event_preparation_elapsed_s", event_preparation_elapsed_s)
         object.__setattr__(self, "event_observed_at", event_observed_at)
         object.__setattr__(self, "event_baseline", event_baseline)
         object.__setattr__(self, "event_baseline_available", event_baseline_available)

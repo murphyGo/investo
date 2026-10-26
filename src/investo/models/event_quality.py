@@ -6,7 +6,14 @@ from collections.abc import Mapping, Sequence
 from datetime import date, datetime
 from typing import Annotated, Literal, Self
 
-from pydantic import Field, ValidationError, computed_field, model_validator
+from pydantic import (
+    Field,
+    SerializerFunctionWrapHandler,
+    ValidationError,
+    computed_field,
+    model_serializer,
+    model_validator,
+)
 
 from investo.models.event_context import EventSupportVector
 from investo.models.event_document import EditionNewsWindow
@@ -326,6 +333,9 @@ SemanticId = Annotated[str, Field(pattern=r"^[a-z0-9][a-z0-9._-]{0,95}$")]
 
 
 class EventSemanticAnnotation(EventModel):
+    content_contract_version: Literal[1, 2] = 1
+    article_policy_hash: Digest | None = None
+    expected_detailed_event_ids: tuple[EventId, ...] = ()
     case_id: SemanticId
     segment: MarketSegment
     document_schema: Literal[3] = 3
@@ -350,6 +360,12 @@ class EventSemanticAnnotation(EventModel):
 
     @model_validator(mode="after")
     def oracle_identity(self) -> Self:
+        from investo.models.event_article import ARTICLE_POLICY_HASH
+
+        if (
+            self.content_contract_version == 2 and self.article_policy_hash != ARTICLE_POLICY_HASH
+        ) or (self.content_contract_version == 1 and self.article_policy_hash is not None):
+            raise ValueError("semantic.article_policy_invalid")
         for values in (
             self.expected_event_ids,
             self.expected_story_ids,
@@ -359,9 +375,26 @@ class EventSemanticAnnotation(EventModel):
         ):
             if len(set(values)) != len(values):
                 raise ValueError("semantic.annotation_invalid")
+        if not set(self.expected_detailed_event_ids) <= set(self.expected_event_ids):
+            raise ValueError("semantic.detailed_event_invalid")
+        if (
+            self.content_contract_version == 2
+            and self.news_rich
+            and not self.expected_detailed_event_ids
+        ):
+            raise ValueError("semantic.detailed_event_required")
         if not set(self.must_include) <= set(self.expected_event_ids):
             raise ValueError("semantic.annotation_invalid")
         return self
+
+    @model_serializer(mode="wrap")
+    def versioned_serialization(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        data: dict[str, object] = handler(self)
+        if self.content_contract_version == 1:
+            data.pop("content_contract_version", None)
+            data.pop("article_policy_hash", None)
+            data.pop("expected_detailed_event_ids", None)
+        return data
 
     @property
     def annotation_sha256(self) -> str:
@@ -392,6 +425,9 @@ class SemanticEventScore(EventModel):
 
 
 class EventSemanticReview(EventModel):
+    content_contract_version: Literal[1, 2] = 1
+    detailed_event_ids: tuple[EventId, ...] | None = None
+    projection_sha256: Digest | None = None
     case_id: SemanticId
     annotation_sha256: Digest
     markdown_sha256: Digest
@@ -404,6 +440,12 @@ class EventSemanticReview(EventModel):
 
     @model_validator(mode="after")
     def human_evidence(self) -> Self:
+        if (
+            self.content_contract_version == 2
+            and self.result != "pending"
+            and (self.detailed_event_ids is None or self.projection_sha256 is None)
+        ):
+            raise ValueError("semantic.article_review_binding_required")
         if self.result == "pending":
             if self.scores is not None or self.reviewed_at is not None:
                 raise ValueError("semantic.pending_scores_must_be_null")
@@ -420,6 +462,14 @@ class EventSemanticReview(EventModel):
         if self.result == "fail" and not self.failure_codes:
             raise ValueError("semantic.failure_reason_required")
         return self
+
+    @model_serializer(mode="wrap")
+    def versioned_serialization(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        data: dict[str, object] = handler(self)
+        if self.content_contract_version == 1:
+            for key in ("content_contract_version", "detailed_event_ids", "projection_sha256"):
+                data.pop(key, None)
+        return data
 
 
 class SemanticRate(EventModel):
@@ -442,6 +492,8 @@ class SemanticRate(EventModel):
 
 
 class EventQualityV3Measurement(EventModel):
+    content_contract_version: Literal[1, 2] = 1
+    detailed_article_count: Count | None = None
     segment: MarketSegment
     document_schema: Literal[3] = 3
     basis: Literal["terminal", "remote_confirmed"]
@@ -478,6 +530,14 @@ class EventQualityV3Measurement(EventModel):
             raise ValueError("semantic.automated_result_invalid")
         return self
 
+    @model_serializer(mode="wrap")
+    def versioned_serialization(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        data: dict[str, object] = handler(self)
+        if self.content_contract_version == 1:
+            data.pop("content_contract_version", None)
+            data.pop("detailed_article_count", None)
+        return data
+
 
 class EventScheduledObservation(EventModel):
     run_id: Annotated[str, Field(pattern=r"^[0-9]{1,24}$")]
@@ -507,6 +567,8 @@ class EventScheduledObservation(EventModel):
 
 
 class EventCutoverAcceptance(EventModel):
+    content_contract_version: Literal[1, 2] = 1
+    article_policy_hash: Digest | None = None
     document_schema: Literal[3] = 3
     status: Literal[
         "blocked", "ready", "active_observing", "accepted", "rolled_back", "cleanup_complete"
@@ -536,6 +598,8 @@ class EventCutoverAcceptance(EventModel):
             a
             for a in self.annotations
             if a.segment == segment
+            and a.content_contract_version == self.content_contract_version
+            and a.article_policy_hash == self.article_policy_hash
             and a.origin == "real_human_annotation"
             and a.reviewed_code_sha == self.reviewed_code_sha
             and a.expected_outcome in {"normal", "quiet", "source_limited"}
@@ -547,6 +611,12 @@ class EventCutoverAcceptance(EventModel):
             if a.case_id in reviews
             and reviews[a.case_id].annotation_sha256 == a.annotation_sha256
             and reviews[a.case_id].result == "pass"
+            and reviews[a.case_id].content_contract_version == self.content_contract_version
+            and (
+                self.content_contract_version == 1
+                or set(a.expected_detailed_event_ids)
+                <= set(reviews[a.case_id].detailed_event_ids or ())
+            )
             and set(s.event_id for s in reviews[a.case_id].scores or ())
             == set(a.expected_event_ids)
         ]
@@ -569,6 +639,12 @@ class EventCutoverAcceptance(EventModel):
 
     @model_validator(mode="after")
     def cutover_gates(self) -> Self:
+        from investo.models.event_article import ARTICLE_POLICY_HASH
+
+        if (
+            self.content_contract_version == 2 and self.article_policy_hash != ARTICLE_POLICY_HASH
+        ) or (self.content_contract_version == 1 and self.article_policy_hash is not None):
+            raise ValueError("semantic.article_policy_invalid")
         if self.annotation_sha256 != semantic_records_hash(
             self.annotations
         ) or self.review_sha256 != semantic_records_hash(self.reviews):
@@ -593,6 +669,7 @@ class EventCutoverAcceptance(EventModel):
                 or any(
                     not self.human_market_ready(s)
                     or s not in measurements
+                    or measurements[s].content_contract_version != self.content_contract_version
                     or measurements[s].automated_result != "pass"
                     for s in self.market_allowlist
                 )

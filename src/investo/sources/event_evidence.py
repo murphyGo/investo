@@ -37,6 +37,7 @@ from investo.models.event_evidence import (
     make_evidence_document,
     normalize_evidence_text,
 )
+from investo.models.event_passages import passage_spans
 from investo.models.items import NormalizedItem
 from investo.sources._retry import RetryConfig, retry_get
 from investo.sources.protocol import SourceFetchError
@@ -52,10 +53,13 @@ def attach_feed_evidence(
     detail_excerpt: str,
     received_at: datetime | None,
     source_tier: SourceTier | None = None,
+    excerpt_limit: int = 1200,
 ) -> NormalizedItem:
     """Attach source-owned pre-summary-cut text; None preserves the exact legacy item."""
     if received_at is None:
         return item
+    if type(excerpt_limit) is not int or not 1 <= excerpt_limit <= 6000:
+        raise ValueError("excerpt outside approved bounds")
     publication_day, event_day = evidence_date_fields(item.raw_metadata)
     tier = source_tier or (
         "official"
@@ -68,7 +72,7 @@ def attach_feed_evidence(
         source_name=item.source_name,
         title=item.title,
         summary=item.summary or "",
-        detail_excerpt=normalize_evidence_text(detail_excerpt)[:1200],
+        detail_excerpt=normalize_evidence_text(detail_excerpt)[:excerpt_limit],
         url=str(item.url) if item.url is not None else None,
         published_at=item.published_at,
         received_at=received_at,
@@ -205,6 +209,8 @@ class _BodyParser(HTMLParser):
             self.handle_endtag(tag)
 
     def handle_endtag(self, tag: str) -> None:
+        if self.limit > 1200 and tag in {"p", "li", "h2", "h3"} and self.selected_depth is not None:
+            self.text = self.text.rstrip() + "\n"
         for index in range(len(self.stack) - 1, -1, -1):
             if self.stack[index][0] == tag:
                 if self.selected_depth is not None and index <= self.selected_depth:
@@ -219,24 +225,42 @@ class _BodyParser(HTMLParser):
         if len(self.text) < self.limit:
             text = re.sub(r"\s+", " ", normalize_evidence_text(data)).strip()
             if text:
-                self.text = (self.text + " " + text).strip()[: self.limit]
+                self.text = (self.text + ("" if self.text.endswith("\n") else " ") + text).lstrip()[
+                    : self.limit
+                ]
 
 
 def _body_excerpt(
     response: httpx.Response, qualification: SourceQualification, limit: int
-) -> tuple[str | None, EnrichmentReason | None]:
+) -> tuple[str | None, EnrichmentReason | None, bool]:
     content_type = response.headers.get("content-type", "").split(";", 1)[0].strip().lower()
     if content_type != qualification.content_type:
-        return None, "content_type"
-    parser = _BodyParser(qualification.extraction_selector_version or "", limit)
+        return None, "content_type", False
+    parser = _BodyParser(
+        qualification.extraction_selector_version or "", 500 * 1024 if limit > 1200 else limit
+    )
     try:
         parser.feed(response.text)
         parser.close()
     except (ValueError, RecursionError, AssertionError):
-        return None, "selector_unavailable"
+        return None, "selector_unavailable", False
     if parser.matches != 1 or not parser.complete:
-        return None, "selector_unavailable"
-    return (parser.text, None) if parser.text else (None, "empty_excerpt")
+        return None, "selector_unavailable", False
+    limited = False
+    text = parser.text
+    if limit > 1200:
+        spans = passage_spans(text, limit=limit)
+        text = "\n".join(text[start:end] for start, end in spans)
+        # Separators are also part of the bounded retained buffer.
+        while len(text) > limit and spans:
+            spans = spans[:-1]
+            text = "\n".join(parser.text[start:end] for start, end in spans)
+        cursor = 0
+        for start, end in spans:
+            limited |= bool(parser.text[cursor:start].strip())
+            cursor = end
+        limited |= bool(parser.text[cursor:].strip())
+    return (text, None, limited) if text else (None, "empty_excerpt", limited)
 
 
 @dataclass(frozen=True, slots=True)
@@ -309,9 +333,11 @@ async def enrich_event_evidence(
     deadline: float | None = None,
 ) -> EnrichmentResult:
     """Bounded official body reads; each failure retains the original feed item."""
-    if policy.mode != "active":
+    if policy.mode not in {"active", "preview"}:
         return EnrichmentResult(items=tuple(items))
     policy.validate_activation()
+    if policy.mode == "preview" and policy.qualification_sha256 != qualification.policy_hash:
+        raise ValueError("event preview qualification hash mismatch")
     received_at = evidence_clock_utc(received_at)
     if client.follow_redirects:
         raise ValueError("event enrichment requires automatic redirects disabled")
@@ -323,7 +349,11 @@ async def enrich_event_evidence(
     records: dict[str, SourceQualification] = {
         record.source_name: record for record in qualification.sources
     }
-    candidates = _candidates(items, policy.max_items_per_source, records)
+    candidates = tuple(
+        candidate
+        for candidate in _candidates(items, policy.max_items_per_source, records)
+        if policy.mode != "preview" or candidate.source in policy.preview_sources
+    )
     results: dict[int, tuple[NormalizedItem, EnrichmentReason | None]] = {}
     semaphore = asyncio.Semaphore(policy.concurrency)
     request_count = 0
@@ -332,7 +362,11 @@ async def enrich_event_evidence(
         nonlocal request_count
         item, record = candidate.item, records.get(candidate.source)
         reason: EnrichmentReason | None = "unqualified"
-        if record is None or record.status != "qualified":
+        if (
+            record is None
+            or record.status != "qualified"
+            or record.max_excerpt_chars < policy.max_excerpt_chars
+        ):
             results[candidate.index] = item, reason
             return
         if record.extraction_selector_version not in _SELECTORS:
@@ -380,7 +414,9 @@ async def enrich_event_evidence(
                 if response.status_code != 200:
                     reason = "request_failed"
                     break
-                excerpt, reason = _body_excerpt(response, record, policy.max_excerpt_chars)
+                excerpt, reason, excerpt_limited = _body_excerpt(
+                    response, record, policy.max_excerpt_chars
+                )
                 if excerpt is not None:
                     try:
                         enriched = attach_feed_evidence(
@@ -388,6 +424,7 @@ async def enrich_event_evidence(
                             detail_excerpt=excerpt,
                             received_at=received_at,
                             source_tier="official",
+                            excerpt_limit=policy.max_excerpt_chars,
                         )
                     except ValueError:
                         reason = "evidence_invalid"
@@ -398,6 +435,14 @@ async def enrich_event_evidence(
                     ):
                         reason = "evidence_invalid"
                         break
+                    if excerpt_limited:
+                        enriched = enriched.model_copy(
+                            update={
+                                "event_evidence": enriched.event_evidence.model_copy(
+                                    update={"evidence_budget_limited": True}
+                                )
+                            }
+                        )
                     results[candidate.index] = enriched, None
                     return
                 break

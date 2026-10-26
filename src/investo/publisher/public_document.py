@@ -4258,6 +4258,7 @@ def _seal_native_document(
                 evidence_document_from_item(item, received_at=context.entity_observed_at_utc),
                 metadata=item.raw_metadata,
                 item=item,
+                article_passages=draft.content_contract_version == 2,
             ),
         )
     }
@@ -4460,6 +4461,16 @@ def _seal_native_document(
             )
     if original_codes:
         raise _SegmentTrustBlockedError(phase="assembled", issue_codes=original_codes)
+    try:
+        validate_event_edition(
+            draft,
+            observed_at=context.entity_observed_at_utc,
+            story_baseline=context.story_baselines.get(draft.segment, ()),
+        )
+    except (EventEditionValidationError, ValueError):
+        raise _SegmentTrustBlockedError(
+            phase="validated", issue_codes=("event.evidence_invalid",)
+        ) from None
     markdown = render_event_edition(draft)
     edition_regions(markdown, draft)
     terminal_codes = hard_codes(markdown)

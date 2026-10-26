@@ -448,6 +448,7 @@ async def classify_context(
     policy: GenerationPolicy,
     segment: MarketSegment,
     observed_at: datetime,
+    observation: Callable[[int, int, float], None] | None = None,
 ) -> ContextClassificationResult:
     """Schema-three replacement for Stage 1, with the existing CLI/budget owner."""
     prompt = render_context_classification_prompt(buffer.text, segment=segment)
@@ -468,6 +469,12 @@ async def classify_context(
             prompt + feedback, timeout_s=policy.timeout_s, runner=runner
         )
         budget.record(outcome.elapsed_s)
+        if observation is not None:
+            observation(
+                len((prompt + feedback).encode("utf-8")),
+                len(outcome.stdout.encode("utf-8")),
+                outcome.elapsed_s,
+            )
         _logger.info(
             "llm context segment=%s stage=classification attempt=%d prompt_bytes=%d returncode=%d",
             segment,

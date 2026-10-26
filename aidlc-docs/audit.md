@@ -8285,3 +8285,8 @@ baseline without inventing actual semantic scores, viewport measurements or runt
 Unit/source/corpus/scheduled counts are unchanged. Documentation-only work continues in the
 clean isolated footer worktree; unrelated dirty root work is preserved. Live readback confirms
 preview658be680 / production873cea37 / existing schema-two active. No operational mutation.
+
+
+## 2026-10-26 — article_v2 개발 승인·Code Generation
+
+사용자 “개발 진행시켜”, “gogo”로 u184–u186의 공통 Functional/NFR 설계와 구현 진행을 승인했다. dirty root를 보존한 별도 worktree, 기준4e3fccad에서 구현했다. 원문 packet→한국어 claim narrative→별도 CLI review/1회 repair→기존 finalizer를 연결했다. 독립 코드 reviewer2명의 실제 finding을 수리하고 전체/집중/정적/정책/docs 검증을 진행한다. Fed2개 scoped body 실측200/CFTC403 blocked를 기록하며 production source/profile 활성화와 사람 점수는 만들지 않는다. 상세: `construction/event-news-v3-content-20261026/implementation-evidence.md`.

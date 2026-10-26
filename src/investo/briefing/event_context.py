@@ -69,13 +69,14 @@ from investo.models.items import NormalizedItem
 
 
 def prepare_context_documents(
-    items: Sequence[NormalizedItem], *, received_at: datetime
+    items: Sequence[NormalizedItem], *, received_at: datetime, article_passages: bool = False
 ) -> tuple[EventContextDocument, ...]:
     return tuple(
         make_event_context_document(
             evidence_document_from_item(item, received_at=received_at),
             metadata=item.raw_metadata,
             item=item,
+            article_passages=article_passages,
         )
         for item in items
     )

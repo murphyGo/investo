@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from hashlib import sha256
 from urllib.parse import quote
@@ -12,7 +13,13 @@ from investo._internal.event_context import resolve_context_ref
 from investo._internal.event_identity import source_receipt
 from investo._internal.event_public_text import markdown_literal as _plain
 from investo._internal.event_v3_contract import fact_source_map, usable_digest
-from investo.models.event_context import ContextFactDraft, ContextRef, EventContextDocument
+from investo.models.event_article import SentenceClaim
+from investo.models.event_context import (
+    ContextFactDraft,
+    ContextRef,
+    EventContextDocument,
+    EventSupportVector,
+)
 from investo.models.event_document import (
     ArticleDisplayBlock,
     EventArticle,
@@ -69,9 +76,122 @@ class ArticleBody:
     field_ranges: tuple[tuple[str, int, int], ...]
 
 
-def render_article_body(article: EventArticle) -> ArticleBody:
+def _reviewed_facets(
+    article: EventArticle,
+    draft: EventEditionDraft,
+    vector: EventSupportVector,
+) -> tuple[EventSupportVector, tuple[ContextRef, ...], SentenceClaim | None]:
+    if article.content_contract_version == 1:
+        return (
+            vector.model_copy(
+                update={"meaning": article.meaning.mode, "reaction": article.reaction.status}
+            ),
+            article.meaning.refs,
+            None,
+        )
+    record = next(r for r in draft.article_readiness if r.composition.event_id == article.event_id)
+    answered = {q.question_id for q in record.review.questions if q.verdict == "answered"}
+    why_ids = {
+        sid
+        for answer in record.composition.answers
+        if answer.question_id == "why" and "why" in answered
+        for sid in answer.sentence_ids
+    }
+    why_claim_ids = {
+        cid
+        for sentence in record.composition.narrative.sentences
+        if sentence.sentence_id in why_ids
+        for cid in sentence.claim_ids
+    }
+    why_claims = tuple(c for c in record.composition.claims if c.claim_id in why_claim_ids)
+    why_refs = tuple(dict.fromkeys(r for c in why_claims for r in c.source_refs))
+    reaction_ids = {
+        sid
+        for answer in record.composition.answers
+        if answer.question_id == "reaction" and "reaction" in answered
+        for sid in answer.sentence_ids
+    }
+    reaction_claim_ids = {
+        cid
+        for sentence in record.composition.narrative.sentences
+        if sentence.sentence_id in reaction_ids
+        for cid in sentence.claim_ids
+    }
+    reaction = next(
+        (
+            c
+            for c in record.composition.claims
+            if c.claim_id in reaction_claim_ids and c.kind == "observation"
+        ),
+        None,
+    )
+    return (
+        vector.model_copy(
+            update={
+                "meaning": "conditional"
+                if any(c.kind == "conditional_analysis" for c in why_claims)
+                else "source_reported"
+                if why_claims
+                else "unavailable",
+                "reaction": "observed"
+                if reaction is not None and reaction.kind == "observation"
+                else "unavailable",
+            }
+        ),
+        why_refs,
+        reaction,
+    )
+
+
+def render_article_body(
+    article: EventArticle,
+    *,
+    fact_tables: Mapping[str, tuple[str, ...]] | None = None,
+    for_validation: bool = False,
+) -> ArticleBody:
     """Compose checked evidence text as prose by default, without new claims."""
     article.check_display()
+    if article.narrative is not None:
+        narrative_pieces: list[str] = []
+        sentence_ranges: list[tuple[str, int, int]] = []
+        offset = 0
+        for narrative_block in article.narrative.blocks:
+            if narrative_block.kind == "fact_table":
+                if fact_tables is None or not set(narrative_block.fact_ids) <= fact_tables.keys():
+                    raise ValueError("article.fact_table_unbound")
+                table_lines: list[str] = []
+                if not for_validation:
+                    table_lines.extend(
+                        ("| 주체 | 항목 | 값 | 단위 | 기간 | 구분 |", "|---|---|---|---|---|---|")
+                    )
+                for fact_id in narrative_block.fact_ids:
+                    row = fact_tables[fact_id]
+                    table_lines.append(f"<!-- investo:fact {fact_id} -->")
+                    table_lines.append(
+                        "- " + " · ".join(_plain(cell) for cell in row)
+                        if for_validation
+                        else "| " + " | ".join(_plain(cell) for cell in row) + " |"
+                    )
+                piece = "\n".join(table_lines) + "\n\n"
+                narrative_pieces.append(piece)
+                offset += len(piece)
+                continue
+            for index, sentence in enumerate(narrative_block.sentences):
+                prefix = "- " if narrative_block.kind == "bullets" else ""
+                prefix = (" " if index and narrative_block.kind == "paragraph" else "") + prefix
+                piece = prefix + _plain(sentence.text)
+                sentence_ranges.append(
+                    ("sentence:" + sentence.sentence_id, offset, offset + len(piece))
+                )
+                narrative_pieces.append(piece)
+                offset += len(piece)
+                if narrative_block.kind == "bullets":
+                    narrative_pieces.append("\n")
+                    offset += 1
+            if narrative_block.sentences:
+                narrative_pieces.append("\n\n")
+                offset += 2
+        return ArticleBody("".join(narrative_pieces).rstrip(), tuple(sentence_ranges))
     parts = article.text_parts()
     blocks = article.display_blocks or (ArticleDisplayBlock(parts=tuple(parts)),)
     labels = {
@@ -168,17 +288,14 @@ def render_event_edition(
         binding = bindings[article.event_id]
         source = plans[article.event_id].source_event
         doc = draft.documents[source.item_ids[0] - 1]
-        lines.extend(
-            (
-                f"<!-- investo:block event:{article.event_id} -->",
-                f"## {_plain(article.headline)}",
-                "",
-                render_article_body(article).markdown,
-                "",
-            )
+        article_opening = (
+            f"<!-- investo:block event:{article.event_id} -->",
+            f"## {_plain(article.headline)}",
+            "",
         )
         fact_lines: list[str] = []
         fact_rows: list[tuple[str, ...]] = []
+        fact_table_by_id: dict[str, tuple[str, ...]] = {}
         fact_sources = fact_source_map(binding, source, draft.documents)
         for fact in binding.facts:
             if fact.fact_id not in article.fact_ids:
@@ -212,11 +329,29 @@ def render_event_edition(
                     _STATUS[fact.canonical.status],
                 )
             )
+        for fact, row in zip(
+            (f for f in binding.facts if f.fact_id in article.fact_ids), fact_rows, strict=True
+        ):
+            fact_table_by_id[fact.fact_id] = row
+        lines.extend(
+            (
+                *article_opening,
+                render_article_body(
+                    article, fact_tables=fact_table_by_id, for_validation=for_validation
+                ).markdown,
+                "",
+            )
+        )
+        inline_fact_ids = (
+            {fact_id for block in article.narrative.blocks for fact_id in block.fact_ids}
+            if article.narrative is not None
+            else set()
+        )
         if for_validation:
             # Table masking and collapsed UI must never hide original hard findings.
             # This representation is used only by the sole pre-publication scanner.
             lines.extend((*fact_lines, ""))
-        elif article.show_facts:
+        elif article.show_facts and article.narrative is None:
             lines.extend(
                 f"<!-- investo:fact {fact.fact_id} -->"
                 for fact in binding.facts
@@ -264,13 +399,23 @@ def render_event_edition(
                     "",
                 )
             )
-        if not article.show_facts and not for_validation:
-            lines.extend((*fact_lines, ""))
-        limits = support_vector_reader_limits(
-            support.model_copy(
-                update={"meaning": article.meaning.mode, "reaction": article.reaction.status}
-            )
-        )
+        if not for_validation:
+            if article.narrative is not None:
+                for row_fact_id, row in fact_table_by_id.items():
+                    if row_fact_id not in inline_fact_ids:
+                        lines.extend(
+                            (
+                                f"<!-- investo:fact {row_fact_id} -->",
+                                "- " + " · ".join(_plain(cell) for cell in row),
+                            )
+                        )
+                lines.append("")
+            elif not article.show_facts:
+                lines.extend((*fact_lines, ""))
+        reader_support, _, _ = _reviewed_facets(article, draft, support)
+        limits = support_vector_reader_limits(reader_support)
+        if article.content_contract_version == 2 and reader_support.reaction == "unavailable":
+            lines.extend(("시장 반응은 확인하지 못했습니다.", ""))
         if limits:
             lines.extend(("확인 한계: " + " · ".join(limits), ""))
         lines.extend(("</details>", ""))
@@ -469,7 +614,10 @@ def project_event_edition(
         p.event_id: v for p, v in zip(draft.editorial_plan.events, draft.support, strict=True)
     }
     for article in draft.articles:
-        vector = vectors[article.event_id]
+        vector, why_refs, reaction_claim = _reviewed_facets(
+            article, draft, vectors[article.event_id]
+        )
+        observation = reaction_claim.observation if reaction_claim is not None else None
         binding = bindings[article.event_id]
         entities = {e.entity.entity_id: e.entity for e in binding.entities}
         source = plans[article.event_id].source_event
@@ -515,6 +663,20 @@ def project_event_edition(
         )
         events.append(
             PublicEventView(
+                content_contract_version=article.content_contract_version,
+                article_kind=(
+                    "detailed"
+                    if next(
+                        r
+                        for r in draft.article_readiness
+                        if r.composition.event_id == article.event_id
+                    ).state
+                    == "detailed_ready"
+                    else "brief"
+                )
+                if article.content_contract_version == 2
+                else None,
+                narrative=article.narrative,
                 event_id=article.event_id,
                 actor_labels=tuple(entities[e].display_label for e in binding.identity.actor_ids),
                 object_labels=tuple(entities[e].display_label for e in binding.identity.object_ids),
@@ -539,30 +701,41 @@ def project_event_edition(
                 ),
                 background=article.background,
                 meaning=PublicMeaningView(
-                    mode=article.meaning.mode,
+                    mode=vector.meaning,
                     text=article.meaning.text,
                     mechanism=article.meaning.mechanism,
                     assumptions=article.meaning.assumptions,
-                    source_refs=receipts(article.meaning.refs),
+                    source_refs=receipts(why_refs),
                 ),
                 reaction=PublicReactionView(
-                    status=article.reaction.status,
-                    attribution=article.reaction.attribution,
-                    asset_id=article.reaction.asset_id,
+                    status=vector.reaction,
+                    attribution=observation.attribution
+                    if observation
+                    else "source_reported"
+                    if reaction_claim
+                    else article.reaction.attribution,
+                    asset_id=observation.asset_id if observation else article.reaction.asset_id,
                     text=article.reaction.text,
-                    window_start=article.reaction.window_start,
-                    window_end=article.reaction.window_end,
-                    observed_at=article.reaction.observed_at,
-                    source_refs=receipts(article.reaction.refs),
+                    window_start=observation.window_start
+                    if observation
+                    else article.reaction.window_start,
+                    window_end=observation.window_end
+                    if observation
+                    else article.reaction.window_end,
+                    observed_at=observation.observed_at
+                    if observation
+                    else article.reaction.observed_at,
+                    source_refs=receipts(
+                        reaction_claim.source_refs if reaction_claim else article.reaction.refs
+                    ),
                 ),
-                support=vector.model_copy(
-                    update={"meaning": article.meaning.mode, "reaction": article.reaction.status}
-                ),
+                support=vector,
                 source_refs=receipts(article.source_refs),
                 story_id=story,
             )
         )
     projection = PublishedEventEdition(
+        content_contract_version=draft.content_contract_version,
         segment=draft.segment,
         target_date=draft.target_date,
         archive_relative_path=f"archive/{draft.segment}/{draft.target_date.year}/{draft.target_date.month:02d}/{draft.target_date.isoformat()}.md",

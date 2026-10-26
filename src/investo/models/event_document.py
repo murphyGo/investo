@@ -7,9 +7,10 @@ from datetime import date, datetime
 from hashlib import sha256
 from typing import Annotated, Literal, Self
 
-from pydantic import Field, model_validator
+from pydantic import Field, SerializerFunctionWrapHandler, model_serializer, model_validator
 
 from investo.models.briefing import Briefing
+from investo.models.event_article import ArticleGenerationTrace, ArticleNarrative, ArticleReadiness
 from investo.models.event_asset_impact import EventAssetImpact
 from investo.models.event_context import (
     ContextEventDraft,
@@ -87,7 +88,7 @@ class EditorialPlan(EventModel):
         ],
         ...,
     ] = ()
-    evidence_bytes: Annotated[int, Field(strict=True, ge=0, le=16384)] = 0
+    evidence_bytes: Annotated[int, Field(strict=True, ge=0, le=49152)] = 0
 
     @model_validator(mode="after")
     def unique_ids(self) -> Self:
@@ -97,6 +98,8 @@ class EditorialPlan(EventModel):
 
 
 class EventArticle(EventModel):
+    content_contract_version: Literal[1, 2] = 1
+    narrative: ArticleNarrative | None = None
     event_id: EventId
     headline: Headline
     what_changed: Annotated[str, Field(strict=True, min_length=1, max_length=600)]
@@ -121,6 +124,20 @@ class EventArticle(EventModel):
         return parts
 
     def check_display(self) -> None:
+        if self.content_contract_version == 2:
+            if (
+                self.narrative is None
+                or self.narrative.lead != self.what_changed
+                or self.display_blocks
+                or self.background is not None
+                or self.background_refs
+                or self.meaning.mode != "unavailable"
+                or self.reaction.status != "unavailable"
+            ):
+                raise ValueError("event.schema_invalid")
+            return
+        if self.narrative is not None:
+            raise ValueError("event.schema_invalid")
         if (self.meaning.mode == "unavailable" and self.meaning.text is not None) or (
             self.reaction.status == "unavailable" and self.reaction.text is not None
         ):
@@ -231,6 +248,9 @@ class EventEditionContent(EventModel):
 
 
 class EventEditionDraft(EventEditionContent):
+    content_contract_version: Literal[1, 2] = 1
+    article_generation_trace: ArticleGenerationTrace | None = None
+    article_readiness: Annotated[tuple[ArticleReadiness, ...], Field(max_length=5, repr=False)] = ()
     segment: MarketSegment
     target_date: date
     price_reference_date: date | None = None
@@ -250,6 +270,12 @@ class EventEditionDraft(EventEditionContent):
 
     @model_validator(mode="after")
     def provenance(self) -> Self:
+        if self.content_contract_version == 1 and self.editorial_plan.evidence_bytes > 16384:
+            raise ValueError("context.budget_exhausted")
+        if any(a.content_contract_version != self.content_contract_version for a in self.articles):
+            raise ValueError("edition.content_version_mismatch")
+        if self.content_contract_version == 1 and self.article_readiness:
+            raise ValueError("edition.content_version_mismatch")
         if (self.price_reference_date is None) != (self.price_time_basis == "unavailable"):
             raise ValueError("edition.price_time_invalid")
         if self.availability.status == "quiet" and self.articles:
@@ -312,6 +338,9 @@ class PublicFactCorrection(EventModel):
 
 
 class PublicEventView(EventModel):
+    content_contract_version: Literal[1, 2] = 1
+    article_kind: Literal["detailed", "brief"] | None = None
+    narrative: ArticleNarrative | None = None
     event_id: EventId
     actor_labels: tuple[str, ...]
     object_labels: tuple[str, ...]
@@ -326,6 +355,15 @@ class PublicEventView(EventModel):
     source_refs: SourceReceipts
     story_id: Digest | None = None
     corrections: tuple[PublicFactCorrection, ...] = ()
+
+    @model_serializer(mode="wrap")
+    def versioned_serialization(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        data: dict[str, object] = handler(self)
+        if self.content_contract_version == 1:
+            data.pop("content_contract_version", None)
+            data.pop("narrative", None)
+            data.pop("article_kind", None)
+        return data
 
 
 class PublicDigestView(EventModel):
@@ -385,6 +423,7 @@ class PublicContextPanel(EventModel):
 
 
 class PublishedEventEdition(EventModel):
+    content_contract_version: Literal[1, 2] = 1
     schema_version: Literal[3] = 3
     segment: MarketSegment
     target_date: date
@@ -402,6 +441,23 @@ class PublishedEventEdition(EventModel):
     story_publication_deltas: tuple[StoryPublicationDelta, ...] = ()
     reference_panels: Annotated[tuple[PublicReferencePanel, ...], Field(max_length=5)] = ()
     context_panels: Annotated[tuple[PublicContextPanel, ...], Field(max_length=5)] = ()
+
+    @model_validator(mode="after")
+    def versioned_events(self) -> Self:
+        if any(e.content_contract_version != self.content_contract_version for e in self.events):
+            raise ValueError("edition.content_version_mismatch")
+        if any((e.article_kind is None) != (e.content_contract_version == 1) for e in self.events):
+            raise ValueError("edition.content_version_mismatch")
+        if any((e.narrative is None) != (e.content_contract_version == 1) for e in self.events):
+            raise ValueError("edition.content_version_mismatch")
+        return self
+
+    @model_serializer(mode="wrap")
+    def versioned_serialization(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        data: dict[str, object] = handler(self)
+        if self.content_contract_version == 1:
+            data.pop("content_contract_version", None)
+        return data
 
     @property
     def canonical_projection_hash(self) -> str:

@@ -482,8 +482,12 @@ def measure_event_quality_v3(
         view is None
         or document.segment != annotation.segment
         or document.target_date != annotation.target_date
+        or view.edition.content_contract_version != annotation.content_contract_version
     ):
         raise ValueError("semantic.document_identity_invalid")
+    detailed_ids = (
+        {e.event_id for e in view.edition.events if e.article_kind == "detailed"} if view else set()
+    )
     terminal = {event.event_id for event in view.edition.events} if view else None
     facts = (
         {fact.fact_id for event in view.edition.events for fact in event.facts}
@@ -516,7 +520,16 @@ def measure_event_quality_v3(
     review_refs: tuple[str, ...] = ()
     if human_review is not None:
         if (
-            human_review.case_id != annotation.case_id
+            human_review.content_contract_version != annotation.content_contract_version
+            or (
+                annotation.content_contract_version == 2
+                and view is not None
+                and (
+                    human_review.projection_sha256 != view.edition.projection_sha256
+                    or set(human_review.detailed_event_ids or ()) != detailed_ids
+                )
+            )
+            or human_review.case_id != annotation.case_id
             or human_review.annotation_sha256 != annotation.annotation_sha256
             or (view is not None and human_review.markdown_sha256 != view.edition.markdown_sha256)
             or (
@@ -554,6 +567,13 @@ def measure_event_quality_v3(
     passed = (
         view is not None
         and (
+            annotation.content_contract_version == 1
+            or (
+                set(annotation.expected_detailed_event_ids) <= detailed_ids
+                and (not annotation.news_rich or bool(detailed_ids))
+            )
+        )
+        and (
             not annotation.expected_support
             or annotation.expected_support == tuple(e.support for e in view.edition.events)
         )
@@ -566,6 +586,10 @@ def measure_event_quality_v3(
         and preservation.numerator == preservation.denominator
     )
     return EventQualityV3Measurement(
+        content_contract_version=annotation.content_contract_version,
+        detailed_article_count=len(detailed_ids)
+        if annotation.content_contract_version == 2 and view is not None
+        else None,
         segment=annotation.segment,
         basis="remote_confirmed" if remote_confirmed_sha else "terminal",
         publication_sha=remote_confirmed_sha,

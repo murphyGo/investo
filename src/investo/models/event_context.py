@@ -6,7 +6,14 @@ import hashlib
 from datetime import UTC, date, datetime
 from typing import Annotated, Literal, Self
 
-from pydantic import Field, StrictInt, field_validator, model_validator
+from pydantic import (
+    Field,
+    SerializerFunctionWrapHandler,
+    StrictInt,
+    field_validator,
+    model_serializer,
+    model_validator,
+)
 
 from investo.models.events import (
     Digest,
@@ -129,6 +136,7 @@ class EventTimeContext(EventModel):
 
 
 class EventContextDocument(EventModel):
+    content_contract_version: Literal[1, 2] = 1
     document_id: Digest
     revision_id: Digest
     origin_revision_id: Digest
@@ -136,12 +144,21 @@ class EventContextDocument(EventModel):
     url: Annotated[str, Field(strict=True, min_length=1, max_length=2000)] | None = None
     source_tier: Literal["official", "primary", "secondary", "unknown"] = "unknown"
     source_status: Literal["ok", "partial", "failed", "unavailable"] = "ok"
-    chunks: Annotated[tuple[EvidenceChunk, ...], Field(min_length=1, max_length=4, repr=False)]
+    chunks: Annotated[tuple[EvidenceChunk, ...], Field(min_length=1, max_length=9, repr=False)]
     time: EventTimeContext
     evidence_budget_limited: bool = False
 
+    @model_serializer(mode="wrap")
+    def versioned_serialization(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        data: dict[str, object] = handler(self)
+        if self.content_contract_version == 1:
+            data.pop("content_contract_version", None)
+        return data
+
     @model_validator(mode="after")
     def unique_chunks_and_time_refs(self) -> Self:
+        if self.content_contract_version == 1 and len(self.chunks) > 4:
+            raise ValueError("legacy context exceeds four chunks")
         keys = {chunk.chunk_id: chunk for chunk in self.chunks}
         if len(keys) != len(self.chunks):
             raise ValueError("context chunk identities must be unique")

@@ -1,6 +1,6 @@
 # u186 Code Generation Plan — 기사 의미 검증·제한된 수정·내용 준비도
 
-2026-10-26. **설계 작성; 구현0/6.** 사람 수용·운영 전환은 기존 u172 책임으로 남긴다.
+2026-10-26. **개발 승인·구현 진행.** 사람 수용·운영 전환은 기존 u172 책임으로 남긴다.
 
 ## 문제·목표·Coverage
 
@@ -16,11 +16,11 @@ Functional Design/NFR **EXECUTE — 공통 설계 작성됨**: [처리](../event
 
 ## 구현 순서
 
-- [ ] **Step1 — 전역 호출 allocator**: article_v2의 시장별3900초, call1/2/3=600/900/600초, optional4/5=900/600초를 고정한다. 각 stage attempts1이며 source prep·finalizer와 workflow deadline을 포함해 admission한다. initial review·repair/review pair reserve, exact equality·cancel·timeout을 검증한다. 기존 profile budget은 그대로 둔다.
-- [ ] **Step2 — Stage3 verifier**: 원문 packet/claim map/draft/questions만 새 CLI 호출에 전달한다. writer self-score와 자유 URL/tool은 제외한다. 모든 claim/필수 질문의 verdict·refs·reason code·exact hash가 필요하며 누락/unknown/malformed는 실패다. hard gate를 override하지 못한다.
-- [ ] **Step3 — 한 번의 batch 수정**: 검토된 candidate의 고칠 수 있는 gap만 전달한다. source가 없는 gap은 반복 작성하지 않는다. 수정할 전체 사건에 최대1 call, 이어 전체 재검증1 call이다. 지원되지 않은 새 event/fact/ref를 추가하면 reject하고 기존 hard finding은 보존한다.
-- [ ] **Step4 — terminal readiness**: content readiness와 source/selection/fact preservation/semantic/human KPI를 분리한다. stale hash와 finalizer 삭제 뒤 coverage를 재검사하고 미검증 본문 seal을 막는다. blank/footer-only·주요 기사 누락을 normal 성공으로 세지 않으며 valid sibling/기존 partial outcome을 보존한다.
-- [ ] **Step5 — 실제 preview·u172 연결**: preview template에 default role_v1인 명시적 profile 입력을 추가하고 검증된 코드·source policy로만 article_v2를 실행할 수 있게 한다. raw recording과 human0/12 상태를 구별한다. u172의 기존 corpus/model/CLI validation에 추가 hashes/질문 coverage를 연결하되 synthetic/model 점수를 human5/5로 바꾸지 않는다.
+- [x] **Step1 — 전역 호출 allocator**: article_v2의 시장별3900초, call1/2/3=600/900/600초, optional4/5=900/600초를 고정한다. 각 stage attempts1이며 source prep·finalizer와 workflow deadline을 포함해 admission한다. initial review·repair/review pair reserve, exact equality·cancel·timeout을 검증한다. 기존 profile budget은 그대로 둔다.
+- [x] **Step2 — Stage3 verifier**: 원문 packet/claim map/draft/questions만 새 CLI 호출에 전달한다. writer self-score와 자유 URL/tool은 제외한다. 모든 claim/필수 질문의 verdict·refs·reason code·exact hash가 필요하며 누락/unknown/malformed는 실패다. hard gate를 override하지 못한다.
+- [x] **Step3 — 한 번의 batch 수정**: 검토된 candidate의 고칠 수 있는 gap만 전달한다. source가 없는 gap은 반복 작성하지 않는다. 수정할 전체 사건에 최대1 call, 이어 전체 재검증1 call이다. 지원되지 않은 새 event/fact/ref를 추가하면 reject하고 기존 hard finding은 보존한다.
+- [x] **Step4 — terminal readiness**: content readiness와 source/selection/fact preservation/semantic/human KPI를 분리한다. stale hash와 finalizer 삭제 뒤 coverage를 재검사하고 미검증 본문 seal을 막는다. blank/footer-only·주요 기사 누락을 normal 성공으로 세지 않으며 valid sibling/기존 partial outcome을 보존한다.
+- [x] **Step5 — 실제 preview·u172 연결**: preview template에 default role_v1인 명시적 profile 입력을 추가하고 검증된 코드·source policy로만 article_v2를 실행할 수 있게 한다. raw recording과 human0/12 상태를 구별한다. u172의 기존 corpus/model/CLI validation에 추가 hashes/질문 coverage를 연결하되 synthetic/model 점수를 human5/5로 바꾸지 않는다.
 - [ ] **Step6 — 검증·인계**: 아래 집중·전체·정적·정책·docs gate와 로컬 code review/AC cross-check를 수행한다. u172에 exact source SHA/profile/policy/source qualification, stage bytes/calls/time, actual/human pending 항목을 전달한다. 운영 활성화와 genuine scheduled 증거는 이 유닛의 코드 완료로 만들지 않는다.
 
 ## Acceptance Criteria
@@ -58,3 +58,10 @@ git diff --check
 ```
 
 현재 설계에서 새 tests는 미작성이다. 위 명령은 구현 이후 실행 지시이며 PASS 기록이 아니다.
+
+
+## 2026-10-26 개발 승인과 실행
+
+사용자 개발/계속 진행 지시로 공통 FD/NFR를 구현 기준으로 채택했다. Functional Design/NFR Requirements는 작성 완료·승인 적용, 신규 인프라는 불필요하며 기존 CLI/auth/단일 finalizer를 유지한다. [구현·검증 기록](../event-news-v3-content-20261026/implementation-evidence.md)을 따른다. 기존 “현재 설계/테스트 미작성” 서술은 최초 계획 시점의 이력이다.
+
+실제 생성된 테스트 경로는 `tests/unit/orchestrator/test_event_evidence_preparation_u184.py`, `tests/unit/briefing/test_event_packet_budget_u184.py`, `tests/unit/briefing/test_event_article_budget_u186.py`, `tests/unit/briefing/test_event_article_review_u186.py`, `tests/unit/publisher/test_event_article_projection_u185.py`, `tests/integration/test_event_article_acceptance_u186.py`다. 기존 계획의 미생성 별도 테스트 파일 역할을 이 경로들에 통합했고, nonexistent target을 검증 명령으로 실행하지 않는다. 실제 source·사람·운영 인수는 기존u172/u173의 별도 gate다.

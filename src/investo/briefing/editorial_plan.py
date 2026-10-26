@@ -22,6 +22,7 @@ def build_editorial_plan(
     reference_item_ids: frozenset[int] = frozenset(),
     observed_at: datetime,
     max_articles: int = 5,
+    max_evidence_bytes: int = 16384,
 ) -> tuple[EditorialPlan, tuple[CanonicalEventBinding, ...], str]:
     if len(events) != len(bindings):
         raise ValueError("edition.selection_mismatch")
@@ -86,6 +87,7 @@ def build_editorial_plan(
     protected = build_protected_context_buffer(
         proposed,
         documents,
+        max_bytes=max_evidence_bytes,
         required_event_indices=frozenset(
             j for j, event in enumerate(proposed) if required_item_ids & set(event.item_ids)
         ),
@@ -145,7 +147,7 @@ def build_editorial_plan(
         ensure_ascii=False,
         separators=(",", ":"),
     )
-    if len(payload.encode("utf-8")) > 16384:
+    if len(payload.encode("utf-8")) > max_evidence_bytes:
         if max_articles <= 1 or any(
             required_item_ids & set(events[i].item_ids) for i in selected[max_articles - 1 :]
         ):
@@ -158,6 +160,7 @@ def build_editorial_plan(
             reference_item_ids=reference_item_ids,
             observed_at=observed_at,
             max_articles=max_articles - 1,
+            max_evidence_bytes=max_evidence_bytes,
         )
     return (
         EditorialPlan(

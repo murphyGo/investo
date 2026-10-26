@@ -115,7 +115,7 @@ def validate_context_event(
 ) -> None:
     if observed_at.utcoffset() is None:
         raise ValueError("context observation must be timezone-aware")
-    if max(draft.item_ids) > len(documents):
+    if not draft.item_ids or any(not 1 <= i <= len(documents) for i in draft.item_ids):
         raise ContextEvidenceError("context.item_mismatch")
     owners = _validate_owners(draft, documents)
     lookup = context_lookup(documents)
@@ -665,9 +665,12 @@ def build_protected_context_buffer(
     *,
     required_event_indices: frozenset[int] = frozenset(),
     extra_required_refs: Mapping[int, tuple[ContextRef, ...]] | None = None,
+    max_bytes: int = STAGE_TWO_CONTEXT_BYTES,
 ) -> ProtectedContextBuffer:
     """Whole-event deferral, optional-role pruning; never trim required spans."""
     if len(drafts) > 5 or any(not 0 <= i < len(drafts) for i in required_event_indices):
+        raise ContextEvidenceError("context.budget_exhausted")
+    if max_bytes not in (16384, 49152):
         raise ContextEvidenceError("context.budget_exhausted")
     lookup = context_lookup(documents)
     selected: dict[int, ContextEventDraft] = {}
@@ -750,7 +753,7 @@ def build_protected_context_buffer(
         )
         selected[index] = draft.model_copy(update={name: () for name in optional_fields})
         refs_by_event[index] = essential
-        if len(payload()[0].encode("utf-8")) > STAGE_TWO_CONTEXT_BYTES:
+        if len(payload()[0].encode("utf-8")) > max_bytes:
             del selected[index]
             del refs_by_event[index]
             if index in required_event_indices:
@@ -766,7 +769,7 @@ def build_protected_context_buffer(
                     update={name: (*getattr(previous, name), ref)}
                 )
                 refs_by_event[index] = tuple(dict.fromkeys((*old_refs, ref)))
-                if len(payload()[0].encode("utf-8")) > STAGE_TWO_CONTEXT_BYTES:
+                if len(payload()[0].encode("utf-8")) > max_bytes:
                     selected[index] = previous
                     refs_by_event[index] = old_refs
     text, retained_refs = payload()

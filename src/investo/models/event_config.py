@@ -9,10 +9,13 @@ from typing import Literal, cast
 from investo.models.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY, MarketSegment
 
 EventMode = Literal["off", "shadow", "preview", "active"]
+EventProfile = Literal["role_v1", "article_v2"]
 EVENT_MODE_ENV = "INVESTO_EVENT_BRIEFING_MODE"
 EVENT_DOCUMENT_SCHEMA_ENV = "INVESTO_EVENT_DOCUMENT_SCHEMA"
+EVENT_PROFILE_ENV = "INVESTO_EVENT_GENERATION_PROFILE"
 EVENT_V3_PREVIEW_READY = True
 EVENT_V3_ACTIVE_READY = False
+EVENT_ARTICLE_V2_ACTIVE_READY = False
 
 # The user authorized the event-body rollout on 2026-10-09 with outstanding
 # human acceptance tracked separately. Runtime mode still defaults to off;
@@ -29,9 +32,14 @@ class EventExecutionConfig:
     mode: EventMode = "off"
     document_schema: Literal[2, 3] = 2
     active_segments: tuple[MarketSegment, ...] = ()
+    profile: EventProfile = "role_v1"
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "active_segments", tuple(self.active_segments))
+        if self.profile not in ("role_v1", "article_v2") or (
+            self.profile == "article_v2" and self.document_schema != 3
+        ):
+            raise ValueError("article profile requires schema three")
         if self.mode not in ("off", "shadow", "preview", "active"):
             raise ValueError("event mode must be off, shadow, preview or active")
         if type(self.document_schema) is not int or self.document_schema not in (2, 3):
@@ -49,10 +57,23 @@ class EventExecutionConfig:
         schema = env.get(EVENT_DOCUMENT_SCHEMA_ENV, "2").strip()
         if schema not in ("2", "3"):
             raise ValueError("event document schema must be two or three")
-        return cls(mode=cast("EventMode", raw), document_schema=cast("Literal[2, 3]", int(schema)))
+        profile = env.get(EVENT_PROFILE_ENV, "role_v1").strip()
+        if profile not in ("role_v1", "article_v2"):
+            raise ValueError("invalid event generation profile")
+        return cls(
+            mode=cast("EventMode", raw),
+            document_schema=cast("Literal[2, 3]", int(schema)),
+            profile=cast("EventProfile", profile),
+        )
 
     def validate_capabilities(self) -> None:
         if self.document_schema == 3:
+            if (
+                self.mode == "active"
+                and self.profile == "article_v2"
+                and not EVENT_ARTICLE_V2_ACTIVE_READY
+            ):
+                raise ValueError("article profile activation requires u172 profile acceptance")
             if self.mode == "preview" and not EVENT_V3_PREVIEW_READY:
                 raise ValueError("schema-three preview requires the reviewed u169 consumer")
             if self.mode == "active" and (not EVENT_V3_ACTIVE_READY or not self.active_segments):
@@ -83,7 +104,9 @@ class EventExecutionConfig:
     def for_segment(self, segment: MarketSegment) -> EventExecutionConfig:
         allowed = EVENT_ACTIVE_SEGMENTS if self.document_schema == 2 else self.active_segments
         if self.mode == "active" and segment not in allowed:
-            return EventExecutionConfig("shadow", self.document_schema, self.active_segments)
+            return EventExecutionConfig(
+                "shadow", self.document_schema, self.active_segments, self.profile
+            )
         return self
 
     @property

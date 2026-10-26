@@ -81,7 +81,6 @@ from tempfile import TemporaryDirectory
 from typing import Any, Final, TypedDict, TypeVar, cast, overload
 from uuid import uuid4
 
-import httpx
 from pydantic import HttpUrl, TypeAdapter, ValidationError
 
 from investo._internal.archive_layout import ArchiveLayout
@@ -222,6 +221,7 @@ from investo.orchestrator.domestic_anchor_quarantine import (
     project_domestic_public_items,
 )
 from investo.orchestrator.errors import EmptyCollectError
+from investo.orchestrator.event_evidence import prepare_event_evidence
 from investo.orchestrator.event_publication import (
     EventV3Baseline,
     load_event_v3_baseline,
@@ -335,7 +335,7 @@ from investo.publisher.weekly_digest import (
 )
 from investo.publisher.writer import write_finalized_document
 from investo.sources import collect_sources as _default_collect_sources
-from investo.sources.event_evidence import enrich_event_evidence, load_enrichment_qualification
+from investo.sources.event_evidence import load_enrichment_qualification
 from investo.sources.yfinance import resolve_yfinance_critical_tickers
 from investo.visuals import image_library as _image_library
 from investo.visuals.assets import (
@@ -3032,9 +3032,6 @@ async def _enrich_collected_events(
         except (OSError, ValueError):
             _logger.warning("[event_enrichment] qualification unavailable")
             qualification = EnrichmentQualification()
-    failed = {row.source_name for row in outcomes if row.status == "failed"}
-    indexes = [index for index, item in enumerate(items) if item.source_name not in failed]
-    selected = tuple(items[index] for index in indexes)
     deadlines = [ctx.event_enrichment_deadline]
     runner_deadline = getattr(ctx.runner, "deadline", None)
     if (
@@ -3044,20 +3041,13 @@ async def _enrich_collected_events(
     ):
         deadlines.append(runner_deadline)
     existing_deadlines = [value for value in deadlines if value is not None]
-    async with httpx.AsyncClient(follow_redirects=False, trust_env=False) as client:
-        result = await enrich_event_evidence(
-            selected,
-            client=client,
-            policy=ctx.event_enrichment_policy,
-            qualification=qualification,
-            received_at=observed_at,
-            deadline=min(existing_deadlines) if existing_deadlines else None,
-        )
-    updated = list(items)
-    for index, item in zip(indexes, result.items, strict=True):
-        updated[index] = item
-    return EnrichmentResult(
-        items=tuple(updated), outcomes=result.outcomes, request_count=result.request_count
+    return await prepare_event_evidence(
+        items,
+        outcomes,
+        policy=ctx.event_enrichment_policy,
+        qualification=qualification,
+        received_at=observed_at,
+        deadline=min(existing_deadlines) if existing_deadlines else None,
     )
 
 
@@ -3201,7 +3191,7 @@ class CollectStage:
                     )
             if ctx.insights_config.mode != "off":
                 items, insights = await _capture_and_publish_insights(ctx, items, source_outcomes)
-            if ctx.event_config.uses_v2 and ctx.event_enrichment_policy.mode == "active":
+            if ctx.event_config.uses_events and ctx.event_enrichment_policy.mode == "active":
                 enrichment_start = time.monotonic()
                 enrichment = await _enrich_collected_events(
                     ctx, items, source_outcomes, observed_at=evidence_clock
@@ -4563,9 +4553,11 @@ async def run_pipeline(
         URL on SUCCESS / PARTIAL, ``None`` on FAILED.
     """
     event_config.validate_publication()
+    if event_enrichment_policy.mode == "preview":
+        raise ValueError("event body preview requires the isolated preview entrypoint")
     event_enrichment_policy.validate_activation()
-    if event_enrichment_policy.mode == "active" and not event_config.uses_v2:
-        raise ValueError("event body enrichment requires v2 event generation")
+    if event_enrichment_policy.mode == "active" and not event_config.uses_events:
+        raise ValueError("event body enrichment requires event generation")
     if event_enrichment_deadline is not None and (
         type(event_enrichment_deadline) not in {int, float}
         or not math.isfinite(event_enrichment_deadline)

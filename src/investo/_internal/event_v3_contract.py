@@ -200,9 +200,11 @@ def validate_fact_roles(
     documents: Sequence[EventContextDocument],
     *,
     require_assertion: bool = False,
+    check_actions: bool = True,
 ) -> None:
     """Bind each numeric assertion to its metric, status, unit and period slot."""
-    validate_text_actions(text, source, documents, require_assertion=require_assertion)
+    if check_actions:
+        validate_text_actions(text, source, documents, require_assertion=require_assertion)
     normalized = _normal(text).casefold().replace(",", "")
     sources = fact_source_map(binding, source, documents)
     metric_labels = {
@@ -310,6 +312,15 @@ def validate_event_edition(
         raise EventEditionValidationError("event.selection_mismatch")
     plan_by_id = {p.event_id: p for p in plans}
     lookup = context_lookup(draft.documents)
+    if draft.content_contract_version == 2:
+        from investo._internal.event_article import validate_terminal_articles
+
+        try:
+            for plan in plans:
+                validate_context_event(plan.source_event, draft.documents, observed_at=observed_at)
+            validate_terminal_articles(draft, observed_at=observed_at)
+        except ValueError:
+            raise EventEditionValidationError("event.evidence_invalid") from None
     for article in draft.articles:
         try:
             article.check_display()  # Also reject model_copy mutations at E1.
@@ -323,7 +334,7 @@ def validate_event_edition(
             *binding.story_hint.explicit_thread_refs,
             *binding.delta.evidence_refs,
         }
-        if (
+        if draft.content_contract_version == 1 and (
             not set(plan.assigned_refs)
             <= set(event_context_refs(plan.source_event)) | identity_refs
         ):
@@ -366,23 +377,24 @@ def validate_event_edition(
         )
         if not set(refs) <= assigned:
             raise EventEditionValidationError("event.evidence_invalid")
-        validate_claim(article.headline, article.source_refs, draft)
-        validate_claim(article.what_changed, article.source_refs, draft)
-        validate_fact_roles(article.headline, binding, plan.source_event, draft.documents)
-        validate_fact_roles(
-            article.what_changed,
-            binding,
-            plan.source_event,
-            draft.documents,
-            require_assertion=True,
-        )
-        entities = {e.entity.entity_id: e.entity for e in binding.entities}
-        for entity_id in (*binding.identity.actor_ids, *binding.identity.object_ids):
-            if not any(
-                _normal(label) in _normal(article.what_changed)
-                for label in entities[entity_id].source_labels
-            ):
-                raise EventEditionValidationError("event.entity_unsupported")
+        if draft.content_contract_version == 1:
+            validate_claim(article.headline, article.source_refs, draft)
+            validate_claim(article.what_changed, article.source_refs, draft)
+            validate_fact_roles(article.headline, binding, plan.source_event, draft.documents)
+            validate_fact_roles(
+                article.what_changed,
+                binding,
+                plan.source_event,
+                draft.documents,
+                require_assertion=True,
+            )
+            entities = {e.entity.entity_id: e.entity for e in binding.entities}
+            for entity_id in (*binding.identity.actor_ids, *binding.identity.object_ids):
+                if not any(
+                    _normal(label) in _normal(article.what_changed)
+                    for label in entities[entity_id].source_labels
+                ):
+                    raise EventEditionValidationError("event.entity_unsupported")
         for fact in facts:
             if fact.fact_id not in article.fact_ids:
                 continue
@@ -471,6 +483,8 @@ def validate_event_edition(
             or not {r for f in binding.facts for r in f.source_refs} <= set(reference.source_refs)
         ):
             raise EventEditionValidationError("event.context_unbound")
+    if draft.content_contract_version == 2 and (draft.digests or draft.context_panels):
+        raise EventEditionValidationError("event.evidence_invalid")
     for digest in draft.digests:
         digest_article = next((a for a in draft.articles if a.event_id == digest.event_id), None)
         if (

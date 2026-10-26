@@ -28,12 +28,22 @@ from investo.briefing.event_routing import share_official_event_candidates
 from investo.briefing.generation_contract import GenerationInput
 from investo.briefing.segments import segment_items
 from investo.briefing.watchlist import DEFAULT_WATCHLIST_PATH, load_watchlist
-from investo.models.event_config import EventExecutionConfig
+from investo.models.enrichment import (
+    DEFAULT_ENRICHMENT_POLICY,
+    EnrichmentPolicy,
+    EnrichmentQualification,
+)
+from investo.models.event_article import ARTICLE_FAILURE_CODES
+from investo.models.event_config import EventExecutionConfig, EventProfile
 from investo.models.event_context import ContextRule
 from investo.models.segments import DOMESTIC_EQUITY, MarketSegment
 from investo.orchestrator.domestic_anchor_quarantine import (
     load_previous_domestic_anchor_closes,
     project_domestic_public_items,
+)
+from investo.orchestrator.event_evidence import (
+    load_event_evidence_qualification,
+    prepare_event_evidence,
 )
 from investo.orchestrator.event_preview import (
     event_preview_compliance_diagnostics,
@@ -252,13 +262,19 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument("--output-dir", required=True, type=Path)
     parser.add_argument("--baseline-sha", help="Trusted remote data checkout commit; read only.")
     parser.add_argument("--document-schema", choices=(2, 3), type=int, default=2)
+    parser.add_argument("--official-body-preview", action="store_true")
+    parser.add_argument("--article-profile", choices=("role_v1", "article_v2"), default="role_v1")
     parser.add_argument(
         "--record-model-io",
         action="store_true",
         help="Record bounded schema-three Codex model IO in the encrypted private artifact.",
     )
     args = parser.parse_args(argv)
-    if args.record_model_io and args.document_schema != 3:
+    if (args.record_model_io or args.article_profile == "article_v2") and args.document_schema != 3:
+        raise PreviewInputError
+    if args.official_body_preview and (
+        args.document_schema != 3 or args.article_profile != "article_v2"
+    ):
         raise PreviewInputError
     return args
 
@@ -417,7 +433,9 @@ def _failure_manifest(exc: Exception) -> dict[str, object]:
             "event.output_invalid": "event.output_invalid",
         }
         cause = str(exc.cause) if isinstance(exc.cause, ValueError) else ""
-        if cause in known_causes:
+        if cause in ARTICLE_FAILURE_CODES:
+            manifest["failure_code"] = cause
+        elif cause in known_causes:
             manifest["failure_code"] = known_causes[cause]
         elif re.fullmatch(
             r"Stage [12] subprocess returned rc=-?\d{1,3}, stdout_len=\d{1,8}", cause
@@ -494,11 +512,38 @@ async def run_preview(
     observed_at: datetime | None = None,
     baseline_sha: str | None = None,
     document_schema: int = 2,
+    article_profile: EventProfile = "role_v1",
+    official_body_preview: bool = False,
+    enrichment_policy: EnrichmentPolicy = DEFAULT_ENRICHMENT_POLICY,
+    enrichment_qualification: EnrichmentQualification | None = None,
     record_model_io: bool = False,
 ) -> dict[str, object]:
     """No run_pipeline, publisher, notifier, receipt or cursor writer is called."""
-    if segment not in SEGMENT_ORDER or document_schema not in (2, 3):
+    if (
+        segment not in SEGMENT_ORDER
+        or document_schema not in (2, 3)
+        or article_profile not in ("role_v1", "article_v2")
+        or (article_profile == "article_v2" and document_schema != 3)
+        or enrichment_policy.mode == "active"
+    ):
         raise PreviewInputError
+    if type(official_body_preview) is not bool or (
+        official_body_preview and (article_profile != "article_v2" or document_schema != 3)
+    ):
+        raise PreviewInputError
+    if official_body_preview:
+        if enrichment_policy != DEFAULT_ENRICHMENT_POLICY or enrichment_qualification is not None:
+            raise PreviewInputError
+        enrichment_qualification = load_event_evidence_qualification(
+            _REPOSITORY_ROOT / "ops/event_source_qualification.json"
+        )
+        enrichment_policy = EnrichmentPolicy(
+            mode="preview",
+            article_passages=True,
+            max_excerpt_chars=6000,
+            preview_sources=("fomc-rss", "fed-speech-rss"),
+            qualification_sha256=enrichment_qualification.policy_hash,
+        )
     if type(record_model_io) is not bool or (
         record_model_io and (document_schema != 3 or not isinstance(runner, CodexRunner))
     ):
@@ -517,11 +562,19 @@ async def run_preview(
         else None
     )
     output.mkdir(parents=True, mode=0o700, exist_ok=False)
+    preparation_started = time.monotonic()
     report = await collect_sources(target_date, evidence_received_at=clock)
+    prepared = await prepare_event_evidence(
+        report.items,
+        report.outcomes,
+        policy=enrichment_policy,
+        qualification=enrichment_qualification or EnrichmentQualification(),
+        received_at=clock,
+    )
     anchors, _history = await _load_market_anchors_for_run(target_date)
     archive = repository_root.resolve() / "archive"
     projection = project_domestic_public_items(
-        report.items,
+        prepared.items,
         target_date=target_date,
         source_outcomes=report.outcomes,
         previous_closes=load_previous_domestic_anchor_closes(archive, target_date),
@@ -544,6 +597,19 @@ async def run_preview(
         if recording is not None
         else runner
     )
+    input_manifest_hash = hashlib.sha256(
+        json.dumps(
+            {
+                "segment": segment,
+                "target_date": target_date.isoformat(),
+                "clock": clock.isoformat(),
+                "items": [item.model_dump(mode="json") for item in candidates[segment]],
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()
+    ).hexdigest()
     request = GenerationInput(
         target_date=target_date,
         items=candidates[segment],
@@ -556,6 +622,7 @@ async def run_preview(
         generation_policy=SEGMENT_GENERATION_POLICIES[segment],
         recent_context=load_recent_briefings(archive, target_date, days=days) if days else None,
         event_observed_at=clock,
+        event_preparation_elapsed_s=time.monotonic() - preparation_started,
         event_baseline=baseline.receipts if baseline is not None else (),
         event_baseline_available=(
             native_baseline is not None
@@ -564,7 +631,9 @@ async def run_preview(
         )
         if document_schema == 3
         else baseline is not None,
-        event_generation_policy=EventExecutionConfig(mode="preview", document_schema=3)
+        event_generation_policy=EventExecutionConfig(
+            mode="preview", document_schema=3, profile=article_profile
+        )
         if document_schema == 3
         else None,
         canonical_event_baseline=native_baseline.identity[segment].segment_receipts
@@ -591,9 +660,45 @@ async def run_preview(
         raise ValueError("preview exceeds output limit")
     if document and hashlib.sha256(markdown).hexdigest() != document.markdown_sha256:
         raise ValueError("preview seal mismatch")
+    native = result.generation.document
+    trace = getattr(native, "article_generation_trace", None)
+    readiness = getattr(native, "article_readiness", ())
     manifest: dict[str, object] = {
         "schema_version": 1,
         "mode": "preview",
+        "article_profile": article_profile,
+        "article_content_status": (
+            "detailed_ready"
+            if any(r.state == "detailed_ready" for r in readiness)
+            else "brief_only"
+            if readiness
+            else "quiet"
+            if getattr(getattr(native, "availability", None), "status", None) == "quiet"
+            else "content_not_ready"
+        )
+        if article_profile == "article_v2"
+        else None,
+        "model_call_count": trace.calls
+        if trace is not None
+        else (1 if getattr(native, "documents", ()) else 0)
+        if article_profile == "article_v2"
+        else None,
+        "classified_event_count": len(
+            getattr(getattr(result.generation, "context_classification", None), "events", ())
+        ),
+        "input_manifest_hash": input_manifest_hash,
+        "source_qualification_hash": (
+            enrichment_qualification or EnrichmentQualification()
+        ).policy_hash,
+        "article_trace": trace.model_dump(mode="json") if trace is not None else None,
+        "article_review_hashes": [
+            hashlib.sha256(r.review.model_dump_json().encode()).hexdigest() for r in readiness
+        ],
+        "detailed_article_count": sum(r.state == "detailed_ready" for r in readiness),
+        "human_review_status": "pending",
+        "enrichment_request_count": prepared.request_count,
+        "enrichment_outcomes": [r.model_dump(mode="json") for r in prepared.outcomes],
+        "input_manifest_basis": "routed_source_items",
         "provider": "codex" if isinstance(runner, CodexRunner) else "claude",
         "target_date": target_date.isoformat(),
         "segment": segment,
@@ -653,6 +758,8 @@ def main(argv: list[str] | None = None) -> int:
                 output_dir=args.output_dir,
                 baseline_sha=args.baseline_sha,
                 document_schema=args.document_schema,
+                article_profile=args.article_profile,
+                official_body_preview=args.official_body_preview,
                 record_model_io=args.record_model_io,
             )
         )

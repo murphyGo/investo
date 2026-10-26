@@ -1,6 +1,6 @@
 # u184 Code Generation Plan — 사건 근거 패킷과 원문 보강 연결
 
-2026-10-26. **설계 작성; 구현0/6.** 사용자 요청은 실제 자동 기사의 충분한 내용을 위한 설계·아키텍팅이다. 이번 문서는 live HTTP/production 활성화 증거가 아니다.
+2026-10-26. **개발 승인·구현 진행.** 사용자 요청은 실제 자동 기사의 충분한 내용을 위한 설계·아키텍팅이다. 이번 문서는 live HTTP/production 활성화 증거가 아니다.
 
 ## 문제·목표·범위
 
@@ -18,10 +18,10 @@ offline 설계 구현은 기존 u167/u168으로 착수 가능하다. live source
 
 ## 구현 순서
 
-- [ ] **Step1 — 타입·정책**: immutable Passage/Question/Packet, profile 기본role_v1, preview enrichment 기본off와 별도 capability/allowlist/policy hash를 추가한다. 기존 active capability는 보존한다. max6 HTTP/run·20초·6,000자 확대와 old1,200자 path를 명시적으로 분기한다.
-- [ ] **Step2 — 공통 preparation**: 기존 orchestration만 공유 함수로 옮겨 preview와 production에 연결한다. 실제 production dispatch/default는 바꾸지 않는다. 전체 run에서 body6회 한도를 공유하며 시장마다6회를 새로 배정하지 않는다. off/shadow/replay에서는 새 HTTP0회, source 실패는 원래 outcome 유지다.
-- [ ] **Step3 — passage 추출과 input**: qualified selector의 완결 문단·attribution/조건/negation offset을 보존한다. Stage1 24KiB 실전송/source-diverse input과 synopsis를 검증한다. title-only와 body available을 구별하고 source·중복 문서·순서에 결정론적 결과를 낸다.
-- [ ] **Step4 — packet/질문/Stage2 배정**: u168 identity binding 뒤 existing editorial order로 core→필수 설명→선택 설명을 배정한다. Stage2 evidence48KiB/전체64KiB를 계산하고 누락 refs·후순위 budget_deferred·conflicting evidence를 기록한다. selection/packing으로 사라진 정보를 source_empty로 바꾸지 않는다.
+- [x] **Step1 — 타입·정책**: immutable Passage/Question/Packet, profile 기본role_v1, preview enrichment 기본off와 별도 capability/allowlist/policy hash를 추가한다. 기존 active capability는 보존한다. max6 HTTP/run·20초·6,000자 확대와 old1,200자 path를 명시적으로 분기한다.
+- [x] **Step2 — 공통 preparation**: 기존 orchestration만 공유 함수로 옮겨 preview와 production에 연결한다. 실제 production dispatch/default는 바꾸지 않는다. 전체 run에서 body6회 한도를 공유하며 시장마다6회를 새로 배정하지 않는다. off/shadow/replay에서는 새 HTTP0회, source 실패는 원래 outcome 유지다.
+- [x] **Step3 — passage 추출과 input**: qualified selector의 완결 문단·attribution/조건/negation offset을 보존한다. Stage1 24KiB 실전송/source-diverse input과 synopsis를 검증한다. title-only와 body available을 구별하고 source·중복 문서·순서에 결정론적 결과를 낸다.
+- [x] **Step4 — packet/질문/Stage2 배정**: u168 identity binding 뒤 existing editorial order로 core→필수 설명→선택 설명을 배정한다. Stage2 evidence48KiB/전체64KiB를 계산하고 누락 refs·후순위 budget_deferred·conflicting evidence를 기록한다. selection/packing으로 사라진 정보를 source_empty로 바꾸지 않는다.
 - [ ] **Step5 — source별 확장 검증**: [8개 source handoff](../event-news-v3-content-20261026/acceptance-and-handoff.md)의 기존 source별 access/rights/selector/retention fixture를 대조한다. 허용된 기존 국내 정책/DART/SEC filing source에 필요한 bounded enum/selector만 추가한다. 근거 없는 endpoint를 발명하지 않는다. 각 substep의 qualified/blocked와 미해결 슬롯을 적고 blocked 상태에서는 해당 live 경로를 열지 않는다.
 - [ ] **Step6 — 검증·인계**: 아래 tests와 module boundary/static 검증, shared HTTP budget·source privacy 회귀를 완료한다. 실제 rights/parser 증거가 필요한 Step5가 남으면6/6로 보고하지 않는다. exact SHA/packet manifest/남은 qualification을 u185/u173/u172에 전달한다.
 
@@ -41,3 +41,10 @@ offline 설계 구현은 기존 u167/u168으로 착수 가능하다. live source
 신규 Step1–5: `tests/unit/models/test_event_article_packet_u184.py`, `tests/unit/orchestrator/test_event_evidence_preparation_u184.py`, `tests/unit/briefing/test_event_packet_budget_u184.py`, `tests/integration/test_event_packet_handoff_u184.py`. AC1/2→preparation/handoff, AC3/4→packet/budget, AC5/6→model/source/boundary에서 검증한다.
 
 구현 후 `uv sync --extra dev --extra docs --extra sector --extra operations`, 위 파일에 대한 `uv run python -m pytest -q`, `uv run ruff check src tests scripts`, `uv run ruff format --check src tests scripts`, `uv run mypy src`, `git diff --check`를 수행한다. 정확한 통합 SHA의 full/policy/docs gate와 live source 수용은 [공통 인수](../event-news-v3-content-20261026/acceptance-and-handoff.md)에서 결속한다. 현재 문서 작업에서 새 tests가 존재하거나 실행됐다고 기록하지 않는다.
+
+
+## 2026-10-26 개발 승인과 실행
+
+사용자 개발/계속 진행 지시로 공통 FD/NFR를 구현 기준으로 채택했다. Functional Design/NFR Requirements는 작성 완료·승인 적용, 신규 인프라는 불필요하며 기존 CLI/auth/단일 finalizer를 유지한다. [구현·검증 기록](../event-news-v3-content-20261026/implementation-evidence.md)을 따른다. 기존 “현재 설계/테스트 미작성” 서술은 최초 계획 시점의 이력이다.
+
+실제 생성된 테스트 경로는 `tests/unit/orchestrator/test_event_evidence_preparation_u184.py`, `tests/unit/briefing/test_event_packet_budget_u184.py`, `tests/unit/briefing/test_event_article_budget_u186.py`, `tests/unit/briefing/test_event_article_review_u186.py`, `tests/unit/publisher/test_event_article_projection_u185.py`, `tests/integration/test_event_article_acceptance_u186.py`다. 기존 계획의 미생성 별도 테스트 파일 역할을 이 경로들에 통합했고, nonexistent target을 검증 명령으로 실행하지 않는다. 실제 source·사람·운영 인수는 기존u172/u173의 별도 gate다.

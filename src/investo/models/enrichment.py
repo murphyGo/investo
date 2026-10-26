@@ -7,6 +7,7 @@ import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime
+from hashlib import sha256
 from typing import Annotated, Literal, Self, cast
 from urllib.parse import urlsplit
 
@@ -16,10 +17,11 @@ from investo.models.event_evidence import evidence_clock_utc
 from investo.models.events import Digest, EventModel
 from investo.models.items import NormalizedItem
 
-EnrichmentMode = Literal["off", "shadow", "active"]
+EnrichmentMode = Literal["off", "shadow", "preview", "active"]
 EnrichmentSource = Literal["fomc-rss", "fed-speech-rss", "sec-newsroom-rss", "cftc-policy-rss"]
 ENRICHMENT_MODE_ENV = "INVESTO_EVENT_ENRICHMENT_MODE"
 EVENT_ENRICHMENT_ACTIVE_READY = False
+EVENT_ENRICHMENT_PREVIEW_READY = True
 
 
 @dataclass(frozen=True, slots=True)
@@ -33,16 +35,35 @@ class EnrichmentPolicy:
     max_items_per_source: int = 2
     max_excerpt_chars: int = 1200
     max_redirects: int = 1
+    article_passages: bool = False
+    preview_sources: tuple[EnrichmentSource, ...] = ()
+    qualification_sha256: str | None = None
 
     def __post_init__(self) -> None:
-        if self.mode not in {"off", "shadow", "active"}:
-            raise ValueError("event enrichment mode must be off, shadow or active")
+        if self.mode not in {"off", "shadow", "preview", "active"}:
+            raise ValueError("invalid event enrichment mode")
+        if type(self.article_passages) is not bool:
+            raise ValueError("invalid passage policy")
+        object.__setattr__(self, "preview_sources", tuple(self.preview_sources))
+        if len(set(self.preview_sources)) != len(self.preview_sources) or any(
+            source not in {"fomc-rss", "fed-speech-rss", "sec-newsroom-rss", "cftc-policy-rss"}
+            for source in self.preview_sources
+        ):
+            raise ValueError("invalid preview sources")
+        if self.qualification_sha256 is not None and not re.fullmatch(
+            r"[a-f0-9]{64}", self.qualification_sha256
+        ):
+            raise ValueError("invalid qualification hash")
+        if self.mode == "preview" and (
+            not self.preview_sources or self.qualification_sha256 is None
+        ):
+            raise ValueError("preview requires explicit sources and qualification hash")
         for value, maximum, minimum in (
             (self.max_requests, 6, 1),
             (self.concurrency, 2, 1),
             (self.max_response_bytes, 500 * 1024, 1),
             (self.max_items_per_source, 2, 1),
-            (self.max_excerpt_chars, 1200, 1),
+            (self.max_excerpt_chars, 6000 if self.article_passages else 1200, 1),
             (self.max_redirects, 1, 0),
         ):
             if type(value) is not int or not minimum <= value <= maximum:
@@ -63,6 +84,8 @@ class EnrichmentPolicy:
         return cls(mode=cast("EnrichmentMode", raw))
 
     def validate_activation(self) -> None:
+        if self.mode == "preview" and not EVENT_ENRICHMENT_PREVIEW_READY:
+            raise ValueError("event body preview requires reviewed source qualification")
         if self.mode == "active" and not EVENT_ENRICHMENT_ACTIVE_READY:
             raise ValueError("event body enrichment requires separate operational approval")
 
@@ -84,6 +107,10 @@ class SourceQualification(EventModel):
     fixture_sha256: Digest | None
     status: Literal["qualified", "blocked", "rejected"]
     reason: Annotated[str, Field(strict=True, min_length=1, max_length=500)]
+    max_excerpt_chars: Annotated[StrictInt, Field(ge=1, le=6000)] = 1200
+    private_retention_basis: (
+        Annotated[str, Field(strict=True, min_length=1, max_length=2000)] | None
+    ) = None
 
     @field_validator("checked_at")
     @classmethod
@@ -92,6 +119,8 @@ class SourceQualification(EventModel):
 
     @model_validator(mode="after")
     def qualified_evidence(self) -> Self:
+        if self.max_excerpt_chars > 1200 and not self.private_retention_basis:
+            raise ValueError("expanded passages require explicit retention qualification")
         hosts = {
             "fomc-rss": "www.federalreserve.gov",
             "fed-speech-rss": "www.federalreserve.gov",
@@ -134,6 +163,10 @@ class SourceQualification(EventModel):
 class EnrichmentQualification(EventModel):
     schema_version: Literal[1] = 1
     sources: Annotated[tuple[SourceQualification, ...], Field(max_length=4)] = ()
+
+    @property
+    def policy_hash(self) -> str:
+        return sha256(self.model_dump_json().encode("utf-8")).hexdigest()
 
     @model_validator(mode="after")
     def unique_sources(self) -> Self:

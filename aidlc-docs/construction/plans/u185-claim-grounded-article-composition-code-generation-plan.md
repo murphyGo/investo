@@ -1,6 +1,6 @@
 # u185 Code Generation Plan — 근거 기반 한국어 기사 구성
 
-2026-10-26. **설계 작성; 구현0/6.** 승인된 사건별 산문·선택적 목록/표·하단 안내 정책을 실제 자동 기사에 적용한다.
+2026-10-26. **개발 승인·구현 진행.** 승인된 사건별 산문·선택적 목록/표·하단 안내 정책을 실제 자동 기사에 적용한다.
 
 ## 문제·목표·Coverage
 
@@ -16,11 +16,11 @@ Functional Design/NFR **EXECUTE — 공통 설계 작성됨**: [흐름](../event
 
 ## 구현 순서
 
-- [ ] **Step1 — claim/narrative 타입**: frozen atoms/claims/sentences/paragraph·bullets·fact_table을 선언한다. event/fact/ref 집합과 문장별 모든 주장 연결, core/facet 단일 text owner를 검증한다. 기존 EventArticle v1은 그대로 허용한다.
-- [ ] **Step2 — Stage2 작성**: article_v2에서 raw assertion copy 대신 한국어 narrative를 생성한다. 원문 근거·숫자·조건·귀속은 private packet에 보존한다. 기본 산문, 선택 목록·typed표, headline/digest claim 검증, 비어 있는 역할 미노출을 prompt/schema에 고정한다. 모델이 source/fact/event/필수 질문을 추가·삭제하지 못한다.
-- [ ] **Step3 — 결정론적 precheck**: typed source ownership·span·entity alias·numeric/time/status 검사와 완전한 claim coverage를 연결한다. 기존 hard finding을 지우지 않는다. 새 한국어 문장의 의미 검증은 u186의 별도 결과가 필요하고 refs 존재만으로 supported를 발급하지 않는다.
-- [ ] **Step4 — renderer/finalizer 연결**: version2 narrative만 한 번 렌더하며 실제 sentence ranges를 반환한다. 삭제/containment 뒤 coverage와 digest/asset/story를 재계산한다. 기사 조건은 본문에, 공통 안내·canonical 면책은 하단1회로 유지한다. u186 readiness hash가 없거나 stale이면 seal 거절이다.
-- [ ] **Step5 — public version/reader**: schema3/content_contract2를 추가하고 v1 raw shape/hash를 유지한다. v1에 새 default를 넣어 옛 hash를 다시 계산하지 않는다. home/Telegram/OG/회고/sidecar가 동일 terminal 자료를 소비하고 미지원 version은 archive link fallback이다. raw packet/review text는 공개되지 않는다.
+- [x] **Step1 — claim/narrative 타입**: frozen atoms/claims/sentences/paragraph·bullets·fact_table을 선언한다. event/fact/ref 집합과 문장별 모든 주장 연결, core/facet 단일 text owner를 검증한다. 기존 EventArticle v1은 그대로 허용한다.
+- [x] **Step2 — Stage2 작성**: article_v2에서 raw assertion copy 대신 한국어 narrative를 생성한다. 원문 근거·숫자·조건·귀속은 private packet에 보존한다. 기본 산문, 선택 목록·typed표, headline/digest claim 검증, 비어 있는 역할 미노출을 prompt/schema에 고정한다. 모델이 source/fact/event/필수 질문을 추가·삭제하지 못한다.
+- [x] **Step3 — 결정론적 precheck**: typed source ownership·span·entity alias·numeric/time/status 검사와 완전한 claim coverage를 연결한다. 기존 hard finding을 지우지 않는다. 새 한국어 문장의 의미 검증은 u186의 별도 결과가 필요하고 refs 존재만으로 supported를 발급하지 않는다.
+- [x] **Step4 — renderer/finalizer 연결**: version2 narrative만 한 번 렌더하며 실제 sentence ranges를 반환한다. 삭제/containment 뒤 coverage와 digest/asset/story를 재계산한다. 기사 조건은 본문에, 공통 안내·canonical 면책은 하단1회로 유지한다. u186 readiness hash가 없거나 stale이면 seal 거절이다.
+- [x] **Step5 — public version/reader**: schema3/content_contract2를 추가하고 v1 raw shape/hash를 유지한다. v1에 새 default를 넣어 옛 hash를 다시 계산하지 않는다. home/Telegram/OG/회고/sidecar가 동일 terminal 자료를 소비하고 미지원 version은 archive link fallback이다. raw packet/review text는 공개되지 않는다.
 - [ ] **Step6 — 검증·인계**: 아래 byte/hash·adversarial·finalizer·표면 회귀, exact-source CI와 local review를 완료한다. u186에 후보/claim/range/hash 계약을 전달하고 실제 source/human/viewport는 u172/u173 pending으로 남긴다.
 
 ## Acceptance Criteria
@@ -39,3 +39,10 @@ Functional Design/NFR **EXECUTE — 공통 설계 작성됨**: [흐름](../event
 신규: `tests/unit/models/test_event_article_narrative_u185.py`(AC1/2), `tests/unit/briefing/test_event_article_composition_u185.py`(AC1/2/3), `tests/unit/publisher/test_event_article_projection_u185.py`(AC4/5/6), `tests/integration/test_event_article_surfaces_u185.py`(AC4/6). 합성 조건부 설명·법안/시행·귀속·multi-clause·비교기간·source role mixing을 포함한다.
 
 u184와 같은 extras 설치 후 위 파일 `uv run python -m pytest -q`, Ruff check/format, `uv run mypy src`, `git diff --check`를 수행한다. 새 source/runtime 승인이나 실제 사람이 합격했다는 기록은 만들지 않는다. full/policy/docs/exact-SHA 인수는 u186/u172와 동일 결과에 결속한다.
+
+
+## 2026-10-26 개발 승인과 실행
+
+사용자 개발/계속 진행 지시로 공통 FD/NFR를 구현 기준으로 채택했다. Functional Design/NFR Requirements는 작성 완료·승인 적용, 신규 인프라는 불필요하며 기존 CLI/auth/단일 finalizer를 유지한다. [구현·검증 기록](../event-news-v3-content-20261026/implementation-evidence.md)을 따른다. 기존 “현재 설계/테스트 미작성” 서술은 최초 계획 시점의 이력이다.
+
+실제 생성된 테스트 경로는 `tests/unit/orchestrator/test_event_evidence_preparation_u184.py`, `tests/unit/briefing/test_event_packet_budget_u184.py`, `tests/unit/briefing/test_event_article_budget_u186.py`, `tests/unit/briefing/test_event_article_review_u186.py`, `tests/unit/publisher/test_event_article_projection_u185.py`, `tests/integration/test_event_article_acceptance_u186.py`다. 기존 계획의 미생성 별도 테스트 파일 역할을 이 경로들에 통합했고, nonexistent target을 검증 명령으로 실행하지 않는다. 실제 source·사람·운영 인수는 기존u172/u173의 별도 gate다.

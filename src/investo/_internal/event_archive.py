@@ -58,6 +58,9 @@ def read_published_event_edition(
         data = json.loads(sidecar.read_bytes())
         if not isinstance(data, dict) or data.get("schema_version") != 3:
             return EventArchiveRead("unsupported_schema")
+        version = data.get("content_contract_version", 1)
+        if type(version) is not int or version not in (1, 2):
+            return EventArchiveRead("unsupported_schema")
         edition = PublishedEventEdition.model_validate(data)
         expected_path = (
             f"archive/{segment}/{target_date.year}/{target_date.month:02d}/"

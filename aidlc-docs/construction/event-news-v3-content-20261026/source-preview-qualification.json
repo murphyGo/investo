@@ -1,0 +1,47 @@
+{
+  "checked_at": "2026-10-26T02:55:56.671516+00:00",
+  "request_count": 3,
+  "records": [
+    {
+      "source_name": "fomc-rss",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260916a.htm",
+      "status": 200,
+      "content_type": "text/html",
+      "response_bytes": 82636,
+      "response_sha256": "c6c769d7ad10b140b63bba44136dfb20c8b94e80b992489368a8971824180819",
+      "excerpt_chars": 963,
+      "excerpt_sha256": "25f22e586fdcc654e00df2b627eff8abab651d72584db6ddbf546b3913b8cce9",
+      "evidence_budget_limited": false,
+      "parser_reason": null
+    },
+    {
+      "source_name": "fed-speech-rss",
+      "url": "https://www.federalreserve.gov/newsevents/speech/barr20260923a.htm",
+      "status": 200,
+      "content_type": "text/html",
+      "response_bytes": 113812,
+      "response_sha256": "11a006f9fec96c4de4687bdef240eaabcdacd2c49a938b23d2784273df9f4f56",
+      "excerpt_chars": 3001,
+      "excerpt_sha256": "df47d7a8af701cc2f52b15b5528a00510af4bfa011fc78bf5fefe1388cb8aa28",
+      "evidence_budget_limited": true,
+      "parser_reason": null
+    },
+    {
+      "source_name": "cftc-policy-rss",
+      "url": "https://www.cftc.gov/PressRoom/PressReleases/9303-26",
+      "status": 403,
+      "content_type": "text/html; charset=UTF-8",
+      "response_bytes": 5506,
+      "response_sha256": "f7c84d4b0bd86b8dda2375e718c70285902ab38b898464b5908434c64cccc01f",
+      "excerpt_chars": 0,
+      "excerpt_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "evidence_budget_limited": false,
+      "parser_reason": "selector_unavailable"
+    }
+  ],
+  "basis": "existing official body paths; historical parser/access qualification, not a current-news corpus sample",
+  "rights_rechecked": [
+    "https://www.federalreserve.gov/disclaimer.htm",
+    "https://www.cftc.gov/WebPolicy/index.htm"
+  ]
+}

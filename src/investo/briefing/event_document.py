@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import replace
 from datetime import UTC, datetime
 
@@ -101,12 +102,25 @@ async def generate_event_document(request: GenerationInput) -> NativeEventGenera
     segment = request.segment
     if segment is None:
         raise ValueError("native event generation requires a market segment")
+    article_v2 = bool(
+        request.event_generation_policy and request.event_generation_policy.profile == "article_v2"
+    )
+    started_at = time.monotonic()
     policy = replace(request.generation_policy or GenerationPolicy(), event_mode="preview")
+    if article_v2:
+        policy = replace(policy, timeout_s=600, max_attempts=1, total_budget_s=3900)
     budget = request.budget or RetryBudget(total_budget_s=policy.total_budget_s)
     observed_at = request.event_observed_at or datetime.now(UTC)
     candidates = select_event_input_items(request.items, target_date=request.target_date)
-    documents = prepare_context_documents(candidates, received_at=observed_at)
-    if request.event_context_documents and request.event_context_documents != documents:
+    documents = prepare_context_documents(
+        candidates, received_at=observed_at, article_passages=article_v2
+    )
+    from investo.briefing.event_article import classification_documents
+
+    full_documents = documents
+    if article_v2:
+        documents = classification_documents(documents)
+    if request.event_context_documents and request.event_context_documents != full_documents:
         raise ContextEvidenceError("context.buffer_conflict")
     buffer = build_context_prompt_buffer(
         documents,
@@ -119,6 +133,20 @@ async def generate_event_document(request: GenerationInput) -> NativeEventGenera
             i for i, item in enumerate(candidates, 1) if not is_event_reference_item(item)
         ),
     )
+    article_calls = None
+    if article_v2:
+        from investo.briefing.event_article_review import ArticleCallBudget
+
+        runner_deadline = getattr(request.runner, "deadline", None)
+        article_calls = ArticleCallBudget(
+            shared=budget,
+            started_at=started_at,
+            preparation_elapsed_s=request.event_preparation_elapsed_s,
+            deadline=runner_deadline if isinstance(runner_deadline, (int, float)) else None,
+            calls=0,
+        )
+        if buffer.documents:
+            article_calls.require(600 + 60)
     classification = (
         await classify_context(
             buffer,
@@ -127,10 +155,13 @@ async def generate_event_document(request: GenerationInput) -> NativeEventGenera
             policy=policy,
             segment=segment,
             observed_at=observed_at,
+            observation=article_calls.observe_classification if article_calls is not None else None,
         )
         if buffer.documents
         else ContextClassificationResult(schema_version=3, events=())
     )
+    if article_v2:
+        buffer = replace(buffer, documents=tuple(full_documents[i - 1] for i in buffer.item_ids))
     bindings = tuple(
         canonical_event_binding(
             event,
@@ -141,18 +172,55 @@ async def generate_event_document(request: GenerationInput) -> NativeEventGenera
         )
         for event in classification.events
     )
-    plan, selected, protected = build_editorial_plan(
-        classification.events,
-        bindings,
-        buffer.documents,
-        required_item_ids=buffer.required_prompt_item_ids,
-        reference_item_ids=frozenset(
-            n
-            for n, original in enumerate(buffer.item_ids, 1)
-            if is_event_reference_item(candidates[original - 1])
-        ),
-        observed_at=observed_at,
-    )
+    from investo.briefing.event_article import build_article_packets, packet_payload
+    from investo.models.event_article import EventEvidencePacket
+
+    packets: tuple[EventEvidencePacket, ...] = ()
+    limit = 5
+    while True:
+        plan, selected, protected = build_editorial_plan(
+            classification.events,
+            bindings,
+            buffer.documents,
+            required_item_ids=buffer.required_prompt_item_ids,
+            reference_item_ids=frozenset(
+                n
+                for n, original in enumerate(buffer.item_ids, 1)
+                if is_event_reference_item(candidates[original - 1])
+            ),
+            observed_at=observed_at,
+            max_articles=limit,
+            max_evidence_bytes=49152 if article_v2 else 16384,
+        )
+        if not article_v2 or not any(p.placement == "article" for p in plan.events):
+            break
+        packets = build_article_packets(plan, selected, buffer.documents)
+        try:
+            evidence = packet_payload(packets, buffer.documents)
+        except ValueError as exc:
+            if str(exc) != "context.budget_exhausted":
+                raise
+            last = plan.events[-1]
+            if (
+                len(plan.events) <= 1
+                or set(last.source_event.item_ids) & buffer.required_prompt_item_ids
+            ):
+                raise ContextEvidenceError("context.budget_exhausted") from None
+            limit = len(plan.events) - 1
+            continue
+        packets_by_id = {p.event_id: p for p in packets}
+        plan = plan.model_copy(
+            update={
+                "events": tuple(
+                    p.model_copy(update={"assigned_refs": packets_by_id[p.event_id].allowed_refs})
+                    if p.event_id in packets_by_id
+                    else p
+                    for p in plan.events
+                ),
+                "evidence_bytes": len(evidence.encode("utf-8")),
+            }
+        )
+        break
     vectors = tuple(
         support_vector(
             p.source_event, buffer.documents, baseline_available=request.event_baseline_available
@@ -172,6 +240,7 @@ async def generate_event_document(request: GenerationInput) -> NativeEventGenera
     )
     has_articles = any(p.placement == "article" for p in plan.events)
     base = EventEditionDraft(
+        content_contract_version=2 if article_v2 else 1,
         segment=segment,
         target_date=request.target_date,
         price_reference_date=price_date,
@@ -211,18 +280,51 @@ async def generate_event_document(request: GenerationInput) -> NativeEventGenera
         )
         return draft
 
-    draft = (
-        await synthesize_context_document(
-            render_event_document_prompt(protected),
-            assemble,
-            runner=request.runner,
-            budget=budget,
-            policy=policy,
-            segment=segment,
+    if article_v2 and has_articles:
+        from investo.briefing.event_article_review import compose_and_review
+        from investo.models.event_document import EventArticle
+
+        assert article_calls is not None
+        readiness = await compose_and_review(
+            packets, base, runner=request.runner, budget=article_calls, observed_at=observed_at
         )
-        if has_articles
-        else base
-    )
+        draft = base.model_copy(
+            update={
+                "article_readiness": readiness,
+                "article_generation_trace": article_calls.trace(),
+                "articles": tuple(
+                    EventArticle(
+                        content_contract_version=2,
+                        event_id=r.composition.event_id,
+                        headline=r.composition.headline,
+                        what_changed=r.composition.narrative.lead,
+                        narrative=r.composition.narrative,
+                        fact_ids=r.packet.required_fact_ids,
+                        source_refs=r.packet.allowed_refs,
+                        show_facts=any(
+                            b.kind == "fact_table" for b in r.composition.narrative.blocks
+                        ),
+                    )
+                    for r in readiness
+                ),
+            }
+        )
+        validate_event_edition(
+            draft, observed_at=observed_at, story_baseline=request.story_baseline
+        )
+    else:
+        draft = (
+            await synthesize_context_document(
+                render_event_document_prompt(protected),
+                assemble,
+                runner=request.runner,
+                budget=budget,
+                policy=policy,
+                segment=segment,
+            )
+            if has_articles
+            else base
+        )
     if request.event_baseline_available:
         from investo.briefing.event_story import attach_story_follow_ups
 
