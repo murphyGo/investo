@@ -12,8 +12,8 @@ Focused functional/NFR design is required for mixed date semantics, real axis di
 - [x] 2. Render a month grid, bounded month navigation and selected-date agenda; retain category/7/30 filters, verified timezone/date-only/range semantics and complete no-JS list. Add boundary/escape/month/DST regressions.
 - [x] 3. Add vendor provenance/license and shared plotting layer. Yield curve uses actual maturity years; history uses actual date distances, unit-specific labels, visible linear scale/domain, gaps, exact table and keyboard value inspection. Preserve source notices and one-point honesty.
 - [x] 4. Run focused Python/Node and existing policy/static/strict-site checks; verify actual-source mobile/desktop, light/dark, JS on/off, zoom, navigation/history/error handling. Use labeled synthetic fixtures only for gap/negative/flat-history seams.
-- [ ] 5. Independent dev-investo Step5.1 code review, fix findings, exact release CI. Preserve unrelated dirty root and concurrent main.
-- [ ] 6. Deliver static assets and renderer-compatible runtime release; rerender existing validated snapshots through a narrowly scoped presentation update without changing current/history/snapshot/source clocks; update only manifest index_hash values required by the changed HTML. Verify live Pages/HTML/asset identity and three screens. Record code/policy SHA and keep genuine scheduled counts separate.
+- [x] 5. Independent dev-investo Step5.1 code review, fix findings, exact release CI. Preserve unrelated dirty root and concurrent main.
+- [x] 6. Deliver static assets and renderer-compatible runtime release; rerender existing validated snapshots through a narrowly scoped presentation update without changing current/history/snapshot/source clocks; update only manifest index_hash values required by the changed HTML. Verify live Pages/HTML/asset identity and three screens. Record code/policy SHA and keep genuine scheduled counts separate.
 
 ## Files
 
