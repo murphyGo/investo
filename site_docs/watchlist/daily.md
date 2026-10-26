@@ -1,23 +1,27 @@
 # 오늘의 관심 자산 영향 — 2026-10-23
 
-직접 15 · 관련 0 · 보류 14 · 제외 25
+직접 19 · 관련 0 · 보류 14 · 제외 25
 
 ## 직접 영향 (Direct)
 
 - AAPL: 직접 관련 · [yfinance-price] AAPL 347.73 (-0.14%)
 - AMZN: 직접 관련 · [yfinance-price] AMZN 248.00 (-0.95%)
 - BTC: 직접 관련 · [cftc-cot-positioning] CFTC Bitcoin CME leveraged_money net -4942 contracts
-- BTC: 직접 관련 · [coingecko-global-market] Global crypto market cap $2,728,664,140,697; BTC dominance 59.47%
-- BTC: 직접 관련 · [okx-derivatives] BTC 미결제약정 $646,214,810 (OKX, UTC 24h)
+- BTC: 직접 관련 · [coingecko-global-market] Global crypto market cap $2,669,525,641,869; BTC dominance 60.00%
+- BTC: 직접 관련 · [coingecko-price] 조회 시점 가격 · BTC $79,879.00 (-1.17%)
+- BTC: 직접 관련 · [okx-derivatives] BTC 미결제약정 $658,107,630 (OKX, UTC 24h)
+- BTC: 직접 관련 · [okx-derivatives] BTC 미결제약정 $658,107,650 (OKX, UTC 24h)
 - BTC: 직접 관련 · [okx-derivatives] BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
 - BTC: 직접 관련 · [theblock-crypto] Bitcoin ETFs swing back to net outflows as $636 million in withdrawals erase previous day’s inflows
 - BTC: 직접 관련 · [theblock-crypto] Bitcoin slides below $81,500 as tech stock sell-off spreads to Asian equities
-- ETH: 직접 관련 · [defillama-market-structure] DeFi TVL $89.9B; leader Ethereum
+- ETH: 직접 관련 · [coingecko-price] 조회 시점 가격 · ETH $2,318.63 (-1.61%)
+- ETH: 직접 관련 · [defillama-market-structure] DeFi TVL $89.3B; leader Ethereum
 - GOOGL: 직접 관련 · [yfinance-price] GOOGL 320.21 (-1.24%)
 - META: 직접 관련 · [yfinance-price] META 642.62 (-0.96%)
 - MSFT: 직접 관련 · [yfinance-price] MSFT 524.51 (+0.66%)
 - NVDA: 직접 관련 · [yfinance-price] NVDA 210.96 (-0.59%)
-- SOL: 직접 관련 · [defillama-market-structure] DeFi TVL $89.9B; leader Ethereum
+- SOL: 직접 관련 · [coingecko-price] 조회 시점 가격 · SOL $100.95 (-1.29%)
+- SOL: 직접 관련 · [defillama-market-structure] DeFi TVL $89.3B; leader Ethereum
 - TSLA: 직접 관련 · [yfinance-price] TSLA 372.22 (-0.63%)
 
 ## 관련·매크로 맥락 (Related)
@@ -52,7 +56,7 @@ _해당 항목 없음._
 제외 (Rejected) — 짧은 티커 오탐 억제 확인:
 
 - AAPL ⊘ ACADIA [short-ticker-boundary] · sec-edgar-8k #292abc
-- AAPL ⊘ ALV [short-ticker-boundary] · nasdaq-earnings-calendar #a90bf7
+- AAPL ⊘ ALV [short-ticker-boundary] · nasdaq-earnings-calendar #c9b369
 - AAPL ⊘ AMASS [short-ticker-boundary] · sec-edgar-8k #5b8241
 - AAPL ⊘ AMST [short-ticker-boundary] · nasdaq-earnings-calendar #c0aa57
 - AAPL ⊘ AMZN [short-ticker-boundary] · nasdaq-symbol-directory #beb0ca
@@ -60,13 +64,13 @@ _해당 항목 없음._
 - AAPL ⊘ AMZN [short-ticker-boundary] · yfinance-price #be8be7
 - AAPL ⊘ ARC [short-ticker-boundary] · sec-edgar-8k #992aa8
 - AAPL ⊘ ARS [short-ticker-boundary] · sec-company-facts #5fe911
-- AAPL ⊘ AXP [short-ticker-boundary] · nasdaq-earnings-calendar #47a5f7
+- AAPL ⊘ AXP [short-ticker-boundary] · nasdaq-earnings-calendar #c60a02
 - AAPL ⊘ AZIO [short-ticker-boundary] · sec-edgar-8k #e00320
 - AMZN ⊘ AAPL [short-ticker-boundary] · nasdaq-symbol-directory #9aad09
 - AMZN ⊘ AAPL [short-ticker-boundary] · sec-company-facts #6e4883
 - AMZN ⊘ AAPL [short-ticker-boundary] · yfinance-price #cdd063
 - AMZN ⊘ ACADIA [short-ticker-boundary] · sec-edgar-8k #292abc
-- AMZN ⊘ ALV [short-ticker-boundary] · nasdaq-earnings-calendar #a90bf7
+- AMZN ⊘ ALV [short-ticker-boundary] · nasdaq-earnings-calendar #c9b369
 - AMZN ⊘ AMASS [short-ticker-boundary] · sec-edgar-8k #5b8241
 - AMZN ⊘ amend [short-ticker-boundary] · theblock-crypto #32c1e2
 - AMZN ⊘ amid [short-ticker-boundary] · theblock-crypto #fb6b12
@@ -74,7 +78,7 @@ _해당 항목 없음._
 - AMZN ⊘ AMST [short-ticker-boundary] · nasdaq-earnings-calendar #c0aa57
 - AMZN ⊘ ARC [short-ticker-boundary] · sec-edgar-8k #992aa8
 - AMZN ⊘ ARS [short-ticker-boundary] · sec-company-facts #5fe911
-- AMZN ⊘ AXP [short-ticker-boundary] · nasdaq-earnings-calendar #47a5f7
+- AMZN ⊘ AXP [short-ticker-boundary] · nasdaq-earnings-calendar #c60a02
 - AMZN ⊘ AZIO [short-ticker-boundary] · sec-edgar-8k #e00320
 
 </details>
