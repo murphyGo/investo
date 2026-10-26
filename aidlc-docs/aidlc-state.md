@@ -395,11 +395,14 @@ User requested calendar UI and meaningful graph axes/scales, then “gogo”. [P
 
 | Unit | Functional Design | NFR | Code / readiness |
 | --- | --- | --- | --- |
-| u184 event-evidence-packet-completion | 작성 — 공통 처리/규칙/타입 | 작성 — HTTP/packet/권리 | 4/6 구현; Step5 source별 확인·Step6 최종 검증 진행 |
-| u185 claim-grounded-article-composition | 작성 — narrative/claim/version | 작성 — trust/compatibility | 5/6 구현; Step6 최종 검증 진행 |
-| u186 article-semantic-review-and-readiness | 작성 — Stage3/단일수정/readiness | 작성 — 총5 calls/3900초 | 5/6 구현; Step6 최종 검증 진행, actual 인수는 u172 |
+| u184 event-evidence-packet-completion | 작성 — 공통 처리/규칙/타입 | 작성 — HTTP/packet/권리 | 5/6; Step5 추가 source 자격/본문 범위는 pending |
+| u185 claim-grounded-article-composition | 작성 — narrative/claim/version | 작성 — trust/compatibility | 코드6/6; 실제 source/human/운영 인수는 별도 |
+| u186 article-semantic-review-and-readiness | 작성 — Stage3/단일수정/readiness | 작성 — 총5 calls/3900초 | 코드6/6; actual 인수는 u172 |
 
 기존 u169/u171 산문·footer 편집을 재구현하지 않는다. 새 article_v2 profile에서 근거 보강→한국어 기사→별도 의미 검증을 연결하고 기존 role_v1은 유지한다. C1/C4/C7의 두 단계/역할별180자/16KiB는 이 profile에 한해 명시적으로 개정하는 설계다. u172 5/9·u173 6/7, actual human0/12·slot0/8·v3예약0과 DEBT-090은 유지한다. 생산 코드·workflow·runtime pin·source policy·public archive 변경 없음. [계획 u184](construction/plans/u184-event-evidence-packet-completion-code-generation-plan.md), [u185](construction/plans/u185-claim-grounded-article-composition-code-generation-plan.md), [u186](construction/plans/u186-article-semantic-review-and-readiness-code-generation-plan.md), [실제 인계](construction/event-news-v3-content-20261026/acceptance-and-handoff.md).
 
 
 2026-10-26 사용자 개발 승인/“gogo”: u184–u186 공통 FD/NFR를 구현 기준으로 채택했다. u184 Step1–4, u185/u186 Step1–5를 구현하고 검증 중이다. [구현 증거](construction/event-news-v3-content-20261026/implementation-evidence.md). source 접근 실측은 Fed2개200, CFTC403 blocked; u173slot0/8과 실제human0/12는 유지한다. 새 article_v2 preview는 explicit opt-in/Fed-only/pinned qualification, production capabilityfalse다. 전체CI/실제producer/운영 마감은 별도 갱신한다.
+
+
+2026-10-26 source9605aa6f quality40272481858 SUCCESS7521/1skip/633.72s·Node39·Ruff840/mypy355/정책/docs PASS. u184코드5/6(source별Step5부분), u185/u186코드6/6. 비게시 preview pin9605aa6f·privatee3c63dc 입력17줄 배포 후 실제US40283909018은 composition_invalid 실패, 원래 모델/packet 재생으로 metric proof 누락 및 summary 맥락 손실을 확인·수리해 재검증 중. productionpin2619455c/schema2/기존mode와auth queue:max 보존. 실제human0/12·u173slot0/8·v3예약0·성능/viewport·release/cleanup pending은 유지한다.

@@ -23,7 +23,7 @@ offline 설계 구현은 기존 u167/u168으로 착수 가능하다. live source
 - [x] **Step3 — passage 추출과 input**: qualified selector의 완결 문단·attribution/조건/negation offset을 보존한다. Stage1 24KiB 실전송/source-diverse input과 synopsis를 검증한다. title-only와 body available을 구별하고 source·중복 문서·순서에 결정론적 결과를 낸다.
 - [x] **Step4 — packet/질문/Stage2 배정**: u168 identity binding 뒤 existing editorial order로 core→필수 설명→선택 설명을 배정한다. Stage2 evidence48KiB/전체64KiB를 계산하고 누락 refs·후순위 budget_deferred·conflicting evidence를 기록한다. selection/packing으로 사라진 정보를 source_empty로 바꾸지 않는다.
 - [ ] **Step5 — source별 확장 검증**: [8개 source handoff](../event-news-v3-content-20261026/acceptance-and-handoff.md)의 기존 source별 access/rights/selector/retention fixture를 대조한다. 허용된 기존 국내 정책/DART/SEC filing source에 필요한 bounded enum/selector만 추가한다. 근거 없는 endpoint를 발명하지 않는다. 각 substep의 qualified/blocked와 미해결 슬롯을 적고 blocked 상태에서는 해당 live 경로를 열지 않는다.
-- [ ] **Step6 — 검증·인계**: 아래 tests와 module boundary/static 검증, shared HTTP budget·source privacy 회귀를 완료한다. 실제 rights/parser 증거가 필요한 Step5가 남으면6/6로 보고하지 않는다. exact SHA/packet manifest/남은 qualification을 u185/u173/u172에 전달한다.
+- [x] **Step6 — 검증·인계**: 아래 tests와 module boundary/static 검증, shared HTTP budget·source privacy 회귀를 완료한다. 실제 rights/parser 증거가 필요한 Step5가 남으면6/6로 보고하지 않는다. exact SHA/packet manifest/남은 qualification을 u185/u173/u172에 전달한다.
 
 ## Acceptance Criteria
 

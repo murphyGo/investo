@@ -21,7 +21,7 @@ Functional Design/NFR **EXECUTE — 공통 설계 작성됨**: [처리](../event
 - [x] **Step3 — 한 번의 batch 수정**: 검토된 candidate의 고칠 수 있는 gap만 전달한다. source가 없는 gap은 반복 작성하지 않는다. 수정할 전체 사건에 최대1 call, 이어 전체 재검증1 call이다. 지원되지 않은 새 event/fact/ref를 추가하면 reject하고 기존 hard finding은 보존한다.
 - [x] **Step4 — terminal readiness**: content readiness와 source/selection/fact preservation/semantic/human KPI를 분리한다. stale hash와 finalizer 삭제 뒤 coverage를 재검사하고 미검증 본문 seal을 막는다. blank/footer-only·주요 기사 누락을 normal 성공으로 세지 않으며 valid sibling/기존 partial outcome을 보존한다.
 - [x] **Step5 — 실제 preview·u172 연결**: preview template에 default role_v1인 명시적 profile 입력을 추가하고 검증된 코드·source policy로만 article_v2를 실행할 수 있게 한다. raw recording과 human0/12 상태를 구별한다. u172의 기존 corpus/model/CLI validation에 추가 hashes/질문 coverage를 연결하되 synthetic/model 점수를 human5/5로 바꾸지 않는다.
-- [ ] **Step6 — 검증·인계**: 아래 집중·전체·정적·정책·docs gate와 로컬 code review/AC cross-check를 수행한다. u172에 exact source SHA/profile/policy/source qualification, stage bytes/calls/time, actual/human pending 항목을 전달한다. 운영 활성화와 genuine scheduled 증거는 이 유닛의 코드 완료로 만들지 않는다.
+- [x] **Step6 — 검증·인계**: 아래 집중·전체·정적·정책·docs gate와 로컬 code review/AC cross-check를 수행한다. u172에 exact source SHA/profile/policy/source qualification, stage bytes/calls/time, actual/human pending 항목을 전달한다. 운영 활성화와 genuine scheduled 증거는 이 유닛의 코드 완료로 만들지 않는다.
 
 ## Acceptance Criteria
 

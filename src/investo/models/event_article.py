@@ -11,7 +11,7 @@ from investo.models.event_context import ContextRef, ReactionContext
 from investo.models.event_identity import EntityBinding, FactBinding
 from investo.models.events import Digest, EventId, EventModel
 
-ARTICLE_POLICY = "article-v2-20261026:claims:review:600,900,600,900,600:3900"
+ARTICLE_POLICY = "article-v2-20261026:source-summary:literal-proof:review:600,900,600,900,600:3900"
 ARTICLE_POLICY_HASH = sha256(ARTICLE_POLICY.encode()).hexdigest()
 ARTICLE_FAILURE_CODES = frozenset(
     {
@@ -70,7 +70,8 @@ class EventEvidencePacket(EventModel):
     event_id: EventId
     facts: Annotated[tuple[FactBinding, ...], Field(min_length=1, max_length=8)]
     required_fact_ids: Annotated[tuple[Digest, ...], Field(min_length=1, max_length=8)]
-    passages: Annotated[tuple[EvidencePassage, ...], Field(max_length=24, repr=False)]
+    # Four source documents, each with six body passages and its original summary.
+    passages: Annotated[tuple[EvidencePassage, ...], Field(max_length=28, repr=False)]
     allowed_refs: Refs
     questions: Annotated[tuple[ArticleQuestion, ...], Field(min_length=1, max_length=6)]
     expected_detail: bool = True

@@ -21,7 +21,7 @@ Functional Design/NFR **EXECUTE — 공통 설계 작성됨**: [흐름](../event
 - [x] **Step3 — 결정론적 precheck**: typed source ownership·span·entity alias·numeric/time/status 검사와 완전한 claim coverage를 연결한다. 기존 hard finding을 지우지 않는다. 새 한국어 문장의 의미 검증은 u186의 별도 결과가 필요하고 refs 존재만으로 supported를 발급하지 않는다.
 - [x] **Step4 — renderer/finalizer 연결**: version2 narrative만 한 번 렌더하며 실제 sentence ranges를 반환한다. 삭제/containment 뒤 coverage와 digest/asset/story를 재계산한다. 기사 조건은 본문에, 공통 안내·canonical 면책은 하단1회로 유지한다. u186 readiness hash가 없거나 stale이면 seal 거절이다.
 - [x] **Step5 — public version/reader**: schema3/content_contract2를 추가하고 v1 raw shape/hash를 유지한다. v1에 새 default를 넣어 옛 hash를 다시 계산하지 않는다. home/Telegram/OG/회고/sidecar가 동일 terminal 자료를 소비하고 미지원 version은 archive link fallback이다. raw packet/review text는 공개되지 않는다.
-- [ ] **Step6 — 검증·인계**: 아래 byte/hash·adversarial·finalizer·표면 회귀, exact-source CI와 local review를 완료한다. u186에 후보/claim/range/hash 계약을 전달하고 실제 source/human/viewport는 u172/u173 pending으로 남긴다.
+- [x] **Step6 — 검증·인계**: 아래 byte/hash·adversarial·finalizer·표면 회귀, exact-source CI와 local review를 완료한다. u186에 후보/claim/range/hash 계약을 전달하고 실제 source/human/viewport는 u172/u173 pending으로 남긴다.
 
 ## Acceptance Criteria
 

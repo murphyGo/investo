@@ -36,3 +36,13 @@ u184 Step1–4 구현, Step5는 Fed2개 확인·CFTC/SEC blocked·국내 정책/
 ## 마감 검증
 
 로컬 전체 회귀: 7,502 PASS/1 known skip, 1294.98초. 이 실행 뒤 추가한 detailed/brief 자동 인수·table 중복 및 packet wire 검증은 집중 재검증하며, 최종 exact-source 원격 CI와 actual producer 결과는 후속으로 결속한다.
+
+
+2026-10-26 exact source `9605aa6f369a3023a34249f48bf2939f15a0dca6`: 원격 quality40272481858 SUCCESS, pytest7,521 PASS/1knownskip/633.72초, Node39, Ruff840·mypy355, 정책·strictMkDocs5.79초·Material/calendar guards 모두PASS. 병행u187을 보존해 통합했다. source 구현e244df6b와 최신main merge9605aa6f이며 production 실행pin2619455c는 유지한다.
+
+비게시 preview pin만658be680→9605aa6f로 변경한 뒤 private workflowe3c63dc(기준4824a79)의17줄 입력만 배포했다. schema2/role_v1/official_body_preview=false 기본값과auth queue:max를 유지한다. 실제 미국 preview40283909018은 target2026-10-23/schema3/article_v2/body opt-in/recording=true로 실행했으나 composition_invalid로 실패했다. 암호화 recipient private key는 ignored0600 로컬 파일에만 있다. 생성·내용 인수와 사람 점수는 실행 결과 뒤 별도 판정한다.
+
+
+실제40283909018의 암호화 artifact를 로컬 복호화하고 모델2호출의 prompt/stdout SHA를 각각 확인했다. 작성 응답5편 모두 canonical fact의 독립 metric ref를 누락한 사실을 원래 packet으로 재생해 article.fact_proof_missing으로 확인했다. 본문은 각1문장에 그쳐 내용 합격도 아니다. actual/human/slot 표본에 합산하지 않는다. 원문 summary의 prior·범위 절이 packet에서 빠지는 입력 손실도 수리했다. 기존 body 우선·중복 제거·48KiB/64refs cap은 유지하며, writer에 canonical 전체 proof와 수치의 literal subject/metric/unit/period/status를 명시했다. profile policy hash를 새로 결속한다. 집중104 PASS·Ruff840/mypy355 PASS; 후속 exact CI와 실제 재생 결과는 별도 기록한다.
+
+독립 후속 리뷰에서 summary 추가 시4 sources×(6 body+1 summary)=28개 passage 경계를 확인해 typed cap28과4-source 회귀를 추가했다. 기존 source4·allowed refs64·UTF8 packet48KiB·6body/source 한도는 유지한다. strictMkDocs7.44초 PASS.

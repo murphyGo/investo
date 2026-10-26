@@ -10,6 +10,72 @@ from investo.models.event_context import ContextRef
 from tests._helpers.event_article_v2 import article_case
 
 
+def test_numeric_source_summary_keeps_prior_context_without_a_body():
+    from investo._internal.event_article_packet import build_article_packets
+    from investo.briefing.editorial_plan import build_editorial_plan
+    from investo.briefing.event_identity import canonical_event_binding
+    from investo.models.event_evidence import make_event_context_document, make_evidence_document
+    from tests._helpers.event_context_v3 import NOW
+    from tests._helpers.event_context_v3 import draft as source_draft
+
+    summary = "Acme revenue actual 1200 USD FY2026; prior 1100 USD FY2025."
+    doc = make_event_context_document(
+        make_evidence_document(
+            source_name="official",
+            title="Acme announced Widget",
+            summary=summary,
+            published_at=NOW,
+            received_at=NOW,
+        ),
+        article_passages=True,
+    )
+    event = source_draft(doc)
+    binding = canonical_event_binding(event, (doc,), (), observed_at=NOW, baseline_available=False)
+    plan, bindings, _ = build_editorial_plan((event,), (binding,), (doc,), observed_at=NOW)
+    packet = build_article_packets(plan, bindings, (doc,))[0]
+    assert len(packet.passages) == 1
+    assert packet.passages[0].text == summary
+    assert "1100" not in {fact.original_value for fact in packet.facts}
+    wire = json.loads(packet_payload((packet,), (doc,)))
+    passage = wire["packets"][0]["passages"][0]
+    assert "".join(wire["spans"][ref]["text"] for ref in passage["refs"]) == summary
+
+
+def test_four_source_packet_retains_six_body_passages_and_each_summary():
+    from investo._internal.event_article_packet import build_article_packets
+    from investo.briefing.editorial_plan import build_editorial_plan
+    from investo.briefing.event_identity import canonical_event_binding
+    from investo.models.event_evidence import make_event_context_document, make_evidence_document
+    from tests._helpers.event_context_v3 import NOW
+    from tests._helpers.event_context_v3 import draft as source_draft
+
+    documents = tuple(
+        make_event_context_document(
+            make_evidence_document(
+                source_name="official",
+                title="Acme announced Widget",
+                summary=f"Acme revenue actual 1200 USD FY2026; source {i} comparison.",
+                detail_excerpt="\n\n".join(f"Source {i} paragraph {j}." for j in range(6)),
+                url=f"https://example.com/source-{i}",
+                published_at=NOW,
+                received_at=NOW,
+            ),
+            article_passages=True,
+        )
+        for i in range(4)
+    )
+    event = source_draft(documents[0]).model_copy(update={"item_ids": (1, 2, 3, 4)})
+    binding = canonical_event_binding(
+        event, documents, (), observed_at=NOW, baseline_available=False
+    )
+    plan, bindings, _ = build_editorial_plan((event,), (binding,), documents, observed_at=NOW)
+    packet = build_article_packets(plan, bindings, documents)[0]
+    assert len(packet.passages) == 28
+    assert sum(p.source_locator.startswith("summary:") for p in packet.passages) == 4
+    assert len(packet.allowed_refs) <= 64
+    assert len(packet_payload((packet,), documents).encode()) <= 48 * 1024
+
+
 def test_compact_packet_has_literal_text_for_every_transmitted_ref():
     _, draft, _, _ = article_case()
     packet = draft.article_readiness[0].packet

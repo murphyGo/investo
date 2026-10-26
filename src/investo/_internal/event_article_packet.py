@@ -63,9 +63,22 @@ def build_article_packets(
         refs = list(event.assigned_refs)
         for item_id in event.source_event.item_ids:
             doc = documents[item_id - 1]
-            for chunk in doc.chunks:
-                if chunk.role not in {"background", "meaning", "comparison", "reaction"}:
-                    continue
+            # Keep full body passages first. A source's original summary is also
+            # evidence: classification may have selected only its actual value
+            # while the same sentence contains a prior value or scope clause.
+            chunks = [
+                c
+                for c in doc.chunks
+                if c.role in {"background", "meaning", "comparison", "reaction"}
+            ]
+            chunks.extend(
+                c
+                for c in doc.chunks
+                if c.role == "fact"
+                and c.source_locator.startswith("summary:")
+                and c.text not in {passage.text for passage in chunks}
+            )
+            for chunk in chunks:
                 chunk_refs = tuple(
                     ContextRef(
                         document_id=doc.document_id,
