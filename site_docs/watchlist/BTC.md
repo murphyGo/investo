@@ -2,6 +2,20 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-26 begin -->
+
+## 2026-10-26
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -4942 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,706,471,390,878; BTC dominance 59.43%
+- [coingecko-price] **ticker**: 조회 시점 가격 · BTC $80,222.00 (+0.39%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $659,903,750 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Galaxy says bitcoin bear market is over; now is the time to buy and hold
+- [theblock-crypto] **ticker**: Strategy pauses bitcoin buys, repurchases $205 million of STRC preferred shares
+- [theblock-crypto] **ticker**: Strive closes in on second-largest corporate bitcoin treasury with $511 million purchase
+
+<!-- u33 entry 2026-10-26 end -->
 <!-- u33 entry 2026-10-23 begin -->
 
 ## 2026-10-23

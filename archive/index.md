@@ -11,7 +11,7 @@
 지난 주차별 게시 일자와 데이터 신뢰도(정상·부분·부족)를 한눈에 표시합니다.
 
 <figure class="u29-heatmap" markdown="0">
-<svg xmlns="http://www.w3.org/2000/svg" width="469" height="165" viewBox="0 0 469 165" role="img" aria-label="투자 시황 발행 캘린더 (2026-05-04 ~ 2026-10-25)">
+<svg xmlns="http://www.w3.org/2000/svg" width="486" height="165" viewBox="0 0 486 165" role="img" aria-label="투자 시황 발행 캘린더 (2026-05-04 ~ 2026-11-01)">
 <style>.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:&quot;Noto Sans KR&quot;,Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:&quot;Noto Sans KR&quot;,Arial,sans-serif;}[data-md-color-scheme="slate"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme="slate"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme="slate"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme="slate"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme="slate"] .u29-text{fill:#e6edf3;font-family:&quot;Noto Sans KR&quot;,Arial,sans-serif;}[data-md-color-scheme="slate"] .u29-legend{fill:#e6edf3;font-family:&quot;Noto Sans KR&quot;,Arial,sans-serif;}</style>
 <text class="u29-text" x="8" y="34" font-size="11">월</text>
 <text class="u29-text" x="8" y="51" font-size="11">화</text>
@@ -191,6 +191,9 @@
 <rect class="u29-cell-partial" x="444" y="56" width="14" height="14" rx="2" ry="2"><title>2026-10-21 · 부분</title></rect>
 <rect class="u29-cell-partial" x="444" y="73" width="14" height="14" rx="2" ry="2"><title>2026-10-22 · 부분</title></rect>
 <rect class="u29-cell-partial" x="444" y="90" width="14" height="14" rx="2" ry="2"><title>2026-10-23 · 부분</title></rect>
+<rect class="u29-cell-absent" x="444" y="107" width="14" height="14" rx="2" ry="2"><title>2026-10-24 · 미발행</title></rect>
+<rect class="u29-cell-absent" x="444" y="124" width="14" height="14" rx="2" ry="2"><title>2026-10-25 · 미발행</title></rect>
+<rect class="u29-cell-partial" x="461" y="22" width="14" height="14" rx="2" ry="2"><title>2026-10-26 · 부분</title></rect>
 <rect class="u29-cell-normal" x="36" y="148" width="11" height="11" rx="2" ry="2"/>
 <text class="u29-legend" x="52" y="158" font-size="11">정상</text>
 <rect class="u29-cell-partial" x="106" y="148" width="11" height="11" rx="2" ry="2"/>
@@ -206,11 +209,11 @@
 
 ## 최신 시황
 
-현재 보관된 최신 묶음은 **2026-10-23**입니다.
+현재 보관된 최신 묶음은 **2026-10-26**입니다.
 
-- 국내 증시: 2026-10-23 미발행 · [최근 2026-10-09](domestic-equity/2026/10/2026-10-09.md)
-- [미국 증시](us-equity/2026/10/2026-10-23.md)
-- [크립토](crypto/2026/10/2026-10-23.md)
+- 국내 증시: 2026-10-26 미발행 · [최근 2026-10-09](domestic-equity/2026/10/2026-10-09.md)
+- [미국 증시](us-equity/2026/10/2026-10-26.md)
+- [크립토](crypto/2026/10/2026-10-26.md)
 ## 과거 단일 시황
 
 과거 단일 시황은 세그먼트 분리 이전 형식입니다. 최신 탐색은 위의 국내 증시·미국 증시·크립토 링크를 우선 사용하세요.
