@@ -2,6 +2,22 @@
 
 2026-10-26. 사용자 “개발 진행시켜”, “gogo”로 FD/NFR와 구현 진행을 승인했다. 별도 worktree `event-v3-article-development-20261026`, 기준 `4e3fccad`. 기존 root의 관련 없는 dirty 항목은 보존했다.
 
+## 현재 확인 결과 — 2026-10-27
+
+source `aa51e6bee40d23a8a4593ebde004a2cbfc531647`의 [전체 CI40382079791](https://github.com/murphyGo/investo/actions/runs/40382079791)는 SUCCESS다. pytest **7,567 PASS/1 known skip/782.47초**, Node39, Ruff841, mypy355, 정책 guard와 strict MkDocs8.09초를 통과했다. 마지막 변경의 독립 리뷰는 P1/P2없음, 최신 집중90tests도 PASS다.
+
+같은 source의 실제 비게시 [preview40382074493](https://github.com/murphyGo/automation-runtime/actions/runs/40382074493)가 **sealed**를 반환했다. target2026-09-16의 공식 Fed 원문을 현재 수집한 시험이며, 당시 전체 시장 정보의 as-of 재구성이 아니다. 작성된1편은 **7문장·3문단·6claims**이고 변경폭·새 금리범위·공식 이유·경제 상황을 포함한다. 별도 모델 review는6claims supported, what/when/why answered, reaction not_applicable을 반환했다. writer self-score가 아니라3번째 CLI 호출이며 총3calls, stage별94.38/52.97/17.66초다. prompt30,913/22,421/25,582bytes와 response16,574/12,150/3,246bytes를 확인했다.
+
+이 표본의 availability는 **source_limited**, content status는 **brief_only**, detailed count는 **0**이다. 분류 impact=context여서 expected_detail=false인 사건이다. 실제 생성·자동 내용 검증·봉인 경로의 양성 증거이며, 정상 news-rich 합격·사람 corpus·운영 전환 증거로 합산하지 않는다. source-limited 경고를 숨기거나 모델 판정으로 human5/5를 만들지 않는다.
+
+private workflow는e3c63dc, preview pin은aa51e6be다. publication/notification/production cursor/receipt는 모두false다. 암호화 artifact를 로컬 복호화해 **세 호출 각각의 prompt/stdout hash**, 최종 Markdown4,079bytes/2,878chars의 SHA `c2a266f22f03a8b7207a401618931a9c65e22a7d97078e9f89403f798f2e8d5b`, projection SHA `0494e37969a314a40fb4a480295eb37e165cffa22c5712f91417c6dc7226f881`을 확인했다. raw와recipient key는 ignored0700/0600 로컬 범위에만 있다.
+
+최종 Markdown과 전달 원문을 나란히 표시하는 loopback 검수 페이지를 렌더하고 브라우저로 열었다. HTTP의 HTML이 로컬 파일과 byte-identical(7,395bytes/SHA `6dc6de0d32d9d884f393051df06f57e8a95b3abab6d614febf180f68a518eb41`)이며 본문→자료 안내→면책 순서를 확인했다. `/recipient.key`는404다. 브라우저 대기 연결이 다른 요청을 막지 않도록 private helper는 ThreadingHTTPServer를 사용한다. 이는 실제390×844/1440×900 Browser viewport 인수를 대신하지 않는다.
+
+남은 범위는 u184 Step5 source별 확장 자격, u172 실제 corpus12·사람5/5·성능·viewport 및 운영 승인/예약 관찰이다. **human0/12·slot0/8·genuine v3예약0**, article_v2 active readiness=false와 production pin2619455c는 유지한다. 기본 production은 schema2/role_v1이다.
+
+통합 직전 최신main `e4e19a00`(새 브리핑/insights 발행)을 충돌 없이 병합했다. `archive/`·`site_docs/`는 그main과 정확히 동일하고, `src/`·`tests/`·`scripts/`·`.github/`·의존성 파일은 검증된aa51e6be와 동일하다. 통합 상태의 strict MkDocs9.72초와 staged/unstaged diff check가 PASS다. 최종 remote SHA와main CI는 원격git/Actions에서 별도로 확인한다.
+
 ## 구현된 처리
 
 - u184: preview/production 공통 collection-level 보강, source별 자격/hash/retention, 완결 passage·원문 offset·truncation 진실, Stage1 synopsis와 source-diverse 기존24KiB, Stage2 compact packet48KiB 및 후순위 사건 deferral. 전체 run HTTP6/동시2/20초 유지.

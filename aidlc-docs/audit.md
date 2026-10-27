@@ -8318,3 +8318,7 @@ After exact CI/Pages success and no queued/running daily jobs, private REVIEWED_
 ## 2026-10-27 — 분류 통과와 writer schema 정합 수리
 
 sourcea155ba49 CI40362454442 SUCCESS. 실제40362650269/40362653934는 분류를 통과했지만 actor proof 누락 및 빈 canonical fact ID로 composition_invalid다. Fed8문장도 봉인되지 않아 합격으로 세지 않는다. 기존 validator의4조건을 JSON schema에 명시하고 actor/ref/한국어topic 지침을 구체화했다. 일반금융개념과 조사결합의 entity falsepositive를 수정하며 unknown조직 음성을 유지했다. 집중214·독립52+30·정적검사 PASS, 원문/예산/운영/사람 gate 유지.
+
+## 2026-10-27 — 실제 article_v2 자동 경로 첫 봉인 확인
+
+사용자 개발·계속·커밋/푸시 승인 범위. sourceaa51e6be quality40382079791 SUCCESS7,567/1knownskip, Node39·Ruff841/mypy355·정책·strictdocs PASS. 실제 비게시40382074493은3calls로7문장/3문단/6claims의1편을별도review후봉인했다. 세model record와MD/projection hash, publication/notification/cursor/receipt=false를 확인했다. 로컬원문대조 검수 페이지를 렌더/HTTP확인/브라우저open했으며 실제viewport인수는pending이다. source_limited/brief_only/detailed0의historical Fed 시험으로 정상news-rich·사람12편을대체하지않는다. u1845/6/u1856/6/u1866/6, human0/12·slot0/8·genuine예약0·active readiness=false·productionpin2619455c/default 유지. 최신main의신규archive/insights 데이터를보존해통합한다.
