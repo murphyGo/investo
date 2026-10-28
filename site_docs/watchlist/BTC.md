@@ -2,6 +2,21 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-27 begin -->
+
+## 2026-10-27
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -4942 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,721,517,190,619; BTC dominance 59.44%
+- [coingecko-price] **ticker**: 조회 시점 가격 · BTC $80,642.00 (+0.65%)
+- [defillama-market-structure] **ticker**: DeFi TVL $89.0B; leader Ethereum
+- [okx-derivatives] **ticker**: BTC 미결제약정 $664,931,350 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Ark Invest buys $5.2 million of Circle shares, sells $15.9 million of its own Bitcoin ETF as BTC grinds lower
+- [theblock-crypto] **ticker**: Bitcoin mining infrastructure firm Luxor raises $16 million to expand AI business
+- [theblock-crypto] **ticker**: StoneX lifts Strive price target 34% as new stock offering bolsters bitcoin strategy
+
+<!-- u33 entry 2026-10-27 end -->
 <!-- u33 entry 2026-10-26 begin -->
 
 ## 2026-10-26

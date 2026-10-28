@@ -647,6 +647,15 @@
     ],
     "rights_state": "metadata-only"
   },
+  "03f06e1b3dc9506b0c6b29cced3dbcb90462c2dbb9631a4a55aa386805093d2e": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
   "04037552856b2f86c2550747c94e8f6268b3dc4689cf3c84161c84a9062331d5": {
     "first_seen": "2026-09-29",
     "last_seen": "2026-09-29",
@@ -1001,6 +1010,15 @@
   "053d6025857c90d54a566cd3c1ff8bed727a9a1cec447d5977e524b6276bfb01": {
     "first_seen": "2026-09-22",
     "last_seen": "2026-09-22",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
+  "05437cb53fda50ccabc6006aebe8843b927848406a2e4f06ff324ff9c4475928": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
     "seen_count": 1,
     "sources": [
       "yonhap-market"
@@ -2267,6 +2285,15 @@
     ],
     "rights_state": "metadata-only"
   },
+  "0d064912c892736c7f5ec679babe86c0d0c04b64978a82fefd1a5b408752ea6a": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
   "0d250163dfe6a95e0edeb91b7b189a22b9af618cf64dccffaa8815bf01914d24": {
     "first_seen": "2026-08-18",
     "last_seen": "2026-08-18",
@@ -3446,12 +3473,30 @@
     ],
     "rights_state": "metadata-only"
   },
+  "13f171edf8a3d884fd6d5c2cc6549500f2514cd822516ec1844bf13a20551c1f": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
   "13f7a33956a3afdf43cb01a5e166e4934fce3de798a8ecb82d33e3adc1038c62": {
     "first_seen": "2026-10-06",
     "last_seen": "2026-10-06",
     "seen_count": 1,
     "sources": [
       "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
+  "14052875eb07db24261d753d5abedf97e50f2ec5c563441e4c9cf8d766cda227": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
+    "sources": [
+      "theblock-crypto"
     ],
     "rights_state": "metadata-only"
   },
@@ -3590,9 +3635,27 @@
     ],
     "rights_state": "metadata-only"
   },
+  "14a96b56974f799261d1c87bfb5c69d97a7b6d25004f01ddf9790aeb17858129": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
   "14b5fe3b3e995da9e1d7e94f02121b98efe8722e0cd36c0e24589dcda1a77016": {
     "first_seen": "2026-10-02",
     "last_seen": "2026-10-02",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
+  "14c3600169095f2cdd62a8affd10a32c820253e728b3a276dc9a298fa1be5d50": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
     "seen_count": 1,
     "sources": [
       "yonhap-market"
@@ -3934,8 +3997,8 @@
   },
   "1713894f4e715c748158fb73776106200afa022328dfa0dff3491d1e6f9b1414": {
     "first_seen": "2026-07-28",
-    "last_seen": "2026-10-16",
-    "seen_count": 3,
+    "last_seen": "2026-10-27",
+    "seen_count": 4,
     "sources": [
       "yonhap-market"
     ],
@@ -5219,6 +5282,15 @@
     ],
     "rights_state": "metadata-only"
   },
+  "1e256a49a3d8c21719c6b3c1d9a1f1ffefd9a70dc4a4c244f58a1aa8d3573c1b": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
   "1e2cbbc55fb7797d1828609540a80a0572f6152c1568ecaf4377c403b62c2dc0": {
     "first_seen": "2026-09-03",
     "last_seen": "2026-09-14",
@@ -5642,6 +5714,15 @@
     ],
     "rights_state": "metadata-only"
   },
+  "212aa2e3bf60e640094e05df9b3f087aec9304d4f16af18dee58b2348da7d0a4": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
   "2136b30744df8f80c70ad14123cca0049c4fe4f5125ec784d69b46ad70e703f7": {
     "first_seen": "2026-07-21",
     "last_seen": "2026-07-21",
@@ -5817,6 +5898,15 @@
     "first_seen": "2026-08-12",
     "last_seen": "2026-10-21",
     "seen_count": 2,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
+  "222f7250b39f5447966e585b54ed1634f91ee93946b9b1afd28e83a4da23ac90": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
     "sources": [
       "yonhap-market"
     ],
@@ -6749,6 +6839,15 @@
     ],
     "rights_state": "metadata-only"
   },
+  "288e0cdf66846e824363b10aa09776f936e6d0318fa6cb91461c1bbe5bb1f005": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
+    "sources": [
+      "theblock-crypto"
+    ],
+    "rights_state": "metadata-only"
+  },
   "28a59bf1d3addc95df735a1238907b3ae033730b89bafab1cd78cc45ed2269b5": {
     "first_seen": "2026-10-02",
     "last_seen": "2026-10-02",
@@ -7310,6 +7409,15 @@
   "2c19838ddfad46aad65b32d6febf76af5cb3308a1df8a23035b8048a472b64d8": {
     "first_seen": "2026-10-16",
     "last_seen": "2026-10-16",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
+  "2c1b5122aefe26c4bdc88f6650ff9b16aed699ca95812d450083a5a0a0e931e5": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
     "seen_count": 1,
     "sources": [
       "yonhap-market"
@@ -8135,6 +8243,15 @@
     ],
     "rights_state": "metadata-only"
   },
+  "31ed590c179d0c50a71b84e63160c7e0f97be7584f54415c4d0148d9bb4a341c": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
   "31f0444b2cf813f6be5380416365d0e42bf1461cfdd1846bfc1ea53a0f90c118": {
     "first_seen": "2026-09-22",
     "last_seen": "2026-09-22",
@@ -8300,6 +8417,15 @@
   "32eb48921484267591c6118dcdb44b5eeb36e90428142950edf51fd0d766bbc9": {
     "first_seen": "2026-07-31",
     "last_seen": "2026-07-31",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
+  "32edada21451878d91a581ed8c84140f57abf0e1157487a92b18920fc2f61548": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
     "seen_count": 1,
     "sources": [
       "yonhap-market"
@@ -9026,6 +9152,15 @@
     ],
     "rights_state": "metadata-only"
   },
+  "3695545f3cf93a18c5397cf1bfc61e3cdfa95342ec21bb3290832400f9a292a1": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
+    "sources": [
+      "theblock-crypto"
+    ],
+    "rights_state": "metadata-only"
+  },
   "369d009d1b49fa8aabc6d534e9a974b40271fb3d134396400f3d2f82916eae50": {
     "first_seen": "2026-09-22",
     "last_seen": "2026-09-22",
@@ -9533,6 +9668,15 @@
   "39beac31d65b9c7b148a5f7e6f352fb83820c81b097ddae922a99d7a242b00c9": {
     "first_seen": "2026-08-21",
     "last_seen": "2026-08-21",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
+  "39d46a949ce0205f931cf3ad0a1e62dc7ec6e74225e7c5482178e6ec22c70a2c": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
     "seen_count": 1,
     "sources": [
       "yonhap-market"
@@ -11645,6 +11789,15 @@
     ],
     "rights_state": "metadata-only"
   },
+  "45e34604a985bc8f1565c79ad2120990cff5bed095b1aa643e74877398a39c43": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
+    "sources": [
+      "theblock-crypto"
+    ],
+    "rights_state": "metadata-only"
+  },
   "45e4aa68041c8842832842095609a94f9b6e1832d484298d3241c249c7471699": {
     "first_seen": "2026-10-20",
     "last_seen": "2026-10-20",
@@ -12092,6 +12245,15 @@
     "seen_count": 1,
     "sources": [
       "theblock-crypto"
+    ],
+    "rights_state": "metadata-only"
+  },
+  "485d96157e6370ccecff2837ab1d723a3e79f3cc2b5508331dff46f0a91e4749": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
     ],
     "rights_state": "metadata-only"
   },
@@ -13186,8 +13348,8 @@
   },
   "4e1611cc89fe39738ac6b4861eb0f9a9e5d3ff305a60b5a0a4f5690b426917b6": {
     "first_seen": "2026-07-28",
-    "last_seen": "2026-07-28",
-    "seen_count": 1,
+    "last_seen": "2026-10-27",
+    "seen_count": 2,
     "sources": [
       "yonhap-market"
     ],
@@ -14480,6 +14642,15 @@
     ],
     "rights_state": "metadata-only"
   },
+  "55aede9f3e5c6419c06a58745c6eb0079d1ddc82cbe9ff19bc047584e864938d": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
   "55ced3531fba17becbc6b917ada69a85c232dd6ff4bc5a87fb02de4d10b77118": {
     "first_seen": "2026-08-27",
     "last_seen": "2026-08-27",
@@ -15194,6 +15365,15 @@
   "5a65a85f701d031ff542435e7afad88aa836ba4771302a7f547aef0779212096": {
     "first_seen": "2026-08-14",
     "last_seen": "2026-08-14",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
+  "5a685a3e208a61146002a37c2d41650231235dacf7db89791f25a4a08fd82616": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
     "seen_count": 1,
     "sources": [
       "yonhap-market"
@@ -17092,8 +17272,8 @@
   },
   "659f8a65e1c0373f0c78ed42e04b81dbcfb750d6fd50e811b2159e28f87c3c7e": {
     "first_seen": "2026-07-22",
-    "last_seen": "2026-10-26",
-    "seen_count": 44,
+    "last_seen": "2026-10-27",
+    "seen_count": 45,
     "sources": [
       "yonhap-market"
     ],
@@ -18353,6 +18533,15 @@
   "6da131328881f7221db79dfd362506ae516fe310305845cb9a6ad858efff8ead": {
     "first_seen": "2026-09-21",
     "last_seen": "2026-09-21",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
+  "6dad1c4de00d8f22489c97af16cfd5d8965783f06edae97fa08a2702a1db9d28": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
     "seen_count": 1,
     "sources": [
       "yonhap-market"
@@ -21851,6 +22040,15 @@
     ],
     "rights_state": "metadata-only"
   },
+  "815e472496082e09287855603a01c82787b0badede0631da79f2907eacce2497": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
   "81670ad496609ed49c2eac586be242ab7c69c7f7f2a29e322bdc89708a76e3bf": {
     "first_seen": "2026-09-08",
     "last_seen": "2026-09-17",
@@ -22382,6 +22580,15 @@
     ],
     "rights_state": "metadata-only"
   },
+  "85175a41f1f242eb4dbab222efd3c07565c621acb40897de61a258cbed7b7a78": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
+    "sources": [
+      "theblock-crypto"
+    ],
+    "rights_state": "metadata-only"
+  },
   "85306c217a6031415b41689c03036f3a2fc819890b2177f1d784c5d9e77a6206": {
     "first_seen": "2026-08-05",
     "last_seen": "2026-08-05",
@@ -22537,8 +22744,8 @@
   },
   "862e065699485db02322d50c2959bfe683fd675595eaabb1af8613bc19ba6df2": {
     "first_seen": "2026-07-22",
-    "last_seen": "2026-10-26",
-    "seen_count": 20,
+    "last_seen": "2026-10-27",
+    "seen_count": 21,
     "sources": [
       "yonhap-market"
     ],
@@ -23072,6 +23279,15 @@
     "seen_count": 1,
     "sources": [
       "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
+  "88ee486b49d77078bd2609a0e7b9a9fd5c55975d9ae592dec86902c2c6199e44": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
+    "sources": [
+      "theblock-crypto"
     ],
     "rights_state": "metadata-only"
   },
@@ -24040,8 +24256,8 @@
   },
   "8f407c530f2ea6e36d5a9f3d604ca90ddb4f73593a4becc8a1d079e8ac167e1d": {
     "first_seen": "2026-07-23",
-    "last_seen": "2026-07-23",
-    "seen_count": 1,
+    "last_seen": "2026-10-27",
+    "seen_count": 2,
     "sources": [
       "yonhap-market"
     ],
@@ -24167,6 +24383,15 @@
   "8fcc9e51f3419866c67f6ade6b3087db605e893b3543ed0c8d1714e6b8c696ba": {
     "first_seen": "2026-09-18",
     "last_seen": "2026-09-18",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
+  "8fe502abf0666002bbf8acd18f4e229e9d82da8d49ca8b779e3efd32929bc163": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
     "seen_count": 1,
     "sources": [
       "yonhap-market"
@@ -24638,6 +24863,15 @@
     "seen_count": 1,
     "sources": [
       "theblock-crypto"
+    ],
+    "rights_state": "metadata-only"
+  },
+  "9312aa80f8fa8b89acd45672fb10a5d817fdeb50c5374a7d5e41b19548137ad3": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
     ],
     "rights_state": "metadata-only"
   },
@@ -25286,6 +25520,15 @@
     "seen_count": 1,
     "sources": [
       "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
+  "9695018a9f9a6bbab9cace3280cebac4bd1479b8e77c9d5e81efb618f220e574": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
+    "sources": [
+      "theblock-crypto"
     ],
     "rights_state": "metadata-only"
   },
@@ -26101,8 +26344,8 @@
   },
   "9b33a04dfc15ce694284f3b293aa6dea13b5189f427ae9dc14e84ba385f8263b": {
     "first_seen": "2026-09-22",
-    "last_seen": "2026-10-26",
-    "seen_count": 4,
+    "last_seen": "2026-10-27",
+    "seen_count": 5,
     "sources": [
       "theblock-crypto"
     ],
@@ -28720,8 +28963,8 @@
   },
   "aace2b0cc0fde7ebd83b17b336ebd2b82b51da8d7954c28f55c771c3f4cd51e3": {
     "first_seen": "2026-07-27",
-    "last_seen": "2026-07-27",
-    "seen_count": 1,
+    "last_seen": "2026-10-27",
+    "seen_count": 2,
     "sources": [
       "yonhap-market"
     ],
@@ -28901,6 +29144,15 @@
   "abf0e3a321fbd325ba7be44d548ab7c6a6e0d7d994ff2a9b47a5f90f519ae840": {
     "first_seen": "2026-10-12",
     "last_seen": "2026-10-12",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
+  "abfaf09073dcb232438e6e27fd7187ae15e56239d8b89cda8eb19970d81fa174": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
     "seen_count": 1,
     "sources": [
       "yonhap-market"
@@ -31499,6 +31751,15 @@
     ],
     "rights_state": "metadata-only"
   },
+  "bc5166a4d56b9c660ef969b693bcabbafdb0fe4cca604d050384c3471cbe7e3f": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
+    "sources": [
+      "theblock-crypto"
+    ],
+    "rights_state": "metadata-only"
+  },
   "bc51df5f8601d4d942514c0d15ffef8b643dab96dd1b8395204ae590292ce112": {
     "first_seen": "2026-09-02",
     "last_seen": "2026-09-02",
@@ -32482,8 +32743,8 @@
   },
   "c153727314a10c8f79efdc961e876cd0cd62c46a40bf89ca2f25e7d5cc131b27": {
     "first_seen": "2026-09-30",
-    "last_seen": "2026-09-30",
-    "seen_count": 1,
+    "last_seen": "2026-10-27",
+    "seen_count": 2,
     "sources": [
       "theblock-crypto"
     ],
@@ -33269,6 +33530,15 @@
     "seen_count": 1,
     "sources": [
       "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
+  "c6b1082588c925827a3b3d94b42540c98ba14b6e55471dec2b773d048d4e32c9": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
+    "sources": [
+      "theblock-crypto"
     ],
     "rights_state": "metadata-only"
   },
@@ -34597,8 +34867,8 @@
   },
   "ce47d801d136c7601a822ad979f4db4aeca5b8aaff84754642d4e9312019a69e": {
     "first_seen": "2026-07-23",
-    "last_seen": "2026-07-23",
-    "seen_count": 1,
+    "last_seen": "2026-10-27",
+    "seen_count": 2,
     "sources": [
       "yonhap-market"
     ],
@@ -34606,8 +34876,8 @@
   },
   "ce7d1b069018d4a8fe3b0f9b12f641aca905708d34cfcc323c4b68804d07baa8": {
     "first_seen": "2026-10-22",
-    "last_seen": "2026-10-22",
-    "seen_count": 1,
+    "last_seen": "2026-10-27",
+    "seen_count": 2,
     "sources": [
       "theblock-crypto"
     ],
@@ -34694,6 +34964,15 @@
     ],
     "rights_state": "metadata-only"
   },
+  "cec54387ad6339b5b96af9f60c4fc1b2c79bcf015d5a3b5172ce5f14e85fd952": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
   "cecd22b2e702efe56e5ea984f0c0030ea7123d6413f8b3717452cc9f2cccd255": {
     "first_seen": "2026-09-01",
     "last_seen": "2026-09-01",
@@ -34736,6 +35015,15 @@
     "seen_count": 1,
     "sources": [
       "theblock-crypto"
+    ],
+    "rights_state": "metadata-only"
+  },
+  "ceed1cd4622d4ca596ce6f1bcdd5064ba97e29ab27a6a2cf117aea6f26cdfa44": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
     ],
     "rights_state": "metadata-only"
   },
@@ -36514,8 +36802,8 @@
   },
   "d7856f5cd4aa0f96cf01270d51ef0e14e5aaad095567cae53fbfcb7eebcdbb7e": {
     "first_seen": "2026-07-28",
-    "last_seen": "2026-09-29",
-    "seen_count": 4,
+    "last_seen": "2026-10-27",
+    "seen_count": 5,
     "sources": [
       "yonhap-market"
     ],
@@ -37781,6 +38069,15 @@
     ],
     "rights_state": "metadata-only"
   },
+  "de82828fffbf2a0927de3ce66c940e6a455d06536615d9992797dd3bd721f360": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
   "de8540074a47b58d7663779946b40ef114dc885b4bf05f66c06608e01487e4de": {
     "first_seen": "2026-08-21",
     "last_seen": "2026-08-21",
@@ -38233,8 +38530,8 @@
   },
   "e124f7bd31cf61526371cbd3fd8be34a1a194d8e2b6a6a54f795a4ac0085f11d": {
     "first_seen": "2026-10-13",
-    "last_seen": "2026-10-13",
-    "seen_count": 1,
+    "last_seen": "2026-10-27",
+    "seen_count": 2,
     "sources": [
       "theblock-crypto"
     ],
@@ -38318,6 +38615,15 @@
     "seen_count": 1,
     "sources": [
       "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
+  "e1adb2ae5c97e9162efd87917af8a70fbb8830251488e5837da2ecd9f564ba28": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
+    "sources": [
+      "theblock-crypto"
     ],
     "rights_state": "metadata-only"
   },
@@ -39359,6 +39665,15 @@
   "e87528650158ec6eb8c78f95b96d7dd4b58c5cc6a621c03f852d92163b7f1bcd": {
     "first_seen": "2026-10-22",
     "last_seen": "2026-10-22",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
+  "e8895a8949d4b5fd70c0819c9987d4f67b12fb1bb5e38fcff80d6f73dddadb1e": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
     "seen_count": 1,
     "sources": [
       "yonhap-market"
@@ -40499,6 +40814,15 @@
     ],
     "rights_state": "metadata-only"
   },
+  "ef533af40abd5ab9295eb0b5bb24e2d6a04c601b2dbbe8edceba595f475619de": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
   "ef66fbeb191a9388fd0a40a795f8c07f1588941f1ab73d91937f2a16657bce18": {
     "first_seen": "2026-07-23",
     "last_seen": "2026-07-23",
@@ -40580,6 +40904,15 @@
     ],
     "rights_state": "metadata-only"
   },
+  "efb8dfc805d96a17f245340494f196f6165d7c94ecd6c7f784368007d55c22b6": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
   "efbb2b7539e22f506946058887af1bc4f1cf133ebe1fbc1a3518b637af33b270": {
     "first_seen": "2026-07-29",
     "last_seen": "2026-07-29",
@@ -40601,6 +40934,15 @@
   "efdc10b0314e8e48ecd5db1ed5bda769acc6588d117c8ac63e94bc3486369646": {
     "first_seen": "2026-10-08",
     "last_seen": "2026-10-08",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
+  "efed1c8188c09476524ece8584cf0477bb74953c45e3f270bb04a1cee6ab1cdb": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
     "seen_count": 1,
     "sources": [
       "yonhap-market"
@@ -42013,8 +42355,8 @@
   },
   "f8a1c65f6475c7d092e954b76a80e8d55bac07937f56476ef1f8b7ebc10770ba": {
     "first_seen": "2026-08-05",
-    "last_seen": "2026-10-21",
-    "seen_count": 9,
+    "last_seen": "2026-10-27",
+    "seen_count": 10,
     "sources": [
       "yonhap-market"
     ],
@@ -42329,6 +42671,15 @@
   "fa4e2b4b60e198b806dc99a484339b2ad9735534ce0a9bfded4ae5a15e000d6f": {
     "first_seen": "2026-09-18",
     "last_seen": "2026-09-18",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
+  "fa535562ee4288b5986ffbe7f544e2c3321b75599c604d5440975cfac1639481": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
     "seen_count": 1,
     "sources": [
       "yonhap-market"
@@ -42652,8 +43003,8 @@
   },
   "fc42ffdd737d31424d8739a044d98f5e88686e998fbd7b7418963482e5d978b3": {
     "first_seen": "2026-10-15",
-    "last_seen": "2026-10-15",
-    "seen_count": 1,
+    "last_seen": "2026-10-27",
+    "seen_count": 2,
     "sources": [
       "yonhap-market"
     ],
@@ -42833,6 +43184,15 @@
   "fd7a6ee6b48332803f0efc301cc51f46f810230f2b7bc95dafcafc89210e5250": {
     "first_seen": "2026-09-09",
     "last_seen": "2026-09-09",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
+  "fd83ffc188e37ddab759db1d5e92a5e45ccc2071cc5c3fc591c01318ce9f4593": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
     "seen_count": 1,
     "sources": [
       "yonhap-market"
@@ -43255,8 +43615,8 @@
   },
   "ff3460073e0a441ae7c6267c9e7ee0465c6eafcfaeec5ef91f3d90e095526f4d": {
     "first_seen": "2026-10-14",
-    "last_seen": "2026-10-15",
-    "seen_count": 2,
+    "last_seen": "2026-10-27",
+    "seen_count": 3,
     "sources": [
       "theblock-crypto"
     ],
@@ -43409,6 +43769,15 @@
   "ffcdc8a46895f1429b04f6f54ed13d9c43eaf416f36b1d703116b845a6f3b11f": {
     "first_seen": "2026-10-14",
     "last_seen": "2026-10-14",
+    "seen_count": 1,
+    "sources": [
+      "yonhap-market"
+    ],
+    "rights_state": "metadata-only"
+  },
+  "ffe8a0b62b6356e0f11e90ee50feb170437b1df47f6b4939fb1ac092baf86e28": {
+    "first_seen": "2026-10-27",
+    "last_seen": "2026-10-27",
     "seen_count": 1,
     "sources": [
       "yonhap-market"

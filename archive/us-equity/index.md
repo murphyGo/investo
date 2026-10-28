@@ -25,7 +25,6 @@
 
 [2026-10-26](2026/10/2026-10-26.md){ .investo-archive-link }
 
-<p class="investo-archive-snippet" markdown="0">StoneX는 Coherent에 Buy 의견으로 분석을 개시했습니다.</p>
 </div>
 <div class="investo-archive-entry" data-date="2026-10-23" markdown="1">
 
