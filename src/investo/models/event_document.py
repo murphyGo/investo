@@ -32,6 +32,7 @@ from investo.models.event_story import (
     StoryStateProposal,
 )
 from investo.models.events import Digest, EventId, EventModel, FactStatus, NumericWatchpoint
+from investo.models.exchange_flows import ExchangeFlow
 from investo.models.market_anchor import MarketAnchor
 from investo.models.segments import MarketSegment
 
@@ -167,6 +168,8 @@ class EventVisualInput(EventModel):
 
 class MarketReferencePanel(EventModel):
     anchors: Annotated[tuple[MarketAnchor, ...], Field(max_length=24)] = ()
+    daily_exchange_flows: Annotated[tuple[ExchangeFlow, ...], Field(max_length=2)] = ()
+    calculated_option_expiries: Annotated[tuple[datetime, ...], Field(max_length=2)] = ()
 
 
 class EventReferencePanel(EventModel):

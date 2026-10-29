@@ -417,6 +417,20 @@ SOURCE_SPECS: Final[tuple[SourceSpec, ...]] = (
         item_segments=_CRYPTO,
     ),
     _spec(
+        "krx-option-expiry",
+        evidence_domains=frozenset({"krx.co.kr"}),
+        tier="A",
+        market_window_segment="domestic-equity",
+        item_segments=_DOMESTIC,
+    ),
+    _spec(
+        "coinmetrics-exchange-flows",
+        evidence_domains=frozenset({"coinmetrics.io"}),
+        tier="B",
+        market_window_segment="crypto",
+        item_segments=_CRYPTO,
+    ),
+    _spec(
         "defillama-market-structure",
         evidence_domains=frozenset({"defillama.com"}),
         tier="B",

@@ -15,6 +15,7 @@ Does NOT import from ``orchestrator`` / ``sources`` / ``notifier``.
 
 from __future__ import annotations
 
+import re
 from typing import Final
 
 from investo._internal.crypto_indicators import (
@@ -35,8 +36,22 @@ def inject_crypto_indicator_block(text: str, block: str | None) -> str:
     """
     if not block:
         return text
-    if CRYPTO_INDICATOR_HEADER in text:
-        return text
+    # Replace model-authored copies, including the previous UTC 24h heading.
+    # Merely finding a heading must not let invented values or lost license
+    # attribution bypass the deterministic publisher. Collapse duplicates.
+    pattern = re.compile(r"^## ⓪-A 크립토 지표[^\n]*\n.*?(?=^## |\Z)", re.M | re.S)
+    found = False
+
+    def replace(match: re.Match[str]) -> str:
+        nonlocal found
+        if found:
+            return ""
+        found = True
+        return f"{block.strip()}\n\n"
+
+    replaced = pattern.sub(replace, text)
+    if found:
+        return replaced
 
     rendered = f"{block.strip()}\n\n"
 
