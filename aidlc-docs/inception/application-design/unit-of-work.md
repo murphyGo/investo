@@ -3098,3 +3098,7 @@ Evidence: [25 executed runs /44 sources](../../construction/source-reliability-2
 **Module path**: publisher/insights/calendar.py, calendar_grid.py, macro.py, chart_view.py; site_docs/assets/insights*.js/css; pinned uPlot1.6.32 and mkdocs.yml.
 
 **Definition of Done**: AC187.1–7: bounded month/day filters, explicit KST/source dates, actual maturity/date distances, visible axis/domain/exact-value table, honest gaps/one observation, failure/no-JS/lifecycle/accessibility verification, unchanged current/history/snapshot/source clocks with coherent manifest index hashes. [Plan](../../construction/plans/u187-public-insights-calendar-and-chart-ui-code-generation-plan.md).
+
+### 2026-10-29 u43/u66 source 확장
+
+사용자 승인에 따라 u43에 KRX 월물 옵션 최종거래일, u66에 Coin Metrics Community BTC/ETH 일별 순유입을 추가했다. 기존 legacy 브리핑과 native v3 시장 기준 자료까지 연결한다. FR-001/002, US-008 및 NFR-002/003/004를 재사용하며 FD/NFR 상세는 [도입 계획](../../construction/plans/data-expansion-20261029-code-generation-plan.md)에서 추적한다. 코드 검증 완료와 배포 후 운영 인수는 구분한다.

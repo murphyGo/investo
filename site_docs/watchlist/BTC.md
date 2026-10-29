@@ -2,6 +2,20 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-28 begin -->
+
+## 2026-10-28
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -4942 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,714,385,863,777; BTC dominance 59.47%
+- [coingecko-price] **ticker**: 조회 시점 가격 · BTC $80,631.00 (-0.11%)
+- [defillama-market-structure] **ticker**: DeFi TVL $88.9B; leader Ethereum
+- [okx-derivatives] **ticker**: BTC 미결제약정 $670,686,000 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000589232073032 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitwise raises bitcoin price target to $1.6 million by 2036, projects 34% annualized returns
+- [theblock-crypto] **ticker**: Datavault AI stock plummets 50% after firm says it cannot withdraw bitcoin tied to $150 million deal
+
+<!-- u33 entry 2026-10-28 end -->
 <!-- u33 entry 2026-10-27 begin -->
 
 ## 2026-10-27

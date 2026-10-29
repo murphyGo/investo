@@ -307,7 +307,7 @@ _DIAGNOSTICS_OPEN: Final[str] = "<details><summary>수집/품질 진단</summary
 _DIAGNOSTICS_OPEN_EXPANDED: Final[str] = "<details open><summary>수집/품질 진단</summary>"
 _DIAGNOSTICS_CLOSE: Final[str] = "</details>"
 _SHARED_MACRO_HEADING: Final[str] = "## ⓪ 오늘의 매크로"
-_CRYPTO_INDICATOR_HEADING: Final[str] = "## ⓪-A 크립토 지표 (UTC 24h 스냅샷)"
+_CRYPTO_INDICATOR_HEADING: Final[str] = "## ⓪-A 크립토 지표"
 _CHANNEL_ANCHOR_HEADING: Final[str] = "## ⓪-B 채널 기준선"
 _CAUSE_PREFIX: Final[str] = "> **크로스마켓 연결 고리**:"
 _THESIS_PREFIX: Final[str] = "> **오늘의 큰 그림:**"
@@ -4270,6 +4270,18 @@ def _seal_native_document(
         raise _SegmentTrustBlockedError(
             phase="generated", issue_codes=("numeric.anchor_assertion",)
         )
+    from investo._internal.market_reference import source_market_reference
+
+    reference = source_market_reference(
+        context.items_by_segment.get(draft.segment, ()),
+        anchors=draft.market_reference.anchors,
+        segment=draft.segment,
+        target_date=draft.target_date,
+        observed_at=context.entity_observed_at_utc,
+    )
+    # These deterministic source data are not LLM claims or article evidence.
+    # Overwrite every generated supplement; the finalizer owns this panel.
+    draft = draft.model_copy(update={"market_reference": reference})
     if draft.visual_inputs != context.event_visual_inputs_by_segment.get(draft.segment, ()):
         raise _SegmentTrustBlockedError(phase="generated", issue_codes=("event.asset_unbound",))
     artifacts = {

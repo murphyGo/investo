@@ -54,6 +54,10 @@ from typing import Final, Literal
 
 from pydantic import BaseModel, ConfigDict
 
+from investo._internal.crypto_indicators import (
+    render_exchange_flow_reference,
+    validated_exchange_flows,
+)
 from investo.models import NormalizedItem
 from investo.models.core_fact import (
     CORE_FACT_KEYWORDS,
@@ -225,6 +229,15 @@ def verify_core_facts(
     reader callout, ``warn`` raises an operator alert only.
     """
     source_facts = aggregate_source_facts(items)
+    # A native coin quantity and observation date are not USD price claims.
+    # Mask only exact rows reconstructed from validated source pairs. Altered
+    # values, appended USD claims and all surrounding prose remain checked.
+    flow_rows = {
+        line
+        for line in render_exchange_flow_reference(validated_exchange_flows(items)).splitlines()
+        if line.startswith(("| BTC 거래소 일별 순유입 |", "| ETH 거래소 일별 순유입 |"))
+    }
+    text = "\n".join(" " * len(line) if line in flow_rows else line for line in text.split("\n"))
     verified: list[CoreFact] = []
     unverified: list[CoreFact] = []
     conflicts: list[ConflictDetail] = []

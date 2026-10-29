@@ -951,3 +951,11 @@ _No medium priority items._
 ---
 
 *Managed by `/tech-debt` skill. Run `/tech-debt add` to add new items.*
+
+## 2026-10-29 데이터 확장 후속 — DEBT-067 / DEBT-072 / 연도별 달력
+
+- **DEBT-067 부분 해소**: `krx-option-expiry`로 KOSPI 200 월물 옵션 최종거래일을 계산하여 domestic 일정 및 active native 시장 기준 자료에 표시한다. 공식 규칙·휴장 조정과 검증된 2026년 범위만 사용. 위클리·코인 일정·임시 특례와 2027 연도 갱신은 남는다. 무료 키만으로 CoinMarketCal 공개 사용이 된다는 가정은 전일 연구에서 배제했다.
+- **DEBT-072 부분 해소**: `coinmetrics-exchange-flows`의 무키 Community BTC/ETH 일별 native 순유입을 도입했다. 잠정/검토/수정·관측일·CC BY-NC 4.0 출처와 계산 설명을 함께 표시한다. 무료 순유입 소스 탐색 장애는 해소했지만 24h 청산과 전체 시장 커버리지는 해결하지 않는다.
+- **운영 잔여**: 코드와 로컬 실측/native 표시 검증 완료; 배포 후 첫 예약 관측은 미완료. 비상업 범위를 벗어나면 `INVESTO_SOURCE_DISABLE=coinmetrics-exchange-flows`로 중지하고 표시권을 재검토한다. 미지원 연도 일정은 정상 빈 일정으로 위장하지 않는다.
+- **기존 회귀 실패**: `test_event_evidence.py::test_malformed_html_preserves_original_and_successful_sibling`이 이번 통합 전 원본에서도 동일 환경에서 실패. event evidence 담당 작업과 별개로 현상을 기록하며 이 확장에서 해당 파일을 수정하지 않았다.
+- 근거: [도입 cross-check](cross-checks/2026-10-29-data-expansion.md), [연구](../aidlc-docs/construction/data-expansion-research-20261028/review.md).

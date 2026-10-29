@@ -156,7 +156,7 @@ def _canonical_region_markdown(
     if shared_macro:
         lines.extend(("## ⓪ 오늘의 매크로", "", "매크로 본문", ""))
     if crypto_indicators:
-        lines.extend(("## ⓪-A 크립토 지표 (UTC 24h 스냅샷)", "", "지표 본문", ""))
+        lines.extend(("## ⓪-A 크립토 지표", "", "지표 본문", ""))
     if channel_anchors:
         lines.extend(("## ⓪-B 채널 기준선", "", "채널 본문", ""))
     lines.extend(

@@ -16,7 +16,12 @@ MARKET_DATA_OPEN: Final[str] = (
 )
 MARKET_DATA_CLOSE: Final[str] = "</details>\n<!-- /investo:market-data -->"
 _NUMERIC_HEADINGS = frozenset(
-    ("## ⓪ 오늘의 매크로", "## ⓪-A 크립토 지표 (UTC 24h 스냅샷)", "## ⓪-B 채널 기준선")
+    (
+        "## ⓪ 오늘의 매크로",
+        "## ⓪-A 크립토 지표",
+        "## ⓪-A 크립토 지표 (UTC 24h 스냅샷)",  # archived documents
+        "## ⓪-B 채널 기준선",
+    )
 )
 _ANCHOR_HEADERS = frozenset(
     ("| 종목 | 종가 | 변동 | 비고 |", "| 종목 | 스냅샷(UTC 24h) | 구간 변동 | 비고 |")

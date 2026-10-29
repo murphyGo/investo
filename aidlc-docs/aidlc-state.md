@@ -418,6 +418,13 @@ User requested calendar UI and meaningful graph axes/scales, then “gogo”. [P
 
 2026-10-29 KST 최종 로컬gate: 운영동일Python3.11.9/Node22/Cairo경로에서full7602PASS/1knownskip/982.06초, Ruff/format842·sourceMypy355/scriptstrict·Node39/native57·정책/strictdocs/Material/Calendar PASS. cutover --require-ready는예상exit1/release_readyfalse다. 사람/viewport/성능/source잔여/운영/예약/cleanup 미완료와위유닛횟수는유지한다.
 
+## 2026-10-29 — u43/u66 추가 데이터 확장
+
+- 사용자 “1~2순위ㄷ 도입해보자” 승인으로 KRX KOSPI 200 월물 만기 / Coin Metrics Community BTC·ETH 일별 거래소 순유입 확장.
+- FD/NFR/Code Generation/로컬 Build & Test/독립 리뷰/cross-check 완료. [계획](construction/plans/data-expansion-20261029-code-generation-plan.md), [설계](construction/data-expansion-20261029/functional-design/design.md), [검증](../docs/cross-checks/2026-10-29-data-expansion.md).
+- 수집·legacy 및 native v3 시장 기준 자료 표시·출처/잠정 표시·가격 검증·v3 공통 cutoff 연결. 기본 source registry 44→46.
+- 코드 완료와 운영 인수 구분: commit/push/배포/Telegram 송신 없음. 첫 예약 GHA 관측과 2027 KRX 달력 갱신은 잔여. DEBT-067/072 전체 완료 아님.
+
 ### 2026-10-30 — 기사형 v3 source 후속
 
 기록된 crypto 입력14건에서 승인 수령 근거0→1을 런타임 prover로 재생했고 원문·순서·문서14건과24KiB 한도를 보존했다. 도메인 마침표·전체 문장의 조건/귀속·승인 목적과 실제 출시 구분을 보완했다. 미국 `Semiweekly`의 근거 없는 숫자 변환 방지 지침과 기존 hard gate 회귀를 추가하고 article policy hash를 갱신했다. 기존 DART 원본 XML을 요청1회/500KiB/안전XML/암호문 artifact로 점검하는 수동 private 도구를 준비했다. 실제 DART·새 모델 실행은 미실행이며 source/runtime 자격을 승격하지 않는다. 독립 검수 두 High 수정 후 잔여 C/H/M0, 최종 집중207 PASS. 격리 스냅샷 전체7,630PASS/1knownskip/998.94초와 최종 보완 집중207PASS·정적 검사 결과 및 파일 SHA는 [후속 증거](construction/event-v3-acceptance-20261028/followup-20261030.json)에 기록한다. u1717/8·u1725/9·u1736/7·u1845/6, local slots2/8/runtime0·human0/12·v3예약0, viewport/성능/전환/cleanup 미완료를 유지한다. [세션](../docs/sessions/2026-10-30-event-v3-source-followup.md).
