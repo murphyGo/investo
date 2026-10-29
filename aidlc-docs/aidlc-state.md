@@ -411,3 +411,10 @@ User requested calendar UI and meaningful graph axes/scales, then “gogo”. [P
 
 
 2026-10-27: 후속 source826eb3ee exactCI40285888771 SUCCESS7523/1skip. 실제40357554455/40357557379는 classification.status_unbound로 실패했다. clipped source span/unsupported actual frame과 관측 통계의 뉴스 예약 소모를 수리하고 영어·한국어 source hint/forecast·기관명 모호성/실제32KiB 전체 prompt를 검증했다(집중211/native57 PASS, 독립97 PASS). 후속 exact CI/actual 재실행 진행; productionpin2619455c·human0/12·source slots0/8·예약0과 기존 gate는 그대로다.
+
+## 2026-10-29 — u43/u66 추가 데이터 확장
+
+- 사용자 “1~2순위ㄷ 도입해보자” 승인으로 KRX KOSPI 200 월물 만기 / Coin Metrics Community BTC·ETH 일별 거래소 순유입 확장.
+- FD/NFR/Code Generation/로컬 Build & Test/독립 리뷰/cross-check 완료. [계획](construction/plans/data-expansion-20261029-code-generation-plan.md), [설계](construction/data-expansion-20261029/functional-design/design.md), [검증](../docs/cross-checks/2026-10-29-data-expansion.md).
+- 수집·legacy 및 native v3 시장 기준 자료 표시·출처/잠정 표시·가격 검증·v3 공통 cutoff 연결. 기본 source registry 44→46.
+- 코드 완료와 운영 인수 구분: commit/push/배포/Telegram 송신 없음. 첫 예약 GHA 관측과 2027 KRX 달력 갱신은 잔여. DEBT-067/072 전체 완료 아님.

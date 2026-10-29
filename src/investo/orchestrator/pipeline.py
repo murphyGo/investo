@@ -3143,7 +3143,7 @@ class CollectStage:
             else ctx.event_observed_at or ctx.run_started_at or datetime.now(UTC)
         )
         evidence_options: _CollectionClockOptions = (
-            {"evidence_received_at": evidence_clock} if ctx.event_config.uses_v2 else {}
+            {"evidence_received_at": evidence_clock} if ctx.event_config.uses_events else {}
         )
         if not ctx.news_replay and ctx.run_started_at is not None:
             evidence_options["price_snapshot_at"] = ctx.run_started_at

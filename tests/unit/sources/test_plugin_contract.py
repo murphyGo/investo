@@ -46,6 +46,7 @@ from investo.sources.cftc_policy_rss import CftcPolicyRssAdapter
 from investo.sources.cnbc_top_news import CnbcTopNewsAdapter
 from investo.sources.coingecko import CoinGeckoPriceAdapter
 from investo.sources.coingecko_global_market import CoinGeckoGlobalMarketAdapter
+from investo.sources.coinmetrics_exchange_flows import CoinMetricsExchangeFlowsAdapter
 from investo.sources.dart_disclosure import DartDisclosureAdapter
 from investo.sources.defillama_market_structure import DefiLlamaMarketStructureAdapter
 from investo.sources.eia_petroleum_weekly import EiaPetroleumWeeklyAdapter
@@ -60,6 +61,7 @@ from investo.sources.fsc_krx_index_price import FscKrxIndexPriceAdapter
 from investo.sources.fsc_krx_stock_price import FscKrxStockPriceAdapter
 from investo.sources.korea_policy_rss import KoreaPolicyRssAdapter
 from investo.sources.krx_foreign_flows import KrxForeignFlowsAdapter
+from investo.sources.krx_option_expiry import KrxOptionExpiryAdapter
 from investo.sources.nasdaq_earnings_calendar import NasdaqEarningsCalendarAdapter
 from investo.sources.nasdaq_stocks_news import NasdaqStocksNewsAdapter
 from investo.sources.nasdaq_symbol_directory import NasdaqSymbolDirectoryAdapter
@@ -109,6 +111,7 @@ def _isolate_registry() -> Iterator[None]:
     register(CftcCotPositioningAdapter)
     register(CftcPolicyRssAdapter)
     register(CoinGeckoGlobalMarketAdapter)
+    register(CoinMetricsExchangeFlowsAdapter)
     register(OkxDerivativesAdapter)
     register(BinanceCryptoMarketAdapter)
     register(DartDisclosureAdapter)
@@ -122,6 +125,7 @@ def _isolate_registry() -> Iterator[None]:
     register(FscKrxStockPriceAdapter)
     register(KoreaPolicyRssAdapter)
     register(KrxForeignFlowsAdapter)
+    register(KrxOptionExpiryAdapter)
     register(YFinancePriceAdapter)
     register(CoinGeckoPriceAdapter)
     register(FredEconomicCalendarAdapter)

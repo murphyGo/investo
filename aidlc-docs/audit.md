@@ -8322,3 +8322,14 @@ sourcea155ba49 CI40362454442 SUCCESS. 실제40362650269/40362653934는 분류를
 ## 2026-10-27 — 실제 article_v2 자동 경로 첫 봉인 확인
 
 사용자 개발·계속·커밋/푸시 승인 범위. sourceaa51e6be quality40382079791 SUCCESS7,567/1knownskip, Node39·Ruff841/mypy355·정책·strictdocs PASS. 실제 비게시40382074493은3calls로7문장/3문단/6claims의1편을별도review후봉인했다. 세model record와MD/projection hash, publication/notification/cursor/receipt=false를 확인했다. 로컬원문대조 검수 페이지를 렌더/HTTP확인/브라우저open했으며 실제viewport인수는pending이다. source_limited/brief_only/detailed0의historical Fed 시험으로 정상news-rich·사람12편을대체하지않는다. u1845/6/u1856/6/u1866/6, human0/12·slot0/8·genuine예약0·active readiness=false·productionpin2619455c/default 유지. 최신main의신규archive/insights 데이터를보존해통합한다.
+
+## 2026-10-29 KST — 추가 데이터 우선순위 1·2 도입
+
+- **사용자 지시**: “1~2순위ㄷ 도입해보자”. 전일 연구의 KRX 월물 만기와 Coin Metrics 순유입을 대상으로 해석.
+- **단계**: u43/u66 FD/NFR 작성 → 수집기/등록/표시 구현 → 독립 리뷰 → 통합 검증. 기존 승인 범위에서 연속 진행, 반복 승인 질문 없음.
+- **설계 보완**: active 모드와 별개로 native v3 패널 호환 연결; 순유입을 가격으로 오인하는 검사 수정; v3 수집 cutoff 통일; Telegram 상세 페이지 attribution 계약 명시.
+- **검증**: 실측 Community HTTP 200 및 두 native finalizer 통과. 넓은 회귀 4,607 pass, 수정 후 집중 89 pass, 독립 reviewer 44 pass. 기존 HTML malformed 테스트 실패는 통합 전 원본에서도 재현해 별도 기록.
+- **통합**: 별도 clone에서 구현 후 대상 파일의 원본 baseline을 비교하여 공유 작업공간에 반영. 다른 세션의 수정은 보존. commit/push/배포·외부 알림 송신 없음.
+- **산출물**: [계획](construction/plans/data-expansion-20261029-code-generation-plan.md), [cross-check](../docs/cross-checks/2026-10-29-data-expansion.md), [세션](../docs/sessions/2026-10-29-data-expansion.md).
+
+- **최종 통합 검증**: 공유 작업공간 집중 144 passed, 변경 source 17개 mypy/ruff/무료 API 검사·문서 링크·git diff --check 통과. 도입 계획 6/6 완료.

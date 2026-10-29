@@ -1,0 +1,38 @@
+{
+  "krx-option-expiry": {
+    "rows": 1,
+    "observations": [
+      "2026-11-12"
+    ],
+    "statuses": [
+      "calculated"
+    ],
+    "native_panel_present": true,
+    "attribution_present": true,
+    "markdown_sha256": "3ba90a8daecb9aff9b00ffa7e2f799515d5776db6650918ce1e40ac550f93484"
+  },
+  "coinmetrics-exchange-flows": {
+    "rows": 2,
+    "observations": [
+      "2026-10-27",
+      "2026-10-27"
+    ],
+    "statuses": [
+      "flash",
+      "flash"
+    ],
+    "native_panel_present": true,
+    "attribution_present": true,
+    "markdown_sha256": "3a550f7e5f456a0e41b2522123bc2f5761a7321c1d8100ee22772cbdf3ebf9b8"
+  },
+  "checked_at_utc": "2026-10-28T15:26:38.193135+00:00",
+  "requests": [
+    {
+      "url": "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc%2Ceth&metrics=FlowInExNtv%2CFlowOutExNtv&frequency=1d&start_time=2026-10-25&end_time=2026-10-27&page_size=6&status=all",
+      "status": 200,
+      "bytes": 1851,
+      "sha256": "118beb40793225ff87be0b22ab6d63e9961ed1d8154c8e1819911bd66963dea9"
+    }
+  ],
+  "scope": "local read-only HTTP and native finalizer, no publication/notification"
+}

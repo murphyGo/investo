@@ -8,11 +8,13 @@ from dataclasses import dataclass
 from hashlib import sha256
 from urllib.parse import quote
 
+from investo._internal.crypto_indicators import render_exchange_flow_reference
 from investo._internal.disclaimer import DISCLAIMER_CRYPTO_V3, DISCLAIMER_V3
 from investo._internal.event_context import resolve_context_ref
 from investo._internal.event_identity import source_receipt
 from investo._internal.event_public_text import markdown_literal as _plain
 from investo._internal.event_v3_contract import fact_source_map, usable_digest
+from investo._internal.market_reference import render_option_expiry_reference
 from investo.models.event_article import SentenceClaim
 from investo.models.event_context import (
     ContextFactDraft,
@@ -562,7 +564,11 @@ def render_event_edition(
             lines.append("출처: " + " · ".join(f"[원문]({_link(href)})" for href in hrefs))
             lines.append("")
         lines.extend(("</details>", ""))
-    if draft.market_reference.anchors:
+    if (
+        draft.market_reference.anchors
+        or draft.market_reference.daily_exchange_flows
+        or draft.market_reference.calculated_option_expiries
+    ):
         lines.extend(
             (
                 "## 시장 기준 자료",
@@ -578,6 +584,10 @@ def render_event_edition(
                 + (f" · {anchor.pct}%" if anchor.pct is not None else "")
             )
         lines.append("")
+        lines.append(render_exchange_flow_reference(draft.market_reference.daily_exchange_flows))
+        lines.append(
+            render_option_expiry_reference(draft.market_reference.calculated_option_expiries)
+        )
         lines.extend(("</details>", ""))
     lines.extend(("## 자료 안내", ""))
     if draft.articles:

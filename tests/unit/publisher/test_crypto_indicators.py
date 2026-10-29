@@ -72,7 +72,7 @@ def test_full_block_renders_all_rows() -> None:
 def test_missing_indicators_render_not_collected() -> None:
     block = render_crypto_indicator_block([])
     # All data rows show 수집 안 됨; the scope-out row shows the no-source label.
-    assert block.count("수집 안 됨") == 7
+    assert block.count("수집 안 됨") == 9
     assert block.count("무료 검증 소스 미확정") == 1
 
 
@@ -95,7 +95,7 @@ def test_legacy_briefing_crypto_indicator_import_reexports_renderer() -> None:
 
 def test_never_invents_values_for_scope_out_rows() -> None:
     block = render_crypto_indicator_block(_full_items())
-    # The liquidation / netflow row must NEVER carry a numeric value.
+    # The unavailable liquidation row must never carry a numeric value.
     line = next(ln for ln in block.splitlines() if "24h 청산" in ln)
     assert "무료 검증 소스 미확정" in line
     assert "$" not in line

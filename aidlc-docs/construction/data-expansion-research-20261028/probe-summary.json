@@ -1,0 +1,351 @@
+{
+  "research_date": "2026-10-28",
+  "scope": "local unauthenticated read-only development probes; no production qualification",
+  "raw_values_included": false,
+  "requests": [
+    {
+      "name": "krx_product",
+      "url": "https://global.krx.co.kr/contents/GLB/02/0201/0201040202/GLB0201040202.jsp",
+      "observed_at_utc": "2026-10-28T14:42:32.647604+00:00",
+      "status": 200,
+      "content_type": "text/html;charset=UTF-8",
+      "bytes": 127310,
+      "sha256": "970d9dbfb4dea8d48518e6fee5e1e0b7cbdfc590f4f433043c90ed47e06088ff",
+      "final_url": "https://global.krx.co.kr/contents/GLB/02/0201/0201040202/GLB0201040202.jsp",
+      "elapsed_s": 0.122
+    },
+    {
+      "name": "coinmetrics_activity",
+      "url": "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc,eth&metrics=AdrActCnt,TxCnt,FeeTotNtv&frequency=1d&page_size=4&limit_per_asset=2",
+      "observed_at_utc": "2026-10-28T14:42:32.647944+00:00",
+      "status": 200,
+      "content_type": "application/json",
+      "bytes": 511,
+      "sha256": "f5b4f7b0101cf28afd337b22d0ccdd88ae25d16cf153724a52eea607cc469d9b",
+      "final_url": "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc,eth&metrics=AdrActCnt,TxCnt,FeeTotNtv&frequency=1d&page_size=4&limit_per_asset=2",
+      "top_keys": [
+        "data"
+      ],
+      "observations": [
+        {
+          "asset": "btc",
+          "time": "2026-10-26T00:00:00.000000000Z",
+          "fields": [
+            "asset",
+            "time",
+            "AdrActCnt",
+            "FeeTotNtv",
+            "TxCnt"
+          ]
+        },
+        {
+          "asset": "btc",
+          "time": "2026-10-27T00:00:00.000000000Z",
+          "fields": [
+            "asset",
+            "time",
+            "AdrActCnt",
+            "FeeTotNtv",
+            "TxCnt"
+          ]
+        },
+        {
+          "asset": "eth",
+          "time": "2026-10-26T00:00:00.000000000Z",
+          "fields": [
+            "asset",
+            "time",
+            "AdrActCnt",
+            "FeeTotNtv",
+            "TxCnt"
+          ]
+        },
+        {
+          "asset": "eth",
+          "time": "2026-10-27T00:00:00.000000000Z",
+          "fields": [
+            "asset",
+            "time",
+            "AdrActCnt",
+            "FeeTotNtv",
+            "TxCnt"
+          ]
+        }
+      ],
+      "elapsed_s": 0.475
+    },
+    {
+      "name": "coinmetrics_catalog",
+      "url": "https://community-api.coinmetrics.io/v4/catalog/asset-metrics?assets=btc,eth",
+      "observed_at_utc": "2026-10-28T14:42:32.648043+00:00",
+      "status": 400,
+      "content_type": "application/json",
+      "bytes": 86,
+      "sha256": "a998ec7dd303e9e59021c829b8b8039a325182e0f5a9e98cc8740ff71bc3bb50",
+      "final_url": "https://community-api.coinmetrics.io/v4/catalog/asset-metrics?assets=btc,eth",
+      "top_keys": [
+        "error"
+      ],
+      "assets": [],
+      "error_shape": {
+        "error": "{'type': 'unsupported_parameter', 'message': \"Unsupported parameter 'assets'.\"}"
+      },
+      "elapsed_s": 0.458
+    },
+    {
+      "name": "deribit_options",
+      "url": "https://www.deribit.com/api/v2/public/get_instruments?currency=BTC&kind=option&expired=false",
+      "observed_at_utc": "2026-10-28T14:42:32.648110+00:00",
+      "status": 200,
+      "content_type": "application/json",
+      "bytes": 768648,
+      "sha256": "77eaaa438cecf5d37a0a543338251ddc423db4e0bc780d6c8fc4fdb680eb48a5",
+      "final_url": "https://www.deribit.com/api/v2/public/get_instruments?currency=BTC&kind=option&expired=false",
+      "top_keys": [
+        "jsonrpc",
+        "result",
+        "usIn",
+        "usOut",
+        "usDiff",
+        "testnet"
+      ],
+      "rows": 880,
+      "first_row_fields": [
+        "state",
+        "price_index",
+        "kind",
+        "instrument_name",
+        "maker_commission",
+        "taker_commission",
+        "instrument_id",
+        "instrument_type",
+        "product_group",
+        "expiration_timestamp",
+        "underlying_type",
+        "is_active",
+        "creation_timestamp",
+        "contract_size",
+        "tick_size",
+        "strike",
+        "counter_currency",
+        "option_type",
+        "min_trade_amount",
+        "block_trade_commission",
+        "block_trade_min_trade_amount",
+        "block_trade_tick_size",
+        "settlement_currency",
+        "settlement_period",
+        "base_currency",
+        "index_id",
+        "quote_currency",
+        "tick_size_steps",
+        "lot_size",
+        "base_currency_uuid",
+        "quote_currency_uuid"
+      ],
+      "expiry_count": 11,
+      "elapsed_s": 0.394
+    },
+    {
+      "name": "ethereum_feed",
+      "url": "https://blog.ethereum.org/feed.xml",
+      "observed_at_utc": "2026-10-28T14:42:32.769742+00:00",
+      "status": 200,
+      "content_type": "application/xml",
+      "bytes": 531824,
+      "sha256": "ea789740f1d34d157080f28cc6b2efd3f52f507482c1019ae565546b674b7c06",
+      "final_url": "https://blog.ethereum.org/en/feed.xml",
+      "elapsed_s": 0.156,
+      "xml_parse": "defusedxml success",
+      "entries": 644
+    },
+    {
+      "name": "ethereum_home",
+      "url": "https://blog.ethereum.org/",
+      "observed_at_utc": "2026-10-28T14:42:32.926287+00:00",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "bytes": 793105,
+      "sha256": "93be13d4a37a9e831d3b672ac5a50bf1b3a08db3c6c76ae12bf156c4275ec25b",
+      "final_url": "https://blog.ethereum.org/",
+      "elapsed_s": 0.077
+    },
+    {
+      "name": "defillama_unlocks",
+      "url": "https://api.llama.fi/emissions",
+      "observed_at_utc": "2026-10-28T14:42:33.003386+00:00",
+      "status": 402,
+      "content_type": "text/plain",
+      "bytes": 66,
+      "sha256": "77af6ecfa9bf69c017f1d642d816fa1db0e8bdb8a5dd77009c8454b6441c0f2a",
+      "final_url": "https://api.llama.fi/emissions",
+      "elapsed_s": 0.119
+    },
+    {
+      "name": "coingecko_events",
+      "url": "https://api.coingecko.com/api/v3/events",
+      "observed_at_utc": "2026-10-28T14:42:33.042462+00:00",
+      "status": 404,
+      "content_type": "application/json; charset=utf-8",
+      "bytes": 68,
+      "sha256": "811fef6eb2b5c6438b987b9731f2a295b97a4aad87bfd8bc05c680ef6182935c",
+      "final_url": "https://api.coingecko.com/api/v3/events",
+      "top_keys": [
+        "error"
+      ],
+      "error_shape": {
+        "error": "Incorrect path. Please check https://docs.coingecko.com/"
+      },
+      "elapsed_s": 0.322
+    },
+    {
+      "name": "coinmetrics_catalog_corrected",
+      "url": "https://community-api.coinmetrics.io/v4/catalog/asset-metrics",
+      "observed_at_utc": "2026-10-28T14:44:01.088680+00:00",
+      "status": 200,
+      "bytes": 464114,
+      "sha256": "ceed3d56a608dfa18420ed03a3c8eeae8a90cd855dbfffdb8cc86166a87e3814",
+      "elapsed_s": 1.106,
+      "metric_count": 32,
+      "flow_metrics": [
+        {
+          "metric": "FlowInExNtv",
+          "frequencies": [
+            {
+              "frequency": "1d",
+              "assets": [
+                "btc",
+                "eth"
+              ]
+            }
+          ]
+        },
+        {
+          "metric": "FlowInExUSD",
+          "frequencies": [
+            {
+              "frequency": "1d",
+              "assets": [
+                "btc",
+                "eth"
+              ]
+            }
+          ]
+        },
+        {
+          "metric": "FlowOutExNtv",
+          "frequencies": [
+            {
+              "frequency": "1d",
+              "assets": [
+                "btc",
+                "eth"
+              ]
+            }
+          ]
+        },
+        {
+          "metric": "FlowOutExUSD",
+          "frequencies": [
+            {
+              "frequency": "1d",
+              "assets": [
+                "btc",
+                "eth"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "coinmetrics_exchange_flows",
+      "url": "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc,eth&metrics=FlowInExNtv,FlowOutExNtv,FlowInExUSD,FlowOutExUSD&frequency=1d&page_size=4&limit_per_asset=2",
+      "observed_at_utc": "2026-10-28T14:44:56.910911+00:00",
+      "status": 200,
+      "bytes": 2362,
+      "sha256": "4eaa8729a90320387e39a569d0fe6d116cddf0855dbb916a519de41cfade45d3",
+      "observations": [
+        {
+          "asset": "btc",
+          "time": "2026-10-26T00:00:00.000000000Z",
+          "fields_present": true,
+          "all_values_nonnegative_finite_decimal": true,
+          "net_subtraction_checked": true
+        },
+        {
+          "asset": "btc",
+          "time": "2026-10-27T00:00:00.000000000Z",
+          "fields_present": true,
+          "all_values_nonnegative_finite_decimal": true,
+          "net_subtraction_checked": true
+        },
+        {
+          "asset": "eth",
+          "time": "2026-10-26T00:00:00.000000000Z",
+          "fields_present": true,
+          "all_values_nonnegative_finite_decimal": true,
+          "net_subtraction_checked": true
+        },
+        {
+          "asset": "eth",
+          "time": "2026-10-27T00:00:00.000000000Z",
+          "fields_present": true,
+          "all_values_nonnegative_finite_decimal": true,
+          "net_subtraction_checked": true
+        }
+      ],
+      "elapsed_s": 0.288,
+      "review_statuses": [
+        {
+          "asset": "btc",
+          "time": "2026-10-26T00:00:00.000000000Z",
+          "FlowInExNtv-status": "flash",
+          "FlowInExNtv-status-time": "2026-10-27T02:01:06.880838000Z",
+          "FlowInExUSD-status": "flash",
+          "FlowInExUSD-status-time": "2026-10-27T02:32:10.414302000Z",
+          "FlowOutExNtv-status": "flash",
+          "FlowOutExNtv-status-time": "2026-10-27T02:01:06.515130000Z",
+          "FlowOutExUSD-status": "flash",
+          "FlowOutExUSD-status-time": "2026-10-27T02:27:03.526256000Z"
+        },
+        {
+          "asset": "btc",
+          "time": "2026-10-27T00:00:00.000000000Z",
+          "FlowInExNtv-status": "flash",
+          "FlowInExNtv-status-time": "2026-10-28T02:45:53.023874000Z",
+          "FlowInExUSD-status": "flash",
+          "FlowInExUSD-status-time": "2026-10-28T02:48:53.558455000Z",
+          "FlowOutExNtv-status": "flash",
+          "FlowOutExNtv-status-time": "2026-10-28T02:45:52.673646000Z",
+          "FlowOutExUSD-status": "flash",
+          "FlowOutExUSD-status-time": "2026-10-28T02:48:10.511451000Z"
+        },
+        {
+          "asset": "eth",
+          "time": "2026-10-26T00:00:00.000000000Z",
+          "FlowInExNtv-status": "flash",
+          "FlowInExNtv-status-time": "2026-10-27T03:27:17.997695000Z",
+          "FlowInExUSD-status": "flash",
+          "FlowInExUSD-status-time": "2026-10-27T04:43:03.522414000Z",
+          "FlowOutExNtv-status": "flash",
+          "FlowOutExNtv-status-time": "2026-10-27T03:51:12.309852000Z",
+          "FlowOutExUSD-status": "flash",
+          "FlowOutExUSD-status-time": "2026-10-27T04:51:57.612721000Z"
+        },
+        {
+          "asset": "eth",
+          "time": "2026-10-27T00:00:00.000000000Z",
+          "FlowInExNtv-status": "flash",
+          "FlowInExNtv-status-time": "2026-10-28T01:38:22.406841000Z",
+          "FlowInExUSD-status": "flash",
+          "FlowInExUSD-status-time": "2026-10-28T02:29:51.302440000Z",
+          "FlowOutExNtv-status": "flash",
+          "FlowOutExNtv-status-time": "2026-10-28T01:39:39.109966000Z",
+          "FlowOutExUSD-status": "flash",
+          "FlowOutExUSD-status-time": "2026-10-28T02:30:25.361320000Z"
+        }
+      ]
+    }
+  ]
+}

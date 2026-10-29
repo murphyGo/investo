@@ -38,6 +38,7 @@ from . import (
     cnbc_top_news,  # noqa: F401
     coingecko,  # noqa: F401
     coingecko_global_market,  # noqa: F401
+    coinmetrics_exchange_flows,  # noqa: F401
     dart_disclosure,  # noqa: F401
     defillama_market_structure,  # noqa: F401
     eia_petroleum_weekly,  # noqa: F401
@@ -52,6 +53,7 @@ from . import (
     fsc_krx_stock_price,  # noqa: F401
     korea_policy_rss,  # noqa: F401
     krx_foreign_flows,  # noqa: F401
+    krx_option_expiry,  # noqa: F401
     nasdaq_earnings_calendar,  # noqa: F401
     nasdaq_stocks_news,  # noqa: F401
     nasdaq_symbol_directory,  # noqa: F401

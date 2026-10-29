@@ -343,15 +343,15 @@ def test_u66_crypto_replay_injects_indicator_block_and_utc_framing() -> None:
     md = out["crypto"].rendered_markdown  # type: ignore[index]
 
     # Indicator block injected with real (non-fabricated) values.
-    assert "## ⓪-A 크립토 지표 (UTC 24h 스냅샷)" in md
+    assert "## ⓪-A 크립토 지표" in md
     assert "공포·탐욕" in md and "28 (Fear)" in md
     assert "58.07%" in md
     assert "$2.62T" in md
     assert "(bybit)" in md
     # Scope-out rows are explicit, never fabricated.
     assert "무료 검증 소스 미확정" in md
-    # UTC 24h framing in body; no equity close phrase in generated prose.
-    assert "UTC 24h" in md
+    # The indicator heading no longer claims one clock for all observations.
+    assert "크립토 지표 (UTC 24h 스냅샷)" not in md
     assert "전일 종가" not in md
     # Block lands before §①.
     assert md.index("## ⓪-A 크립토 지표") < md.index("## ① 요약")
