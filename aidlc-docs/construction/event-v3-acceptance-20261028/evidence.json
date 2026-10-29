@@ -1,0 +1,402 @@
+{
+  "checked_at": "2026-10-28T15:00:36.379276+00:00",
+  "local_base_sha": "4cc546755f1175111b377d42d3b26b426274dd52",
+  "production_code_sha": "2619455c4099c33fbb1362655c4cc206aed8276c",
+  "preview_code_sha": "aa51e6bee40d23a8a4593ebde004a2cbfc531647",
+  "source_probe": {
+    "checked_at": "2026-10-28T14:30:46.835528+00:00",
+    "records": [
+      {
+        "source": "fomc-rss",
+        "status": "parsed",
+        "items": 20,
+        "hash": "deb671424c1640421268ab65bb022fccb733b2d8202c50b866526d8815a2f177"
+      },
+      {
+        "source": "fed-speech-rss",
+        "status": "parsed",
+        "items": 15,
+        "hash": "ed612413b1eba0a310c68bd57653b907c3c1aee093107bc56f178909d75a6fab"
+      },
+      {
+        "source": "cftc-policy-rss",
+        "status": "parsed",
+        "items": 12,
+        "hash": "4f96b141a83e7721cb7ea1f929f3a666d7f1d55d3f6ff7dba28660c587b8b245"
+      },
+      {
+        "source": "korea-policy-rss",
+        "status": "failed",
+        "error_type": "SourceFetchError"
+      }
+    ],
+    "body_request_count": 2,
+    "body_outcomes": [
+      {
+        "source_name": "fed-speech-rss",
+        "document_id": "60fe205c179f78e0133f2744f3ce40167c21e81bfa4adce40818ac944b4e031a",
+        "status": "enriched",
+        "reason": null
+      },
+      {
+        "source_name": "fomc-rss",
+        "document_id": "dbedfd42bc1aad1b654282bb53613707ba2789747c2264466e117cdd0c708555",
+        "status": "enriched",
+        "reason": null
+      }
+    ],
+    "enriched_sha256": "03ebd916bc62d9362bddad9391bc8ab8c8d0554e9720eb7e0207f3cee811d7a4"
+  },
+  "source_slots": {
+    "verified": 2,
+    "blocked": 6,
+    "runtime_verified": 0,
+    "activation_ready": false,
+    "matrix_file_sha256": "b386288bf14871330f309eeab3a6d94732f703bc2a34ad479578ee3a613408bb",
+    "private_capture_sha256": "08bee544a682c25967e6d15f1805bd9d79116c8cb6237308de966ba8b530c209",
+    "samples": 2,
+    "required_field_bindings": 5
+  },
+  "previews": [
+    {
+      "case": "domestic",
+      "run_id": 40705984134,
+      "code_sha": "aa51e6bee40d23a8a4593ebde004a2cbfc531647",
+      "manifest": {
+        "article_content_status": "content_not_ready",
+        "article_profile": "article_v2",
+        "article_review_hashes": [],
+        "article_trace": null,
+        "availability": "source_limited",
+        "classified_event_count": 0,
+        "collected_item_count": 368,
+        "detailed_article_count": 0,
+        "document_schema": 3,
+        "enrichment_outcomes": [],
+        "enrichment_request_count": 0,
+        "event_baseline_available": true,
+        "event_baseline_sha": "4cc546755f1175111b377d42d3b26b426274dd52",
+        "event_coverage": null,
+        "finalized_document_count": 1,
+        "human_review_status": "pending",
+        "human_semantic_review": "pending",
+        "input_manifest_basis": "routed_source_items",
+        "input_manifest_hash": "a7d2ad9b2eaecf18df2ea9c73b1ec8ba759f70570586e0af786477290926626c",
+        "markdown_bytes": 807,
+        "markdown_sha256": "fd51f1566149faa79a0357f3bad65cb0ab69c139171e30c2f046ed9ff150bc6c",
+        "mode": "preview",
+        "model_call_count": 1,
+        "notification_sent": false,
+        "observed_at": "2026-10-28T14:27:14.653709+00:00",
+        "production_cursor_written": false,
+        "production_receipt_written": false,
+        "projection_sha256": "eb733c5c88ff0512fcfb8939f1db6683f99c02af2fdeb87ce686bfcc22986f72",
+        "provider": "codex",
+        "publication_committed": false,
+        "routed_item_count": 31,
+        "schema_version": 1,
+        "segment": "domestic-equity",
+        "source_qualification_hash": "e56a8bc0aefd1e2e3ea68d80f560efda16b80822e7c5dda41cdfeb9d93072456",
+        "source_status_counts": {
+          "failed": 2,
+          "ok": 27,
+          "zero": 10
+        },
+        "status": "sealed",
+        "target_date": "2026-10-27",
+        "terminal_event_count": 0
+      },
+      "recording_sha256": "6f34d488e9b26ecb6d1a4d0e31005c657c153308eaf3c47cd820d399de5de7dd",
+      "calls": [
+        {
+          "call": 1,
+          "prompt_sha256": "a016c6a1e0be5deb93ac1414e9fc32667988f5767be03ed1e67abf5c18b8c5a1",
+          "stdout_sha256": "9b7b471c99a2d20b28a0efc10c6ce00fae3f9c771a2b9753677e3fdb26050a59",
+          "returncode": 0
+        }
+      ],
+      "counts_as_human_corpus": false,
+      "counts_as_genuine_scheduled": false
+    },
+    {
+      "case": "us",
+      "run_id": 40705984134,
+      "code_sha": "aa51e6bee40d23a8a4593ebde004a2cbfc531647",
+      "manifest": {
+        "attempt_count": 2,
+        "code": "preview.execution_failed",
+        "error_type": "briefing_generation",
+        "failure_code": "article.composition_invalid",
+        "stage": "post_validation",
+        "status": "failed"
+      },
+      "recording_sha256": "27a554a2699a585b7fadc5518a649dc8213bd7691335fcc13de63ac2465a3e22",
+      "calls": [
+        {
+          "call": 1,
+          "prompt_sha256": "6638834f49d61e84c2ce41c413251c22c99b9dd742f06da3dfc013942a4ee317",
+          "stdout_sha256": "b7db6a443c10ab2c25f532d79064aa0b638b36bc067c7afb8c4d0a07a7562a8c",
+          "returncode": 0
+        },
+        {
+          "call": 2,
+          "prompt_sha256": "613ba6cdd8a7e5dcf260e657cfcbfb217b110000088904deeea587407abb5785",
+          "stdout_sha256": "1737b77361227952db9fd3490bddf9dd79d98ffc082c610b694f72bb8cc08fe1",
+          "returncode": 0
+        }
+      ],
+      "counts_as_human_corpus": false,
+      "counts_as_genuine_scheduled": false
+    },
+    {
+      "case": "crypto",
+      "run_id": 40705984134,
+      "code_sha": "aa51e6bee40d23a8a4593ebde004a2cbfc531647",
+      "manifest": {
+        "article_content_status": "content_not_ready",
+        "article_profile": "article_v2",
+        "article_review_hashes": [],
+        "article_trace": null,
+        "availability": "source_limited",
+        "classified_event_count": 0,
+        "collected_item_count": 367,
+        "detailed_article_count": 0,
+        "document_schema": 3,
+        "enrichment_outcomes": [],
+        "enrichment_request_count": 0,
+        "event_baseline_available": true,
+        "event_baseline_sha": "4cc546755f1175111b377d42d3b26b426274dd52",
+        "event_coverage": null,
+        "finalized_document_count": 1,
+        "human_review_status": "pending",
+        "human_semantic_review": "pending",
+        "input_manifest_basis": "routed_source_items",
+        "input_manifest_hash": "4bf1d26b11400ee3aa840d2b9b9783ddcf1e0772f574dde51c3d016a4e18e059",
+        "markdown_bytes": 1018,
+        "markdown_sha256": "1e5acac47f70c8d054af2ce98fe694856df1992c8668e54d32df21e0d21f2679",
+        "mode": "preview",
+        "model_call_count": 1,
+        "notification_sent": false,
+        "observed_at": "2026-10-28T14:31:27.658658+00:00",
+        "production_cursor_written": false,
+        "production_receipt_written": false,
+        "projection_sha256": "225a5e6d731a4ddeb38beceffd04776c67a1475f508a5ce0a839be8da06751df",
+        "provider": "codex",
+        "publication_committed": false,
+        "routed_item_count": 26,
+        "schema_version": 1,
+        "segment": "crypto",
+        "source_qualification_hash": "e56a8bc0aefd1e2e3ea68d80f560efda16b80822e7c5dda41cdfeb9d93072456",
+        "source_status_counts": {
+          "failed": 2,
+          "ok": 27,
+          "zero": 10
+        },
+        "status": "sealed",
+        "target_date": "2026-10-27",
+        "terminal_event_count": 0
+      },
+      "recording_sha256": "e94f8f4b0ec2f432fc23d4e78b4ff0eec919d2e8b26abac7c67b9e19f378d00d",
+      "calls": [
+        {
+          "call": 1,
+          "prompt_sha256": "170c0db2d1559e3d7654bc63162b231cddc3f5ec3b327911b6e24ef051a89868",
+          "stdout_sha256": "9b7b471c99a2d20b28a0efc10c6ce00fae3f9c771a2b9753677e3fdb26050a59",
+          "returncode": 0
+        }
+      ],
+      "counts_as_human_corpus": false,
+      "counts_as_genuine_scheduled": false
+    },
+    {
+      "case": "fed",
+      "run_id": 40708356349,
+      "code_sha": "aa51e6bee40d23a8a4593ebde004a2cbfc531647",
+      "manifest": {
+        "article_content_status": "brief_only",
+        "article_profile": "article_v2",
+        "article_review_hashes": [
+          "c324d28d7502f98f811d54b1febe733ea224443387f043c81276c6a55b43687f"
+        ],
+        "article_trace": {
+          "calls": 3,
+          "prompt_bytes": [
+            30913,
+            21812,
+            24806
+          ],
+          "response_bytes": [
+            16296,
+            11879,
+            2984
+          ],
+          "stage_elapsed_s": [
+            132.58074593999999,
+            90.40004524599999,
+            24.159579269999995
+          ]
+        },
+        "availability": "source_limited",
+        "classified_event_count": 7,
+        "collected_item_count": 138,
+        "detailed_article_count": 0,
+        "document_schema": 3,
+        "enrichment_outcomes": [
+          {
+            "document_id": "dbedfd42bc1aad1b654282bb53613707ba2789747c2264466e117cdd0c708555",
+            "reason": null,
+            "source_name": "fomc-rss",
+            "status": "enriched"
+          },
+          {
+            "document_id": "ab87086714be8d0e1182865a19ca0d68cfddb2c9575f3e3541ea16dfca2ef4cf",
+            "reason": null,
+            "source_name": "fomc-rss",
+            "status": "enriched"
+          }
+        ],
+        "enrichment_request_count": 2,
+        "event_baseline_available": true,
+        "event_baseline_sha": "4cc546755f1175111b377d42d3b26b426274dd52",
+        "event_coverage": null,
+        "finalized_document_count": 1,
+        "human_review_status": "pending",
+        "human_semantic_review": "pending",
+        "input_manifest_basis": "routed_source_items",
+        "input_manifest_hash": "54a73206d98cb771be0471f09bff10f30a1f986ea8e44b65d08801ee262356cf",
+        "markdown_bytes": 4188,
+        "markdown_sha256": "5700b54c449ffcbad8d8432e49cbe5b7a7746a31f6e66c9cd747158a6d50a009",
+        "mode": "preview",
+        "model_call_count": 3,
+        "notification_sent": false,
+        "observed_at": "2026-10-28T14:41:31.160261+00:00",
+        "production_cursor_written": false,
+        "production_receipt_written": false,
+        "projection_sha256": "8a631b79bd87c34f65379ab35e167b074b43514620ecb58574ffd571592a0880",
+        "provider": "codex",
+        "publication_committed": false,
+        "routed_item_count": 119,
+        "schema_version": 1,
+        "segment": "us-equity",
+        "source_qualification_hash": "e56a8bc0aefd1e2e3ea68d80f560efda16b80822e7c5dda41cdfeb9d93072456",
+        "source_status_counts": {
+          "failed": 2,
+          "ok": 20,
+          "zero": 17
+        },
+        "status": "sealed",
+        "target_date": "2026-09-16",
+        "terminal_event_count": 1
+      },
+      "recording_sha256": "4dc92203b9bddd95f3eb8ba232bbf3975813289e30e07dcc367586c37924c5f7",
+      "calls": [
+        {
+          "call": 1,
+          "prompt_sha256": "cf6e41b2e346ca07e68e1d1ea6bccf5b61a13f438316faf3ad236cbe6e1969b4",
+          "stdout_sha256": "d0133387bb35f53f8ea45201ce58795e1da5e318f81ba364afe9a7436b3406ae",
+          "returncode": 0
+        },
+        {
+          "call": 2,
+          "prompt_sha256": "1a35ab4151f099956dcc125861edb781a6989163a381ce50466b6df0fc439860",
+          "stdout_sha256": "b5a13573a538f19635bee0cb356c4fb2a4bcc6f7419c1bb8d4e7a83e68de5ed5",
+          "returncode": 0
+        },
+        {
+          "call": 3,
+          "prompt_sha256": "6e52d4abc2d92ada344778b63ad3098a919acb9c9cb2da8fde7501c4b4d73da2",
+          "stdout_sha256": "b5571668d45f460cebedf00b4f85d7065d48adbb57ca7cf6bcf157d0cbcca1a3",
+          "returncode": 0
+        }
+      ],
+      "counts_as_human_corpus": false,
+      "counts_as_genuine_scheduled": false
+    }
+  ],
+  "us_failure_replay": {
+    "code": "event.fact_unsupported",
+    "basis": "Source frequency word was rendered as a digit without a literal numeric source atom; original hard validation retained. Not counted as actual/human acceptance."
+  },
+  "readiness": {
+    "human_documents": 0,
+    "required_human_documents": 12,
+    "genuine_v3_scheduled_runs": 0,
+    "release_ready": false,
+    "browser_host_available": false,
+    "exact_viewport_acceptance": "pending"
+  },
+  "local_checks": {
+    "focused_tests": 48,
+    "ruff": "pass",
+    "format": "842 files pass",
+    "mypy": "355 source files pass",
+    "native_replay": "57 variants / 12 groups pass",
+    "private_mkdocs_build": "strict pass; sealed input bytes unchanged",
+    "independent_qa": "approve; no remaining C/H/M",
+    "full_pytest": {
+      "passed": 7602,
+      "skipped": 1,
+      "duration_seconds": 982.06,
+      "environment": "Python3.11.9, Node22.23.4, Homebrew Cairo search path",
+      "log_sha256": "1fd10c9431a1efc069974f5376ea83d0042f630ae415ee7f38699e9a569af902"
+    },
+    "python": "3.11.9 (private runtime parity)",
+    "node": "22.23.4 (official SHA256 verified)",
+    "node_behavior": "39 passed",
+    "cairo": "existing Homebrew library; DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib",
+    "environment_preflight": "initial runs interrupted after missing Node/Cairo and 3.11.18 parser differences; corrected-scope48 passed",
+    "strict_mkdocs": "pass / 5.91s",
+    "material_theme": "pass",
+    "calendar_render": "pass",
+    "policy_guards": "no Anthropic / no paid APIs / curated assets / image store pass",
+    "script_mypy": "strict pass",
+    "independent_document_review": "pass; private manifest/recording/MD hashes match all four previews"
+  },
+  "private_review_http": [
+    {
+      "path": "review/fed/",
+      "status": 200,
+      "sha256": "e889ca5fd62f7ca5a05523bc0b102e8fcff7e0f98c38364e69e9a322e058cf66"
+    },
+    {
+      "path": "review/domestic/",
+      "status": 200,
+      "sha256": "aea057be05053dd8927ff910eb7b9cf01f09a570a0a14771a00c164377bf2254"
+    },
+    {
+      "path": "review/crypto/",
+      "status": 200,
+      "sha256": "7eb320dc83c80d421af36cf04eef3699ba8135931615bced2dd58c744fc42893"
+    },
+    {
+      "path": "human-review.html",
+      "status": 200,
+      "sha256": "378803cc9252321bd5ed13b275f7995d2367b74f5bcd07a703eb606e42957987"
+    },
+    {
+      "path": "recipient.key",
+      "status": 404
+    },
+    {
+      "path": "model-recording.json",
+      "status": 404
+    }
+  ],
+  "cutover_preflight": {
+    "returncode": 1,
+    "expected_block": true,
+    "accepted_scheduled_runs": 0,
+    "cleanup_ready": false,
+    "code_ready": false,
+    "codes": [],
+    "cursor_ready": false,
+    "human_ready": {
+      "crypto": false,
+      "domestic-equity": false,
+      "us-equity": false
+    },
+    "release_ready": false,
+    "source_ready": false,
+    "status": "blocked"
+  }
+}

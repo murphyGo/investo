@@ -13,7 +13,12 @@ from typing import Literal
 
 from pydantic import ValidationError
 
-from investo._internal.event_text_proof import TextFactFrame, prove_text_assertion
+from investo._internal.event_text_proof import (
+    SOURCE_SENTENCE_BREAK,
+    SOURCE_STATEMENT_BREAK,
+    TextFactFrame,
+    prove_text_assertion,
+)
 from investo.models.event_context import (
     ContextClassificationResult,
     ContextEventDraft,
@@ -174,7 +179,7 @@ def text_fact_frame(fact: ContextFactDraft, documents: ContextLookup) -> TextFac
     chunk = next(c for c in owner.chunks if c.chunk_id == value_ref.chunk_id)
     if chunk.source_locator == "source_metadata":
         raise ContextEvidenceError("context.status_unbound")
-    separators = tuple(re.finditer(r"[;!?。\n]|(?<!\d)\.(?!\d)", chunk.text))
+    separators = tuple(SOURCE_SENTENCE_BREAK.finditer(chunk.text))
     start = max((m.end() for m in separators if m.end() <= value_ref.start), default=0)
     end = min((m.end() for m in separators if m.start() >= value_ref.end), default=len(chunk.text))
     assertion = chunk.text[start:end].strip()
@@ -370,11 +375,10 @@ def validate_fact_associations(facts: tuple[ContextFactDraft, ...], lookup: Cont
             doc = lookup[(value_ref.document_id, value_ref.revision_id)]
             chunk = next(c for c in doc.chunks if c.chunk_id == value_ref.chunk_id)
             before = [
-                m.end()
-                for m in re.finditer(r"[;!?。\n]|(?<!\d)\.(?!\d)", chunk.text[: value_ref.start])
+                m.end() for m in SOURCE_STATEMENT_BREAK.finditer(chunk.text[: value_ref.start])
             ]
             start = max(before, default=0)
-            ending = re.search(r"[;!?。\n]|(?<!\d)\.(?!\d)", chunk.text[value_ref.end :])
+            ending = SOURCE_STATEMENT_BREAK.search(chunk.text[value_ref.end :])
             end = value_ref.end + ending.start() if ending else len(chunk.text)
             clause = chunk.text[start:end].casefold()
             offset = value_ref.start - start

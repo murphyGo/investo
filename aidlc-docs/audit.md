@@ -8322,3 +8322,11 @@ sourcea155ba49 CI40362454442 SUCCESS. 실제40362650269/40362653934는 분류를
 ## 2026-10-27 — 실제 article_v2 자동 경로 첫 봉인 확인
 
 사용자 개발·계속·커밋/푸시 승인 범위. sourceaa51e6be quality40382079791 SUCCESS7,567/1knownskip, Node39·Ruff841/mypy355·정책·strictdocs PASS. 실제 비게시40382074493은3calls로7문장/3문단/6claims의1편을별도review후봉인했다. 세model record와MD/projection hash, publication/notification/cursor/receipt=false를 확인했다. 로컬원문대조 검수 페이지를 렌더/HTTP확인/브라우저open했으며 실제viewport인수는pending이다. source_limited/brief_only/detailed0의historical Fed 시험으로 정상news-rich·사람12편을대체하지않는다. u1845/6/u1856/6/u1866/6, human0/12·slot0/8·genuine예약0·active readiness=false·productionpin2619455c/default 유지. 최신main의신규archive/insights 데이터를보존해통합한다.
+
+## 2026-10-30 — 기사형 v3 입력 근거·원문 점검 후속
+
+사용자의 u171–u173/u184–u186 “진행시켜” 지시로 기존 계획을 이어 수행했다. 기록된 crypto 입력14건의 승인 수령 frame0→1을 기존 런타임 fact 검증까지 재생했고 원문/순서/문서 불변과23,005/24,576bytes를 확인했다. 새 모델 생성이나 사람 수용으로 세지 않는다. 도메인 마침표·조건/귀속 전체 문장 경계·승인 목적/실행 구분을 수정했다. US `Semiweekly`의 unsupported 숫자 변환 방지 지침과 양성/음성 회귀를 추가하고 article policy hash로 이전 readiness와 구분했다.
+
+기존 OpenDART 원본 XML 경로의 수동 private probe/template을 준비했다. 기존 NFR/R13 재사용, 신규 provider/키 등록 없음. 단일endpoint/1GET/no redirect/retry·8초/20초·압축/총해제500KiB·STORED/DEFLATED만·안전XML·노드/깊이한도·keyecho거절·ignored0700/0600·recipient preflight·ciphertext1일보관을 검증했다. 로컬키부재는 HTTP0/exit1이며 실제 DART 응답/selector/fact qualification은 미실행이다.
+
+독립 검수의 compressed XML comment key echo와 긴 조건/귀속 경계 두 High를 수정했다. 재검수 C/H/M0, 독립118 및 DART31 PASS, 최종 집중207 PASS. HEAD4cc54675의 격리 검증본으로 다른 세션 코드를 제외한 전체7,630PASS/1knownskip/998.94초를 확인했고, 최종 압축형식 제한·알 수 없는 XML 인코딩의 닫힌 실패 처리·policy hash 변경은 별도 집중 검사로 결속한다. 미커밋·미전달 상태이며 production/schema/cron/게시/알림은 변경하지 않았다. u1717/8/u1725/9/u1736/7/u1845/6, local2slot/runtime0/human0/12/v3예약0과 viewport/성능/운영/cleanup 미완료를 유지한다. [보고서](../docs/cross-checks/2026-10-30-v3-source-followup.md).

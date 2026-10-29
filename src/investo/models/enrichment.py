@@ -13,6 +13,7 @@ from urllib.parse import urlsplit
 
 from pydantic import Field, StrictInt, field_validator, model_validator
 
+from investo.models.event_context import ContextRef
 from investo.models.event_evidence import evidence_clock_utc
 from investo.models.events import Digest, EventModel
 from investo.models.items import NormalizedItem
@@ -427,3 +428,24 @@ class SourceSlotQualificationSet(EventModel):
         if len(self.model_dump_json().encode("utf-8")) > 64 * 1024:
             raise ValueError("slot.manifest_budget_exhausted")
         return self
+
+
+class SourceSlotParserSample(EventModel):
+    """Private parser output and exact field coordinates, never public source data."""
+
+    slot_id: SourceSlotId
+    item: NormalizedItem = Field(repr=False)
+    received_at: datetime
+    context_sha256: Digest
+    field_refs: dict[str, tuple[ContextRef, ...]] = Field(repr=False, max_length=16)
+
+    @field_validator("received_at")
+    @classmethod
+    def sample_clock(cls, value: datetime) -> datetime:
+        return evidence_clock_utc(value)
+
+
+class SourceSlotParserCapture(EventModel):
+    schema_version: Literal[1] = 1
+    qualification_sha256: Digest
+    samples: Annotated[tuple[SourceSlotParserSample, ...], Field(min_length=1, max_length=16)]

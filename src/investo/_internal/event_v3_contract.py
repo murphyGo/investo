@@ -17,6 +17,8 @@ from investo._internal.event_context import (
 )
 from investo._internal.event_identity import normalize_fact_bindings, source_receipt
 from investo._internal.event_text_proof import (
+    SOURCE_SENTENCE_BREAK,
+    SOURCE_STATEMENT_BREAK,
     action_equivalents,
     display_matches_frame,
     performed_actions,
@@ -120,7 +122,7 @@ def validate_text_actions(
         chunk = next(c for c in doc.chunks if c.chunk_id == ref.chunk_id)
         if chunk.source_locator == "source_metadata":
             return False
-        separators = tuple(re.finditer(r"[!?。]|(?<!\d)\.(?!\d)", chunk.text))
+        separators = tuple(SOURCE_SENTENCE_BREAK.finditer(chunk.text))
         start = max((m.end() for m in separators if m.end() <= ref.start), default=0)
         end = min((m.end() for m in separators if m.end() >= ref.end), default=len(chunk.text))
         enclosing = chunk.text[start:end].strip().rstrip(".!。")
@@ -147,9 +149,7 @@ def validate_text_actions(
             if frame is not None:
                 text_frames.append(frame)
     if text_frames and (require_assertion or performed_actions(text)):
-        clauses = [
-            part.strip() for part in re.split(r"[;!?。\n]|(?<!\d)\.(?!\d)", text) if part.strip()
-        ]
+        clauses = [part.strip() for part in SOURCE_STATEMENT_BREAK.split(text) if part.strip()]
         if not clauses or any(
             not any(display_matches_frame(clause, frame) for frame in text_frames)
             for clause in clauses
@@ -219,7 +219,7 @@ def validate_fact_roles(
     role_pattern = re.compile(
         r"실제|actual|예상|전망|forecast|expected|guidance|예정|scheduled", re.I
     )
-    for clause in re.split(r"[;!?。]|(?<!\d)\.(?!\d)", normalized):
+    for clause in SOURCE_STATEMENT_BREAK.split(normalized):
         for number in _NUMBERS.finditer(clause):
             candidates = [
                 f

@@ -76,3 +76,10 @@ DART는 이 로컬 capture에서 호출하지 않았다. 기존 managed credenti
 (각 20초 상한, GET 5MiB 상한). 응답 본문·cookie/header를 repo에 쓰지 않았다.
 이는 후속 접속 상태이며 앞선 parser capture의 정확한 원인을 소급 확정하지 않는다.
 접근 경로나 인증을 우회하지 않았고 source qualification은 미충족을 유지한다.
+
+
+## 2026-10-28 실제 원문·필수 field 재검증
+
+기존 네 RSS adapter에서 Fed20/speech15/CFTC12개를 확인했고 FSC는실패했다. 기존 허용 Fed body preparation2요청이모두enriched였으며 정책결정 actor/decision/size_or_scope3개, 공식발언 speaker/quoted_claim2개의 정확한 source-owned ref를 기존 factory로 재생했다. 현재 matrix는 **verified2/blocked6**이다. 시점unknown/runtime.not_run/activationfalse를 보존하고 source-slot 자격을 운영준비로 합산하지 않는다.
+
+새 offline private capture checker는 matrixhash와 승인contextfixturehash/실제bufferhash를 함께 확인한다. modified value와재계산hash, foreignref/missingfield/blocked정책·public경로·권한·크기·symlink를 거절한다. focused48/독립QA APPROVE다. 실제 전체 source/runtime 수용이 남아 Step4와 유닛6/7은유지한다. [전체 검수 기록](../event-v3-acceptance-20261028/review.md), [count/hash 증거](../event-v3-acceptance-20261028/evidence.json).

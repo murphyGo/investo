@@ -411,3 +411,13 @@ User requested calendar UI and meaningful graph axes/scales, then “gogo”. [P
 
 
 2026-10-27: 후속 source826eb3ee exactCI40285888771 SUCCESS7523/1skip. 실제40357554455/40357557379는 classification.status_unbound로 실패했다. clipped source span/unsupported actual frame과 관측 통계의 뉴스 예약 소모를 수리하고 영어·한국어 source hint/forecast·기관명 모호성/실제32KiB 전체 prompt를 검증했다(집중211/native57 PASS, 독립97 PASS). 후속 exact CI/actual 재실행 진행; productionpin2619455c·human0/12·source slots0/8·예약0과 기존 gate는 그대로다.
+
+### 2026-10-28 기사형 v3 실제 검수 재개
+
+사용자의u171–u173/u184–u186 검수·운영전환지시를 적용했다. 기존Fed body2건/필수field5개를 승인fixturehash·qualificationhash·원문ref에결속해 재생했고 u173로컬slot은2verified/6blocked다. runtime.not_run/activationfalse·u1736/7·u184Step5pending은유지한다. source2samples/privatechecker와48focused/독립QA C/H/M0. 실제3시장preview40705984134는국내/crypto각0기사source_limited, 미국composition_invalid다. 과거Fed40708356349는3calls/기사1sealed지만brief_only/detailed0이며정상news-rich/human표본으로세지않는다. human0/12·v3예약0·정확viewport/성능/운영/cleanup pending, production2619455c/schema2·previewaa51e6be 유지. [검수 기록](construction/event-v3-acceptance-20261028/review.md), [증거](construction/event-v3-acceptance-20261028/evidence.json).
+
+2026-10-29 KST 최종 로컬gate: 운영동일Python3.11.9/Node22/Cairo경로에서full7602PASS/1knownskip/982.06초, Ruff/format842·sourceMypy355/scriptstrict·Node39/native57·정책/strictdocs/Material/Calendar PASS. cutover --require-ready는예상exit1/release_readyfalse다. 사람/viewport/성능/source잔여/운영/예약/cleanup 미완료와위유닛횟수는유지한다.
+
+### 2026-10-30 — 기사형 v3 source 후속
+
+기록된 crypto 입력14건에서 승인 수령 근거0→1을 런타임 prover로 재생했고 원문·순서·문서14건과24KiB 한도를 보존했다. 도메인 마침표·전체 문장의 조건/귀속·승인 목적과 실제 출시 구분을 보완했다. 미국 `Semiweekly`의 근거 없는 숫자 변환 방지 지침과 기존 hard gate 회귀를 추가하고 article policy hash를 갱신했다. 기존 DART 원본 XML을 요청1회/500KiB/안전XML/암호문 artifact로 점검하는 수동 private 도구를 준비했다. 실제 DART·새 모델 실행은 미실행이며 source/runtime 자격을 승격하지 않는다. 독립 검수 두 High 수정 후 잔여 C/H/M0, 최종 집중207 PASS. 격리 스냅샷 전체7,630PASS/1knownskip/998.94초와 최종 보완 집중207PASS·정적 검사 결과 및 파일 SHA는 [후속 증거](construction/event-v3-acceptance-20261028/followup-20261030.json)에 기록한다. u1717/8·u1725/9·u1736/7·u1845/6, local slots2/8/runtime0·human0/12·v3예약0, viewport/성능/전환/cleanup 미완료를 유지한다. [세션](../docs/sessions/2026-10-30-event-v3-source-followup.md).

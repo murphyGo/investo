@@ -1,0 +1,107 @@
+name: Private DART event evidence probe
+
+on:
+  workflow_dispatch:
+    inputs:
+      filing_no:
+        description: 'One known fourteen-digit DART filing number.'
+        required: true
+        type: string
+      recipient_public_key:
+        description: 'Ephemeral recipient public key; private key stays locally.'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: investo-dart-evidence-probe-v1
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    if: >-
+      github.repository == 'murphyGo/automation-runtime' &&
+      github.event.repository.private == true &&
+      github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: codex-runtime
+    env:
+      REVIEWED_CODE_SHA: ${{ vars.REVIEWED_EVENT_PREVIEW_SHA }}
+    steps:
+      - name: Validate inputs before credentials
+        env:
+          FILING_NO: ${{ inputs.filing_no }}
+          RECIPIENT: ${{ inputs.recipient_public_key }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$REVIEWED_CODE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$FILING_NO" =~ ^[0-9]{14}$ ]]
+          [[ "$RECIPIENT" =~ ^[0-9a-f]{64}$ ]]
+          echo "UV_PROJECT_ENVIRONMENT=$RUNNER_TEMP/dart-probe-venv" >> "$GITHUB_ENV"
+      - name: Checkout reviewed probe code
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          repository: murphyGo/investo
+          ref: ${{ vars.REVIEWED_EVENT_PREVIEW_SHA }}
+          path: runtime-code
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990
+        with:
+          version: '0.7.15'
+          enable-cache: false
+      - name: Install reviewed dependencies
+        working-directory: runtime-code
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$REVIEWED_CODE_SHA"
+          uv python install 3.11.9
+          uv sync --frozen --no-dev --extra operations --no-editable --python 3.11.9
+      - name: Validate recipient encryption before source credentials
+        env:
+          RECIPIENT: ${{ inputs.recipient_public_key }}
+        run: |
+          "$UV_PROJECT_ENVIRONMENT/bin/python" -I - <<'PY'
+          import os
+          from nacl.public import PublicKey, SealedBox
+          SealedBox(PublicKey(bytes.fromhex(os.environ["RECIPIENT"]))).encrypt(b"probe preflight")
+          PY
+      - name: Fetch one bounded document
+        id: probe
+        working-directory: runtime-code
+        env:
+          OPENDART_API_KEY: ${{ secrets.OPENDART_API_KEY }}
+          FILING_NO: ${{ inputs.filing_no }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$UV_PROJECT_ENVIRONMENT/bin/python" -I -c 'import investo, os; from pathlib import Path; assert Path(investo.__file__).resolve().is_relative_to(Path(os.environ["UV_PROJECT_ENVIRONMENT"]).resolve())'
+          set +e
+          "$UV_PROJECT_ENVIRONMENT/bin/python" -I scripts/probe_dart_event_evidence.py \
+            --filing-no "$FILING_NO" --output-dir .tmp/event-news-v3/dart-probe
+          rc=$?
+          set -e
+          echo "exit_code=$rc" >> "$GITHUB_OUTPUT"
+      - name: Encrypt source evidence
+        working-directory: runtime-code
+        env:
+          PREVIEW_RECIPIENT_PUBLIC_KEY: ${{ inputs.recipient_public_key }}
+        run: >-
+          "$UV_PROJECT_ENVIRONMENT/bin/python" -I scripts/seal_event_preview.py
+          --input-dir .tmp/event-news-v3/dart-probe --output .tmp/dart-probe.sealed
+      - name: Retain ciphertext only
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: dart-event-evidence
+          path: runtime-code/.tmp/dart-probe.sealed
+          include-hidden-files: true
+          retention-days: 1
+          if-no-files-found: error
+      - name: Report outcome
+        env:
+          PROBE_RC: ${{ steps.probe.outputs.exit_code }}
+        run: |
+          test "$PROBE_RC" = 0

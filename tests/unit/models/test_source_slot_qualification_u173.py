@@ -91,12 +91,18 @@ def test_duplicate_matrix_and_source_masquerade_fail(tmp_path: Path):
         load_source_slot_qualification(path)
 
 
-def test_current_matrix_reports_zero_ready_without_changing_body_policy():
+def test_current_matrix_limits_verified_slots_to_scoped_board_text_without_runtime_activation():
     from investo.models.enrichment import EVENT_ENRICHMENT_ACTIVE_READY
 
     path = Path(__file__).resolve().parents[3] / "ops/event_source_slot_qualification.json"
     result = load_source_slot_qualification(path)
     assert len(result.records) == 8
     assert {r.slot_id for r in result.records} == set(SLOT_REQUIRED_FIELDS)
-    assert all(r.status == "blocked" and not r.activation_ready for r in result.records)
+    assert {r.source_name for r in result.records if r.status == "verified"} == {
+        "fomc-rss",
+        "fed-speech-rss",
+    }
+    assert all(
+        not r.activation_ready and r.runtime_probe_status == "not_run" for r in result.records
+    )
     assert EVENT_ENRICHMENT_ACTIVE_READY is False

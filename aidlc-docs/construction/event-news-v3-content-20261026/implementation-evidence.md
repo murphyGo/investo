@@ -2,6 +2,16 @@
 
 2026-10-26. 사용자 “개발 진행시켜”, “gogo”로 FD/NFR와 구현 진행을 승인했다. 별도 worktree `event-v3-article-development-20261026`, 기준 `4e3fccad`. 기존 root의 관련 없는 dirty 항목은 보존했다.
 
+## 2026-10-30 입력 근거 후속
+
+실제 crypto 기록14건의 기존 hint0→runtime-valid1을 원문/순서 불변·23,005/24,576bytes로 재생했다. 도메인 마침표와 전체 문장 조건/귀속을 보존하며 승인 수령을 실제 출시로 바꾸지 않는다. US `Semiweekly`의 unsupported 숫자 변환 방지 지침을 추가하고 기존 numeric gate를 유지했다. 변경된 증명/작성 의미는 새 article policy hash로 결속한다.
+
+기존 DART 원본 XML의 bounded 수동 private probe/template을 준비했으나 실제 응답·selector·source qualification은 미실행이다. 로컬 credential_missing은 HTTP0/exit1이다. 독립 검수 두 High 수정 후 C/H/M0, 최종 집중207 PASS. 전체 격리 검증과 남은 실제 source/모델/사람 인수는 [후속 보고서](../../../docs/cross-checks/2026-10-30-v3-source-followup.md)와 [기계 증거](../event-v3-acceptance-20261028/followup-20261030.json)를 따른다. 기존 유닛 횟수·runtime0/human0/12/v3예약0·운영 전환/cleanup 미완료를 유지한다.
+
+## 2026-10-28 후속 실제 검수
+
+[새 검수 기록](../event-v3-acceptance-20261028/review.md)과[count/hash 증거](../event-v3-acceptance-20261028/evidence.json)를추가했다. u173로컬slot은현재2verified/6blocked이며runtime0/activationfalse다. 새3시장40705984134는국내/crypto0기사source_limited·미국composition_invalid, 과거Fed40708356349는3calls/1기사sealed·brief_only/detailed0이다. 이값은normalnews-rich/humancorpus증가가아니다. human0/12·v3예약0·viewport/성능/운영전환pending은유지한다. 아래10월27일수치는당시기록이다.
+
 ## 현재 확인 결과 — 2026-10-27
 
 source `aa51e6bee40d23a8a4593ebde004a2cbfc531647`의 [전체 CI40382079791](https://github.com/murphyGo/investo/actions/runs/40382079791)는 SUCCESS다. pytest **7,567 PASS/1 known skip/782.47초**, Node39, Ruff841, mypy355, 정책 guard와 strict MkDocs8.09초를 통과했다. 마지막 변경의 독립 리뷰는 P1/P2없음, 최신 집중90tests도 PASS다.

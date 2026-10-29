@@ -12,9 +12,10 @@ from investo.models.event_identity import EntityBinding, FactBinding
 from investo.models.events import Digest, EventId, EventModel
 
 ARTICLE_POLICY = (
-    "article-v2-20261027:literal-frame-hints:observation-reference:source-summary:"
+    "article-v2-20261030:literal-frame-hints:observation-reference:source-summary:"
     "literal-proof:explicit-linked-evidence:reported-metadata:finance-topic-grammar:"
     "source-role:material-details:reported-announcement:"
+    "receipt-purpose:sentence-enclosure:literal-frequency:"
     "review:600,900,600,900,600:3900"
 )
 ARTICLE_POLICY_HASH = sha256(ARTICLE_POLICY.encode()).hexdigest()

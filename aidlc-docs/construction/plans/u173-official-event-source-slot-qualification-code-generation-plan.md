@@ -84,3 +84,8 @@ In progress — 6/7; private parser capture pending. [공통 검증](../event-ne
 ## 2026-10-26 article_v2 source 인계
 
 [u184](u184-event-evidence-packet-completion-code-generation-plan.md)는 existing source의 v3 preparation/passages/packet을 확장한다. 본 유닛은 access/rights/parser/retention/필수slot/runtime의 qualification owner로 남는다. 1,200→6,000자 private excerpt 범위와 해당 selector revision을 기존 qualification으로 자동 허용하지 않는다. 국내 정책/DART/SEC filing의 필요한 본문 확장은 source별 bounded substep으로 u184에 인계하고 미확인 endpoint/body권한은 blocked를 유지한다. 기존6/7·verified0/8은 그대로이며 [8개 slot별 인계](../event-news-v3-content-20261026/acceptance-and-handoff.md)를 적용한다.
+
+
+## 2026-10-28 Step4 재개
+
+기존 허용 Fed body의 actual2sample/필수field5개를 승인fixture·matrixhash에 결속해 재생했다. 로컬slot은2verified/6blocked, runtime.not_run/activationfalse다. private capture checker와 변조·경로·권한·symlink 회귀를추가했고 독립QA 잔여C/H/M0이다. 나머지source/필수slot/runtime·actual human 수용이 남아 Step4와6/7은유지한다. [검수 기록](../event-v3-acceptance-20261028/review.md).

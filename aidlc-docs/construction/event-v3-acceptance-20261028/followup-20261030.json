@@ -1,0 +1,291 @@
+{
+  "date": "2026-10-30",
+  "local_base_sha": "4cc546755f1175111b377d42d3b26b426274dd52",
+  "committed": false,
+  "runtime_delivered": false,
+  "full_test_snapshot": {
+    "files": [
+      {
+        "path": "src/investo/models/enrichment.py",
+        "sha256": "c0f01ba0dcf562f76d27067558c8e232a2e47da9709937605d45ac31590e62e6"
+      },
+      {
+        "path": "src/investo/sources/event_evidence.py",
+        "sha256": "c60a01b868d679c176a6c9607aa20de53575a2434322f33720b3c3a47e6100c9"
+      },
+      {
+        "path": "scripts/check_event_source_slots.py",
+        "sha256": "4109385b80a3bd54a943bce93d56f5a3bf9ccc4ccd93888208586479f41c01a6"
+      },
+      {
+        "path": "ops/event_source_slot_qualification.json",
+        "sha256": "b386288bf14871330f309eeab3a6d94732f703bc2a34ad479578ee3a613408bb"
+      },
+      {
+        "path": "tests/unit/sources/test_event_source_slot_mapping_u173.py",
+        "sha256": "cc81d2b1ee3f87563bd009981c449b5fb70f26f419ce90323aa4c000ccdd3bd0"
+      },
+      {
+        "path": "tests/unit/models/test_source_slot_qualification_u173.py",
+        "sha256": "736d436054e4ac91842746f973065032dca018046bd86e86a09263b4818a2ad2"
+      },
+      {
+        "path": "tests/integration/test_event_source_slot_checker_u173.py",
+        "sha256": "bb1a3a490c1ed31058252572ea022ec8bbbb13385f6f94745d72403ea5e07ac0"
+      },
+      {
+        "path": "src/investo/_internal/event_text_proof.py",
+        "sha256": "852a5670cc6674feed2e958ab12f732abc75dd4fafdf683972ad3ddaafdc3969"
+      },
+      {
+        "path": "src/investo/_internal/event_context.py",
+        "sha256": "6628d2037efe4400c601170f089d19420b3ad68914e57815d007ae4176e1a40b"
+      },
+      {
+        "path": "src/investo/_internal/event_v3_contract.py",
+        "sha256": "3c8a3913c9bf1d7f5747957b2977b0e8beebeea37c14e3eb45b0e3a536f362cc"
+      },
+      {
+        "path": "src/investo/briefing/event_article.py",
+        "sha256": "ebdad42b657ad14a7c37e89cb2f8481c89dbafc0ee29a81601814f61f37d8dc9"
+      },
+      {
+        "path": "tests/unit/briefing/test_approval_receipt_proof_v3.py",
+        "sha256": "a2fcc79d965be8bffc92b8fa2697273799f3ebcdd7f4fdf121af6557d82a2ca8"
+      },
+      {
+        "path": "tests/unit/briefing/test_written_frequency_proof_v3.py",
+        "sha256": "71e856857f12fa830c0fb88e17a149bd4a7d3ac47952c4e833e85b143349b9de"
+      },
+      {
+        "path": "scripts/probe_dart_event_evidence.py",
+        "sha256": "d5308b298ff8eb75aae9bb6afcb91f3e994b41a5e43ce949b6b01295587bce88"
+      },
+      {
+        "path": "ops/private-runtime/dart-event-evidence-probe.yml",
+        "sha256": "04940f89194d4d8979f23ca64d733301fed7efaeb293dbb39550845133c4af1f"
+      },
+      {
+        "path": "tests/unit/orchestrator/test_dart_event_evidence_probe_u184.py",
+        "sha256": "dc804809beae65503f2b76e281bb11d48420c77871f85b538a236f9286ea7718"
+      }
+    ],
+    "files_sha256": "91f3938315ecbcc84074d2ddba98ecd8694a6285f6a5187e50f0b3bce3829ada",
+    "pytest": {
+      "status": "pass",
+      "scope": "earlier approved sixteen-file snapshot",
+      "passed": 7630,
+      "skipped": 1,
+      "duration_seconds": 998.94,
+      "log_sha256": "9aeac7d7ddef88f4852c7717d90ce44b9545b44a272c209c9babdde54db93ef5"
+    }
+  },
+  "final_reviewed_scope": {
+    "files": [
+      {
+        "path": "src/investo/models/enrichment.py",
+        "sha256": "c0f01ba0dcf562f76d27067558c8e232a2e47da9709937605d45ac31590e62e6"
+      },
+      {
+        "path": "src/investo/sources/event_evidence.py",
+        "sha256": "c60a01b868d679c176a6c9607aa20de53575a2434322f33720b3c3a47e6100c9"
+      },
+      {
+        "path": "scripts/check_event_source_slots.py",
+        "sha256": "4109385b80a3bd54a943bce93d56f5a3bf9ccc4ccd93888208586479f41c01a6"
+      },
+      {
+        "path": "ops/event_source_slot_qualification.json",
+        "sha256": "b386288bf14871330f309eeab3a6d94732f703bc2a34ad479578ee3a613408bb"
+      },
+      {
+        "path": "tests/unit/sources/test_event_source_slot_mapping_u173.py",
+        "sha256": "cc81d2b1ee3f87563bd009981c449b5fb70f26f419ce90323aa4c000ccdd3bd0"
+      },
+      {
+        "path": "tests/unit/models/test_source_slot_qualification_u173.py",
+        "sha256": "736d436054e4ac91842746f973065032dca018046bd86e86a09263b4818a2ad2"
+      },
+      {
+        "path": "tests/integration/test_event_source_slot_checker_u173.py",
+        "sha256": "bb1a3a490c1ed31058252572ea022ec8bbbb13385f6f94745d72403ea5e07ac0"
+      },
+      {
+        "path": "src/investo/_internal/event_text_proof.py",
+        "sha256": "852a5670cc6674feed2e958ab12f732abc75dd4fafdf683972ad3ddaafdc3969"
+      },
+      {
+        "path": "src/investo/_internal/event_context.py",
+        "sha256": "6628d2037efe4400c601170f089d19420b3ad68914e57815d007ae4176e1a40b"
+      },
+      {
+        "path": "src/investo/_internal/event_v3_contract.py",
+        "sha256": "3c8a3913c9bf1d7f5747957b2977b0e8beebeea37c14e3eb45b0e3a536f362cc"
+      },
+      {
+        "path": "src/investo/briefing/event_article.py",
+        "sha256": "ebdad42b657ad14a7c37e89cb2f8481c89dbafc0ee29a81601814f61f37d8dc9"
+      },
+      {
+        "path": "tests/unit/briefing/test_approval_receipt_proof_v3.py",
+        "sha256": "a2fcc79d965be8bffc92b8fa2697273799f3ebcdd7f4fdf121af6557d82a2ca8"
+      },
+      {
+        "path": "tests/unit/briefing/test_written_frequency_proof_v3.py",
+        "sha256": "71e856857f12fa830c0fb88e17a149bd4a7d3ac47952c4e833e85b143349b9de"
+      },
+      {
+        "path": "scripts/probe_dart_event_evidence.py",
+        "sha256": "87c5c9c1b27ca7145f26b3042cf56ca61ec6be118a3ebd2bfd52530a6cb260a1"
+      },
+      {
+        "path": "ops/private-runtime/dart-event-evidence-probe.yml",
+        "sha256": "04940f89194d4d8979f23ca64d733301fed7efaeb293dbb39550845133c4af1f"
+      },
+      {
+        "path": "tests/unit/orchestrator/test_dart_event_evidence_probe_u184.py",
+        "sha256": "0a58d3d1f97e618c38e60e4fb9760315a00343f102494a6603e4fb2dccf42e42"
+      },
+      {
+        "path": "src/investo/models/event_article.py",
+        "sha256": "a071950b5b62b48cff6a7e6799f5137c385ea9c3d6ebaeebf4bc4cddb287b2dc"
+      }
+    ],
+    "files_sha256": "9a64119750f4cea679aea1d8af2a5d859479935b14041b745f68d73d86e28154",
+    "post_snapshot_delta": [
+      "DART bounded ZIP methods and closed XML decoder errors",
+      "article policy hash refreshed"
+    ],
+    "article_policy_sha256": "b20334b0b110fb1847c93c475eba0919b5b35aa716da4cfe40bae1c0bb7b6d10",
+    "focused_tests": {
+      "passed": 207,
+      "duration_seconds": 2.72
+    },
+    "isolated_final_checks": {
+      "status": "pass",
+      "passed": 207,
+      "duration_seconds": 2.58,
+      "log_sha256": "b66a30c2ec87091d2e3d02b098285c0e005bd77ad97319a5a4c6acbb3665e99c",
+      "ruff": "pass",
+      "format_files": 845,
+      "mypy_source_and_scripts": 357
+    },
+    "independent_qa": {
+      "status": "approve",
+      "remaining_critical_high_medium": 0,
+      "initial_regression_passed": 118,
+      "final_dart_passed": 31,
+      "final_policy_passed": 58
+    }
+  },
+  "crypto_recorded_input_replay": {
+    "basis": "private recorded classifier input only; not a fresh model or human acceptance",
+    "recording_sha256": "e94f8f4b0ec2f432fc23d4e78b4ff0eec919d2e8b26abac7c67b9e19f378d00d",
+    "original_prompt_sha256": "170c0db2d1559e3d7654bc63162b231cddc3f5ec3b327911b6e24ef051a89868",
+    "input_document_count": 14,
+    "old_hint_count": 0,
+    "new_runtime_validated_hint_count": 1,
+    "per_item": [
+      {
+        "item_id": 1,
+        "validated_frame_count": 0
+      },
+      {
+        "item_id": 2,
+        "validated_frame_count": 0
+      },
+      {
+        "item_id": 3,
+        "validated_frame_count": 0
+      },
+      {
+        "item_id": 4,
+        "validated_frame_count": 0
+      },
+      {
+        "item_id": 5,
+        "validated_frame_count": 0
+      },
+      {
+        "item_id": 6,
+        "validated_frame_count": 0
+      },
+      {
+        "item_id": 7,
+        "validated_frame_count": 0
+      },
+      {
+        "item_id": 8,
+        "validated_frame_count": 0
+      },
+      {
+        "item_id": 9,
+        "validated_frame_count": 0
+      },
+      {
+        "item_id": 10,
+        "validated_frame_count": 0
+      },
+      {
+        "item_id": 11,
+        "validated_frame_count": 0
+      },
+      {
+        "item_id": 12,
+        "validated_frame_count": 0
+      },
+      {
+        "item_id": 13,
+        "validated_frame_count": 0
+      },
+      {
+        "item_id": 14,
+        "validated_frame_count": 1
+      }
+    ],
+    "new_context_bytes": 23005,
+    "context_byte_limit": 24576,
+    "new_context_sha256": "d18dc065433b9361f1485b12bf9d6d7a3f2694065d8a2a527d835d039ffdcfc0",
+    "source_documents_unchanged": true,
+    "deferred_document_count": 0,
+    "model_calls": 0,
+    "human_documents": 0,
+    "release_ready": false
+  },
+  "dart": {
+    "status": "tooling_prepared_not_executed",
+    "actual_network_requests": 0,
+    "local_missing_credential": {
+      "exit_code": 1,
+      "request_count": 0,
+      "raw_retained": false
+    },
+    "source_slot_verified": false,
+    "runtime_verified": false,
+    "activation_ready": false,
+    "manual_workflow_installed": false
+  },
+  "other_snapshot_checks": {
+    "ruff": "pass",
+    "format_files": 845,
+    "mypy_source_files": 355,
+    "native_replay_variants": 57,
+    "native_replay_groups": 12,
+    "node_tests": 39,
+    "policy_guards": 4,
+    "strict_mkdocs_seconds": 7.68,
+    "material_and_calendar": "pass",
+    "python": "3.11.9",
+    "node": "22.23.4"
+  },
+  "readiness": {
+    "human_documents": 0,
+    "required_human_documents": 12,
+    "runtime_verified_slots": 0,
+    "genuine_v3_scheduled_runs": 0,
+    "release_ready": false,
+    "viewport_acceptance": "pending",
+    "performance_acceptance": "pending",
+    "production_state_modified": false
+  }
+}

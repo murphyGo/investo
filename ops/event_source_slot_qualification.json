@@ -6,37 +6,43 @@
       "proposed_source_name": null,
       "slot_id": "policy.monetary_decision",
       "access_kind": "official_body",
-      "endpoint_scope": null,
-      "official_discovery_url": null,
-      "checked_at": "2026-10-11T18:34:40Z",
-      "source_code_sha": "ca631e245d0341c09ea1671c32c4286dbd2c9c3a",
-      "status": "blocked",
+      "endpoint_scope": {
+        "scheme": "https",
+        "host": "www.federalreserve.gov",
+        "path_prefix": "/newsevents/pressreleases/",
+        "query_keys": []
+      },
+      "official_discovery_url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260916a.htm",
+      "checked_at": "2026-10-28T14:30:46.835528+00:00",
+      "source_code_sha": "4cc546755f1175111b377d42d3b26b426274dd52",
+      "status": "verified",
       "reason_codes": [
-        "access.not_verified",
-        "rights.unknown",
-        "schema.unknown",
-        "slot.required_missing",
+        "time.unknown",
         "runtime.not_verified"
       ],
-      "access_evidence_hash": null,
-      "rights_evidence_url": null,
-      "rights_scope": null,
-      "schema_fixture_sha256": null,
-      "parser_version": null,
+      "access_evidence_hash": "03ebd916bc62d9362bddad9391bc8ab8c8d0554e9720eb7e0207f3cee811d7a4",
+      "rights_evidence_url": "https://www.federalreserve.gov/disclaimer.htm",
+      "rights_scope": "Board-authored text only; source attribution required. Excludes third-party content, images, logos, linked attachments and testimony. Bounded private parser buffers; no runtime or public raw-body activation.",
+      "schema_fixture_sha256": "c0ba9799e04f5239b0744658b84c2e35b293b8da1723b69552a0cf2099b2e1de",
+      "parser_version": "fed-article-body-v1",
       "required_slots": [
         "actor",
         "decision",
         "size_or_scope"
       ],
-      "verified_slots": [],
-      "missing_slots": [
+      "verified_slots": [
         "actor",
         "decision",
         "size_or_scope"
       ],
-      "chunk_roles": [],
+      "missing_slots": [],
+      "chunk_roles": [
+        "identity",
+        "fact",
+        "background"
+      ],
       "time_precision": "unknown",
-      "public_locator_basis": null,
+      "public_locator_basis": "source-linked Board announcement or speech URL; exact source-owned field refs",
       "runtime_probe_status": "not_run",
       "runtime_evidence_ref": null,
       "activation_ready": false
@@ -46,35 +52,41 @@
       "proposed_source_name": null,
       "slot_id": "policy.official_statement",
       "access_kind": "official_body",
-      "endpoint_scope": null,
-      "official_discovery_url": null,
-      "checked_at": "2026-10-11T18:34:40Z",
-      "source_code_sha": "ca631e245d0341c09ea1671c32c4286dbd2c9c3a",
-      "status": "blocked",
+      "endpoint_scope": {
+        "scheme": "https",
+        "host": "www.federalreserve.gov",
+        "path_prefix": "/newsevents/speech/",
+        "query_keys": []
+      },
+      "official_discovery_url": "https://www.federalreserve.gov/newsevents/speech/bowman20261014a.htm",
+      "checked_at": "2026-10-28T14:30:46.835528+00:00",
+      "source_code_sha": "4cc546755f1175111b377d42d3b26b426274dd52",
+      "status": "verified",
       "reason_codes": [
-        "access.not_verified",
-        "rights.unknown",
-        "schema.unknown",
-        "slot.required_missing",
+        "time.unknown",
         "runtime.not_verified"
       ],
-      "access_evidence_hash": null,
-      "rights_evidence_url": null,
-      "rights_scope": null,
-      "schema_fixture_sha256": null,
-      "parser_version": null,
+      "access_evidence_hash": "03ebd916bc62d9362bddad9391bc8ab8c8d0554e9720eb7e0207f3cee811d7a4",
+      "rights_evidence_url": "https://www.federalreserve.gov/disclaimer.htm",
+      "rights_scope": "Board-authored text only; source attribution required. Excludes third-party content, images, logos, linked attachments and testimony. Bounded private parser buffers; no runtime or public raw-body activation.",
+      "schema_fixture_sha256": "5672d31d40412d202756b8d9b448bf82d3dffead2a88d6fb2c14db654fbe7138",
+      "parser_version": "fed-article-body-v1",
       "required_slots": [
         "speaker",
         "quoted_claim"
       ],
-      "verified_slots": [],
-      "missing_slots": [
+      "verified_slots": [
         "speaker",
         "quoted_claim"
       ],
-      "chunk_roles": [],
+      "missing_slots": [],
+      "chunk_roles": [
+        "identity",
+        "fact",
+        "background"
+      ],
       "time_precision": "unknown",
-      "public_locator_basis": null,
+      "public_locator_basis": "source-linked Board announcement or speech URL; exact source-owned field refs",
       "runtime_probe_status": "not_run",
       "runtime_evidence_ref": null,
       "activation_ready": false

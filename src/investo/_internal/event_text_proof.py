@@ -10,6 +10,11 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
+# A period inside a source name, version or decimal is not a clause boundary.
+SOURCE_STATEMENT_BREAK = re.compile(r"[;!?。\n]|\.(?=\s|$)")
+# Prose may wrap attribution/conditions across lines or semicolons.
+SOURCE_SENTENCE_BREAK = re.compile(r"[!?。]|\.(?=\s|$)")
+
 
 @dataclass(frozen=True, slots=True)
 class TextFactFrame:
@@ -89,6 +94,10 @@ _ACTIONS = {
         "공표했습니다",
     ),
     "status_change": (
+        "gained",
+        "gains",
+        "received",
+        "receives",
         "completed",
         "completes",
         "cancelled",
@@ -124,7 +133,7 @@ _BASE_ACTIONS = {
     "agreement": ("sign", "agree", "finalize"),
     "decision": ("approve", "adopt", "decide"),
     "statement": ("announce", "report", "state", "publish", "issue"),
-    "status_change": ("complete", "cancel", "terminate", "resume"),
+    "status_change": ("complete", "cancel", "terminate", "resume", "gain", "receive"),
     "result": ("report", "rise", "fall", "increase", "decrease"),
 }
 _ACTION_EQUIVALENTS = (
@@ -143,6 +152,8 @@ _ACTION_EQUIVALENTS = (
     ("published", "publishes", "공표했다", "공표했습니다"),
     ("confirmed", "confirms"),
     ("issued", "issues"),
+    ("gained", "gains"),
+    ("received", "receives"),
     ("completed", "completes", "완료했다", "완료했습니다"),
     ("cancelled", "canceled", "취소했다", "취소했습니다"),
     ("terminated", "terminates"),
@@ -199,7 +210,7 @@ def performed_actions(text: str) -> tuple[str, ...]:
         action for group in (*_ACTIONS.values(), *_BASE_ACTIONS.values()) for action in group
     }
     found: list[str] = []
-    for clause in re.split(r"[;!?。\n]|(?<!\d)\.(?!\d)", text):
+    for clause in SOURCE_STATEMENT_BREAK.split(text):
         for action in sorted(actions):
             pattern = re.escape(action)
             if action.isascii():
@@ -217,7 +228,7 @@ def assertion_span_hints(text: str) -> tuple[dict[str, object], ...]:
     """
     hints: list[dict[str, object]] = []
     start = 0
-    ends = [m.end() for m in re.finditer(r"[;!?。\n]|(?<!\d)\.(?!\d)", text)]
+    ends = [m.end() for m in SOURCE_SENTENCE_BREAK.finditer(text)]
     for end in (*ends, len(text)):
         raw = text[start:end]
         left = start + len(raw) - len(raw.lstrip())
@@ -301,6 +312,22 @@ def assertion_span_hints(text: str) -> tuple[dict[str, object], ...]:
     return tuple(hints)
 
 
+def _approval_purpose(value: str) -> bool:
+    """Coordinated infinitives describe permission, never performed launches."""
+    purpose = re.fullmatch(r"(?:final\s+)?(?:[A-Z]{2,10}\s+)?approval\s+to\s+(.+)", value)
+    if purpose is None:
+        return False
+    verbs = {"launch", "introduce", "unveil", "release", "bring", "operate", "provide"}
+    parts = re.split(r"\s+and\s+", purpose.group(1), flags=re.I)
+    return (
+        all(
+            (first := part.split(maxsplit=1)) and len(first) == 2 and first[0].casefold() in verbs
+            for part in parts
+        )
+        and set(performed_actions(value)) <= verbs
+    )
+
+
 def prove_text_assertion(
     *,
     predicate: str,
@@ -344,7 +371,15 @@ def prove_text_assertion(
     )
     if _NEGATIVE.search(assertion) or _NESTED.search(nested):
         return None
-    if re.search(r"\band\b", value, re.I) and performed_actions(value):
+    if (
+        re.search(r"\band\b", value, re.I)
+        and performed_actions(value)
+        and not (
+            predicate == "status_change"
+            and action.casefold() in {"gained", "gains", "received", "receives", "gain", "receive"}
+            and _approval_purpose(value)
+        )
+    ):
         return None  # Coordinated nouns do not license another action clause.
     if status == "actual" and _FUTURE.search(assertion):
         return None

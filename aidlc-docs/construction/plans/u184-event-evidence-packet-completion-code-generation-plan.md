@@ -48,3 +48,16 @@ offline 설계 구현은 기존 u167/u168으로 착수 가능하다. live source
 사용자 개발/계속 진행 지시로 공통 FD/NFR를 구현 기준으로 채택했다. Functional Design/NFR Requirements는 작성 완료·승인 적용, 신규 인프라는 불필요하며 기존 CLI/auth/단일 finalizer를 유지한다. [구현·검증 기록](../event-news-v3-content-20261026/implementation-evidence.md)을 따른다. 기존 “현재 설계/테스트 미작성” 서술은 최초 계획 시점의 이력이다.
 
 실제 생성된 테스트 경로는 `tests/unit/orchestrator/test_event_evidence_preparation_u184.py`, `tests/unit/briefing/test_event_packet_budget_u184.py`, `tests/unit/briefing/test_event_article_budget_u186.py`, `tests/unit/briefing/test_event_article_review_u186.py`, `tests/unit/publisher/test_event_article_projection_u185.py`, `tests/integration/test_event_article_acceptance_u186.py`다. 기존 계획의 미생성 별도 테스트 파일 역할을 이 경로들에 통합했고, nonexistent target을 검증 명령으로 실행하지 않는다. 실제 source·사람·운영 인수는 기존u172/u173의 별도 gate다.
+
+
+## 2026-10-28 Step5 source별 후속
+
+기존 허용Fed body2건은 현재허용scope에서 다시확인했고 u173정책/발언2slot의 필수field를 source-owned ref로 재생했다. domestic/DART/SEC추가범위는미완료다. 특히 기존 SEC companyfacts의 normalized summary는 단위와 concept별 filing accession을 보존하지 않으므로 API성공을 actual slot준비로 세지 않는다. 기존응답을 소비하는opt-in typed evidence 보강과 unit/period/accession/status·snapshot시각의 원문대조가 필요하다. 새HTTP/provider/default v2변경은이번 작업에없다. [실제 검수와 인계](../event-v3-acceptance-20261028/review.md).
+
+## 2026-10-30 Step5 — 기존 DART 원문 점검 준비
+
+기존 FD/NFR의 source별 qualification, NFR-002/003/008 및 R13 비공개 evidence 경계를 재사용한다. 새 provider·키 등록·production capability는 추가하지 않는다. 공식 OpenDART 원본 XML API의 단일 공시를 확인하는 전용 수동 probe와 private workflow template을 작성했다. 고정 host/path, 요청1회·no redirect/retry, HTTP8초/전체20초, 압축·총 해제 각각500KiB,16XML/20,000nodes/depth256, defusedxml·credential echo 거절·ignored0700/0600·recipient 사전 암호화 확인·ciphertext1일보관을 검증한다.
+
+로컬 키 부재 CLI는 HTTP0/exit1이며 실제 DART 응답·parser/fact/selector qualification은 미실행이다. reviewed code 전달 뒤 기존 GitHub secret으로 원문1건을 비공개 점검하고 결과에 따라 기존 DART source 보강 범위를 결정한다. Step5는 미완료로 유지한다.
+
+실제 crypto 분류 입력14건의 승인 수령 문법 보완(0→1 runtime-valid frame), 도메인 마침표와 전체 문장의 조건/귀속 보존, 미국 `Semiweekly`의 unsupported 숫자 변환 방지 지침도 후속 실패 수리로 반영했다. 새 모델/기사/사람 수용은 증가하지 않는다. [2026-10-30 세션](../../../docs/sessions/2026-10-30-event-v3-source-followup.md)과 [검증](../../../docs/cross-checks/2026-10-30-v3-source-followup.md)을 따른다.

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import math
 import re
 import time
@@ -25,6 +26,7 @@ from investo.models.enrichment import (
     EnrichmentResult,
     EnrichmentSource,
     SourceQualification,
+    SourceSlotParserCapture,
     SourceSlotQualification,
     SourceSlotQualificationSet,
 )
@@ -666,3 +668,36 @@ def map_source_slot_context(
     if not set(qualification.chunk_roles) <= {chunk.role for chunk in document.chunks}:
         raise ValueError("slot.required_missing")
     return document
+
+
+def replay_source_slot_capture(
+    capture: SourceSlotParserCapture,
+    matrix: SourceSlotQualificationSet,
+    *,
+    qualification_sha256: str,
+) -> tuple[tuple[str, str, int], ...]:
+    """Re-run the real factory and slot checks; grant no HTTP/runtime permission."""
+    if capture.qualification_sha256 != qualification_sha256:
+        raise ValueError("slot.capture_policy_mismatch")
+    results = []
+    for sample in capture.samples:
+        rows = [
+            row
+            for row in matrix.records
+            if row.source_name == sample.item.source_name and row.slot_id == sample.slot_id
+        ]
+        if len(rows) != 1:
+            raise ValueError("slot.capture_source_mismatch")
+        if sample.context_sha256 != rows[0].schema_fixture_sha256:
+            raise ValueError("slot.capture_fixture_mismatch")
+        if sample.item.event_evidence is not None and (
+            sample.item.event_evidence.received_at != sample.received_at
+        ):
+            raise ValueError("slot.capture_clock_mismatch")
+        document = map_source_slot_context(
+            sample.item, rows[0], received_at=sample.received_at, field_refs=sample.field_refs
+        )
+        if hashlib.sha256(document.model_dump_json().encode()).hexdigest() != sample.context_sha256:
+            raise ValueError("slot.capture_context_mismatch")
+        results.append((sample.item.source_name, sample.slot_id, len(sample.field_refs)))
+    return tuple(results)
