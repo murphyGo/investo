@@ -8358,3 +8358,8 @@ sourcea155ba49 CI40362454442 SUCCESS. 실제40362650269/40362653934는 분류를
 - Validation: full suite 7653 passed / 1 known skip, followed by targeted CSAT/UTC boundary checks. Independent review passed and independently ran 43 tests. All 27 owned integration targets matched their root baselines; integrated root then passed 163 tests plus Ruff/format/mypy. Policy guards, Node 39 tests and strict documentation build passed.
 - No new commit/push/deployment, runtime pin/schema/profile/cron change, publication or message. Other dirty work, root HEAD and index were preserved.
 - Artifacts: [plan](construction/plans/data-priorities-20261030-code-generation-plan.md), [session](../docs/sessions/2026-10-30-data-priorities.md), [validation](construction/data-priorities-20261030/validation.md).
+
+
+### 2026-10-30 — v3 두 번째 실제 preview와 원문 유형 결속
+
+후속 e5326119 exactCI41014464969 SUCCESS7720PASS/1knownskip/774.96초 후 preview만 갱신했다. 실제41022485896(2026-10-29대상)은 국내0기사 source_limited 빈edition봉인, 미국1/crypto2작성후 composition_invalid다. 실제 기사·사람 인수 증가는0이며 production91d5a4f3 보존. 원문 bank holding company/달러 표기를 같은 주장근거에서 확인하는 정확한 일반유형/통화명 보완, cash-tag·합성회사명·분리refs 거절 및 policy hash 갱신을 검수했다. 독립114PASS/C/H/M0, 녹화후보3개5문장 precheckPASS로 새 모델/봉인 인수를 대신하지 않는다. 최신main91cbbb01의 별도 데이터확장을 보존했다. source2verified/runtime0·DARTblocked/human0/12·v3예약0 및 viewport/성능/전환/cleanup pending. [후속실행 증거](construction/event-v3-acceptance-20261028/runtime-repeat-20261030.json).

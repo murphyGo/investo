@@ -192,7 +192,7 @@
     }
   },
   "followup_fix": {
-    "code_sha": null,
+    "code_sha": "e532611994af34c2f87200e5753bc6ce3b12de89",
     "policy_sha256": "ecd0edabaeee1ebc968e91b6502524084e9c866287f545457c937bf604889894",
     "files": [
       {
@@ -216,7 +216,7 @@
         "sha256": "957dc90f0de08c94094be73c03541e1b871fe80d5d31d47b6b8eb5f25a60d351"
       }
     ],
-    "fresh_model_verification": "pending",
+    "fresh_model_verification": "attempted; no accepted article; see followup_results_ref",
     "focused_tests": {
       "passed": 273,
       "seconds": 3.35
@@ -246,5 +246,25 @@
     "viewport": "pending; browser access host unavailable",
     "performance": "pending"
   },
-  "raw_evidence_public": false
+  "raw_evidence_public": false,
+  "followup_delivery": {
+    "code_sha": "e532611994af34c2f87200e5753bc6ce3b12de89",
+    "ci_run_id": 41014464969,
+    "private_sha": "6446e077fda5213e087d4170d6cf736bb4f8347c",
+    "target_date": "2026-10-29",
+    "preview_run_id": 41022485896,
+    "status": "completed_partial_failures",
+    "production_code_sha_before": "91d5a4f3eb382faa27952eff8eb3af50ec529fce",
+    "publication_committed": false,
+    "notification_sent": false,
+    "exact_ci": {
+      "status": "success",
+      "pytest_summary": "7720 passed, 1 skipped in 774.96s",
+      "log_sha256": "d57f6f92a004ceba1ce5add7b1eb70c8676bdf3439130d66cf245c7e996c070b"
+    },
+    "preview_pin_after": "e532611994af34c2f87200e5753bc6ce3b12de89",
+    "production_pin_after": "91d5a4f3eb382faa27952eff8eb3af50ec529fce",
+    "accepted_article_count": 0
+  },
+  "followup_results_ref": "runtime-repeat-20261030.json"
 }

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 
 _SUBJECT = re.compile(r"([가-힣A-Za-z][가-힣A-Za-z0-9_.-]{1,})[이가은는](?=\s)")
 # These are reader roles, data-field concepts and action categories, not
@@ -198,10 +198,24 @@ def korean_entity_subjects(text: str) -> Iterator[str]:
         yield label
 
 
-def is_source_role_subject(label: str, source_words: set[str]) -> bool:
+def is_source_role_subject(
+    label: str, source_words: set[str], *, proof_windows: Sequence[str] = ()
+) -> bool:
     """A generic role translation needs that role in the very same claim proof.
 
     This does not license named bodies such as 금융위원회 or invented names
     ending in 위원회, and never creates a canonical entity or alias.
     """
-    return label == "위원회" and "committee" in source_words
+    if label == "위원회":
+        return "committee" in source_words
+    if label == "은행지주회사":
+        return any(re.search(r"\bbank\s+holding\s+company\b", text) for text in proof_windows)
+    if label == "달러":
+        return bool(source_words & {"usd", "dollar", "dollars"}) or any(
+            re.search(
+                r"\$\s*[+-]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?(?![A-Za-z0-9_.,])",
+                text,
+            )
+            for text in proof_windows
+        )
+    return False

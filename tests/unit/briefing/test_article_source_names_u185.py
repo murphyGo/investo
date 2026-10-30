@@ -4,6 +4,7 @@ import pytest
 
 from investo._internal.event_article import validate_composition
 from investo._internal.event_v3_contract import validate_claim
+from investo._internal.korean_subjects import is_source_role_subject
 from tests._helpers.event_article_v2 import article_case
 from tests._helpers.event_context_v3 import NOW, ref
 
@@ -153,3 +154,60 @@ def test_writer_cannot_invent_a_source_publisher():
             "Acme Widget creates a separate wallet for each position.",
             "FakeWire에 따르면 Acme의 Widget은 별도 지갑을 만든다고 설명했다.",
         )
+
+
+@pytest.mark.parametrize(
+    ("detail", "text"),
+    [
+        (
+            "Acme described an application to become a bank holding company.",
+            "Acme에 따르면 은행지주회사가 되기 위한 신청이다.",
+        ),
+        (
+            "Acme explained that billions of dollars left the wallets.",
+            "원문에는 Acme 지갑에서 달러가 빠져나갔다고 명시돼 있다.",
+        ),
+    ],
+)
+def test_generic_type_and_currency_translation_needs_assigned_source(detail, text):
+    check_context(detail, text)
+
+
+@pytest.mark.parametrize("label", ["은행지주회사", "달러"])
+def test_generic_translation_is_not_allowed_without_its_source_type(label):
+    with pytest.raises(ValueError, match="entity_unsupported"):
+        check_context("Acme explained the proposal.", f"Acme는 {label}가 대상이라고 설명했다.")
+
+
+@pytest.mark.parametrize("label", ["은행지주회사테크", "달러은행"])
+def test_source_type_translation_does_not_license_a_named_company(label):
+    with pytest.raises(ValueError, match="entity_unsupported"):
+        check_context(
+            "Acme described a bank holding company and USD.",
+            f"Acme는 {label}가 대상이라고 설명했다.",
+        )
+
+
+def test_bank_type_words_cannot_be_stitched_from_separate_proof_windows():
+    assert not is_source_role_subject(
+        "은행지주회사", {"bank", "holding", "company"}, proof_windows=("bank", "holding company")
+    )
+    assert not is_source_role_subject(
+        "은행지주회사",
+        {"bank", "holding", "company"},
+        proof_windows=("bank policy; holding company",),
+    )
+    assert is_source_role_subject(
+        "은행지주회사", {"bank", "holding", "company"}, proof_windows=("a bank holding company",)
+    )
+
+
+@pytest.mark.parametrize("tag", ["$TOKEN", "$1INCH", "$1000PEPE", "$0G", "$1.79TOKEN", "$1_ABC"])
+def test_cash_tag_is_not_a_dollar_currency_reference(tag):
+    assert not is_source_role_subject("달러", {"token"}, proof_windows=(f"{tag} launched",))
+    with pytest.raises(ValueError, match="entity_unsupported"):
+        check_context(
+            f"Acme explained that {tag} is a token.",
+            "원문에는 Acme의 달러가 대상이라고 명시돼 있다.",
+        )
+    assert is_source_role_subject("달러", set(), proof_windows=("$1.79 billion was frozen",))

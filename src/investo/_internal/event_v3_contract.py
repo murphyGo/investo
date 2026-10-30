@@ -154,7 +154,8 @@ def validate_claim(text: str, refs: Sequence[ContextRef], draft: EventEditionDra
     }
     entity_text = _entity_normal(text)
     if any(
-        label.casefold() not in source_normal and not is_source_role_subject(label, source_words)
+        label.casefold() not in source_normal
+        and not is_source_role_subject(label, source_words, proof_windows=proof_windows)
         for label in korean_entity_subjects(entity_text)
     ):
         raise EventEditionValidationError("event.entity_unsupported")

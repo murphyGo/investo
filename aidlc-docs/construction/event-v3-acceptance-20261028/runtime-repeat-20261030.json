@@ -1,0 +1,183 @@
+{
+  "date": "2026-10-30",
+  "delivery": {
+    "code_sha": "e532611994af34c2f87200e5753bc6ce3b12de89",
+    "ci_run_id": 41014464969,
+    "private_sha": "6446e077fda5213e087d4170d6cf736bb4f8347c",
+    "target_date": "2026-10-29",
+    "preview_run_id": 41022485896,
+    "status": "completed_partial_failures",
+    "production_code_sha_before": "91d5a4f3eb382faa27952eff8eb3af50ec529fce",
+    "publication_committed": false,
+    "notification_sent": false,
+    "exact_ci": {
+      "status": "success",
+      "pytest_summary": "7720 passed, 1 skipped in 774.96s",
+      "log_sha256": "d57f6f92a004ceba1ce5add7b1eb70c8676bdf3439130d66cf245c7e996c070b"
+    },
+    "preview_pin_after": "e532611994af34c2f87200e5753bc6ce3b12de89",
+    "production_pin_after": "91d5a4f3eb382faa27952eff8eb3af50ec529fce",
+    "accepted_article_count": 0
+  },
+  "previews": [
+    {
+      "case": "domestic",
+      "receipt": {
+        "status": "sealed",
+        "document_schema": 3,
+        "article_profile": "article_v2",
+        "availability": "source_limited",
+        "article_content_status": "content_not_ready",
+        "classified_event_count": 0,
+        "terminal_event_count": 0,
+        "detailed_article_count": 0,
+        "model_call_count": 1,
+        "target_date": "2026-10-29",
+        "segment": "domestic-equity",
+        "enrichment_request_count": 1,
+        "markdown_sha256": "e78585a5fe208eb275ef79c8dff9a716c75ca78a80d590a8ca2708aa157910c8",
+        "projection_sha256": "c0c68d158fcb3920ed74b2990b1e59356311cc81288007ce492a541e67500497"
+      },
+      "classified_events": 0,
+      "written_candidates": 0,
+      "model_calls": 1,
+      "recording_sha256": "6f0ecd1d6b33847776329f99e2c13c1f054a2b723286ae1e404acbe20b14745d",
+      "calls": [
+        {
+          "call": 1,
+          "prompt_sha256": "59ac3ead75428eff305ac5d0ceaecd614489e5d832be88f0387263d498bd0fdc",
+          "stdout_sha256": "9b7b471c99a2d20b28a0efc10c6ce00fae3f9c771a2b9753677e3fdb26050a59",
+          "returncode": 0
+        }
+      ],
+      "artifact_sha256": "2fd77b3b30e8fa469ee95845f3968e70160c7eaf2f30a3034b61463290632803",
+      "files_sha256": {
+        "manifest.json": "30da3135a447fe35b69ffd0e12dbb3f28de3e2dff4eb7f8ec92922ecb5687ad0",
+        "model-recording.json": "6f0ecd1d6b33847776329f99e2c13c1f054a2b723286ae1e404acbe20b14745d",
+        "preview.md": "e78585a5fe208eb275ef79c8dff9a716c75ca78a80d590a8ca2708aa157910c8"
+      },
+      "counts_as_human_corpus": false,
+      "counts_as_genuine_scheduled": false
+    },
+    {
+      "case": "us",
+      "receipt": {
+        "status": "failed",
+        "failure_code": "article.composition_invalid"
+      },
+      "classified_events": 1,
+      "written_candidates": 1,
+      "model_calls": 2,
+      "recording_sha256": "deed69f0495adad23a95f77ab068c4f34f4a5979a65645ba1343fd1f671f0b5c",
+      "calls": [
+        {
+          "call": 1,
+          "prompt_sha256": "228a32dc4e68d0416602016ddb12c5342654d49754192dc4389d283b5043f19b",
+          "stdout_sha256": "abbbeec8ad144ca7f8b644a49aba47c61c796d2bf3be448cc116e67ceba0dcf2",
+          "returncode": 0
+        },
+        {
+          "call": 2,
+          "prompt_sha256": "45292a53ace7a26c25b14320d6262c17cfd03dc850e28d054b2794d4638d3872",
+          "stdout_sha256": "1d735c894484844bb44591229dbc2b8e9805c691e5c491178ca8c2112faeeb1b",
+          "returncode": 0
+        }
+      ],
+      "artifact_sha256": "7463dc2d82e15eb2d999dacded18cd15bb140ffb975faeddbf49afba672c4736",
+      "files_sha256": {
+        "manifest.json": "038d74e1d40ec23af41f7af00f6fbd5b7a298b5c8d4e3168baf57ca9ce1c1c68",
+        "model-recording.json": "deed69f0495adad23a95f77ab068c4f34f4a5979a65645ba1343fd1f671f0b5c"
+      },
+      "counts_as_human_corpus": false,
+      "counts_as_genuine_scheduled": false
+    },
+    {
+      "case": "crypto",
+      "receipt": {
+        "status": "failed",
+        "failure_code": "article.composition_invalid"
+      },
+      "classified_events": 2,
+      "written_candidates": 2,
+      "model_calls": 2,
+      "recording_sha256": "3bad363f6373c7c719dde5d1a7355e5d8017c88c79011d13ddd5823288712ad9",
+      "calls": [
+        {
+          "call": 1,
+          "prompt_sha256": "45f9947f355e16212170735c65d6d11fc4decfa6e7a6776376bb2f8077724f76",
+          "stdout_sha256": "9ef64b8e97830b56a58acd285d5e186a9fc7e1f6813b9f0fbcdfa020d6ae2429",
+          "returncode": 0
+        },
+        {
+          "call": 2,
+          "prompt_sha256": "1829b0fee696baab91cb6c83c2da2ee12f32ac6f0ba5c708846ec64f52752a33",
+          "stdout_sha256": "f9dfd17713a2bfb3f5257836dac03445049a7e12e544669f267b32ce9b1a3f9b",
+          "returncode": 0
+        }
+      ],
+      "artifact_sha256": "1db787d2409b89a9ab761c1338e4556151287b4f437f3c3d34f28fc9484cc269",
+      "files_sha256": {
+        "manifest.json": "038d74e1d40ec23af41f7af00f6fbd5b7a298b5c8d4e3168baf57ca9ce1c1c68",
+        "model-recording.json": "3bad363f6373c7c719dde5d1a7355e5d8017c88c79011d13ddd5823288712ad9"
+      },
+      "counts_as_human_corpus": false,
+      "counts_as_genuine_scheduled": false
+    }
+  ],
+  "accepted_article_count": 0,
+  "diagnosis": {
+    "us": "generic bank-holding-company type mistaken for a named entity",
+    "crypto": "dollar currency noun mistaken for a named entity",
+    "domestic": "source_limited empty edition; not article acceptance"
+  },
+  "role_fix": {
+    "code_sha": null,
+    "policy_sha256": "2dcb2571ef0e1a220bcfd1a1d858ea16983e2cf802665284b8730e34440136ef",
+    "files": [
+      {
+        "path": "src/investo/_internal/event_v3_contract.py",
+        "sha256": "0659093f38574a0b5f2c379eb99f3d614b20589e94149812a628654373a623c0"
+      },
+      {
+        "path": "src/investo/_internal/korean_subjects.py",
+        "sha256": "7c54dba0c929e16514710724a2f6cbdef69cb477833fe7721024f7c1cfe23ee8"
+      },
+      {
+        "path": "src/investo/models/event_article.py",
+        "sha256": "0b87eb4da9c9b10fd4ed21ec56a50ccda44243e9dcc07bb2b376ca402be28dab"
+      },
+      {
+        "path": "tests/unit/briefing/test_article_source_names_u185.py",
+        "sha256": "a1c6a328fde21290e520dda8e4f795cdade3ae6aec1635eff53b32a8f937ee3e"
+      }
+    ],
+    "independent_review": {
+      "remaining_critical_high_medium": 0,
+      "focused_passed": 114
+    },
+    "recorded_precheck": {
+      "candidates_passed": 3,
+      "sentences_passed": 5,
+      "fresh_model_or_seal_acceptance": false
+    },
+    "fresh_model_verification": "pending",
+    "integration_checks": {
+      "baseline_sha": "91cbbb01",
+      "focused_passed": 240,
+      "seconds": 4.66,
+      "ruff": "pass",
+      "formatted_files": 858,
+      "mypy_source_files": 363
+    }
+  },
+  "readiness": {
+    "human_documents": 0,
+    "required_human_documents": 12,
+    "local_qualified_slots": 2,
+    "runtime_qualified_slots": 0,
+    "dart_qualified": false,
+    "genuine_v3_scheduled": 0,
+    "release_ready": false
+  },
+  "raw_evidence_public": false
+}
