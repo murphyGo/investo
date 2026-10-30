@@ -13,6 +13,7 @@ from investo._internal.event_identity import source_receipt
 from investo._internal.event_public_text import markdown_literal as _plain
 from investo._internal.event_v3_contract import fact_source_map, usable_digest
 from investo._internal.market_reference import render_option_expiry_reference
+from investo._internal.network_activity import render_network_activity_reference
 from investo.models.event_context import ContextRef
 from investo.models.event_document import (
     EventEditionDraft,
@@ -338,6 +339,7 @@ def render_event_edition(draft: EventEditionDraft, *, retain_invalid_digests: bo
         lines.extend(("</details>", ""))
     if (
         draft.market_reference.anchors
+        or draft.market_reference.daily_network_activity
         or draft.market_reference.daily_exchange_flows
         or draft.market_reference.calculated_option_expiries
     ):
@@ -357,6 +359,9 @@ def render_event_edition(draft: EventEditionDraft, *, retain_invalid_digests: bo
             )
         lines.append("")
         lines.append(render_exchange_flow_reference(draft.market_reference.daily_exchange_flows))
+        lines.append(
+            render_network_activity_reference(draft.market_reference.daily_network_activity)
+        )
         lines.append(
             render_option_expiry_reference(draft.market_reference.calculated_option_expiries)
         )

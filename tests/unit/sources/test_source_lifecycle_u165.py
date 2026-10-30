@@ -26,7 +26,7 @@ _TARGET = date(2026, 10, 8)
 
 
 def test_default_registry_and_exact_overrides() -> None:
-    assert len(SOURCE_SPECS) == 46
+    assert len(SOURCE_SPECS) == 47
     assert source_skip_reasons() == _DEFAULTS
     assert "cnbc-top-news" not in source_skip_reasons(enable=" cnbc-top-news,cnbc-top-news ")
     assert source_skip_reasons(disable="coingecko-price")["coingecko-price"] == "operator_disabled"

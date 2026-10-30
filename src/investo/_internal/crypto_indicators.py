@@ -6,6 +6,11 @@ from collections.abc import Sequence
 from typing import Final
 
 from investo._internal.decimal_format import shortest_exact_decimal
+from investo._internal.network_activity import (
+    ACTIVITY_ATTRIBUTION,
+    network_activity_rows,
+    validated_network_activity,
+)
 from investo.models import NormalizedItem
 from investo.models.exchange_flows import ExchangeFlow
 
@@ -197,6 +202,10 @@ def render_crypto_indicator_block(items: Sequence[NormalizedItem]) -> str:
     for label, value in rows:
         safe = value.replace("|", "\\|")
         lines.append(f"| {label} | {safe} |")
+    activities = validated_network_activity(items)
+    lines.extend(network_activity_rows(activities))
+    if activities:
+        lines.extend(["", ACTIVITY_ATTRIBUTION])
     if flows:
         lines.extend(["", _FLOW_ATTRIBUTION])
     return "\n".join(lines) + "\n"

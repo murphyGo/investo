@@ -58,6 +58,7 @@ from investo._internal.crypto_indicators import (
     render_exchange_flow_reference,
     validated_exchange_flows,
 )
+from investo._internal.network_activity import network_activity_rows, validated_network_activity
 from investo.models import NormalizedItem
 from investo.models.core_fact import (
     CORE_FACT_KEYWORDS,
@@ -237,6 +238,7 @@ def verify_core_facts(
         for line in render_exchange_flow_reference(validated_exchange_flows(items)).splitlines()
         if line.startswith(("| BTC 거래소 일별 순유입 |", "| ETH 거래소 일별 순유입 |"))
     }
+    flow_rows.update(network_activity_rows(validated_network_activity(items)))
     text = "\n".join(" " * len(line) if line in flow_rows else line for line in text.split("\n"))
     verified: list[CoreFact] = []
     unverified: list[CoreFact] = []
