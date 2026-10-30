@@ -8349,3 +8349,12 @@ sourcea155ba49 CI40362454442 SUCCESS. 실제40362650269/40362653934는 분류를
 실제40926975241은 DART공시1건1GET/HTTP200·ZIP13524/XML79039bytes·980nodes/depth9, 암호문/원본hash·0700/0600 PASS다. 이는 정정된 전환사채 발행 결정/미래계획이며 완료된 발행이 아니다. 후보5field는 있으나 정정 후 열·locator·권리·clock/parser/fixture/factory 자격이 남아 DARTblocked/source2verified/runtime0/activationfalse를 유지한다. 실제40926979318은 국내/미국/crypto 분류1/7/2·작성1/1/2 뒤2calls씩으로 composition_invalid다.6call hash pairs와3writer schema는 유효하며, 사람의 환각 판정으로 치환하지 않는다.
 
 후속으로 인명/이니셜을 동일한 원문의 연속 구간에 결속하고 casefold/Unicode 우회·다른 사람의 이니셜 조합·분리refs를 거절했다. 일반 개념/관형형은 정확한 형태만 제외하고 합성 회사명은 원문 근거를 요구한다. 제품 소유자와 발언 주체를 구분해 agentless 소개를 허용하지 않고 문서 귀속을 작성기에 지시했다. policy hash를 갱신해 이전 readiness를 거절한다. 독립 검수 중 두 이름 조합 M 사례를 수정했고 최종 C/H/M0, 독립101PASS/실제 Fed20문장 precheck PASS다. 새 모델/봉인/사람 수용으로 세지 않는다. [세션](../docs/sessions/2026-10-30-v3-runtime-validation.md), [증거](construction/event-v3-acceptance-20261028/runtime-20261030.json).
+
+
+## 2026-10-30 - data-priorities-20261030 construction closeout
+
+- User decision: apply the previously reviewed source priorities. This authorized design, implementation and validation without repeated stage approvals.
+- Stage entry/completion: FD/NFR written; existing retry/registry/finalizer patterns reused; no infrastructure change. Implementation used an isolated b121ca01 clone. Coin Metrics activity and qualified 2026 KRX weekly dates were added. Unresolved source rights and calendar qualifications were explicitly deferred.
+- Validation: full suite 7653 passed / 1 known skip, followed by targeted CSAT/UTC boundary checks. Independent review passed and independently ran 43 tests. All 27 owned integration targets matched their root baselines; integrated root then passed 163 tests plus Ruff/format/mypy. Policy guards, Node 39 tests and strict documentation build passed.
+- No new commit/push/deployment, runtime pin/schema/profile/cron change, publication or message. Other dirty work, root HEAD and index were preserved.
+- Artifacts: [plan](construction/plans/data-priorities-20261030-code-generation-plan.md), [session](../docs/sessions/2026-10-30-data-priorities.md), [validation](construction/data-priorities-20261030/validation.md).

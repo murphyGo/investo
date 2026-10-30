@@ -1,0 +1,74 @@
+{
+  "checked_at_utc": "2026-10-29T17:52:02.494109+00:00",
+  "scope": "local read-only research; no GHA, publication, or production changes",
+  "probes": [
+    {
+      "name": "ethereum_feed",
+      "url": "https://blog.ethereum.org/en/feed.xml",
+      "checked_at_utc": "2026-10-29T17:52:02.635471+00:00",
+      "status": 200,
+      "bytes": 531824,
+      "sha256": "ea789740f1d34d157080f28cc6b2efd3f52f507482c1019ae565546b674b7c06",
+      "items": 644,
+      "copyright": "All rights reserved 2026",
+      "last_publication_utc": "2026-10-22T00:00:00+00:00",
+      "items_last_24h": 0,
+      "items_last_30d": 4,
+      "categories": {
+        "Protocol Announcements": 2,
+        "Research & Development": 2
+      },
+      "explicit_license_urls": [],
+      "hoodi_postponement_entry_present": true,
+      "description_entries": 644
+    },
+    {
+      "name": "coinmetrics_activity",
+      "url": "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc%2Ceth&metrics=AdrActCnt%2CTxCnt%2CFeeTotNtv&frequency=1d&start_time=2026-10-21&end_time=2026-10-28&page_size=100&status=all",
+      "checked_at_utc": "2026-10-29T17:52:02.844947+00:00",
+      "status": 200,
+      "bytes": 2014,
+      "sha256": "b08342944948710a15dbae97946c89694a4b6a631061114124a21f534f78663b",
+      "rows": 16,
+      "next_page_url_present": false,
+      "assets": [
+        "btc",
+        "eth"
+      ],
+      "days_by_asset": {
+        "btc": 8,
+        "eth": 8
+      },
+      "metric_fields_complete": true,
+      "finite_nonnegative": true,
+      "count_fields_integral": true,
+      "status_fields_present": [],
+      "statuses": []
+    },
+    {
+      "name": "coinmetrics_activity_catalog",
+      "url": "https://community-api.coinmetrics.io/v4/catalog/asset-metrics",
+      "checked_at_utc": "2026-10-29T17:53:39.244308+00:00",
+      "status": 200,
+      "bytes": 464114,
+      "sha256": "ceed3d56a608dfa18420ed03a3c8eeae8a90cd855dbfffdb8cc86166a87e3814",
+      "selected": [
+        {
+          "metric": "AdrActCnt",
+          "unit": "Addresses",
+          "btc_eth_daily_supported": true
+        },
+        {
+          "metric": "FeeTotNtv",
+          "unit": "Native units",
+          "btc_eth_daily_supported": true
+        },
+        {
+          "metric": "TxCnt",
+          "unit": "Transactions",
+          "btc_eth_daily_supported": true
+        }
+      ]
+    }
+  ]
+}

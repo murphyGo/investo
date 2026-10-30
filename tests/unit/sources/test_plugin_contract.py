@@ -47,6 +47,7 @@ from investo.sources.cnbc_top_news import CnbcTopNewsAdapter
 from investo.sources.coingecko import CoinGeckoPriceAdapter
 from investo.sources.coingecko_global_market import CoinGeckoGlobalMarketAdapter
 from investo.sources.coinmetrics_exchange_flows import CoinMetricsExchangeFlowsAdapter
+from investo.sources.coinmetrics_network_activity import CoinMetricsNetworkActivityAdapter
 from investo.sources.dart_disclosure import DartDisclosureAdapter
 from investo.sources.defillama_market_structure import DefiLlamaMarketStructureAdapter
 from investo.sources.eia_petroleum_weekly import EiaPetroleumWeeklyAdapter
@@ -112,6 +113,7 @@ def _isolate_registry() -> Iterator[None]:
     register(CftcPolicyRssAdapter)
     register(CoinGeckoGlobalMarketAdapter)
     register(CoinMetricsExchangeFlowsAdapter)
+    register(CoinMetricsNetworkActivityAdapter)
     register(OkxDerivativesAdapter)
     register(BinanceCryptoMarketAdapter)
     register(DartDisclosureAdapter)

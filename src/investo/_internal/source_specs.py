@@ -424,6 +424,13 @@ SOURCE_SPECS: Final[tuple[SourceSpec, ...]] = (
         item_segments=_DOMESTIC,
     ),
     _spec(
+        "coinmetrics-network-activity",
+        evidence_domains=frozenset({"coinmetrics.io"}),
+        tier="B",
+        market_window_segment="crypto",
+        item_segments=_CRYPTO,
+    ),
+    _spec(
         "coinmetrics-exchange-flows",
         evidence_domains=frozenset({"coinmetrics.io"}),
         tier="B",

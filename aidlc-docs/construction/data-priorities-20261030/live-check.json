@@ -1,0 +1,47 @@
+{
+  "checked_at": "2026-10-29T18:17:11.779807+00:00",
+  "count": 4,
+  "activities": [
+    {
+      "indicator": "network_activity",
+      "asset": "btc",
+      "metric": "AdrActCnt",
+      "observation_date": "2026-10-28",
+      "count": "618214",
+      "previous_seven": "633851,634627,644858,579621,539705,612514,616836",
+      "collected_at": "2026-10-29T18:17:12.238919+00:00",
+      "as_of": "2026-10-29T18:17:11.779807+00:00"
+    },
+    {
+      "indicator": "network_activity",
+      "asset": "btc",
+      "metric": "TxCnt",
+      "observation_date": "2026-10-28",
+      "count": "633944",
+      "previous_seven": "710450,564470,913724,715046,795629,829240,750157",
+      "collected_at": "2026-10-29T18:17:12.238919+00:00",
+      "as_of": "2026-10-29T18:17:11.779807+00:00"
+    },
+    {
+      "indicator": "network_activity",
+      "asset": "eth",
+      "metric": "AdrActCnt",
+      "observation_date": "2026-10-28",
+      "count": "933642",
+      "previous_seven": "813190,753365,890889,896486,881585,751785,831925",
+      "collected_at": "2026-10-29T18:17:12.238919+00:00",
+      "as_of": "2026-10-29T18:17:11.779807+00:00"
+    },
+    {
+      "indicator": "network_activity",
+      "asset": "eth",
+      "metric": "TxCnt",
+      "observation_date": "2026-10-28",
+      "count": "1996106",
+      "previous_seven": "1883714,1812374,1886320,1721702,1540685,1790542,1889215",
+      "collected_at": "2026-10-29T18:17:12.238919+00:00",
+      "as_of": "2026-10-29T18:17:11.779807+00:00"
+    }
+  ],
+  "purpose": "Read-only live acceptance, counts are provider current-vintage observations, not historical publication evidence."
+}

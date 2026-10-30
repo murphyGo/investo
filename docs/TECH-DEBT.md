@@ -959,3 +959,11 @@ _No medium priority items._
 - **운영 잔여**: 코드와 로컬 실측/native 표시 검증 완료; 배포 후 첫 예약 관측은 미완료. 비상업 범위를 벗어나면 `INVESTO_SOURCE_DISABLE=coinmetrics-exchange-flows`로 중지하고 표시권을 재검토한다. 미지원 연도 일정은 정상 빈 일정으로 위장하지 않는다.
 - **기존 회귀 실패**: `test_event_evidence.py::test_malformed_html_preserves_original_and_successful_sibling`이 이번 통합 전 원본에서도 동일 환경에서 실패. event evidence 담당 작업과 별개로 현상을 기록하며 이 확장에서 해당 파일을 수정하지 않았다.
 - 근거: [도입 cross-check](cross-checks/2026-10-29-data-expansion.md), [연구](../aidlc-docs/construction/data-expansion-research-20261028/review.md).
+
+
+## 2026-10-30 - Data priority follow-up
+
+- **DEBT-067 further code resolution**: added distinct KOSPI 200 Monday/Thursday weekly dates for 2026. Temporary session exceptions and 2027 exchange-calendar qualification remain open. November 19 (CSAT day) is explicitly excluded because its exchange session time was not verified. Add the official time override and regression checks when qualified.
+- **u66 enrichment**: BTC/ETH active-address and transaction counts plus consecutive seven-day averages now use the Community API. Failure is isolated from exchange flows; CC BY-NC attribution, revision caveats and ETH L1 scope are retained. This does not resolve liquidation coverage (DEBT-071) or dashboard publication rights.
+- **External prerequisites retained**: EF reuse/retention scope; Deribit written permission; Bybit continuous collection/recovery and public-use qualification. No source registration or policy permission bypasses these prerequisites.
+- [Qualification decision](../aidlc-docs/construction/data-priorities-20261030/qualification.md). This batch is integrated in the workspace but has not been committed, pushed or promoted to the production runtime pin.

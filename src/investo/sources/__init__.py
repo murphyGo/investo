@@ -39,6 +39,7 @@ from . import (
     coingecko,  # noqa: F401
     coingecko_global_market,  # noqa: F401
     coinmetrics_exchange_flows,  # noqa: F401
+    coinmetrics_network_activity,  # noqa: F401
     dart_disclosure,  # noqa: F401
     defillama_market_structure,  # noqa: F401
     eia_petroleum_weekly,  # noqa: F401

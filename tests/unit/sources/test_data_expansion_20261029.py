@@ -202,8 +202,9 @@ async def test_december_event_survives_partial_year_boundary():
         items = await KrxOptionExpiryAdapter().fetch(
             client, FetchWindow.from_kst_date(date(2026, 12, 8))
         )
-    assert len(items) == 1
-    assert items[0].scheduled_at == datetime(2026, 12, 10, 6, 20, tzinfo=UTC)
+    monthly = [item for item in items if item.raw_metadata["expiry_kind"] == "monthly"]
+    assert len(monthly) == 1
+    assert monthly[0].scheduled_at == datetime(2026, 12, 10, 6, 20, tzinfo=UTC)
 
 
 async def test_monthly_calendar_no_network_and_domestic_clock():
@@ -212,8 +213,9 @@ async def test_monthly_calendar_no_network_and_domestic_clock():
 
     async with httpx.AsyncClient(transport=httpx.MockTransport(forbidden)) as client:
         items = await KrxOptionExpiryAdapter().fetch(client, WINDOW)
-    assert len(items) == 1
-    assert items[0].scheduled_at == datetime(2026, 11, 12, 6, 20, tzinfo=UTC)
+    monthly = [item for item in items if item.raw_metadata["expiry_kind"] == "monthly"]
+    assert len(monthly) == 1
+    assert monthly[0].scheduled_at == datetime(2026, 11, 12, 6, 20, tzinfo=UTC)
     assert "규칙 기반 계산" in items[0].title
     assert items[0].raw_metadata["calendar_valid_through"] == "2026-12-31"
     assert items[0].published_at == WINDOW.start_utc
@@ -237,7 +239,7 @@ def test_holiday_adjustment_crosses_weekend_and_fails_boundedly():
         _monthly_expiry(2026, 2, closed)
 
 
-@pytest.mark.parametrize("day", [date(2025, 11, 1), date(2027, 1, 1), date(2026, 12, 30)])
+@pytest.mark.parametrize("day", [date(2025, 11, 1), date(2027, 1, 1), date(2026, 12, 31)])
 async def test_unknown_year_is_not_reported_as_empty_calendar(day):
     async with httpx.AsyncClient() as client:
         with pytest.raises(SourceFetchError, match="annual qualification"):
