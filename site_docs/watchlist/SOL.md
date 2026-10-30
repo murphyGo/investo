@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-29 begin -->
+
+## 2026-10-29
+
+- [coingecko-price] **ticker**: 조회 시점 가격 · SOL $94.21 (-6.75%)
+- [defillama-market-structure] **ticker**: DeFi TVL $85.8B; leader Ethereum
+- [theblock-crypto] **ticker**: Polygon adds Solana to payment stack linking bank accounts, crypto and payouts
+
+<!-- u33 entry 2026-10-29 end -->
 <!-- u33 entry 2026-10-28 begin -->
 
 ## 2026-10-28

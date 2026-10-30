@@ -2,6 +2,20 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-29 begin -->
+
+## 2026-10-29
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -4942 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,603,921,776,684; BTC dominance 59.29%
+- [coingecko-price] **ticker**: 조회 시점 가격 · BTC $76,962.00 (-4.53%)
+- [coinmetrics-exchange-flows] **ticker**: BTC 거래소 일별 순유입 (2026-10-28, UTC)
+- [defillama-market-structure] **ticker**: DeFi TVL $85.8B; leader Ethereum
+- [okx-derivatives] **ticker**: BTC 미결제약정 $767,300,820 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Strategy reports $19.5 billion in Q3 net income as preferred shareholders approve daily dividends
+
+<!-- u33 entry 2026-10-29 end -->
 <!-- u33 entry 2026-10-28 begin -->
 
 ## 2026-10-28

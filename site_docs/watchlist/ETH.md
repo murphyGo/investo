@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-29 begin -->
+
+## 2026-10-29
+
+- [coingecko-price] **ticker**: 조회 시점 가격 · ETH $2,206.29 (-5.48%)
+- [coinmetrics-exchange-flows] **ticker**: ETH 거래소 일별 순유입 (2026-10-28, UTC)
+- [defillama-market-structure] **ticker**: DeFi TVL $85.8B; leader Ethereum
+- [theblock-crypto] **ticker**: Curve Finance launches on Stellar in first native deployment outside EVM ecosystem
+
+<!-- u33 entry 2026-10-29 end -->
 <!-- u33 entry 2026-10-28 begin -->
 
 ## 2026-10-28
