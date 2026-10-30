@@ -1,0 +1,250 @@
+{
+  "date": "2026-10-30",
+  "delivery": {
+    "code_sha": "a7e8980235082dc70cc3ecb80c0680d1bc45543c",
+    "code_ci_run_id": 40924747358,
+    "private_workflow_sha": "6446e077fda5213e087d4170d6cf736bb4f8347c",
+    "private_workflow_blob": "8877cf36c066c6c826954a9a2b44653a1575f2af",
+    "unchanged_daily_workflow_blob": "c6d55bc7406d8b329ebce3d71b0a6d3569a60fb3",
+    "production_code_sha_before": "91d5a4f3eb382faa27952eff8eb3af50ec529fce",
+    "preview_code_sha_before": "aa51e6bee40d23a8a4593ebde004a2cbfc531647",
+    "integration_focused": {
+      "passed": 299,
+      "seconds": 4.59
+    },
+    "independent_integration": {
+      "passed": 101,
+      "seconds": 1.73,
+      "remaining_critical_high_medium": 0
+    },
+    "release_ready": false,
+    "independent_delivery_readback": {
+      "status": "approve",
+      "remaining_critical_high_medium": 0,
+      "manual_only": true,
+      "daily_and_preview_preserved": true
+    },
+    "exact_ci": {
+      "status": "success",
+      "pytest_summary": "7679 passed, 1 skipped in 745.87s",
+      "python": [
+        "Using CPython 3.11.9"
+      ],
+      "log_sha256": "afb0f446711cddd1936ed819da0246804941787de327a6717a280267ccd8d34f"
+    },
+    "preview_code_sha_after": "a7e8980235082dc70cc3ecb80c0680d1bc45543c",
+    "production_code_sha_after_pin_update": "91d5a4f3eb382faa27952eff8eb3af50ec529fce",
+    "dart_run_id": 40926975241,
+    "preview_run_id": 40926979318
+  },
+  "dart": {
+    "run_id": 40926975241,
+    "case": "dart",
+    "receipt": {
+      "status": "captured",
+      "reason": "parser_qualification_pending",
+      "http_status": 200,
+      "filing_no": "20261027000337",
+      "request_count": 1,
+      "response_bytes": 13524,
+      "response_sha256": "ed72e9458b32153a5277499a49cae8367960b53c41000cc33a3269e1d008e050",
+      "xml_files": 1,
+      "expanded_bytes": 79039,
+      "xml_nodes": 980,
+      "source_slot_verified": false
+    },
+    "model_records_verified": 0,
+    "artifact_sha256": "983093196550499df5dc4ff05ea8cab7230bd0a145b80099cf9592943005c79f",
+    "file_sha256": {
+      "document.json": "675fecaef59431cf288a96217cd59ec2b5b0508a3ff7a1d8484069f174b14098",
+      "manifest.json": "fabb6147d8c1daca702f59040b1c0dcfc58413110b0586598322d0079ac0b3a4"
+    },
+    "publication_committed": false,
+    "notification_sent": false,
+    "xml_sha256": "20084885250a7797c77f1755b27364445e35b6eb59e038752fe033efb0048964",
+    "member_matches_requested_filing": true,
+    "max_xml_depth": 9,
+    "field_candidates": [
+      "issuer",
+      "action",
+      "action_status",
+      "action_terms",
+      "filing_locator"
+    ],
+    "semantic_boundary": "correction of a convertible-bond issuance decision with a future issue plan; not completed issuance",
+    "qualification": "blocked",
+    "runtime_factory_replayed": false,
+    "activation_ready": false,
+    "remaining": [
+      "rights/access scope",
+      "versioned bounded XML-to-context parser",
+      "corrected-column association",
+      "five source-owned field refs",
+      "clock precision",
+      "context/policy/fixture hashes",
+      "real factory replay"
+    ]
+  },
+  "initial_previews": [
+    {
+      "case": "domestic",
+      "run_id": 40926979318,
+      "status": "failed",
+      "failure_code": "article.composition_invalid",
+      "classified_events": 1,
+      "written_candidates": 1,
+      "sealed_articles": 0,
+      "model_calls": 2,
+      "recording_sha256": "5fd2521f493e3b3929154f83295833db759a106ece62c67f121b37a02b77c153",
+      "calls": [
+        {
+          "call": 1,
+          "prompt_sha256": "e800946f960f0aaa5de2b4ab53ca23de44dc909002d8ed727221163547b12ee5",
+          "stdout_sha256": "dbd95a0d77e02b08e15a0d5e35fd6629e9aa4b8088bd2ee3a9573690f7e54ba3",
+          "returncode": 0
+        },
+        {
+          "call": 2,
+          "prompt_sha256": "dc697c40d7d43a3619300a3fc8289571b39e40cb6d796659ffa02b682689970d",
+          "stdout_sha256": "8b9e8684cd3c41dfa7aa75b16ff26914d5de7a1e8346cf142616ac18d21cff7c",
+          "returncode": 0
+        }
+      ],
+      "artifact_sha256": "dfd907c51949a113b7b248c3d110040d1f000f1f0ac5e807105785ddf757e102",
+      "publication_committed": false,
+      "notification_sent": false,
+      "counts_as_human_corpus": false,
+      "counts_as_genuine_scheduled": false
+    },
+    {
+      "case": "us",
+      "run_id": 40926979318,
+      "status": "failed",
+      "failure_code": "article.composition_invalid",
+      "classified_events": 7,
+      "written_candidates": 1,
+      "sealed_articles": 0,
+      "model_calls": 2,
+      "recording_sha256": "5346bac17abc1d9e1f91c772723c9688cf92b0bc28307888a91403bfc7ac26ec",
+      "calls": [
+        {
+          "call": 1,
+          "prompt_sha256": "a9e24871d41441dedd521c0f40c594c771d9d33cb2008cc2293aac07bb189ddb",
+          "stdout_sha256": "4e65ec9ffe8cfc4b920725bb6e9dd6953880f1a0ad97411d9c35c62b7bd4735a",
+          "returncode": 0
+        },
+        {
+          "call": 2,
+          "prompt_sha256": "c912eaf12970a5216ac2f1fd725d75109f8268abb90955f5f8ea59860945a175",
+          "stdout_sha256": "d9e39ac53eaebcd6cdc49c456692b58637261df3c21bcf33e3c54cccd86493f2",
+          "returncode": 0
+        }
+      ],
+      "artifact_sha256": "379946aec959eaacf8ba6fe5ec57c36f254863de6d8cd8f32a74dcec63ce5cad",
+      "publication_committed": false,
+      "notification_sent": false,
+      "counts_as_human_corpus": false,
+      "counts_as_genuine_scheduled": false
+    },
+    {
+      "case": "crypto",
+      "run_id": 40926979318,
+      "status": "failed",
+      "failure_code": "article.composition_invalid",
+      "classified_events": 2,
+      "written_candidates": 2,
+      "sealed_articles": 0,
+      "model_calls": 2,
+      "recording_sha256": "0f08a456089514a87618c96c5e749f4e080d075a7c32b2f181f2935d40141792",
+      "calls": [
+        {
+          "call": 1,
+          "prompt_sha256": "6678202f683c5c5f18ae6e3e810ec58f839c28ad5b1d3af5ba2be1cc8b717fa1",
+          "stdout_sha256": "ff0c59ab0cfda87b69374f7202c1d669265d6a6936d65069f539324319dd3673",
+          "returncode": 0
+        },
+        {
+          "call": 2,
+          "prompt_sha256": "fb9cfffc3a7d833c61e7d0b2dd5fd3589ed60c87fc8ea97ea8e2b23c7eb46631",
+          "stdout_sha256": "ff331bed44a7b008768fbde1a9ea547f9065636fa376bff509843cce52cfa498",
+          "returncode": 0
+        }
+      ],
+      "artifact_sha256": "9c5015c60e463502319b32dbe82e75d86fd8e3c51aafac249c2502305f782f8c",
+      "publication_committed": false,
+      "notification_sent": false,
+      "counts_as_human_corpus": false,
+      "counts_as_genuine_scheduled": false
+    }
+  ],
+  "failure_replay": {
+    "basis": "exact recorded packet/ref precheck only, not a fresh model/review/seal",
+    "schema_batches_valid": 3,
+    "verified_model_record_hash_pairs": 6,
+    "original_failures": [
+      "event.entity_unsupported",
+      "article.attribution_missing"
+    ],
+    "after_fix": {
+      "fed_candidates_precheck_pass": 3,
+      "fed_sentences_atom_and_role_pass": 20,
+      "agentless_product_description_still_blocked": true
+    }
+  },
+  "followup_fix": {
+    "code_sha": null,
+    "policy_sha256": "ecd0edabaeee1ebc968e91b6502524084e9c866287f545457c937bf604889894",
+    "files": [
+      {
+        "path": "src/investo/_internal/event_v3_contract.py",
+        "sha256": "004afbf2985d57896f0094aa853a2e16f24c9c73091b1fd253a9504561e666be"
+      },
+      {
+        "path": "src/investo/_internal/korean_subjects.py",
+        "sha256": "e517637c6bcb6d277a2304b5bdcd9c009d497dc53b602f2c3f97afc1a5ed97ad"
+      },
+      {
+        "path": "src/investo/briefing/event_article.py",
+        "sha256": "f68af3ec9daa87554821803670b33494b01f6c260f5db6b87238d25f262fc0aa"
+      },
+      {
+        "path": "src/investo/models/event_article.py",
+        "sha256": "d2b327be31911907a5a6cd726aedc6ce134989073354149fcb6d175946a3694c"
+      },
+      {
+        "path": "tests/unit/briefing/test_article_source_names_u185.py",
+        "sha256": "957dc90f0de08c94094be73c03541e1b871fe80d5d31d47b6b8eb5f25a60d351"
+      }
+    ],
+    "fresh_model_verification": "pending",
+    "focused_tests": {
+      "passed": 273,
+      "seconds": 3.35
+    },
+    "independent_review": {
+      "remaining_critical_high_medium": 0,
+      "focused_passed": 101,
+      "seconds": 1.45,
+      "maximum_composition_prompt_bytes": 59700,
+      "exact_65536_limit_passed": true,
+      "65537_rejected": true
+    },
+    "static_checks": {
+      "ruff": "pass",
+      "format_files": 852,
+      "mypy_source_files": 359
+    }
+  },
+  "readiness": {
+    "local_qualified_slots": 2,
+    "runtime_qualified_slots": 0,
+    "dart_qualified": false,
+    "human_documents": 0,
+    "required_human_documents": 12,
+    "genuine_v3_scheduled": 0,
+    "release_ready": false,
+    "viewport": "pending; browser access host unavailable",
+    "performance": "pending"
+  },
+  "raw_evidence_public": false
+}

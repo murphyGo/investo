@@ -83,3 +83,9 @@ DART는 이 로컬 capture에서 호출하지 않았다. 기존 managed credenti
 기존 네 RSS adapter에서 Fed20/speech15/CFTC12개를 확인했고 FSC는실패했다. 기존 허용 Fed body preparation2요청이모두enriched였으며 정책결정 actor/decision/size_or_scope3개, 공식발언 speaker/quoted_claim2개의 정확한 source-owned ref를 기존 factory로 재생했다. 현재 matrix는 **verified2/blocked6**이다. 시점unknown/runtime.not_run/activationfalse를 보존하고 source-slot 자격을 운영준비로 합산하지 않는다.
 
 새 offline private capture checker는 matrixhash와 승인contextfixturehash/실제bufferhash를 함께 확인한다. modified value와재계산hash, foreignref/missingfield/blocked정책·public경로·권한·크기·symlink를 거절한다. focused48/독립QA APPROVE다. 실제 전체 source/runtime 수용이 남아 Step4와 유닛6/7은유지한다. [전체 검수 기록](../event-v3-acceptance-20261028/review.md), [count/hash 증거](../event-v3-acceptance-20261028/evidence.json).
+
+## 2026-10-30 — DART 원본 접근 진단
+
+기존 키를 쓰는 private40926975241에서 공시20261027000337의 원본 XML을1GET/HTTP200으로 받았다. ZIP13,524/XML79,039bytes,1file/980nodes/depth9와 응답·원본 hash 및0600보관을 대조했다. 이 공시는 전환사채 발행 결정의 정정이며 실제 발행 완료가 아니다. issuer/action/status/terms/locator의 후보는 있으나 정정 전후와 다른 차수의 숫자, 결정일/예정일/만기일을 각각 결속해야 한다. XML에 접수번호 필드는 없어 요청·동일 파일명·응답hash·기존viewer를 함께 묶어야 한다.
+
+아직 권리/범위·versioned XML→context parser·정확한5field refs·clock·승인된 context/policy/fixture hashes·실제 factory replay를 완료하지 않았다. matrix의 DART blocked와 source2verified/runtime0/activationfalse를 유지한다. [실제 검수](../../../docs/cross-checks/2026-10-30-v3-runtime-validation.md), [증거](../event-v3-acceptance-20261028/runtime-20261030.json).

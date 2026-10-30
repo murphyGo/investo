@@ -61,3 +61,7 @@ offline 설계 구현은 기존 u167/u168으로 착수 가능하다. live source
 로컬 키 부재 CLI는 HTTP0/exit1이며 실제 DART 응답·parser/fact/selector qualification은 미실행이다. reviewed code 전달 뒤 기존 GitHub secret으로 원문1건을 비공개 점검하고 결과에 따라 기존 DART source 보강 범위를 결정한다. Step5는 미완료로 유지한다.
 
 실제 crypto 분류 입력14건의 승인 수령 문법 보완(0→1 runtime-valid frame), 도메인 마침표와 전체 문장의 조건/귀속 보존, 미국 `Semiweekly`의 unsupported 숫자 변환 방지 지침도 후속 실패 수리로 반영했다. 새 모델/기사/사람 수용은 증가하지 않는다. [2026-10-30 세션](../../../docs/sessions/2026-10-30-event-v3-source-followup.md)과 [검증](../../../docs/cross-checks/2026-10-30-v3-source-followup.md)을 따른다.
+
+### 실제 원문 점검 후속
+
+private40926975241의 DART1GET/HTTP200에서 ZIP13,524/XML79,039bytes·980nodes 원본을 확보했다. 정정된 전환사채 발행 결정으로, 정정 전후 열·다른 차수·미래 발행 계획을 분리해야 한다. 다섯 field 후보는 있으나 versioned bounded parser/정확한 refs·rights/clock·fixture/factory 검증은 미완료다. body 경로를 열거나 Step5를 완료로 올리지 않았다. [실제 검수](../../../docs/cross-checks/2026-10-30-v3-runtime-validation.md).

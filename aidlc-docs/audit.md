@@ -8341,3 +8341,11 @@ sourcea155ba49 CI40362454442 SUCCESS. 실제40362650269/40362653934는 분류를
 기존 OpenDART 원본 XML 경로의 수동 private probe/template을 준비했다. 기존 NFR/R13 재사용, 신규 provider/키 등록 없음. 단일endpoint/1GET/no redirect/retry·8초/20초·압축/총해제500KiB·STORED/DEFLATED만·안전XML·노드/깊이한도·keyecho거절·ignored0700/0600·recipient preflight·ciphertext1일보관을 검증했다. 로컬키부재는 HTTP0/exit1이며 실제 DART 응답/selector/fact qualification은 미실행이다.
 
 독립 검수의 compressed XML comment key echo와 긴 조건/귀속 경계 두 High를 수정했다. 재검수 C/H/M0, 독립118 및 DART31 PASS, 최종 집중207 PASS. HEAD4cc54675의 격리 검증본으로 다른 세션 코드를 제외한 전체7,630PASS/1knownskip/998.94초를 확인했고, 최종 압축형식 제한·알 수 없는 XML 인코딩의 닫힌 실패 처리·policy hash 변경은 별도 집중 검사로 결속한다. 미커밋·미전달 상태이며 production/schema/cron/게시/알림은 변경하지 않았다. u1717/8/u1725/9/u1736/7/u1845/6, local2slot/runtime0/human0/12/v3예약0과 viewport/성능/운영/cleanup 미완료를 유지한다. [보고서](../docs/cross-checks/2026-10-30-v3-source-followup.md).
+
+## 2026-10-30 — 승인한 v3 코드 전달과 실제 원문·작성 검수
+
+사용자가 검토한 변경의 커밋·푸시와 실제 DART/비게시 재생성을 승인했다. 분리 checkout에서30개 파일만02bbcd2e로 커밋하고 최신mainb121ca01의 데이터 확장·발행 이력과 통합한a7e89802를 푸시했다. 원격exactCI40924747358 SUCCESS7679/1skip, 통합299/독립101PASS 및30개 파일/17개 코드hash/기존archive·site·다른 source 보존을 검수했다. private6446e077은 수동 DART workflow1개만 추가했고 설치blob/기존daily·event-preview/queue:max를 독립 대조했다. production91d5a4f3를 보존하고 CI 뒤 preview만a7e89802로 바꿨다.
+
+실제40926975241은 DART공시1건1GET/HTTP200·ZIP13524/XML79039bytes·980nodes/depth9, 암호문/원본hash·0700/0600 PASS다. 이는 정정된 전환사채 발행 결정/미래계획이며 완료된 발행이 아니다. 후보5field는 있으나 정정 후 열·locator·권리·clock/parser/fixture/factory 자격이 남아 DARTblocked/source2verified/runtime0/activationfalse를 유지한다. 실제40926979318은 국내/미국/crypto 분류1/7/2·작성1/1/2 뒤2calls씩으로 composition_invalid다.6call hash pairs와3writer schema는 유효하며, 사람의 환각 판정으로 치환하지 않는다.
+
+후속으로 인명/이니셜을 동일한 원문의 연속 구간에 결속하고 casefold/Unicode 우회·다른 사람의 이니셜 조합·분리refs를 거절했다. 일반 개념/관형형은 정확한 형태만 제외하고 합성 회사명은 원문 근거를 요구한다. 제품 소유자와 발언 주체를 구분해 agentless 소개를 허용하지 않고 문서 귀속을 작성기에 지시했다. policy hash를 갱신해 이전 readiness를 거절한다. 독립 검수 중 두 이름 조합 M 사례를 수정했고 최종 C/H/M0, 독립101PASS/실제 Fed20문장 precheck PASS다. 새 모델/봉인/사람 수용으로 세지 않는다. [세션](../docs/sessions/2026-10-30-v3-runtime-validation.md), [증거](construction/event-v3-acceptance-20261028/runtime-20261030.json).

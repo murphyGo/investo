@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 import unicodedata
+from collections import defaultdict
 from collections.abc import Sequence
 from datetime import datetime
 from itertools import pairwise
@@ -41,6 +42,16 @@ _UNSAFE = re.compile(r"https?://|www\.|<!--|[<>{}`\r\n]|\]\(", re.I)
 _CONDITIONAL = re.compile(r"경우|라면|다면|수\s*있|가능성|조건|\b(?:if|could|may)\b", re.I)
 _IDENTIFIERS = re.compile(
     r"(?<![A-Za-z0-9_])(?:[A-Z][A-Za-z0-9_.-]*|[a-z][a-z0-9]*_[a-z0-9_]+)(?![A-Za-z0-9_])"
+)
+_NAME_WORD = (
+    r"(?!(?:and|or)\b)(?![A-Za-z]\.(?:\s|$))"
+    r"[A-Za-z][A-Za-z0-9_.'\u2019-]*"
+)
+_INITIAL_NAME = re.compile(
+    rf"(?<![A-Za-z0-9_.-])(?:{_NAME_WORD}\s+)*"
+    rf"(?:[A-Za-z]\.\s*)+{_NAME_WORD}(?:\s+{_NAME_WORD})*"
+    r"(?![A-Za-z0-9_-])",
+    re.I | re.ASCII,
 )
 _ROLE_STATUS = {
     "실제": "actual",
@@ -85,6 +96,48 @@ def _number(text: str) -> str:
     return _normal(text).replace(",", "").rstrip("%")
 
 
+def _identifier_key(word: str) -> str:
+    normalized = word.casefold()
+    # A single dotted initial must not become an ordinary standalone letter.
+    return normalized if re.fullmatch(r"[a-z]\.", normalized) else normalized.rstrip(".")
+
+
+def _entity_normal(text: str) -> str:
+    # Compare name spelling symmetrically; invisible format controls cannot
+    # split a foreign name into independently permitted fragments.
+    return " ".join(
+        "".join(
+            char
+            for char in unicodedata.normalize("NFKC", text)
+            if unicodedata.category(char) != "Cf"
+        ).split()
+    )
+
+
+def _proof_windows(
+    refs: Sequence[ContextRef], documents: Sequence[EventContextDocument]
+) -> tuple[str, ...]:
+    """Join only contiguous assigned text from the same immutable source chunk."""
+    groups: dict[tuple[str, str, str], list[tuple[int, int]]] = defaultdict(list)
+    for ref in refs:
+        groups[(ref.document_id, ref.revision_id, ref.chunk_id)].append((ref.start, ref.end))
+    lookup = context_lookup(documents)
+    result = []
+    for (document_id, revision_id, chunk_id), spans in groups.items():
+        doc = lookup[(document_id, revision_id)]
+        chunk = next(c for c in doc.chunks if c.chunk_id == chunk_id)
+        ordered = sorted(spans)
+        start, end = ordered[0]
+        for following_start, following_end in ordered[1:]:
+            if following_start <= end or not chunk.text[end:following_start].strip():
+                end = max(end, following_end)
+            else:
+                result.append(_entity_normal(chunk.text[start:end]).casefold())
+                start, end = following_start, following_end
+        result.append(_entity_normal(chunk.text[start:end]).casefold())
+    return tuple(result)
+
+
 def validate_claim(text: str, refs: Sequence[ContextRef], draft: EventEditionDraft) -> None:
     if not text or text != text.strip() or _UNSAFE.search(text):
         raise EventEditionValidationError("event.narrative_invalid")
@@ -92,18 +145,36 @@ def validate_claim(text: str, refs: Sequence[ContextRef], draft: EventEditionDra
     numbers = {_number(match.group()) for match in _NUMBERS.finditer(source)}
     if any(_number(match.group()) not in numbers for match in _NUMBERS.finditer(text)):
         raise EventEditionValidationError("event.fact_unsupported")
-    source_words = set(re.findall(r"[A-Za-z0-9_.-]+", _normal(source).casefold()))
-    source_normal = _normal(source).casefold()
+    proof_windows = _proof_windows(refs, draft.documents)
+    source_normal = " ".join(proof_windows)
+    source_words = {
+        token
+        for word in re.findall(r"[A-Za-z0-9_.-]+", source_normal)
+        if (token := _identifier_key(word))
+    }
+    entity_text = _entity_normal(text)
     if any(
         label.casefold() not in source_normal and not is_source_role_subject(label, source_words)
-        for label in korean_entity_subjects(text)
+        for label in korean_entity_subjects(entity_text)
     ):
         raise EventEditionValidationError("event.entity_unsupported")
     if any(
-        match.group().rstrip(".").casefold() not in source_words | _ORDINARY_WORDS
-        for match in _IDENTIFIERS.finditer(text)
+        _identifier_key(match.group()) not in source_words | _ORDINARY_WORDS
+        for match in _IDENTIFIERS.finditer(entity_text)
     ):
         raise EventEditionValidationError("event.entity_unsupported")
+    for match in _INITIAL_NAME.finditer(entity_text):
+        parts = _normal(match.group()).casefold().split()
+        while parts and parts[0] in _ORDINARY_WORDS:
+            parts.pop(0)
+        name = " ".join(parts).rstrip(".").removesuffix("'s").removesuffix("\u2019s")
+        literal_name = re.compile(
+            r"(?<![A-Za-z0-9_.'\u2019-])"
+            + re.escape(name)
+            + r"(?:['\u2019]s)?(?![A-Za-z0-9_'\u2019-]|\.[A-Za-z0-9])"
+        )
+        if not any(literal_name.search(window) for window in proof_windows):
+            raise EventEditionValidationError("event.entity_unsupported")
 
 
 def validate_text_actions(

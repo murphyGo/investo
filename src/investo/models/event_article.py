@@ -16,6 +16,7 @@ ARTICLE_POLICY = (
     "literal-proof:explicit-linked-evidence:reported-metadata:finance-topic-grammar:"
     "source-role:material-details:reported-announcement:"
     "receipt-purpose:sentence-enclosure:literal-frequency:"
+    "source-initials:exact-concepts:document-attribution:"
     "review:600,900,600,900,600:3900"
 )
 ARTICLE_POLICY_HASH = sha256(ARTICLE_POLICY.encode()).hexdigest()
