@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-30 begin -->
+
+## 2026-10-30
+
+- [nasdaq-stocks-news] **ticker**: Stocks Fall Sharply on Intel and Amazon Sell-offs and Crypto Heist
+- [yfinance-price] **ticker**: AMZN 240.35 (-1.41%)
+
+<!-- u33 entry 2026-10-30 end -->
 <!-- u33 entry 2026-10-26 begin -->
 
 ## 2026-10-26

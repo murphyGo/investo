@@ -2,6 +2,23 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-30 begin -->
+
+## 2026-10-30
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -3979 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,617,377,562,317; BTC dominance 59.22%
+- [coingecko-price] **ticker**: 조회 시점 가격 · BTC $77,144.00 (-1.40%)
+- [coinmetrics-exchange-flows] **ticker**: BTC 거래소 일별 순유입 (2026-10-29, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 거래 건수 (2026-10-30, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 활성 주소 수 (2026-10-30, UTC)
+- [defillama-market-structure] **ticker**: DeFi TVL $85.1B; leader Ethereum
+- [okx-derivatives] **ticker**: BTC 미결제약정 $818,397,820 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin slides below $77,000, BNB drops amid Binance hack
+- [theblock-crypto] **ticker**: Strategy’s preferred-stock fix sets up renewed bitcoin buying, analysts say
+
+<!-- u33 entry 2026-10-30 end -->
 <!-- u33 entry 2026-10-29 begin -->
 
 ## 2026-10-29

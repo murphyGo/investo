@@ -8,7 +8,7 @@
 <details class="investo-archive-month-nav" markdown="1">
 <summary>보관 월 바로가기</summary>
 
-[2026-10 (14)](#month-2026-10) · [2026-09 (17)](#month-2026-09) · [2026-08 (19)](#month-2026-08) · [2026-07 (19)](#month-2026-07) · [2026-06 (21)](#month-2026-06) · [2026-05 (16)](#month-2026-05)
+[2026-10 (15)](#month-2026-10) · [2026-09 (17)](#month-2026-09) · [2026-08 (19)](#month-2026-08) · [2026-07 (19)](#month-2026-07) · [2026-06 (21)](#month-2026-06) · [2026-05 (16)](#month-2026-05)
 
 </details>
 <form class="investo-archive-controls" hidden>
@@ -21,6 +21,12 @@
 
 ## 2026년 10월 { #month-2026-10 tabindex="-1" }
 
+<div class="investo-archive-entry" data-date="2026-10-30" markdown="1">
+
+[2026-10-30](2026/10/2026-10-30.md){ .investo-archive-link }
+
+<p class="investo-archive-snippet" markdown="0">Jefferies가 Absci with Buy 의견으로 분석을 개시했습니다.</p>
+</div>
 <div class="investo-archive-entry" data-date="2026-10-26" markdown="1">
 
 [2026-10-26](2026/10/2026-10-26.md){ .investo-archive-link }
