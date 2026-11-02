@@ -19,7 +19,7 @@
 <h2 data-investo-field="market" markdown="0">미국 증시</h2>
 <p class="investo-market-date" data-investo-field="date" markdown="0">발행 2026-10-30</p>
 <p class="investo-market-status" data-investo-field="quality" markdown="0">근거 상태: 부분</p>
-<p class="investo-market-summary" markdown="span">Jefferies가 Absci with Buy 의견으로 분석을 개시했습니다.</p>
+<p class="investo-market-summary" markdown="span">뉴스 수집이 제한되어 중요 사건을 판단하기 어렵습니다.</p>
 
 [미국 증시 2026-10-30 시황 읽기](archive/us-equity/2026/10/2026-10-30.md){ .investo-market-link }
 
