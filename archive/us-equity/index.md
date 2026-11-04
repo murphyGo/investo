@@ -25,7 +25,6 @@
 
 [2026-10-30](2026/10/2026-10-30.md){ .investo-archive-link }
 
-<p class="investo-archive-snippet" markdown="0">뉴스 수집이 제한되어 중요 사건을 판단하기 어렵습니다.</p>
 </div>
 <div class="investo-archive-entry" data-date="2026-10-26" markdown="1">
 
