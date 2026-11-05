@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-04 begin -->
+
+## 2026-11-04
+
+- [coingecko-price] **ticker**: 조회 시점 가격 · SOL $96.03 (+4.55%)
+- [defillama-market-structure] **ticker**: DeFi TVL $85.2B; leader Ethereum
+- [theblock-crypto] **ticker**: Schroders launches tokenized emerging markets debt fund on Solana with Centrifuge
+
+<!-- u33 entry 2026-11-04 end -->
 <!-- u33 entry 2026-11-03 begin -->
 
 ## 2026-11-03

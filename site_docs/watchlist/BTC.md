@@ -2,6 +2,21 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-04 begin -->
+
+## 2026-11-04
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -3979 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,724,258,893,167; BTC dominance 59.59%
+- [coingecko-price] **ticker**: 조회 시점 가격 · BTC $80,654.00 (+4.84%)
+- [coinmetrics-exchange-flows] **ticker**: BTC 거래소 일별 순유입 (2026-11-03, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 거래 건수 (2026-11-04, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 활성 주소 수 (2026-11-04, UTC)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $817,615,770 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin rebounds past $80,000 as markets shrug off midterms and Binance hack
+
+<!-- u33 entry 2026-11-04 end -->
 <!-- u33 entry 2026-11-03 begin -->
 
 ## 2026-11-03
