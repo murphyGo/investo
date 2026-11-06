@@ -2,6 +2,23 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-05 begin -->
+
+## 2026-11-05
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -3979 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,573,753,597,303; BTC dominance 59.22%
+- [coingecko-price] **ticker**: 조회 시점 가격 · BTC $76,035.00 (-5.71%)
+- [coinmetrics-exchange-flows] **ticker**: BTC 거래소 일별 순유입 (2026-11-04, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 거래 건수 (2026-11-05, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 활성 주소 수 (2026-11-05, UTC)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $916,555,470 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Anchorage Digital seeks CFTC swap dealer registration for crypto options business
+- [theblock-crypto] **ticker**: Bitcoin erases post-election gains as Wall Street selloff triggers over $1 billion in crypto liquidations
+- [theblock-crypto] **ticker**: Eric Trump’s American Bitcoin swings to $126 million profit in Q3 on digital asset gains
+
+<!-- u33 entry 2026-11-05 end -->
 <!-- u33 entry 2026-11-04 begin -->
 
 ## 2026-11-04

@@ -8,14 +8,27 @@
 <details class="investo-archive-month-nav" markdown="1">
 <summary>보관 월 바로가기</summary>
 
-[2026-10 (15)](#month-2026-10) · [2026-09 (17)](#month-2026-09) · [2026-08 (19)](#month-2026-08) · [2026-07 (19)](#month-2026-07) · [2026-06 (21)](#month-2026-06) · [2026-05 (16)](#month-2026-05)
+[2026-11 (1)](#month-2026-11) · [2026-10 (15)](#month-2026-10) · [2026-09 (17)](#month-2026-09) · [2026-08 (19)](#month-2026-08) · [2026-07 (19)](#month-2026-07) · [2026-06 (21)](#month-2026-06) · [2026-05 (16)](#month-2026-05)
 
 </details>
 <form class="investo-archive-controls" hidden>
-<label>보관 월<select name="month" aria-label="보관 월"><option value="">전체 기간</option><option value="2026-10">2026-10</option><option value="2026-09">2026-09</option><option value="2026-08">2026-08</option><option value="2026-07">2026-07</option><option value="2026-06">2026-06</option><option value="2026-05">2026-05</option></select></label>
+<label>보관 월<select name="month" aria-label="보관 월"><option value="">전체 기간</option><option value="2026-11">2026-11</option><option value="2026-10">2026-10</option><option value="2026-09">2026-09</option><option value="2026-08">2026-08</option><option value="2026-07">2026-07</option><option value="2026-06">2026-06</option><option value="2026-05">2026-05</option></select></label>
 <label>날짜 찾기<input type="search" name="date" placeholder="예: 2026-10-07"></label>
 <button type="reset">전체 목록</button></form>
 <p class="investo-archive-result" role="status" aria-live="polite"></p>
+
+<section class="investo-archive-month" data-month="2026-11" markdown="1">
+
+## 2026년 11월 { #month-2026-11 tabindex="-1" }
+
+<div class="investo-archive-entry" data-date="2026-11-05" markdown="1">
+
+[2026-11-05](2026/11/2026-11-05.md){ .investo-archive-link }
+
+<p class="investo-archive-snippet" markdown="0">뉴스 수집이 제한되어 중요 사건을 판단하기 어렵습니다.</p>
+</div>
+
+</section>
 
 <section class="investo-archive-month" data-month="2026-10" markdown="1">
 

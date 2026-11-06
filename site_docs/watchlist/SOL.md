@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-05 begin -->
+
+## 2026-11-05
+
+- [coingecko-price] **ticker**: 조회 시점 가격 · SOL $90.08 (-6.21%)
+- [defillama-market-structure] **ticker**: DeFi TVL $81.1B; leader Ethereum
+- [theblock-crypto] **ticker**: Samsung Wallet launches USDC accounts on Solana for US Galaxy users
+
+<!-- u33 entry 2026-11-05 end -->
 <!-- u33 entry 2026-11-04 begin -->
 
 ## 2026-11-04
