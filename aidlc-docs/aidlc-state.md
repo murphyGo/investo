@@ -442,3 +442,8 @@ User authorized applying the reviewed priorities. Implemented BTC/ETH active-add
 ### 2026-10-30 — v3 두 번째 실제 preview와 원문 유형 결속
 
 후속 e5326119 exactCI41014464969 SUCCESS7720PASS/1knownskip/774.96초 후 preview만 갱신했다. 실제41022485896(2026-10-29대상)은 국내0기사 source_limited 빈edition봉인, 미국1/crypto2작성후 composition_invalid다. 실제 기사·사람 인수 증가는0이며 production91d5a4f3 보존. 원문 bank holding company/달러 표기를 같은 주장근거에서 확인하는 정확한 일반유형/통화명 보완, cash-tag·합성회사명·분리refs 거절 및 policy hash 갱신을 검수했다. 독립114PASS/C/H/M0, 녹화후보3개5문장 precheckPASS로 새 모델/봉인 인수를 대신하지 않는다. 최신main91cbbb01의 별도 데이터확장을 보존했다. source2verified/runtime0·DARTblocked/human0/12·v3예약0 및 viewport/성능/전환/cleanup pending. [후속실행 증거](construction/event-v3-acceptance-20261028/runtime-repeat-20261030.json).
+
+
+### 2026-11-08 — v3 실제 재생성 후속
+
+승인한31885e96 exactCI41042172197 SUCCESS7777/1skip. 11월6일42149390928은 세시장 실패와 암호문 만료, 11월8일42462350797은 국내status proof/crypto composition차단과 미국0기사source_limited빈봉인이다. 3암호문·4prompt/stdout hashpairs를 생성직후검수했다. 정형 한국어기사머리말/발언일 부사를 statement에만 지원하고 의혹 일반명사·명시적 문서귀속 표현을 좁게보완했다. 인용내용의 별도 완료승격·부정/계획/다른주체·합성회사명·회전/운전/충전 동사오인은거절한다. DART공식자료와parser후속범위를 기존u173/u184에연결했다. production28170546 보존, source2verified/runtime0·DARTblocked/human0/12·v3예약0·viewport/성능/전환/cleanup pending. [세션](../docs/sessions/2026-11-08-v3-runtime-followup.md), [증거](construction/event-v3-acceptance-20261028/runtime-20261108.json).

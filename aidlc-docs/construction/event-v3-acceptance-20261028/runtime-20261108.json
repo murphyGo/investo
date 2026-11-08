@@ -1,0 +1,310 @@
+{
+  "date": "2026-11-08",
+  "delivery": {
+    "date": "2026-11-08",
+    "code_sha": "31885e968a7f31cadb724dd36106e1ab71bc9f31",
+    "ci_run_id": 41042172197,
+    "ci_status": "success",
+    "pytest_summary": "7777 passed, 1 skipped in 780.47s",
+    "formatted_files": 858,
+    "mypy_sources": 363,
+    "private_sha": "6446e077fda5213e087d4170d6cf736bb4f8347c",
+    "production_code_sha_before": "28170546c871a1ce5101b0a0940fafe098d8a431",
+    "preview_pin_before": "e532611994af34c2f87200e5753bc6ce3b12de89",
+    "publication_committed": false,
+    "notification_sent": false,
+    "human_acceptance": 0,
+    "runtime_source_qualification": 0,
+    "preview_pin_after": "31885e968a7f31cadb724dd36106e1ab71bc9f31",
+    "production_pin_after": "28170546c871a1ce5101b0a0940fafe098d8a431",
+    "article_accepted": 0,
+    "status": "completed_partial_failures",
+    "target_date": "2026-11-06",
+    "diagnostic_repeat_of": 42149390928,
+    "preview_run_id": 42462350797,
+    "code_delivered_date": "2026-10-30",
+    "preview_dispatched_at": "2026-11-08T08:18:13Z",
+    "accepted_article_count": 0
+  },
+  "previous_attempt": {
+    "date": "2026-11-06",
+    "code_sha": "31885e968a7f31cadb724dd36106e1ab71bc9f31",
+    "ci_run_id": 41042172197,
+    "ci_status": "success",
+    "pytest_summary": "7777 passed, 1 skipped in 780.47s",
+    "formatted_files": 858,
+    "mypy_sources": 363,
+    "private_sha": "6446e077fda5213e087d4170d6cf736bb4f8347c",
+    "target_date": "2026-11-05",
+    "production_code_sha_before": "28170546c871a1ce5101b0a0940fafe098d8a431",
+    "preview_pin_before": "e532611994af34c2f87200e5753bc6ce3b12de89",
+    "publication_committed": false,
+    "notification_sent": false,
+    "human_acceptance": 0,
+    "runtime_source_qualification": 0,
+    "status": "completed_failed",
+    "dispatch_observed_at": "2026-11-06T02:17:52.614346+00:00",
+    "preview_pin_after": "31885e968a7f31cadb724dd36106e1ab71bc9f31",
+    "production_pin_after": "28170546c871a1ce5101b0a0940fafe098d8a431",
+    "preview_run_id": 42149390928,
+    "article_accepted": 0,
+    "encrypted_evidence_status": "expired_before_retrieval",
+    "cases": {
+      "domestic": {
+        "failure_code": "context.status_unbound",
+        "stage": "classification",
+        "attempt_count": 1,
+        "generation_step_seconds": 50
+      },
+      "us": {
+        "failure_code": "article.composition_invalid",
+        "stage": "post_validation",
+        "attempt_count": 2,
+        "generation_step_seconds": 128
+      },
+      "crypto": {
+        "failure_code": "article.composition_invalid",
+        "stage": "post_validation",
+        "attempt_count": 2,
+        "generation_step_seconds": 75
+      }
+    }
+  },
+  "jobs": {
+    "run_id": 42462350797,
+    "private_head": "6446e077fda5213e087d4170d6cf736bb4f8347c",
+    "jobs": [
+      {
+        "id": 128674156141,
+        "name": "preview (domestic-equity)",
+        "conclusion": "failure",
+        "started_at": "2026-11-08T08:18:19Z",
+        "completed_at": "2026-11-08T08:19:41Z",
+        "generation_auth_step_seconds": 53,
+        "auth_checkpoint_step": "success",
+        "encryption_step": "success",
+        "ciphertext_step": "success"
+      },
+      {
+        "id": 128674156167,
+        "name": "preview (us-equity)",
+        "conclusion": "success",
+        "started_at": "2026-11-08T08:19:44Z",
+        "completed_at": "2026-11-08T08:20:43Z",
+        "generation_auth_step_seconds": 30,
+        "auth_checkpoint_step": "success",
+        "encryption_step": "success",
+        "ciphertext_step": "success"
+      },
+      {
+        "id": 128674156198,
+        "name": "preview (crypto)",
+        "conclusion": "failure",
+        "started_at": "2026-11-08T08:20:46Z",
+        "completed_at": "2026-11-08T08:22:25Z",
+        "generation_auth_step_seconds": 73,
+        "auth_checkpoint_step": "success",
+        "encryption_step": "success",
+        "ciphertext_step": "success"
+      }
+    ],
+    "artifacts": [
+      {
+        "id": 13610655964,
+        "name": "event-preview-us-equity",
+        "size": 11112,
+        "expired": false
+      },
+      {
+        "id": 13610550819,
+        "name": "event-preview-domestic-equity",
+        "size": 10740,
+        "expired": false
+      },
+      {
+        "id": 13610268002,
+        "name": "event-preview-crypto",
+        "size": 15436,
+        "expired": false
+      }
+    ]
+  },
+  "previews": [
+    {
+      "case": "domestic",
+      "receipt": {
+        "status": "failed",
+        "failure_code": "context.status_unbound"
+      },
+      "model_records_verified": 1,
+      "artifact_sha256": "eed56326a0869d5811bb628987f5a53da555601a0de99a54fb07975cc70c87cf",
+      "file_sha256": {
+        "manifest.json": "bf5094a4c4de4e4adc7b70ac8b9b618c3f5ff4db414db263566b2a8cb62a8938",
+        "model-recording.json": "b967958fbe78d4be24a186436f3e2e9e3878511f4732522d2032f5da74947fdf"
+      },
+      "publication_committed": false,
+      "notification_sent": false,
+      "calls": [
+        {
+          "call": 1,
+          "prompt_bytes": 32054,
+          "stdout_bytes": 2163,
+          "prompt_sha256": "4c39cc56f555552be36515b3be260d37291570d771e016ecee5c5f7183664f4f",
+          "stdout_sha256": "d697cc821056eb11c8892638cb931a46ed9cc36df11da049a0eff0fec9c35f4c",
+          "returncode": 0
+        }
+      ],
+      "counts_as_human_corpus": false,
+      "counts_as_genuine_scheduled": false
+    },
+    {
+      "case": "us",
+      "receipt": {
+        "status": "sealed",
+        "document_schema": 3,
+        "article_profile": "article_v2",
+        "availability": "source_limited",
+        "article_content_status": "content_not_ready",
+        "classified_event_count": 0,
+        "terminal_event_count": 0,
+        "detailed_article_count": 0,
+        "model_call_count": 1,
+        "target_date": "2026-11-06",
+        "segment": "us-equity",
+        "enrichment_request_count": 0,
+        "markdown_sha256": "7f5cdedfca5b8b9a838658052765e60c777ac1a93c5617ece61f59f7164ac0f0",
+        "projection_sha256": "facb45c5a14775b361ec8efbcc3ac76088fb18fb0e3c753a8f1be4f4563cb26f"
+      },
+      "model_records_verified": 1,
+      "artifact_sha256": "a844f057194fd5cf87d4708e9f01675b14e9e891a4d59c62190468816cfafc30",
+      "file_sha256": {
+        "manifest.json": "62712d83e9c0406688f25a109007332e1ab0c12788c41e004f6fd5eceadf516a",
+        "model-recording.json": "c9a3f5bfe6a6765928acf5028a3402634ef50786aa7f7b39e170926a1d202586",
+        "preview.md": "7f5cdedfca5b8b9a838658052765e60c777ac1a93c5617ece61f59f7164ac0f0"
+      },
+      "publication_committed": false,
+      "notification_sent": false,
+      "calls": [
+        {
+          "call": 1,
+          "prompt_bytes": 31300,
+          "stdout_bytes": 32,
+          "prompt_sha256": "f0c7bb924b2b4339afd2aa8e19d2de6f9f3486e5b595d13b516a9869c68d80b5",
+          "stdout_sha256": "9b7b471c99a2d20b28a0efc10c6ce00fae3f9c771a2b9753677e3fdb26050a59",
+          "returncode": 0
+        }
+      ],
+      "counts_as_human_corpus": false,
+      "counts_as_genuine_scheduled": false
+    },
+    {
+      "case": "crypto",
+      "receipt": {
+        "status": "failed",
+        "failure_code": "article.composition_invalid"
+      },
+      "model_records_verified": 2,
+      "artifact_sha256": "b8ef88d5207d8ab3065151d97d133ac2052a3a9ebf838ac9cb4ca58f3ea29436",
+      "file_sha256": {
+        "manifest.json": "038d74e1d40ec23af41f7af00f6fbd5b7a298b5c8d4e3168baf57ca9ce1c1c68",
+        "model-recording.json": "55d2db502e7120b7d39e773815fb4b536ba6c19e1d8903031fd78dbc1d6de392"
+      },
+      "publication_committed": false,
+      "notification_sent": false,
+      "calls": [
+        {
+          "call": 1,
+          "prompt_bytes": 31433,
+          "stdout_bytes": 2149,
+          "prompt_sha256": "e54907027060af6e9aa6dc67abeeb48e6426c011b1ba96b82db552667ee00424",
+          "stdout_sha256": "977fd14f63c872cc0da2698cc22b71aa929c018df258256bc048d2592cbd3ebe",
+          "returncode": 0
+        },
+        {
+          "call": 2,
+          "prompt_bytes": 15082,
+          "stdout_bytes": 2929,
+          "prompt_sha256": "21f11ecf1a4defa8422dbcf7a2072acdadef6a9e772b9a2fc5733ef220a36c19",
+          "stdout_sha256": "be188906fd6db0e22adba8cc443a2e5e0ef87f6c38ebc66491291ea643f8d576",
+          "returncode": 0
+        }
+      ],
+      "counts_as_human_corpus": false,
+      "counts_as_genuine_scheduled": false
+    }
+  ],
+  "accepted_article_count": 0,
+  "diagnosis": {
+    "domestic": "unsupported fixed news dateline and reporting-day grammar in statement proof",
+    "us": "source_limited empty edition; no article",
+    "crypto": "generic allegation noun plus present-tense document attribution false negatives"
+  },
+  "followup_fix": {
+    "code_sha": null,
+    "policy_sha256": "a2ad6f3ee2257008a16447cbfaa14f8684804933cfd8b00af4b03e80b6052ffd",
+    "files": [
+      {
+        "path": "src/investo/_internal/event_article.py",
+        "sha256": "4dcb221c0da1a84289fc0e55a877132fae60764e323053cf56ddcfef8e3aeca3"
+      },
+      {
+        "path": "src/investo/_internal/event_text_proof.py",
+        "sha256": "9ec29ed2c52b10b02ce75d9a8d641fc2ca0aa9c712fcf153e970c660829ec367"
+      },
+      {
+        "path": "src/investo/_internal/korean_subjects.py",
+        "sha256": "0c7b8ac44667ed525295c5903b686448290870a8dabbb1a49e9e87c6fb311a82"
+      },
+      {
+        "path": "src/investo/models/event_article.py",
+        "sha256": "67365d02ac38ad04cf0561ab37d8e6c8e46c3e5bbe4cc0c4abe356395ed16d91"
+      },
+      {
+        "path": "tests/unit/briefing/test_article_source_names_u185.py",
+        "sha256": "fd6dee43719b20ac27a9a0d9606d5209a3bad9820f9f2522ef06638e395626a4"
+      },
+      {
+        "path": "tests/unit/briefing/test_korean_reporting_frames_u184.py",
+        "sha256": "2522e1d634cebef71d1ddcdf1ef9a48bff4edfaa60cea6c3d6d52ebbcc3a3e47"
+      }
+    ],
+    "exact_ci": "pending",
+    "fresh_model_verification": "pending",
+    "human_acceptance": 0,
+    "recorded_checks": {
+      "crypto_compositions_passed": 1,
+      "crypto_sentences_passed": 2,
+      "counts_as_new_model_review_or_seal": false,
+      "domestic_parser_events_passed": 1,
+      "domestic_statement_facts_passed": 1
+    },
+    "validation": {
+      "focused_passed": 254,
+      "focused_seconds": 11.33,
+      "independent_passed": 111,
+      "independent_seconds": 1.46,
+      "remaining_critical_high_medium": 0,
+      "ruff": "pass",
+      "formatted_files": 859,
+      "mypy_sources": 363,
+      "strict_docs": "pass"
+    }
+  },
+  "privacy": {
+    "raw_evidence_public": false,
+    "encrypted_capture_verified": 3,
+    "prompt_stdout_pairs_verified": 4,
+    "local_directory_mode": "0700",
+    "raw_files_mode": "0600"
+  },
+  "readiness": {
+    "local_qualified_slots": 2,
+    "runtime_qualified_slots": 0,
+    "dart_qualified": false,
+    "human_documents": 0,
+    "required_human_documents": 12,
+    "genuine_v3_scheduled": 0,
+    "release_ready": false,
+    "performance_acceptance": "pending; job generation/auth step timings are not stage or end-to-end p95"
+  }
+}

@@ -189,6 +189,11 @@ _NAMED_YEAR = re.compile(
     r"(?:agenda|priorities|conference|forum|roundtable|meeting|symposium|workshop|edition)[.!。]?",
     re.I,
 )
+# Only a news dateline, never an arbitrary reporting/conditional prefix.
+_KOREAN_DATELINE = re.compile(
+    r"\([가-힣A-Za-z· -]{1,40}=[가-힣A-Za-z· -]{1,40}\)\s+[가-힣]{2,10}\s+기자\s*=\s*"
+)
+_KOREAN_REPORT_DAY = r"(?:[1-9]|[12][0-9]|3[01])일"
 
 
 def action_equivalents(action: str) -> tuple[str, ...]:
@@ -264,18 +269,28 @@ def assertion_span_hints(text: str) -> tuple[dict[str, object], ...]:
                     value_start = match.end() + len(tail) - len(tail.lstrip())
                     value_end = len(assertion.rstrip(".!。"))
                 else:
+                    reporting = action in _ACTIONS["statement"]
+                    dateline = _KOREAN_DATELINE.match(assertion) if reporting else None
+                    subject_start = dateline.end() if dateline else 0
                     boundaries = tuple(
                         m
                         for m in re.finditer(r"(?:이|가|은|는)\s+", assertion[: match.start()])
-                        if m.start() > 0
+                        if m.start() > subject_start
                     )
                     # A name ending in 이 before a space can look like a
                     # particle (가람페이 증권이). Never propose a truncated actor.
                     if len(boundaries) != 1:
                         continue
-                    subject_start, subject_end = 0, boundaries[0].start()
+                    subject_end = boundaries[0].start()
                     value_start = boundaries[0].end()
                     value_end = len(assertion[: match.start()].rstrip())
+                    day = (
+                        re.search(rf"\s+{_KOREAN_REPORT_DAY}$", assertion[:value_end])
+                        if reporting
+                        else None
+                    )
+                    if day is not None:
+                        value_end = day.start()
                     if value_end > value_start and assertion[value_end - 1] in "을를에":
                         value_end -= 1
                 subject = assertion[subject_start:subject_end]
@@ -426,8 +441,14 @@ def prove_text_assertion(
     for tail in tails:
         ending = (r"\s+" + tail) if tail else ""
         english = rf"(?:The\s+)?{subject_re}\s+{modal}{re.escape(action)}{ending}[.!。]?"
-        korean = rf"{subject_re}(?:이|가|은|는)\s+{tail}(?:을|를|에)?\s+{re.escape(action)}[.!。]?"
-        if not (re.fullmatch(english, assertion, re.I) or re.fullmatch(korean, assertion)):
+        korean_body = rf"{subject_re}(?:이|가|은|는)\s+{tail}(?:을|를|에)?\s+"
+        reporting = predicate == "statement" and status == "actual" and not action.isascii()
+        if reporting:
+            korean_body += rf"(?:{_KOREAN_REPORT_DAY}\s+)?"
+        korean_body += rf"{re.escape(action)}[.!。]?"
+        dateline = rf"(?:{_KOREAN_DATELINE.pattern})?" if reporting else ""
+        korean = re.fullmatch(rf"{dateline}(?P<body>{korean_body})", assertion)
+        if not (re.fullmatch(english, assertion, re.I) or korean):
             continue
         valid_proofs = (
             {assertion, assertion.rstrip(".!。"), action}
@@ -439,6 +460,8 @@ def prove_text_assertion(
                 "expects to",
             }
         )
+        if reporting and korean is not None:
+            valid_proofs.update((korean["body"], korean["body"].rstrip(".!。")))
         if not status_proofs or not all(proof in valid_proofs for proof in status_proofs):
             return None
         return TextFactFrame(predicate, status, subject, action, value, assertion)

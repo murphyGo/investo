@@ -131,7 +131,7 @@
     "domestic": "source_limited empty edition; not article acceptance"
   },
   "role_fix": {
-    "code_sha": null,
+    "code_sha": "31885e968a7f31cadb724dd36106e1ab71bc9f31",
     "policy_sha256": "2dcb2571ef0e1a220bcfd1a1d858ea16983e2cf802665284b8730e34440136ef",
     "files": [
       {
@@ -160,7 +160,7 @@
       "sentences_passed": 5,
       "fresh_model_or_seal_acceptance": false
     },
-    "fresh_model_verification": "pending",
+    "fresh_model_verification": "attempted; accepted articles 0; see followup_results_ref",
     "integration_checks": {
       "baseline_sha": "91cbbb01",
       "focused_passed": 240,
@@ -168,6 +168,11 @@
       "ruff": "pass",
       "formatted_files": 858,
       "mypy_source_files": 363
+    },
+    "exact_ci": {
+      "run_id": 41042172197,
+      "status": "success",
+      "pytest_summary": "7777 passed, 1 skipped in 780.47s"
     }
   },
   "readiness": {
@@ -179,5 +184,6 @@
     "genuine_v3_scheduled": 0,
     "release_ready": false
   },
-  "raw_evidence_public": false
+  "raw_evidence_public": false,
+  "followup_results_ref": "runtime-20261108.json"
 }

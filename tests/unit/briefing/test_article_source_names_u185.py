@@ -211,3 +211,35 @@ def test_cash_tag_is_not_a_dollar_currency_reference(tag):
             "원문에는 Acme의 달러가 대상이라고 명시돼 있다.",
         )
     assert is_source_role_subject("달러", set(), proof_windows=("$1.79 billion was frozen",))
+
+
+def test_allegation_is_a_grammatical_concept_not_an_organization():
+    check_context(
+        "Acme explained that an allegation preceded the decision.",
+        "Acme는 의혹이 결정에 앞서 제기됐다고 설명했습니다.",
+    )
+
+
+@pytest.mark.parametrize("name", ["의혹테크", "의혹은행"])
+def test_allegation_compounds_still_need_the_named_source(name):
+    with pytest.raises(ValueError, match="entity_unsupported"):
+        check_context(
+            "Acme explained that an allegation preceded the decision.",
+            f"Acme는 {name}이 조치를 결정했다고 설명했습니다.",
+        )
+
+
+def test_document_reports_in_present_tense_with_its_exact_actor():
+    check_context(
+        "Acme explained that an allegation preceded the decision.",
+        "원문은 Acme의 결정에 의혹이 앞섰다고 전한다.",
+    )
+
+
+@pytest.mark.parametrize("verb", ["전환한다", "회전한다", "운전한다", "충전한다"])
+def test_unattributed_conversion_does_not_match_the_reporting_verb(verb):
+    with pytest.raises(ValueError, match="attribution_missing"):
+        check_context(
+            "Acme described the product conversion.",
+            f"Acme의 제품은 {verb}.",
+        )
