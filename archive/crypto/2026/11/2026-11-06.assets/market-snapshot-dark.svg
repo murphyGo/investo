@@ -5,13 +5,13 @@
 <text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">크립토 시장 스냅샷</text>
 <text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-11-06 · 데이터 partial</text>
 <text class="card-label" x="80" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">오늘의 결론</text>
-<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">전체 시가총액이 $2.57T, 24시간 변동률 -2.56%인 가운데, BTC 조회 가격은</text>
-<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">$75,851.00, 표시 변동률은 +0.40%로 엇갈렸다. 이번 문서는 수집 근거가 제한적입니다.</text>
+<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">전체 시장 시가총액은 $2.50T, 구간 변동률은 -4.97%로 하락 쪽에 기울었다. 이번 문서는 수집</text>
+<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">근거가 제한적입니다.</text>
 <text class="card-label" x="80" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">핵심 동인</text>
-<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">BTC 조회 가격과 시장 전체의 방향 차이 — 어제 기록된 동반 하락과 달리 이번 입력에서는</text>
-<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">BTC·ETH(이더리움)·SOL(솔라나)의 조회 가격 변동률이 상승으로 바뀌었지만, 전체 시가총액의 하락</text>
+<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">BTC와 ETH의 주간 선물 포지션 — 미국 상품선물거래위원회 보고서에 따르면 시카고상품거래소의 차입</text>
+<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">활용 자금 순계약은 BTC -2,591계약, ETH -3,699계약이다.</text>
 <text class="card-label" x="80" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">주의할 점</text>
-<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">조회 구간 대비 가격 변화 BTC 가격 출처의 현재 $75,851.00를 기준으로 제공 고가</text>
-<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">$76,266.00 상회 시 상방 범위 확장, 제공 저가 $74,921.00 하회 시 하방 범위 확장을</text>
+<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">주간 포지션과 일별 흐름 비교 미국 상품선물거래위원회 주간 보고서의 BTC 순계약 -2,591계약을</text>
+<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">기준으로 후속 자료가 이보다 높아지면 하락 방향 계약 우위 완화, 낮아지면 우위 심화로 구분해 파생상품의</text>
 <text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
 </svg>

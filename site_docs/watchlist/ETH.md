@@ -6,13 +6,14 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-11-06
 
-- [coingecko-price] **ticker**: 조회 시점 가격 · ETH $2,243.53 (+0.81%)
+- [coingecko-price] **ticker**: 조회 시점 가격 · ETH $2,128.62 (-4.67%)
 - [coinmetrics-exchange-flows] **ticker**: ETH 거래소 일별 순유입 (2026-11-05, UTC)
 - [coinmetrics-network-activity] **ticker**: ETH 일별 거래 건수 (2026-11-06, UTC)
 - [coinmetrics-network-activity] **ticker**: ETH 일별 활성 주소 수 (2026-11-06, UTC)
-- [defillama-market-structure] **ticker**: DeFi TVL $81.1B; leader Ethereum
+- [defillama-market-structure] **ticker**: DeFi TVL $79.3B; leader Ethereum
 
 <!-- u33 entry 2026-11-06 end -->
+
 <!-- u33 entry 2026-11-05 begin -->
 
 ## 2026-11-05

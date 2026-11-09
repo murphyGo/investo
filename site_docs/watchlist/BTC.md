@@ -7,12 +7,12 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 ## 2026-11-06
 
 - [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -2591 contracts
-- [coingecko-global-market] **ticker**: Global crypto market cap $2,567,130,667,662; BTC dominance 59.28%
-- [coingecko-price] **ticker**: 조회 시점 가격 · BTC $75,851.00 (+0.40%)
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,496,938,675,511; BTC dominance 60.25%
+- [coingecko-price] **ticker**: 조회 시점 가격 · BTC $74,856.00 (-1.16%)
 - [coinmetrics-exchange-flows] **ticker**: BTC 거래소 일별 순유입 (2026-11-05, UTC)
 - [coinmetrics-network-activity] **ticker**: BTC 일별 거래 건수 (2026-11-06, UTC)
 - [coinmetrics-network-activity] **ticker**: BTC 일별 활성 주소 수 (2026-11-06, UTC)
-- [okx-derivatives] **ticker**: BTC 미결제약정 $918,649,500 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $912,204,520 (OKX, UTC 24h)
 - [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
 - [theblock-crypto] **ticker**: Elliptic says Binance hackers swapped stolen tokens for $124M in bitcoin, exchange plans more withdrawal reopenings
 - [theblock-crypto] **ticker**: IREN’s bitcoin mining revenue drops 58% as firm plans full exit by year-end
@@ -20,6 +20,7 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 - [theblock-crypto] **ticker**: TeraWulf’s bitcoin mining revenue falls 69% as HPC leasing surges amid Anthropic buildout
 
 <!-- u33 entry 2026-11-06 end -->
+
 <!-- u33 entry 2026-11-05 begin -->
 
 ## 2026-11-05
