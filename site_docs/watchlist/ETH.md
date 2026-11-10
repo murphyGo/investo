@@ -2,6 +2,21 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-09 begin -->
+
+## 2026-11-09
+
+- [coingecko-price] **ticker**: 조회 시점 가격 · ETH $2,111.85 (-1.29%)
+- [coinmetrics-exchange-flows] **ticker**: ETH 거래소 일별 순유입 (2026-11-08, UTC)
+- [coinmetrics-network-activity] **ticker**: ETH 일별 거래 건수 (2026-11-09, UTC)
+- [coinmetrics-network-activity] **ticker**: ETH 일별 활성 주소 수 (2026-11-09, UTC)
+- [defillama-market-structure] **ticker**: DeFi TVL $78.9B; leader Ethereum
+- [theblock-crypto] **ticker**: Ethereum Foundation, Vitalik Buterin sued over firing after ‘suicide pledge’ dispute
+- [theblock-crypto] **ticker**: Ethereum treasury Sharplink’s Q3 net income hits $751 million on unrealized ether gains
+- [theblock-crypto] **ticker**: Tom Lee’s Bitmine nears 5% Ethereum supply target with $20 million ETH buy as he predicts tokenization and AI ‘superc…
+- [theblock-crypto] **ticker**: Zama spin-off Raycash launches confidential stablecoin payments and private yield on Ethereum
+
+<!-- u33 entry 2026-11-09 end -->
 <!-- u33 entry 2026-11-06 begin -->
 
 ## 2026-11-06

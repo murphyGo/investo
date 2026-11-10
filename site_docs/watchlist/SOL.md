@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-09 begin -->
+
+## 2026-11-09
+
+- [coingecko-price] **ticker**: 조회 시점 가격 · SOL $85.68 (-2.00%)
+- [defillama-market-structure] **ticker**: DeFi TVL $78.9B; leader Ethereum
+- [theblock-crypto] **ticker**: Formation notifies SEC to operate first tokenized securities venue on Solana
+
+<!-- u33 entry 2026-11-09 end -->
 <!-- u33 entry 2026-11-06 begin -->
 
 ## 2026-11-06

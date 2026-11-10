@@ -2,6 +2,24 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-09 begin -->
+
+## 2026-11-09
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -2591 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,506,491,510,863; BTC dominance 59.61%
+- [coingecko-price] **ticker**: 조회 시점 가격 · BTC $74,469.00 (-0.42%)
+- [coinmetrics-exchange-flows] **ticker**: BTC 거래소 일별 순유입 (2026-11-08, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 거래 건수 (2026-11-09, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 활성 주소 수 (2026-11-09, UTC)
+- [nasdaq-earnings-calendar] **ticker**: BDCI earnings — not-supplied
+- [okx-derivatives] **ticker**: BTC 미결제약정 $896,385,380 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin loses 50-week moving average as 24-hour crypto long liquidations top $1 billion
+- [theblock-crypto] **ticker**: MARA posts $634 million Q3 net profit on bitcoin gains, sells 13,597 BTC to pay off loans
+- [theblock-crypto] **ticker**: ‘Connecting the dots’: Michael Saylor’s Strategy buys another 1,036 bitcoin for $82 million as holdings top 850,000 BTC
+
+<!-- u33 entry 2026-11-09 end -->
 <!-- u33 entry 2026-11-06 begin -->
 
 ## 2026-11-06

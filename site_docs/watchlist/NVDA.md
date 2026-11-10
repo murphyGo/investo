@@ -2,6 +2,13 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-09 begin -->
+
+## 2026-11-09
+
+- [theblock-crypto] **ticker**: Nvidia perps slide as market reacts to CEO Jensen Huang’s Chinese spy scandal
+
+<!-- u33 entry 2026-11-09 end -->
 <!-- u33 entry 2026-11-05 begin -->
 
 ## 2026-11-05
