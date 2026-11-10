@@ -447,3 +447,8 @@ User authorized applying the reviewed priorities. Implemented BTC/ETH active-add
 ### 2026-11-08 — v3 실제 재생성 후속
 
 승인한31885e96 exactCI41042172197 SUCCESS7777/1skip. 11월6일42149390928은 세시장 실패와 암호문 만료, 11월8일42462350797은 국내status proof/crypto composition차단과 미국0기사source_limited빈봉인이다. 3암호문·4prompt/stdout hashpairs를 생성직후검수했다. 정형 한국어기사머리말/발언일 부사를 statement에만 지원하고 의혹 일반명사·명시적 문서귀속 표현을 좁게보완했다. 인용내용의 별도 완료승격·부정/계획/다른주체·합성회사명·회전/운전/충전 동사오인은거절한다. DART공식자료와parser후속범위를 기존u173/u184에연결했다. production28170546 보존, source2verified/runtime0·DARTblocked/human0/12·v3예약0·viewport/성능/전환/cleanup pending. [세션](../docs/sessions/2026-11-08-v3-runtime-followup.md), [증거](construction/event-v3-acceptance-20261028/runtime-20261108.json).
+
+
+### 2026-11-10 — v3 최종 코드 CI와 실제 실행 한계
+
+최종7c5b8912 exactCI42464723553 SUCCESS7805PASS/1skip/646.08초·독립C/H/M0. 실제42465588085은 미국0기사 source_limited빈edition봉인, 국내/crypto는Python/Codex release다운로드504로auth/model전실패다. 실패job재시도1회도동일외부다운로드오류여서두시장최종코드실제생성/semantic review/봉인미검증. 미국1암호문/1IOpair/MD·projection hash검수, 반복결과를corpus로세지않는다. 11월10일readback production28170546·preview7c5b8912 보존. source2/8/runtime0·DARTblocked·human0/12·v3예약0·viewport/성능/운영/cleanup pending. [최종증거](construction/event-v3-acceptance-20261028/runtime-final-20261108.json), [기록](../docs/sessions/2026-11-08-v3-runtime-followup.md).

@@ -1,0 +1,178 @@
+{
+  "recorded_at": "2026-11-10",
+  "actual_run_date": "2026-11-08",
+  "delivery": {
+    "date": "2026-11-08",
+    "code_sha": "7c5b8912ebe5a60204351508a0c79367bd5ce5ca",
+    "ci_run_id": 42464723553,
+    "ci_status": "success",
+    "pytest_summary": "7805 passed, 1 skipped in 646.08s",
+    "formatted_files": 859,
+    "mypy_sources": 363,
+    "private_sha": "6446e077fda5213e087d4170d6cf736bb4f8347c",
+    "target_date": "2026-11-06",
+    "production_code_sha_before": "28170546c871a1ce5101b0a0940fafe098d8a431",
+    "preview_pin_before": "31885e968a7f31cadb724dd36106e1ab71bc9f31",
+    "publication_committed": false,
+    "notification_sent": false,
+    "human_acceptance": 0,
+    "runtime_source_qualification": 0,
+    "status": "completed_setup_blocked",
+    "preview_run_id": 42465588085,
+    "preview_dispatched_at": "2026-11-08T09:04:15Z",
+    "preview_pin_after": "7c5b8912ebe5a60204351508a0c79367bd5ce5ca",
+    "production_pin_after": "28170546c871a1ce5101b0a0940fafe098d8a431",
+    "setup_retry_count": 1,
+    "initial_attempt": {
+      "domestic": "python_download_failed_before_auth_or_model",
+      "crypto": "python_download_http_504_before_auth_or_model",
+      "us": "source_limited_empty_edition_sealed"
+    },
+    "accepted_article_count": 0,
+    "recorded_at": "2026-11-10",
+    "production_pin_readback": "28170546c871a1ce5101b0a0940fafe098d8a431",
+    "preview_pin_readback": "7c5b8912ebe5a60204351508a0c79367bd5ce5ca"
+  },
+  "jobs": [
+    {
+      "id": 128684230824,
+      "name": "preview (crypto)",
+      "started_at": "2026-11-08T09:06:11Z",
+      "completed_at": "2026-11-08T09:06:41Z",
+      "conclusion": "failure",
+      "failed_steps": [
+        "Install reviewed runtime before auth"
+      ],
+      "generation_auth_step": "skipped",
+      "generation_auth_step_seconds": null
+    },
+    {
+      "id": 128684230979,
+      "name": "preview (us-equity)",
+      "started_at": "2026-11-08T09:04:56Z",
+      "completed_at": "2026-11-08T09:06:09Z",
+      "conclusion": "success",
+      "failed_steps": [],
+      "generation_auth_step": "success",
+      "generation_auth_step_seconds": 27.0
+    },
+    {
+      "id": 128684231022,
+      "name": "preview (domestic-equity)",
+      "started_at": "2026-11-08T09:04:20Z",
+      "completed_at": "2026-11-08T09:04:54Z",
+      "conclusion": "failure",
+      "failed_steps": [
+        "Install reviewed runtime before auth"
+      ],
+      "generation_auth_step": "skipped",
+      "generation_auth_step_seconds": null
+    },
+    {
+      "id": 128685185552,
+      "name": "preview (crypto)",
+      "started_at": "2026-11-08T09:09:13Z",
+      "completed_at": "2026-11-08T09:09:43Z",
+      "conclusion": "failure",
+      "failed_steps": [
+        "Install reviewed runtime before auth"
+      ],
+      "generation_auth_step": "skipped",
+      "generation_auth_step_seconds": null
+    },
+    {
+      "id": 128685185728,
+      "name": "preview (domestic-equity)",
+      "started_at": "2026-11-08T09:08:23Z",
+      "completed_at": "2026-11-08T09:09:09Z",
+      "conclusion": "failure",
+      "failed_steps": [
+        "Install pinned Codex CLI"
+      ],
+      "generation_auth_step": "skipped",
+      "generation_auth_step_seconds": null
+    },
+    {
+      "id": 128685186823,
+      "name": "preview (us-equity)",
+      "started_at": "2026-11-08T09:04:56Z",
+      "completed_at": "2026-11-08T09:06:09Z",
+      "conclusion": "success",
+      "failed_steps": [],
+      "generation_auth_step": "success",
+      "generation_auth_step_seconds": 27.0
+    }
+  ],
+  "setup_failure_reason": "GitHub release asset downloads returned HTTP 504; Python or pinned Codex installation failed before auth/model for domestic and crypto",
+  "setup_retry_count": 1,
+  "actual_preview": {
+    "domestic": {
+      "state": "setup_failed",
+      "model_calls": 0,
+      "encrypted_evidence": "not_created_before_setup_failure"
+    },
+    "us": {
+      "case": "us",
+      "receipt": {
+        "status": "sealed",
+        "document_schema": 3,
+        "article_profile": "article_v2",
+        "availability": "source_limited",
+        "article_content_status": "content_not_ready",
+        "classified_event_count": 0,
+        "terminal_event_count": 0,
+        "detailed_article_count": 0,
+        "model_call_count": 1,
+        "target_date": "2026-11-06",
+        "segment": "us-equity",
+        "enrichment_request_count": 0,
+        "markdown_sha256": "7f5cdedfca5b8b9a838658052765e60c777ac1a93c5617ece61f59f7164ac0f0",
+        "projection_sha256": "facb45c5a14775b361ec8efbcc3ac76088fb18fb0e3c753a8f1be4f4563cb26f"
+      },
+      "model_records_verified": 1,
+      "artifact_sha256": "9b900963c233ccb282d44b10e91508707ad81f207f20c3b08dd01b575be89bd6",
+      "file_sha256": {
+        "manifest.json": "878b454827c96f92d68f37fc89d873f388b4d0ed192e803969f0e5fb399911e0",
+        "model-recording.json": "748b0cea92bd6dc179ddd7142df267f4fba5661d65f866a8c157ec1485ed29fd",
+        "preview.md": "7f5cdedfca5b8b9a838658052765e60c777ac1a93c5617ece61f59f7164ac0f0"
+      },
+      "publication_committed": false,
+      "notification_sent": false,
+      "calls": [
+        {
+          "call": 1,
+          "prompt_bytes": 31300,
+          "stdout_bytes": 32,
+          "prompt_sha256": "b44e72637ee35d7c4d5aadfb7e18d295fb202c4748088db9cb70bd368bf7305e",
+          "stdout_sha256": "9b7b471c99a2d20b28a0efc10c6ce00fae3f9c771a2b9753677e3fdb26050a59",
+          "returncode": 0
+        }
+      ],
+      "counts_as_human_corpus": false,
+      "counts_as_genuine_scheduled": false
+    },
+    "crypto": {
+      "state": "setup_failed",
+      "model_calls": 0,
+      "encrypted_evidence": "not_created_before_setup_failure"
+    }
+  },
+  "accepted_article_count": 0,
+  "empty_editions_sealed": 1,
+  "privacy": {
+    "encrypted_capture_verified": 1,
+    "prompt_stdout_pairs_verified": 1,
+    "raw_evidence_public": false
+  },
+  "readiness": {
+    "local_qualified_slots": 2,
+    "runtime_qualified_slots": 0,
+    "dart_qualified": false,
+    "human_documents": 0,
+    "required_human_documents": 12,
+    "genuine_v3_scheduled": 0,
+    "release_ready": false,
+    "viewport": "browser_host_unavailable",
+    "performance": "pending; no end-to-end acceptance inferred"
+  }
+}

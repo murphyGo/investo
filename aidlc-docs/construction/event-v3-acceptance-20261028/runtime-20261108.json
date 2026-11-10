@@ -240,7 +240,7 @@
     "crypto": "generic allegation noun plus present-tense document attribution false negatives"
   },
   "followup_fix": {
-    "code_sha": null,
+    "code_sha": "7c5b8912ebe5a60204351508a0c79367bd5ce5ca",
     "policy_sha256": "a2ad6f3ee2257008a16447cbfaa14f8684804933cfd8b00af4b03e80b6052ffd",
     "files": [
       {
@@ -268,8 +268,14 @@
         "sha256": "2522e1d634cebef71d1ddcdf1ef9a48bff4edfaa60cea6c3d6d52ebbcc3a3e47"
       }
     ],
-    "exact_ci": "pending",
-    "fresh_model_verification": "pending",
+    "exact_ci": {
+      "run_id": 42464723553,
+      "status": "success",
+      "pytest_summary": "7805 passed, 1 skipped in 646.08s",
+      "formatted_files": 859,
+      "mypy_sources": 363
+    },
+    "fresh_model_verification": "partial: domestic/crypto setup blocked before model; US empty edition only",
     "human_acceptance": 0,
     "recorded_checks": {
       "crypto_compositions_passed": 1,
@@ -288,7 +294,8 @@
       "formatted_files": 859,
       "mypy_sources": 363,
       "strict_docs": "pass"
-    }
+    },
+    "followup_results_ref": "runtime-final-20261108.json"
   },
   "privacy": {
     "raw_evidence_public": false,
