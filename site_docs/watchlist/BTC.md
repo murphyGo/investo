@@ -2,6 +2,25 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-10 begin -->
+
+## 2026-11-10
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -2591 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,480,675,830,521; BTC dominance 59.75%
+- [coingecko-price] **ticker**: 조회 시점 가격 · BTC $73,922.00 (-1.35%)
+- [coinmetrics-exchange-flows] **ticker**: BTC 거래소 일별 순유입 (2026-11-09, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 거래 건수 (2026-11-09, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 활성 주소 수 (2026-11-10, UTC)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $881,921,780 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Ark Invest trims Block, Bullish and its own bitcoin ETF holdings while buying Nvidia, SoFi
+- [theblock-crypto] **ticker**: Bitcoin slides below $74,000 after hotter-than-expected CPI as analysts warn of drop to $70k
+- [theblock-crypto] **ticker**: Bitdeer reports record Q3 revenue as net loss widens to $125.5 million
+- [theblock-crypto] **ticker**: Canaan’s Q3 revenue plunges 90% to $14.5 million as bitcoin mining hardware sales slump
+- [theblock-crypto] **ticker**: HIVE reports $79 million quarterly net loss as bitcoin mining revenue falls and AI business grows
+
+<!-- u33 entry 2026-11-10 end -->
 <!-- u33 entry 2026-11-09 begin -->
 
 ## 2026-11-09

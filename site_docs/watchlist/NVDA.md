@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-10 begin -->
+
+## 2026-11-10
+
+- [theblock-crypto] **ticker**: Ark Invest trims Block, Bullish and its own bitcoin ETF holdings while buying Nvidia, SoFi
+- [yfinance-price] **ticker**: NVDA 168.89 (-5.47%)
+
+<!-- u33 entry 2026-11-10 end -->
 <!-- u33 entry 2026-11-09 begin -->
 
 ## 2026-11-09

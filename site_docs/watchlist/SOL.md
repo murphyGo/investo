@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-10 begin -->
+
+## 2026-11-10
+
+- [coingecko-price] **ticker**: 조회 시점 가격 · SOL $83.90 (-2.81%)
+- [defillama-market-structure] **ticker**: DeFi TVL $77.6B; leader Ethereum
+- [theblock-crypto] **ticker**: Forward Industries grows SOL treasury to 8.7 million as token hits nearly three-month low
+
+<!-- u33 entry 2026-11-10 end -->
 <!-- u33 entry 2026-11-09 begin -->
 
 ## 2026-11-09
