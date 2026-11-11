@@ -12,12 +12,12 @@ import re
 import stat
 import zipfile
 import zlib
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from pathlib import PurePosixPath
 from types import MappingProxyType
-from typing import TYPE_CHECKING
+from typing import Protocol, cast
 from zoneinfo import ZoneInfo
 
 from defusedxml.common import DefusedXmlException
@@ -32,8 +32,20 @@ from investo.models.event_evidence import (
 )
 from investo.models.items import NormalizedItem
 
-if TYPE_CHECKING:
-    from xml.etree.ElementTree import Element
+
+class Element(Protocol):
+    """The read-only tree interface supplied by the defusedxml parser."""
+
+    tag: str
+    attrib: dict[str, str]
+
+    def __iter__(self) -> Iterator[Element]: ...
+    def __len__(self) -> int: ...
+    def __getitem__(self, index: int) -> Element: ...
+    def itertext(self) -> Iterator[str]: ...
+    def iter(self, tag: str | None = None) -> Iterator[Element]: ...
+    def findall(self, path: str) -> list[Element]: ...
+
 
 PARSER_VERSION = "dart-cb-correction-6.4-v1"
 MAX_BYTES = 500 * 1024
@@ -114,7 +126,10 @@ def _read_xml(data: bytes, filename: str, forbidden_token: bytes) -> tuple[Eleme
             raise DartDocumentError("dart.xml_invalid")
         if forbidden_token and forbidden_token in raw:
             raise DartDocumentError("dart.credential_echo")
-        root = fromstring(raw, forbid_dtd=True, forbid_entities=True, forbid_external=True)
+        root = cast(
+            Element,
+            fromstring(raw, forbid_dtd=True, forbid_entities=True, forbid_external=True),
+        )
         pending = [(root, 0)]
         count = 0
         secret = forbidden_token.decode("utf-8") if forbidden_token else ""

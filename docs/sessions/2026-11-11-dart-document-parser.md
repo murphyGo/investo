@@ -21,3 +21,8 @@ strictdocs도 PASS이며 정확한 코드 CI 결과는 전달 후 갱신한다. 
 ## 남은 수용
 
 ops matrix는 local2/8 verified·runtime0·DARTblocked/activationfalse 그대로다. 이 parser는 live HTML enrichment를 우회하지 않으며 N184의 기존 ZIP 금지/HTTP budget을 바꾸지 않는다. 현재 listing과 live 수신·권리/접근/clock·versioned parser 범위를 연결한 별도 qualification, 실제 source preparation 경로 및 u172 사람12건/화면/성능/운영 검수가 남는다. u173 Step4/u184 Step5 전체 완료나 운영 전환을 선언하지 않는다.
+
+
+## 정적 XML import 규칙 보완
+
+최초 통합2a0db03a의 CI42980639029는7,978PASS/1knownskip 및 저장소 XML import 검사1건 실패였다. 파서는 defusedxml만 사용했지만 타입 전용 stdlib Element import도 금지하는 기존 규칙에 걸렸다. 해당 import를 내부 Protocol로 대체했고 규칙은 유지했다. 독립 AST 대조에서 기존8개 함수의 파싱/field/refs 알고리즘이 그대로이며 원문29개 binding·5slot/context hash도 동일하다. XML safety2와신규parser72를 합친74PASS, 통합집중304PASS·독립 타입 delta C/H/M0이며 정확한 후속CI를 확인한다.

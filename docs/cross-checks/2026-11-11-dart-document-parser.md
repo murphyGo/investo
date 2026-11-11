@@ -16,3 +16,5 @@
 | 사람/viewport/성능/운영 | human0/12·v3예약0·기존 gate 유지 | 미완료 |
 
 정확한 source SHA의 CI는 전달 이후 증거대로 갱신한다. scope 밖 archive·다른 dirty 작업·기존 runtime/workflow·source registry는 보존한다.
+
+최초 CI42980639029의 유일 실패는 타입 전용 stdlib XML import guard였다. Protocol 대체와 XML safety2 PASS·기존 알고리즘 AST 불변을 확인했다. 최초7,978PASS/1skip을 새 코드의 full PASS로 치환하지 않고 후속 exactCI 결과를 기록한다.

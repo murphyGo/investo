@@ -12,7 +12,7 @@
   "files": [
     {
       "path": "src/investo/sources/_dart_document.py",
-      "sha256": "ae1eeeb7baaff8dbce4ed6b6d468f01ad97a0460f736f836e8b90fc033210859"
+      "sha256": "8bae1c71b79f26b22391679c4c9ebfed1ad574135c02c91f75298426346ae166"
     },
     {
       "path": "tests/unit/sources/test_dart_document_u173.py",
@@ -69,7 +69,24 @@
     "formatted_files": 861,
     "mypy_sources": 364,
     "exact_ci": "pending",
-    "strict_docs": "pass"
+    "strict_docs": "pass",
+    "first_ci": {
+      "run_id": 42980639029,
+      "code_sha": "2a0db03a92f8088cd8d3e495a4f638a83256027c",
+      "status": "failure",
+      "passed": 7978,
+      "failed": 1,
+      "known_skipped": 1,
+      "seconds": 662.51,
+      "failure": "stdlib XML type import forbidden by repository guard; corrected with internal Protocol"
+    },
+    "xml_safety_passed": 2,
+    "integration": {
+      "focused_passed": 304,
+      "macro_parent": "505f5c1e",
+      "formatted_files": 869,
+      "mypy_sources": 370
+    }
   },
   "privacy": {
     "raw_evidence_public": false,
