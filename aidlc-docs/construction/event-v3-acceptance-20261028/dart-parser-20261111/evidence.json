@@ -1,0 +1,90 @@
+{
+  "date": "2026-11-11",
+  "scope": "offline parser for existing dart-disclosure; no live capability or source qualification change",
+  "code_sha": null,
+  "parser_version": "dart-cb-correction-6.4-v1",
+  "supported_form": {
+    "formula_version": "6.4",
+    "formula_date": "20260723",
+    "document_acode": "11324",
+    "listing_modifier": "\uae30\uc7ac\uc815\uc815"
+  },
+  "files": [
+    {
+      "path": "src/investo/sources/_dart_document.py",
+      "sha256": "ae1eeeb7baaff8dbce4ed6b6d468f01ad97a0460f736f836e8b90fc033210859"
+    },
+    {
+      "path": "tests/unit/sources/test_dart_document_u173.py",
+      "sha256": "67e4abbf1f7d8915826d043236db00e94cb2b501be5a1e02b7e59946a792f526"
+    },
+    {
+      "path": "tests/fixtures/dart_document/cb-correction-6.4.xml",
+      "sha256": "0b92c7582de317c6a4490772f54b83b5984fb9a3e1dff1f430ba82726ebb28cb"
+    }
+  ],
+  "actual_captured_xml": {
+    "filing_no": "20261027000337",
+    "response_sha256": "ed72e9458b32153a5277499a49cae8367960b53c41000cc33a3269e1d008e050",
+    "xml_sha256": "20084885250a7797c77f1755b27364445e35b6eb59e038752fe033efb0048964",
+    "field_slots": 5,
+    "field_refs": {
+      "issuer": 1,
+      "action": 3,
+      "action_status": 4,
+      "action_terms": 16,
+      "filing_locator": 1
+    },
+    "xml_bindings": 29,
+    "xml_roundtrips_verified": 29,
+    "projection_chars": 599,
+    "context_canonical_sha256": "f8c935b3177c2c38149a67c8e6cb3ec42af323650abac19af9faa6c11e64c39c",
+    "private_capture_sha256": "03b3768f1f4c9bf0437ad78759750710f68aa0cbd6cd8cad48df73417e1bd680",
+    "published_precision": "date",
+    "occurred_precision": "unknown",
+    "announced_precision": "unknown",
+    "legacy_title_summary_preserved": true,
+    "input_item_unchanged": true,
+    "evidence_budget_limited": true,
+    "listing_basis": "retained source title/summary/url/date reconstructed through the existing adapter; corp_code supplied from captured XML, not independently replayed list.json",
+    "receive_clock_basis": "explicit fixed offline replay clock 2026-11-11T00:00:00Z; original HTTP receive instant unavailable",
+    "counts_as_new_source_capture": false,
+    "counts_as_runtime_qualification": false,
+    "new_http_requests": 0
+  },
+  "validation": {
+    "focused_passed": 203,
+    "focused_seconds": 3.35,
+    "new_parser_tests_passed": 72,
+    "independent_passed": 120,
+    "independent_seconds": 2.12,
+    "remaining_critical_high_medium": 0,
+    "fixed_medium_findings": [
+      "wide_encoding_comment_secret",
+      "xml_path_roundtrip",
+      "nul_original_zip_member",
+      "listing_correction_modifier"
+    ],
+    "ruff": "pass",
+    "formatted_files": 861,
+    "mypy_sources": 364,
+    "exact_ci": "pending",
+    "strict_docs": "pass"
+  },
+  "privacy": {
+    "raw_evidence_public": false,
+    "private_directory_mode": "0700",
+    "private_file_mode": "0600"
+  },
+  "readiness": {
+    "ops_manifest_unchanged": true,
+    "ops_manifest_sha256": "b386288bf14871330f309eeab3a6d94732f703bc2a34ad479578ee3a613408bb",
+    "local_qualified_slots": 2,
+    "runtime_qualified_slots": 0,
+    "dart_qualified": false,
+    "human_documents": 0,
+    "genuine_v3_scheduled": 0,
+    "activation_ready": false,
+    "release_ready": false
+  }
+}

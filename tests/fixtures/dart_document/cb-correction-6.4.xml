@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DOCUMENT>
+  <DOCUMENT-NAME ACODE="11324">주요사항보고서(전환사채권 발행결정)</DOCUMENT-NAME>
+  <FORMULA-VERSION ADATE="20260723">6.4</FORMULA-VERSION>
+  <COMPANY-NAME AREGCIK="00000001">(주)가람상사</COMPANY-NAME>
+  <BODY>
+    <LIBRARY><CORRECTION>
+      <TITLE>정 정 신 고 (보고)</TITLE>
+      <TABLE><TBODY><TR><TD></TD></TR><TR><TD>2026 년 09 월 02 일</TD></TR></TBODY></TABLE>
+      <TABLE><TBODY><TR><TD>1. 정정대상 공시서류 :</TD><TD>주요사항보고서(전환사채권 발행결정)</TD></TR></TBODY></TABLE>
+      <TABLE><TBODY><TR><TD>2. 정정대상 공시서류의 최초제출일 :</TD><TD>2026 년 08 월 01 일</TD></TR></TBODY></TABLE>
+      <TABLE>
+        <THEAD><TR><TH>항 목</TH><TH>정정사유</TH><TH>정 정 전</TH><TH>정 정 후</TH></TR></THEAD>
+        <TBODY>
+          <TR><TD>9. 전환에 관한사항- 전환가액</TD><TD ROWSPAN="3">전환가액 확정에따른 변경</TD><TD>12</TD><TD>10</TD></TR>
+          <TR><TD>- 전환에 따라 발행할 주식</TD><TD>- 주식수 : 8,333- 주식총수대비비율(%) : 2.08</TD><TD>- 주식수 : 10,000- 주식총수대비비율(%) : 2.50</TD></TR>
+          <TR><TD>- 최저 조정가액</TD><TD>8</TD><TD>7</TD></TR>
+        </TBODY>
+      </TABLE>
+    </CORRECTION></LIBRARY>
+    <SECTION-1>
+      <TITLE>전환사채권 발행결정</TITLE>
+      <TABLE-GROUP><TABLE><TBODY>
+        <TR><TD>1. 사채의 종류</TD><TE ACODE="SEQ_NO">3</TE><TD>종류</TD><TE ACODE="PL_KND">제3회 무보증 사모 전환사채</TE></TR>
+        <TR><TD>2. 사채의 권면(전자등록)총액 (원)</TD><TE ACODE="DNM_SUM">100,000</TE></TR>
+        <TR><TD>전환가액 (원/주)</TD><TE ACODE="EXE_PRC">10</TE></TR>
+        <TR><TD>주식수</TD><TE ACODE="STK_CNT">10,000</TE></TR>
+        <TR><TD>주식총수 대비비율(%)</TD><TE ACODE="STK_RT">2.50</TE></TR>
+        <TR><TD>최저 조정가액 (원)</TD><TE ACODE="MIN_PRC">7</TE></TR>
+        <TR><TD>5. 사채만기일</TD><TU AUNIT="EXP_DT" AUNITVALUE="20290905">2029년 09월 05일</TU></TR>
+        <TR><TD>12. 납입일</TD><TU AUNIT="PYM_DT" AUNITVALUE="20260905">2026년 09월 05일</TU></TR>
+        <TR><TD>17. 이사회결의일(결정일)</TD><TU AUNIT="DRC_DT" AUNITVALUE="20260801">2026년 08월 01일</TU></TR>
+      </TBODY></TABLE></TABLE-GROUP>
+      <LIBRARY><TABLE-GROUP><TABLE><TBODY>
+        <TR><TD>정정사유</TD><TE ACODE="CRT_RSN">전환가액 확정에 따른 정정</TE></TR>
+        <TR><TD>향후계획</TD><TE ACODE="CRT_PLN">일정에 따라 발행 예정</TE></TR>
+      </TBODY></TABLE></TABLE-GROUP></LIBRARY>
+    </SECTION-1>
+    <SECTION-1><TITLE>기발행 다른 차수</TITLE><TABLE-GROUP><TABLE><TBODY><TR><TE ACODE="DEB_KND">제2회 전환사채</TE><TE ACODE="BAL_AMT">999,999</TE><TE ACODE="EXE_MN">88</TE></TR></TBODY></TABLE></TABLE-GROUP></SECTION-1>
+  </BODY>
+</DOCUMENT>

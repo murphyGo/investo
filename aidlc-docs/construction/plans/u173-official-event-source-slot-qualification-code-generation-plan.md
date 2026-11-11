@@ -89,3 +89,8 @@ In progress — 6/7; private parser capture pending. [공통 검증](../event-ne
 ## 2026-10-28 Step4 재개
 
 기존 허용 Fed body의 actual2sample/필수field5개를 승인fixture·matrixhash에 결속해 재생했다. 로컬slot은2verified/6blocked, runtime.not_run/activationfalse다. private capture checker와 변조·경로·권한·symlink 회귀를추가했고 독립QA 잔여C/H/M0이다. 나머지source/필수slot/runtime·actual human 수용이 남아 Step4와6/7은유지한다. [검수 기록](../event-v3-acceptance-20261028/review.md).
+
+
+### 2026-11-11 — DART parser bounded substep
+
+기존 Step4/Step5 중 원문6.4기재정정parser와5필수field의오프라인C2매핑을구현·검수했다. [설계/실행](../event-v3-acceptance-20261028/dart-parser-20261111/plan.md), [검수](../../../docs/cross-checks/2026-11-11-dart-document-parser.md). reconstructedlisting/회사코드와명시offlineclock한계를기록하며source/runtime자격·live경로·운영은승격하지않는다. 나머지source별미완료로상위Step전체checkbox는유지한다.

@@ -65,3 +65,8 @@ offline 설계 구현은 기존 u167/u168으로 착수 가능하다. live source
 ### 실제 원문 점검 후속
 
 private40926975241의 DART1GET/HTTP200에서 ZIP13,524/XML79,039bytes·980nodes 원본을 확보했다. 정정된 전환사채 발행 결정으로, 정정 전후 열·다른 차수·미래 발행 계획을 분리해야 한다. 다섯 field 후보는 있으나 versioned bounded parser/정확한 refs·rights/clock·fixture/factory 검증은 미완료다. body 경로를 열거나 Step5를 완료로 올리지 않았다. [실제 검수](../../../docs/cross-checks/2026-10-30-v3-runtime-validation.md).
+
+
+### 2026-11-11 — DART parser bounded substep
+
+기존 Step4/Step5 중 원문6.4기재정정parser와5필수field의오프라인C2매핑을구현·검수했다. [설계/실행](../event-v3-acceptance-20261028/dart-parser-20261111/plan.md), [검수](../../../docs/cross-checks/2026-11-11-dart-document-parser.md). reconstructedlisting/회사코드와명시offlineclock한계를기록하며source/runtime자격·live경로·운영은승격하지않는다. 나머지source별미완료로상위Step전체checkbox는유지한다.

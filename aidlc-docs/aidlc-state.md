@@ -452,3 +452,8 @@ User authorized applying the reviewed priorities. Implemented BTC/ETH active-add
 ### 2026-11-10 — v3 최종 코드 CI와 실제 실행 한계
 
 최종7c5b8912 exactCI42464723553 SUCCESS7805PASS/1skip/646.08초·독립C/H/M0. 실제42465588085은 미국0기사 source_limited빈edition봉인, 국내/crypto는Python/Codex release다운로드504로auth/model전실패다. 실패job재시도1회도동일외부다운로드오류여서두시장최종코드실제생성/semantic review/봉인미검증. 미국1암호문/1IOpair/MD·projection hash검수, 반복결과를corpus로세지않는다. 11월10일readback production28170546·preview7c5b8912 보존. source2/8/runtime0·DARTblocked·human0/12·v3예약0·viewport/성능/운영/cleanup pending. [최종증거](construction/event-v3-acceptance-20261028/runtime-final-20261108.json), [기록](../docs/sessions/2026-11-08-v3-runtime-followup.md).
+
+
+### 2026-11-11 — DART parser 오프라인 substep
+
+사용자진행승인으로 기존u173Step4/u184Step5에 boundedDART6.4/11324기재정정parser를추가했다. 정정후/currentseries·회사/공시번호/단위/날짜·ZIP/XML/hash결속과기존C2factory5slot25refs/29XMLroundtrip/599자재생PASS. 집중203/독립120·M4건수정후C/H/M0·Ruff/format861/mypy364/정책PASS. retainedlisting재구성/corp_codeXML입력/fixedofflineclock한계때문에새수집/source/runtime자격으로세지않으며ops local2/8·runtime0·DARTblocked·human0/12·예약0·viewport/성능/운영미완료유지. 새HTTP/LLM/live경로/registry/pin/게시/알림0. [기록](../docs/sessions/2026-11-11-dart-document-parser.md), [증거](construction/event-v3-acceptance-20261028/dart-parser-20261111/evidence.json).
