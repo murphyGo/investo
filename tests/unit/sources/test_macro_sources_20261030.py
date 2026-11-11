@@ -5,6 +5,7 @@ import hashlib
 import json
 from dataclasses import replace
 from datetime import UTC, date, datetime, timedelta, timezone
+from decimal import localcontext
 from pathlib import Path
 
 import httpx
@@ -331,3 +332,69 @@ def test_optional_success_cannot_mask_required_macro_source_failure():
         "us-equity", (), tuple(outcomes), macro_sensitive_claim_made=True
     )
     assert result.status == "failed"
+
+
+async def test_gscpi_current_serial_vintage_fixture_and_precision():
+    window = replace(
+        FetchWindow.from_kst_date(date(2026, 11, 11)),
+        evidence_received_at=datetime(2026, 11, 11, tzinfo=UTC),
+    )
+    (item,) = await fetch(NyfedGscpiAdapter, body=recorded("nyfed-gscpi-20261111"), window=window)
+    assert item.raw_metadata["observation_date"] == "2026-10-31"
+    assert item.raw_metadata["release_vintage"] == "2026-11"
+    assert item.raw_metadata["value"] == "1.261911"
+    assert await fetch(NyfedGscpiAdapter, body=recorded("nyfed-gscpi-20261111")) == []
+
+
+async def test_gscpi_serial_and_named_vintages_missing_and_zero():
+    body = b"Date,46327,Oct-26\n30-Sep-2026,#N/A,1.28\n31-Oct-2026,-0.0000001,#N/A\n"
+    window = replace(
+        FetchWindow.from_kst_date(date(2026, 11, 11)),
+        evidence_received_at=datetime(2026, 11, 11, tzinfo=UTC),
+    )
+    (item,) = await fetch(NyfedGscpiAdapter, body=body, window=window)
+    assert item.raw_metadata["value"] == "0"
+    assert item.raw_metadata["release_vintage"] == "2026-11"
+    assert await fetch(NyfedGscpiAdapter, body=b"Date,Oct-26\n30-Sep-2026,#N/A\n") == []
+
+
+@pytest.mark.parametrize(
+    "header",
+    ["46328", "00060", "99999", "46327.0", "4e4", "\uff14\uff16\uff13\uff12\uff17", "46327,Nov-26"],
+)
+async def test_gscpi_serial_headers_fail_closed(header):
+    window = replace(
+        FetchWindow.from_kst_date(date(2026, 11, 11)),
+        evidence_received_at=datetime(2026, 11, 11, tzinfo=UTC),
+    )
+    body = f"Date,{header}\n31-Oct-2026,1\n".encode()
+    with pytest.raises(SourceFetchError):
+        await fetch(NyfedGscpiAdapter, body=body, window=window)
+
+
+@pytest.mark.parametrize(
+    "value", ["100.000000000001", "1.1234567890123456789", "1e-3", "Infinity", "#VALUE!"]
+)
+async def test_gscpi_full_precision_values_fail_closed_before_rounding(value):
+    body = f"Date,Oct-26\n30-Sep-2026,{value}\n".encode()
+    with pytest.raises(SourceFetchError):
+        await fetch(NyfedGscpiAdapter, body=body)
+
+
+async def test_gscpi_conflicting_duplicate_values_cannot_hide_in_rounding():
+    body = b"Date,Oct-26\n30-Sep-2026,1.2619111\n30-Sep-2026,1.2619112\n"
+    with pytest.raises(SourceFetchError):
+        await fetch(NyfedGscpiAdapter, body=body)
+
+
+async def test_gscpi_precision_does_not_depend_on_ambient_decimal_context():
+    with localcontext() as context:
+        context.prec = 2
+        (item,) = await fetch(
+            NyfedGscpiAdapter, body=b"Date,Oct-26\n30-Sep-2026,1.26191118130865\n"
+        )
+        assert item.raw_metadata["value"] == "1.261911"
+        with pytest.raises(SourceFetchError):
+            await fetch(
+                NyfedGscpiAdapter, body=b"Date,Oct-26\n30-Sep-2026,100.000000000000000001\n"
+            )

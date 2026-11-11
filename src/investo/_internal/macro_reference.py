@@ -69,7 +69,8 @@ def macro_reference_notes(observations: Sequence[MacroObservation]) -> str:
                 f"© {observation.collected_at.year} Federal Reserve Bank of New York. "
                 "Content from the New York Fed subject to the Terms of Use at newyorkfed.org. "
                 "[이용약관](https://www.newyorkfed.org/privacy/termsofuse). "
-                "월간 연구 지수로 연준의 공식 추정치가 아님. 선택·표시는 Investo가 구성했으며 "
+                "월간 연구 지수로 연준의 공식 추정치가 아님. 소수점 6자리까지 반올림. "
+                "선택·표시는 Investo가 구성했으며 "
                 "뉴욕연은의 보증·승인을 뜻하지 않음."
             )
         else:
