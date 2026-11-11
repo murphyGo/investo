@@ -7,6 +7,7 @@ from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from investo._internal.crypto_indicators import validated_exchange_flows
+from investo._internal.macro_reference import validated_macro_observations
 from investo._internal.network_activity import validated_network_activity
 from investo.models import NormalizedItem
 from investo.models.event_document import MarketReferencePanel
@@ -56,6 +57,11 @@ def source_market_reference(
     )
     return MarketReferencePanel(
         anchors=anchors,
+        macro_observations=(
+            validated_macro_observations(items, observed_at=observed_at)
+            if segment == "us-equity"
+            else ()
+        ),
         daily_network_activity=tuple(
             activity
             for activity in validated_network_activity(items)

@@ -30,6 +30,7 @@ from investo.briefing._text.patterns import (
 )
 from investo.models import Category, NormalizedItem, SourceOutcome
 from investo.models.macro import is_required_macro_actual, macro_event_status
+from investo.models.macro_reference import MACRO_REFERENCES
 from investo.models.segments import (
     CATEGORY_LABELS,
     COVERAGE_REASON_LABELS,
@@ -546,6 +547,7 @@ def build_segment_coverage(
         if (
             outcome.status == "zero"
             and outcome.source_name not in macro_actual_sources
+            and outcome.source_name not in MACRO_REFERENCES
             and outcome.source_name not in _QUIET_ZERO_SOURCES
         )
     )

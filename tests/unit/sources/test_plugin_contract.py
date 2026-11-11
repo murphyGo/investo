@@ -66,12 +66,14 @@ from investo.sources.krx_option_expiry import KrxOptionExpiryAdapter
 from investo.sources.nasdaq_earnings_calendar import NasdaqEarningsCalendarAdapter
 from investo.sources.nasdaq_stocks_news import NasdaqStocksNewsAdapter
 from investo.sources.nasdaq_symbol_directory import NasdaqSymbolDirectoryAdapter
+from investo.sources.nyfed_gscpi import NyfedGscpiAdapter
 from investo.sources.nyfed_reference_rates import NyfedReferenceRatesAdapter
 from investo.sources.official_policy import (
     CongressGovBillActionsAdapter,
     HouseFinancialServicesPolicyAdapter,
     SenateBankingPolicyAdapter,
 )
+from investo.sources.ofr_financial_stress import OfrFinancialStressAdapter
 from investo.sources.okx_derivatives import OkxDerivativesAdapter
 from investo.sources.sec_company_facts import SecCompanyFactsAdapter
 from investo.sources.sec_edgar_8k import SecEdgar8kAdapter
@@ -80,6 +82,7 @@ from investo.sources.theblock_crypto import TheBlockCryptoAdapter
 from investo.sources.tiers import ADAPTER_TIERS
 from investo.sources.treasury_auctions import TreasuryAuctionsAdapter
 from investo.sources.treasury_rates import TreasuryRatesAdapter
+from investo.sources.treasury_tga_balance import TreasuryTgaBalanceAdapter
 from investo.sources.us_economic_calendar import UsEconomicCalendarAdapter
 from investo.sources.yahoo_finance_news import YahooFinanceNewsAdapter
 from investo.sources.yfinance import YFinancePriceAdapter
@@ -148,6 +151,9 @@ def _isolate_registry() -> Iterator[None]:
     register(YonhapMarketAdapter)
     register(TheBlockCryptoAdapter)
     register(TreasuryAuctionsAdapter)
+    register(TreasuryTgaBalanceAdapter)
+    register(NyfedGscpiAdapter)
+    register(OfrFinancialStressAdapter)
     register(TreasuryRatesAdapter)
     register(UsEconomicCalendarAdapter)
     register(CnbcTopNewsAdapter)
@@ -367,6 +373,9 @@ def test_all_does_not_leak_internal_helpers() -> None:
         "TheBlockCryptoAdapter",
         "treasury_auctions",
         "TreasuryAuctionsAdapter",
+        "treasury_tga_balance",
+        "nyfed_gscpi",
+        "ofr_financial_stress",
         "treasury_rates",
         "TreasuryRatesAdapter",
         "us_economic_calendar",

@@ -696,3 +696,11 @@ Evidence: `aidlc-docs/construction/source-reliability-20261009/review.md`. Four 
 | u187 public-insights-calendar-and-chart-ui | 월간 달력·날짜 상세와 의미·단위·스케일이 보이는 그래프 | US-011/012/013; FR-026/027/028/029; NFR-002/004/005/008 | u180 validated snapshots/publication, u181 macro, u182 calendar, u183 crypto; source permissions and scheduled acceptance unchanged |
 
 [Plan](../../construction/plans/u187-public-insights-calendar-and-chart-ui-code-generation-plan.md). Presentation only; no source collection, derived historical observations, schema changes or independent scheduler.
+
+## u188–u190 — additional macro references
+
+| Unit | User-visible outcome | Stories / requirements | Dependencies |
+| --- | --- | --- | --- |
+| u188 treasury-tga-balance | Government cash balance, receipts and withdrawals; existing auctions/rates lack this liquidity context | US-001/002/008; FR-001/002; NFR-002/003/004 | u102 descriptors, u144 finalizer; shared macro source FD/NFR |
+| u189 nyfed-gscpi | Monthly global supply/transport pressure context absent from current CPI/PPI/rates | US-001/002/008; FR-001/002; NFR-002/003/004 | u102 descriptors, u144 finalizer; shared macro source FD/NFR |
+| u190 ofr-financial-stress | Global systemic stress beyond current volatility index alone | US-001/002/008; FR-001/002; NFR-002/003/004 | u102 descriptors, u144 finalizer; shared macro source FD/NFR |

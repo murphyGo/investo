@@ -37,12 +37,18 @@ Determinism: same anchors + same items ⇒ byte-identical block (R9).
 
 from __future__ import annotations
 
+import re
 from collections.abc import Sequence
 from decimal import ROUND_HALF_UP, Decimal
 from enum import StrEnum
 from typing import Final, Literal
 
 from investo._internal.decimal_format import shortest_exact_decimal
+from investo._internal.macro_reference import (
+    macro_reference_notes,
+    macro_reference_rows,
+    validated_macro_observations,
+)
 from investo.models import NormalizedItem
 from investo.models.market_anchor import MarketAnchor, anchor_label
 
@@ -352,20 +358,49 @@ def render_channel_anchor_block(
             )
         )
 
+    observations = validated_macro_observations(source_items) if segment == "us-equity" else ()
+    if observations:
+        body.extend(macro_reference_rows(observations))
+        any_present = True
     if not any_present:
         return ""
 
     lines = [CHANNEL_ANCHOR_HEADER, "", "| 기준선 | 값 |", "|------|------|", *body]
+    if observations:
+        lines.extend(["", macro_reference_notes(observations)])
     return "\n".join(lines) + "\n"
 
 
-def inject_channel_anchor_block(text: str, block: str) -> str:
+def inject_channel_anchor_block(text: str, block: str, *, refresh: bool = False) -> str:
     """Insert the channel anchor block (idempotent).
 
     Placed before the first ``## ①`` section so it sits in the header
     band alongside the macro / crypto-indicator blocks. Re-injection is a
-    no-op (header sentinel guard).
+    no-op by default; ``refresh`` rebuilds the owned block from current inputs
+    and removes stale copies when the new block is empty.
     """
+    if refresh:
+        # US macro facts and their notices must be rebuilt from collected inputs,
+        # including when no current input survives. Preserve enclosing details.
+        pattern = re.compile(
+            r"^## ⓪-B 채널 기준선[^\n]*\n.*?"
+            r"(?=^## |^</details>|^<!-- |^<details|^> |^!\[|^```|^~~~|"
+            r"^\*\*(?:기준 시각|세그먼트)\*\*:|\Z)",
+            re.M | re.S,
+        )
+        found = False
+
+        def replace(match: re.Match[str]) -> str:
+            nonlocal found
+            if found or not block:
+                found = True
+                return ""
+            found = True
+            return f"{block.strip()}\n\n"
+
+        replaced = pattern.sub(replace, text)
+        if found:
+            return replaced
     if not block:
         return text
     if CHANNEL_ANCHOR_HEADER in text:

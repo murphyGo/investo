@@ -236,3 +236,7 @@ Initial instruction authorized design. Subsequent user instruction “유닛 하
 ## u187 — Public Insights calendar and chart UI (2026-10-26)
 
 User requested a month calendar and graphs with meaningful axes/scales, then authorized implementation with “gogo”. Focused Functional/NFR design is adopted in [u187 design](../../construction/u187-public-insights-calendar-and-chart-ui/design.md); it covers mixed date precision, numeric/time geometry, accessibility, dependency integrity and failure/resource handling. Reuse existing Pages/private runtime and receipt/publication contract; no separate infrastructure change. Code generation, independent review, local browser validation and exact release CI are required. Source qualification and u180–u183 scheduled acceptance stay separate. Concurrent main registered u184–u186 first; the UI unit uses u187.
+
+## 2026-10-30 — u188–u190 additional macro sources
+
+Source additions approved in TGA→GSCPI→OFR order. Functional Design and NFR Requirements required and completed in `construction/macro-sources-20261030/`; dedicated infrastructure/NFR-design stages reuse existing shared retry/registry/aggregator/publication contracts. Code Generation and local Build & Test complete (per-unit plans5/5). Release and first scheduled execution are separate; previous units and runtime acceptance states unchanged.

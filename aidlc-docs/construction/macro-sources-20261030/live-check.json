@@ -1,0 +1,51 @@
+{
+  "checked_at": "2026-10-30T10:49:56.606821+00:00",
+  "queries": 3,
+  "keys": 0,
+  "publications": 0,
+  "sends": 0,
+  "results": [
+    {
+      "source": "treasury-tga-balance",
+      "elapsed_s": 1.1,
+      "metadata": {
+        "indicator": "macro_reference",
+        "reference_source": "treasury-tga-balance",
+        "observation_date": "2026-10-28",
+        "value": "1015632",
+        "unit": "백만 USD",
+        "collected_at": "2026-10-30T10:49:57.752380+00:00",
+        "as_of": "2026-10-30T10:49:56.606821+00:00",
+        "release_vintage": ""
+      }
+    },
+    {
+      "source": "nyfed-gscpi",
+      "elapsed_s": 0.459,
+      "metadata": {
+        "indicator": "macro_reference",
+        "reference_source": "nyfed-gscpi",
+        "observation_date": "2026-09-30",
+        "value": "1.28",
+        "unit": "표준편차",
+        "collected_at": "2026-10-30T10:49:57.110872+00:00",
+        "as_of": "2026-10-30T10:49:56.606821+00:00",
+        "release_vintage": "2026-10"
+      }
+    },
+    {
+      "source": "ofr-financial-stress",
+      "elapsed_s": 1.187,
+      "metadata": {
+        "indicator": "macro_reference",
+        "reference_source": "ofr-financial-stress",
+        "observation_date": "2026-10-27",
+        "value": "-1.913",
+        "unit": "지수",
+        "collected_at": "2026-10-30T10:49:57.837419+00:00",
+        "as_of": "2026-10-30T10:49:56.606821+00:00",
+        "release_vintage": ""
+      }
+    }
+  ]
+}
