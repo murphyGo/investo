@@ -8391,3 +8391,8 @@ User requested commit and deployment. Reconstructed the 41 owned paths from the 
 ### 2026-11-11 — DART parser 오프라인 substep
 
 사용자진행승인으로 기존u173Step4/u184Step5에 boundedDART6.4/11324기재정정parser를추가했다. 정정후/currentseries·회사/공시번호/단위/날짜·ZIP/XML/hash결속과기존C2factory5slot25refs/29XMLroundtrip/599자재생PASS. 집중203/독립120·M4건수정후C/H/M0·Ruff/format861/mypy364/정책PASS. retainedlisting재구성/corp_codeXML입력/fixedofflineclock한계때문에새수집/source/runtime자격으로세지않으며ops local2/8·runtime0·DARTblocked·human0/12·예약0·viewport/성능/운영미완료유지. 새HTTP/LLM/live경로/registry/pin/게시/알림0. [기록](../docs/sessions/2026-11-11-dart-document-parser.md), [증거](construction/event-v3-acceptance-20261028/dart-parser-20261111/evidence.json).
+
+
+### 2026-11-11 — DART parser 최종 CI와 전달
+
+최종 코드90dc6d2a의 [CI42982852064](https://github.com/murphyGo/investo/actions/runs/42982852064) SUCCESS: Python3.11.9·7,979PASS/1knownskip/801.80초, Node39·Ruff/format869·mypy370·정책/strictdocs PASS. 최초 CI의 타입 전용 stdlib XML import 위반은 내부 Protocol로 수정했고 기존 안전 규칙을 유지했다. macro505f5c1e와 통합집중304PASS/4.27초, 독립 타입 검수C/H/M0. 오프라인 subplan6/6과 main 코드 전달을 완료했다. 보관 원문의5slot25refs/29XML 재생은 현재 목록/수신 clock의 새 수집이나 live source qualification이 아니므로 local2/8·runtime0·DARTblocked·human0/12·v3예약0·u173Step4/u184Step5·운영 미완료는 유지한다. [검수](../docs/cross-checks/2026-11-11-dart-document-parser.md).

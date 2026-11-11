@@ -1,7 +1,7 @@
 {
   "date": "2026-11-11",
   "scope": "offline parser for existing dart-disclosure; no live capability or source qualification change",
-  "code_sha": null,
+  "code_sha": "90dc6d2a36143781cb18fbde559b38ca3f95e4e9",
   "parser_version": "dart-cb-correction-6.4-v1",
   "supported_form": {
     "formula_version": "6.4",
@@ -68,7 +68,24 @@
     "ruff": "pass",
     "formatted_files": 861,
     "mypy_sources": 364,
-    "exact_ci": "pending",
+    "exact_ci": {
+      "run_id": 42982852064,
+      "job_id": 130397076183,
+      "code_sha": "90dc6d2a36143781cb18fbde559b38ca3f95e4e9",
+      "url": "https://github.com/murphyGo/investo/actions/runs/42982852064",
+      "status": "success",
+      "python_version": "3.11.9",
+      "passed": 7979,
+      "failed": 0,
+      "known_skipped": 1,
+      "seconds": 801.8,
+      "node_passed": 39,
+      "ruff": "pass",
+      "formatted_files": 869,
+      "mypy_sources": 370,
+      "policy_guards": "pass",
+      "strict_docs": "pass"
+    },
     "strict_docs": "pass",
     "first_ci": {
       "run_id": 42980639029,
@@ -85,7 +102,8 @@
       "focused_passed": 304,
       "macro_parent": "505f5c1e",
       "formatted_files": 869,
-      "mypy_sources": 370
+      "mypy_sources": 370,
+      "focused_seconds": 4.27
     }
   },
   "privacy": {
