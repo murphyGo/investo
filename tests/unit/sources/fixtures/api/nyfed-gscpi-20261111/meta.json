@@ -1,0 +1,12 @@
+{
+  "url": "https://www.newyorkfed.org/medialibrary/research/interactives/data/gscpi/gscpi_interactive_data.csv",
+  "recorded_at": "2026-11-11T06:43:50.545758+00:00",
+  "status": 200,
+  "bytes": 338194,
+  "sha256": "ef5109319ee888d704a5512ec4790b929c38d07069085138765f1229125f4328",
+  "storage": "gzip of byte-exact HTTP decoded response; no auth",
+  "terms_scope": "provider aggregate statistics only; see macro-sources-20261030 NFR",
+  "attribution": "© 2026 Federal Reserve Bank of New York. Content from the New York Fed subject to the Terms of Use at newyorkfed.org.",
+  "terms_url": "https://www.newyorkfed.org/privacy/termsofuse",
+  "modifications": "None to decoded CSV content; gzip storage only. Compression and fixture packaging by Investo. Same permissions and conditions apply."
+}

@@ -5,7 +5,8 @@ from __future__ import annotations
 import csv
 import io
 import re
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
+from decimal import ROUND_HALF_EVEN, Decimal, localcontext
 from typing import ClassVar
 
 import httpx
@@ -31,9 +32,24 @@ _MONTHS = {
 
 
 def _vintage(text: str) -> date:
+    # The November 2026 CSV uses Excel's 1900-system serial month labels.
+    if re.fullmatch(r"[0-9]{5}", text, re.ASCII):
+        month = date(1899, 12, 30) + timedelta(days=int(text))
+        if not 2000 <= month.year <= 2099 or month.day != 1:
+            raise ValueError("invalid serial vintage")
+        return month
     if not re.fullmatch(r"[A-Z][a-z]{2}-[0-9]{2}", text):
         raise ValueError("invalid vintage header")
     return date(2000 + int(text[4:]), _MONTHS[text[:3]], 1)
+
+
+def _index_value(text: str) -> Decimal:
+    if not re.fullmatch(r"-?(?:0|[1-9][0-9]{0,2})(?:\.[0-9]{1,18})?", text, re.ASCII):
+        raise ValueError("invalid index value")
+    value = Decimal(text)
+    if value.copy_abs() > 100:
+        raise ValueError("index outside supported bounds")
+    return value
 
 
 def _observation_day(text: str) -> date:
@@ -68,7 +84,7 @@ class NyfedGscpiAdapter:
             if vintage > as_of.astimezone(NEW_YORK).date():
                 return []
             column = 1 + vintages.index(vintage)
-            values: dict[date, str] = {}
+            values: dict[date, Decimal] = {}
             for index, row in enumerate(reader):
                 if index >= 600 or len(row) != len(header):
                     raise ValueError("CSV shape/row cap")
@@ -76,10 +92,10 @@ class NyfedGscpiAdapter:
                     continue
                 day = _observation_day(row[0])
                 raw = row[column].strip()
-                if not raw:
+                if raw in {"", "#N/A"}:
                     continue
                 # Even invalid latest data must not silently fall back to older rows.
-                value = macro_number(raw)
+                value = _index_value(raw)
                 if day in values and values[day] != value:
                     raise ValueError("conflicting observation")
                 values[day] = value
@@ -88,10 +104,15 @@ class NyfedGscpiAdapter:
             latest = max(values)
             if (as_of.astimezone(NEW_YORK).date() - latest).days > 75:
                 return []
+            # Compare duplicate source values before display precision is reduced.
+            with localcontext() as context:
+                context.prec = 32
+                rounded = values[latest].quantize(Decimal("0.000001"), rounding=ROUND_HALF_EVEN)
+            displayed = format(rounded, "f").rstrip("0").rstrip(".") if rounded else "0"
             observation = MacroObservation(
                 self.name,
                 latest,
-                values[latest],
+                macro_number(displayed),
                 datetime.now(UTC),
                 as_of,
                 vintage.strftime("%Y-%m"),

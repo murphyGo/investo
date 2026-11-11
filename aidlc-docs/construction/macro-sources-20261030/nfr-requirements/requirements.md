@@ -15,3 +15,12 @@ NY Fed: https://www.newyorkfed.org/privacy/termsofuse permits automated access/s
 OFR: https://www.financialresearch.gov/legal-notices/ distinguishes federal employee work from third-party copyright. Scope is OFR's published aggregate index only, with OFR attribution; no vendor constituent data or logo. https://www.financialresearch.gov/financial-stress-index/ documents daily updates with two-business-day lag and possible corrections. Display both caveats.
 
 Tests use clearly marked synthetic edge payloads plus byte-exact live source fixtures with endpoint/time/sha256 provenance. No auth values in logs, metadata or fixtures. Independent review and full quality gate required before completion. Operational schedule/first-run acceptance is separate from local code completion.
+
+
+## 2026-11-11 deployment qualification correction
+
+The current official CSV was fetched before production promotion: decoded338194bytes, sha256`ef5109319ee888d704a5512ec4790b929c38d07069085138765f1229125f4328`. It uses Excel1900 month serial headers, `#N/A` missing cells and up to18 fractional digits, unlike the October30 fixture. The adapter now accepts the observed serial representation (ASCII5digits, epoch1899-12-30, month-first, years2000–2099) alongside named-month vintages; equivalent duplicate vintages still fail. Sparse vintage months are valid.
+
+GSCPI values remain finite plain decimals with absolute magnitude≤100, maximum18 fractional digits and3 integer digits. Bounds and conflicting duplicates are checked before rounding; display uses six decimal places with half-even rounding under an explicit32-digit Decimal context. Both publication paths disclose this formatting. Unknown missing/error strings, scientific notation, malformed/future vintages and conflicts remain closed failures or empty future-cutoff results as specified. Existing network/row/byte/time caps are unchanged. New byte-exact fixture retains NYFed attribution/terms and is paired with precision, stale-cutoff, duplicate and malformed-input tests.
+
+Local correction verification:142 tests pass on public and runtime candidates; Ruff/format and mypy pass. Exact final-SHA CI and production pin readback will be recorded in the release receipt.

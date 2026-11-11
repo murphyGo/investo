@@ -16,3 +16,12 @@ New tests cover recorded byte/hash replay, source identity, four-row TGA reconci
 Local construction only: no commit, push, production/preview pin update, workflow dispatch, public archive rewrite or Telegram send. First runtime/GHA reachability and scheduled output acceptance are release-stage follow-ups.
 
 Final source-code changes after independent review were documentation-only; the registry regression fix changes a test assertion from47 to50. Final Ruff and diff whitespace checks pass.
+
+
+## 2026-11-11 deployment qualification correction
+
+The current official CSV was fetched before production promotion: decoded338194bytes, sha256`ef5109319ee888d704a5512ec4790b929c38d07069085138765f1229125f4328`. It uses Excel1900 month serial headers, `#N/A` missing cells and up to18 fractional digits, unlike the October30 fixture. The adapter now accepts the observed serial representation (ASCII5digits, epoch1899-12-30, month-first, years2000–2099) alongside named-month vintages; equivalent duplicate vintages still fail. Sparse vintage months are valid.
+
+GSCPI values remain finite plain decimals with absolute magnitude≤100, maximum18 fractional digits and3 integer digits. Bounds and conflicting duplicates are checked before rounding; display uses six decimal places with half-even rounding under an explicit32-digit Decimal context. Both publication paths disclose this formatting. Unknown missing/error strings, scientific notation, malformed/future vintages and conflicts remain closed failures or empty future-cutoff results as specified. Existing network/row/byte/time caps are unchanged. New byte-exact fixture retains NYFed attribution/terms and is paired with precision, stale-cutoff, duplicate and malformed-input tests.
+
+Local correction verification:142 tests pass on public and runtime candidates; Ruff/format and mypy pass. Exact final-SHA CI and production pin readback will be recorded in the release receipt.

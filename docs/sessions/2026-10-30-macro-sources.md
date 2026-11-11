@@ -12,3 +12,6 @@ Current implementation has no paid keys, new packages or extra LLM calls. Missin
 ### 2026-11-11 — macro source release authorized
 
 User requested commit and deployment. Reconstructed the 41 owned paths from the October 30 completion receipt onto current main1a13c7ce; implementation/test bytes match the independent review. Latest-main focused regression224PASS, Ruff/format867 and mypy369PASS. Production will receive only the source/runtime test delta on28170546 after its exact-SHA CI; the separate preview pin and article acceptance remain unchanged. Deployment evidence will be appended after verification.
+
+
+2026-11-11 live qualification caught the changed GSCPI CSV before runtime promotion. The bounded serial-date/precision parser and recorded fixture were corrected; see the validation record. Old candidates98291ba4/89d5bed8 are superseded for production qualification.
