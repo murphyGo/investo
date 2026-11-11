@@ -288,7 +288,9 @@ def apply_reader_format_to_segments(
             crypto_items=crypto_block_items,
             source_items=segment_source_items,
         )
-        markdown = inject_channel_anchor_block(markdown, channel_block)
+        markdown = inject_channel_anchor_block(
+            markdown, channel_block, refresh=segment == "us-equity"
+        )
         # u74 Step 4 — cross-market cause-map line, gated by the u57
         # BundleContext shared-macro evidence + cross_market_core_allowed
         # allow-list. Forbidden linkages are omitted (logged), never demoted

@@ -662,3 +662,11 @@ uv run mkdocs serve   # localhost:8000, hot-reload, non-strict
 | `aidlc-docs/audit.md` | Append-only audit log of every stage decision |
 | `aidlc-docs/construction/<unit>/` | Per-unit FD / NFR Requirements / Code summaries |
 | `CLAUDE.md` | Quick orientation for AI-assisted development |
+
+## Macro reference sources (u188–u190)
+
+`treasury-tga-balance`, `nyfed-gscpi`, and `ofr-financial-stress` are free, no-key US reference sources. Normal collection requests each source once (at most one retry, 30 seconds total/source). Decoded response caps are 64 KiB / 512 KiB / 5 MiB respectively. OFR's roughly 3.3 MB download is normalized once and reused in the run; there is no persistent raw cache or stale-data fallback. Existing exact-name `INVESTO_SOURCE_DISABLE` overrides apply.
+
+TGA displays the Daily Treasury Statement closing account balance in USD millions after verifying all four Table I rows. GSCPI displays its observation month and separate release vintage with NY Fed attribution/terms. OFR displays its aggregate index and two-business-day reporting lag. Observations may be revised; collection time is not a provider publication time and these downloads do not establish historical availability. No net-liquidity, consensus, trading signal or new-release claim is derived. Malformed/conflicting/oversized responses fail as a source outcome; missing/stale observations return zero items, never a zero-valued statistic. Source outcomes are US-only and do not mask mandatory macro-release failures.
+
+[Design and validation](aidlc-docs/construction/macro-sources-20261030/functional-design/design.md). Fixtures under `tests/unit/sources/fixtures/api/{source-name}/body.gz` contain byte-exact decoded HTTP responses compressed for storage, with endpoint/time/hash and source notices in `meta.json`. Live qualification is in `aidlc-docs/construction/macro-sources-20261030/live-check.json`.

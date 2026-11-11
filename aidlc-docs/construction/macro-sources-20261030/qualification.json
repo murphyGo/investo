@@ -1,0 +1,90 @@
+{
+  "checked_at_utc": "2026-10-30T09:48:50.531998+00:00",
+  "scope": "Implemented u188–u190 locally; deployment and first scheduled GHA acceptance pending",
+  "existing_excluded": [
+    "cftc-cot-positioning",
+    "eia-petroleum-weekly",
+    "sec-company-facts",
+    "nyfed-reference-rates",
+    "treasury-auctions"
+  ],
+  "probes": {
+    "fiscal": {
+      "url": "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/dts/operating_cash_balance?sort=-record_date&page[size]=5",
+      "http_status": 200,
+      "bytes": 4244,
+      "sha256": "a5b274b792a68f539a7939c27ff25b44ce8ac2cd568d2e86f43122d4998d6035"
+    },
+    "gscpi_csv": {
+      "url": "https://www.newyorkfed.org/medialibrary/research/interactives/data/gscpi/gscpi_interactive_data.csv",
+      "http_status": 200,
+      "bytes": 118513,
+      "sha256": "98aad77bbc4cedfe4c1c700531324b03f2c677d793e2d5e5fddeae92f61009ae"
+    },
+    "ofr_data": {
+      "url": "https://www.financialresearch.gov/financial-stress-index/data/fsi.json",
+      "http_status": 200,
+      "bytes": 3327478,
+      "sha256": "1252d7108ca25fe863c97d362004b154460a3cd6bf9d26d643dd201f6fa265e9"
+    }
+  },
+  "candidates": [
+    {
+      "rank": 1,
+      "name": "Treasury DTS / TGA cash balance",
+      "disposition": "ship-now: bounded local implementation and live API pass",
+      "provenance": "Bureau of the Fiscal Service",
+      "gain": "Government cash balance, receipts and withdrawals; existing auctions/rates lack this liquidity context",
+      "format": "JSON; no key used",
+      "cadence": "business daily; display observation date, not real-time",
+      "notes": [
+        "2026-10-28 rows received; account_type identifies closing row but amount is in open_today_bal; close_today_bal is string null",
+        "official metadata units are USD millions; opening + deposits - withdrawals matches closing",
+        "do not infer asset-price direction or synthesize a net-liquidity measure from mixed observation dates"
+      ],
+      "official_page": "https://fiscaldata.treasury.gov/datasets/daily-treasury-statement/operating-cash-balance",
+      "terms": "https://fiscaldata.treasury.gov/data/about-us/901-1%20Open%20Data%20Policy.pdf"
+    },
+    {
+      "rank": 2,
+      "name": "NY Fed GSCPI",
+      "disposition": "ship-now: bounded local implementation with copyright/terms notice",
+      "gain": "Monthly global supply/transport pressure context absent from current CPI/PPI/rates",
+      "format": "CSV with observation rows and separate release-vintage columns; no key used",
+      "cadence": "fourth business day of month, approximately 10am ET",
+      "notes": [
+        "Oct-26 vintage latest valid observation is 2026-09-30",
+        "keep observation month and release vintage distinct; do not call it a real-time daily indicator",
+        "use NY Fed attribution and disclaimer; do not redistribute third-party raw inputs or paper text"
+      ],
+      "official_page": "https://www.newyorkfed.org/research/policy/gscpi",
+      "terms": "https://www.newyorkfed.org/privacy/termsofuse"
+    },
+    {
+      "rank": 3,
+      "name": "OFR Financial Stress Index",
+      "disposition": "ship-now: 5 MiB cap and one normalized aggregate per run",
+      "gain": "Global systemic stress beyond current volatility index alone",
+      "format": "JSON; no key used; 9 aggregate series with 6789 observations each",
+      "cadence": "daily with two-business-day lag",
+      "notes": [
+        "latest observed date 2026-10-27",
+        "response 3.33 MB requires explicit size budget and once-per-run fetch/cache",
+        "use OFR aggregate index/contributions only, not licensed proprietary raw constituents; retain revision warning"
+      ],
+      "official_page": "https://www.financialresearch.gov/financial-stress-index/",
+      "terms": "https://www.financialresearch.gov/legal-notices/"
+    }
+  ],
+  "implementation_live_check": "live-check.json",
+  "treasury_primary_evidence": {
+    "dataset_catalog": "https://catalog.data.gov/dataset/daily-treasury-statement-dts",
+    "owner_definition": "https://fiscal.treasury.gov/accounting/daily-treasury-statement",
+    "open_data_policy": "https://fiscaldata.treasury.gov/data/about-us/901-1%20Open%20Data%20Policy.pdf",
+    "policy_http_status": 200,
+    "policy_bytes": 216200,
+    "policy_sha256": "563cc50e3ca98b2564942132661885a2b1f56043149be1117238338e0d55c6f3",
+    "rights_basis": "Fiscal Service-produced factual account statistics; official Open Data Policy defines open source data as free to use/download. Agency attribution retained; excludes seals/third-party content.",
+    "catalog_freshness_note": "Catalog registration update is not the observation date; actual API fixture and live-check establish current values."
+  }
+}

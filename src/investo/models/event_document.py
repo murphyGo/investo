@@ -34,6 +34,7 @@ from investo.models.event_story import (
 )
 from investo.models.events import Digest, EventId, EventModel, FactStatus, NumericWatchpoint
 from investo.models.exchange_flows import ExchangeFlow
+from investo.models.macro_reference import MacroObservation
 from investo.models.market_anchor import MarketAnchor
 from investo.models.network_activity import NetworkActivity
 from investo.models.option_expiry import OptionExpiry
@@ -234,6 +235,7 @@ class EventVisualInput(EventModel):
 
 
 class MarketReferencePanel(EventModel):
+    macro_observations: Annotated[tuple[MacroObservation, ...], Field(max_length=3)] = ()
     anchors: Annotated[tuple[MarketAnchor, ...], Field(max_length=24)] = ()
     daily_network_activity: Annotated[tuple[NetworkActivity, ...], Field(max_length=4)] = ()
     daily_exchange_flows: Annotated[tuple[ExchangeFlow, ...], Field(max_length=2)] = ()

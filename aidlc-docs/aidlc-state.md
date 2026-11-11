@@ -453,6 +453,19 @@ User authorized applying the reviewed priorities. Implemented BTC/ETH active-add
 
 최종7c5b8912 exactCI42464723553 SUCCESS7805PASS/1skip/646.08초·독립C/H/M0. 실제42465588085은 미국0기사 source_limited빈edition봉인, 국내/crypto는Python/Codex release다운로드504로auth/model전실패다. 실패job재시도1회도동일외부다운로드오류여서두시장최종코드실제생성/semantic review/봉인미검증. 미국1암호문/1IOpair/MD·projection hash검수, 반복결과를corpus로세지않는다. 11월10일readback production28170546·preview7c5b8912 보존. source2/8/runtime0·DARTblocked·human0/12·v3예약0·viewport/성능/운영/cleanup pending. [최종증거](construction/event-v3-acceptance-20261028/runtime-final-20261108.json), [기록](../docs/sessions/2026-11-08-v3-runtime-followup.md).
 
+## 2026-10-30 — u188–u190 macro reference sources
+
+User authorized priority-order implementation: TGA → GSCPI → OFR. FD/NFR complete; code/test/review in progress. Plans u188/u189/u190. Existing source/preview/production acceptance states preserved. No new release requested.
+
+### 2026-10-30 — u188–u190 local completion
+
+TGA→GSCPI→OFR FD/NFR/Code Generation/Build & Test/independent review/cross-check complete; each plan5/5. Registered source count47→50, US native/legacy reference display and source notices connected. Independent117PASS, integrated211PASS, full7,847PASS/3initialfail/1knownskip with all failures corrected/reverified in15PASS; Ruff/format/mypy369, Node39 and allpolicy/siteguardsPASS. Live3no-keyfetches succeeded in0.459–1.187s each. [Validation](construction/macro-sources-20261030/validation.md). No commit, push, pin/workflow changes or public send; first scheduled acceptance remains pending release. Other sessions and existing debt/unit states are preserved.
+
+
+### 2026-11-11 — macro source release authorized
+
+User requested commit and deployment. Reconstructed the 41 owned paths from the October 30 completion receipt onto current main1a13c7ce; implementation/test bytes match the independent review. Latest-main focused regression224PASS, Ruff/format867 and mypy369PASS. Production will receive only the source/runtime test delta on28170546 after its exact-SHA CI; the separate preview pin and article acceptance remain unchanged. Deployment evidence will be appended after verification.
+
 
 ### 2026-11-11 — DART parser 오프라인 substep
 

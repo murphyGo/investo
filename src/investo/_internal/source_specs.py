@@ -97,6 +97,27 @@ _ALL_SEGMENTS: Final[frozenset[MarketSegment]] = frozenset(
 
 SOURCE_SPECS: Final[tuple[SourceSpec, ...]] = (
     _spec(
+        "treasury-tga-balance",
+        evidence_domains=frozenset({"treasury.gov"}),
+        tier="S",
+        market_window_segment="us-equity",
+        item_segments=_US,
+    ),
+    _spec(
+        "nyfed-gscpi",
+        evidence_domains=frozenset({"newyorkfed.org"}),
+        tier="A",
+        market_window_segment="us-equity",
+        item_segments=_US,
+    ),
+    _spec(
+        "ofr-financial-stress",
+        evidence_domains=frozenset({"financialresearch.gov"}),
+        tier="S",
+        market_window_segment="us-equity",
+        item_segments=_US,
+    ),
+    _spec(
         "bea-macro-actuals",
         evidence_domains=frozenset({"bea.gov"}),
         tier="S",

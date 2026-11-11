@@ -3102,3 +3102,15 @@ Evidence: [25 executed runs /44 sources](../../construction/source-reliability-2
 ### 2026-10-29 u43/u66 source 확장
 
 사용자 승인에 따라 u43에 KRX 월물 옵션 최종거래일, u66에 Coin Metrics Community BTC/ETH 일별 순유입을 추가했다. 기존 legacy 브리핑과 native v3 시장 기준 자료까지 연결한다. FR-001/002, US-008 및 NFR-002/003/004를 재사용하며 FD/NFR 상세는 [도입 계획](../../construction/plans/data-expansion-20261029-code-generation-plan.md)에서 추적한다. 코드 검증 완료와 배포 후 운영 인수는 구분한다.
+
+### u188: `treasury-tga-balance` — official macro reference
+
+US-001/002/008; FR-001/002; NFR-001/002/003/004/005/008. Government cash balance, receipts and withdrawals; existing auctions/rates lack this liquidity context. One bounded adapter, US-only source-backed reference row; shares u102 registry and u144 finalizer. [Plan](../../construction/plans/u188-treasury-tga-balance-code-generation-plan.md). No dashboard/history/scheduler change.
+
+### u189: `nyfed-gscpi` — official macro reference
+
+US-001/002/008; FR-001/002; NFR-001/002/003/004/005/008. Monthly global supply/transport pressure context absent from current CPI/PPI/rates. One bounded adapter, US-only source-backed reference row; shares u102 registry and u144 finalizer. [Plan](../../construction/plans/u189-nyfed-gscpi-code-generation-plan.md). No dashboard/history/scheduler change.
+
+### u190: `ofr-financial-stress` — official macro reference
+
+US-001/002/008; FR-001/002; NFR-001/002/003/004/005/008. Global systemic stress beyond current volatility index alone. One bounded adapter, US-only source-backed reference row; shares u102 registry and u144 finalizer. [Plan](../../construction/plans/u190-ofr-financial-stress-code-generation-plan.md). No dashboard/history/scheduler change.

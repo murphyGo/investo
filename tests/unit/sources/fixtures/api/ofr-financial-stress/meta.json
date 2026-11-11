@@ -1,0 +1,9 @@
+{
+  "url": "https://www.financialresearch.gov/financial-stress-index/data/fsi.json",
+  "recorded_at": "2026-10-30T10:41:50.151431+00:00",
+  "status": 200,
+  "bytes": 3327478,
+  "sha256": "1252d7108ca25fe863c97d362004b154460a3cd6bf9d26d643dd201f6fa265e9",
+  "storage": "gzip of byte-exact HTTP decoded response; no auth",
+  "terms_scope": "provider aggregate statistics only; see macro-sources-20261030 NFR"
+}
