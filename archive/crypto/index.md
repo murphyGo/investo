@@ -8,7 +8,7 @@
 <details class="investo-archive-month-nav" markdown="1">
 <summary>보관 월 바로가기</summary>
 
-[2026-11 (6)](#month-2026-11) · [2026-10 (21)](#month-2026-10) · [2026-09 (22)](#month-2026-09) · [2026-08 (19)](#month-2026-08) · [2026-07 (18)](#month-2026-07) · [2026-06 (20)](#month-2026-06) · [2026-05 (13)](#month-2026-05)
+[2026-11 (7)](#month-2026-11) · [2026-10 (21)](#month-2026-10) · [2026-09 (22)](#month-2026-09) · [2026-08 (19)](#month-2026-08) · [2026-07 (18)](#month-2026-07) · [2026-06 (20)](#month-2026-06) · [2026-05 (13)](#month-2026-05)
 
 </details>
 <form class="investo-archive-controls" hidden>
@@ -21,11 +21,16 @@
 
 ## 2026년 11월 { #month-2026-11 tabindex="-1" }
 
+<div class="investo-archive-entry" data-date="2026-11-12" markdown="1">
+
+[2026-11-12](2026/11/2026-11-12.md){ .investo-archive-link }
+
+<p class="investo-archive-snippet" markdown="0">확인된 요약이 부족합니다.</p>
+</div>
 <div class="investo-archive-entry" data-date="2026-11-10" markdown="1">
 
 [2026-11-10](2026/11/2026-11-10.md){ .investo-archive-link }
 
-<p class="investo-archive-snippet" markdown="0">전체 시가총액의 하락과 함께 BTC, ETH, SOL의 제공 변동률이 모두 음수로 나타났다. 이번 문서는 수집 근거가 제한적입니다.</p>
 </div>
 <div class="investo-archive-entry" data-date="2026-11-09" markdown="1">
 

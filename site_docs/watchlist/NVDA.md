@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-12 begin -->
+
+## 2026-11-12
+
+- [theblock-crypto] **ticker**: Bitcoin falls to 12-week low as Jensen Huang’s exit from Nvidia rattles markets
+- [yfinance-price] **ticker**: NVDA 173.73 (+2.87%)
+
+<!-- u33 entry 2026-11-12 end -->
 <!-- u33 entry 2026-11-10 begin -->
 
 ## 2026-11-10

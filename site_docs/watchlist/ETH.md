@@ -2,6 +2,21 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-12 begin -->
+
+## 2026-11-12
+
+- [coingecko-price] **ticker**: 조회 시점 가격 · ETH $1,998.56 (-2.81%)
+- [coinmetrics-exchange-flows] **ticker**: ETH 거래소 일별 순유입 (2026-11-11, UTC)
+- [coinmetrics-network-activity] **ticker**: ETH 일별 거래 건수 (2026-11-12, UTC)
+- [coinmetrics-network-activity] **ticker**: ETH 일별 활성 주소 수 (2026-11-12, UTC)
+- [defillama-market-structure] **ticker**: DeFi TVL $76.6B; leader Ethereum
+- [theblock-crypto] **ticker**: Ethlabs proposes advancing Ethereum’s post-quantum to 2027, citing AI acceleration
+- [theblock-crypto] **ticker**: SoFiUSD goes live on Polygon as bank-issued stablecoin expands reach
+- [theblock-crypto] **ticker**: Sygnum launches ETH Alpha Fund targeting 8% to 10% annual returns in ETH
+- [theblock-crypto] **ticker**: Unocoin ‘login suspension’ continues as exchange flags outgoing BitGo ETH transactions
+
+<!-- u33 entry 2026-11-12 end -->
 <!-- u33 entry 2026-11-10 begin -->
 
 ## 2026-11-10

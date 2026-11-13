@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-12 begin -->
+
+## 2026-11-12
+
+- [coingecko-price] **ticker**: 조회 시점 가격 · SOL $80.75 (-3.20%)
+- [defillama-market-structure] **ticker**: DeFi TVL $76.6B; leader Ethereum
+- [theblock-crypto] **ticker**: DTCC plans to bring tokenized securities to Solana in second half of 2027
+- [theblock-crypto] **ticker**: SoFiUSD goes live on Polygon as bank-issued stablecoin expands reach
+
+<!-- u33 entry 2026-11-12 end -->
 <!-- u33 entry 2026-11-10 begin -->
 
 ## 2026-11-10
