@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-13 begin -->
+
+## 2026-11-13
+
+- [theblock-crypto] **ticker**: Bitcoin falls to 12-week low, Strategy and Metaplanet to lose MSCI index membership, and more
+- [theblock-crypto] **ticker**: Bitcoin tumbles below $69,000 as Nvidia turmoil adds to Fed-driven market jitters
+- [yfinance-price] **ticker**: NVDA 162.85 (-2.01%)
+
+<!-- u33 entry 2026-11-13 end -->
 <!-- u33 entry 2026-11-12 begin -->
 
 ## 2026-11-12

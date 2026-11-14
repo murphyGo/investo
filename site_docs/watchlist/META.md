@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-13 begin -->
+
+## 2026-11-13
+
+- [theblock-crypto] **ticker**: Meta tests prediction market app using ‘cred’ points instead of cash: WSJ
+- [yfinance-price] **ticker**: META 641.69 (+2.90%)
+
+<!-- u33 entry 2026-11-13 end -->
 <!-- u33 entry 2026-11-12 begin -->
 
 ## 2026-11-12

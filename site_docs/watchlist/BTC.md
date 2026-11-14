@@ -2,6 +2,26 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-13 begin -->
+
+## 2026-11-13
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -2591 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,292,834,092,287; BTC dominance 58.75%
+- [coingecko-price] **ticker**: 조회 시점 가격 · BTC $67,084.00 (-2.22%)
+- [coinmetrics-exchange-flows] **ticker**: BTC 거래소 일별 순유입 (2026-11-12, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 거래 건수 (2026-11-13, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 활성 주소 수 (2026-11-13, UTC)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $810,737,990 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $810,738,750 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000014864937544 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin falls to 12-week low, Strategy and Metaplanet to lose MSCI index membership, and more
+- [theblock-crypto] **ticker**: Bitcoin tumbles below $69,000 as Nvidia turmoil adds to Fed-driven market jitters
+- [theblock-crypto] **ticker**: From $6 to $6.9 million: Two dormant Bitcoin addresses wake up to move 100 BTC after more than 16 years
+- [theblock-crypto] **ticker**: JPMorgan reports 36% rise in Strategy share holdings and $540 million in BlackRock’s bitcoin ETF
+- [theblock-crypto] **ticker**: Tether-backed Twenty One Capital reports $1.09 billion Q3 net income on bitcoin gains
+
+<!-- u33 entry 2026-11-13 end -->
 <!-- u33 entry 2026-11-12 begin -->
 
 ## 2026-11-12
