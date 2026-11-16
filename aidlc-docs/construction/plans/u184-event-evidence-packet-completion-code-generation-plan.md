@@ -70,3 +70,8 @@ private40926975241의 DART1GET/HTTP200에서 ZIP13,524/XML79,039bytes·980nodes 
 ### 2026-11-11 — DART parser bounded substep
 
 기존 Step4/Step5 중 원문6.4기재정정parser와5필수field의오프라인C2매핑을구현·검수했다. [설계/실행](../event-v3-acceptance-20261028/dart-parser-20261111/plan.md), [검수](../../../docs/cross-checks/2026-11-11-dart-document-parser.md). reconstructedlisting/회사코드와명시offlineclock한계를기록하며source/runtime자격·live경로·운영은승격하지않는다. 나머지source별미완료로상위Step전체checkbox는유지한다.
+
+
+### 2026-11-17 — DART bounded local qualification
+
+현재 API의 과거 지원 정정공시2GET/200·실제수신 clock·5slot25refs/29XML을 독립 대조했고 local3/8·runtime0/activationfalse로 갱신했다. superseded 표지를 보존하며 현재 발행조건/완료나 live 연결을 뜻하지 않는다. 다른5source와 이 단계 전체 수용은 미완료다. 최종 metadata/ops CI와 인계는 [후속 계획](../event-v3-acceptance-20261028/dart-qualification-20261116/plan.md)에 기록한다.

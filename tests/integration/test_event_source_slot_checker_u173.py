@@ -22,6 +22,6 @@ def test_checker_distinguishes_scoped_parser_verification_from_runtime_readiness
     )
     assert result.returncode == 0
     rows = [json.loads(line) for line in result.stdout.splitlines()]
-    assert rows[-1] == dict(rows=8, verified=2, blocked=6, activation_ready=False)
-    assert len(rows) == 9 and sum(r["status"] == "verified" for r in rows[:-1]) == 2
+    assert rows[-1] == dict(rows=8, verified=3, blocked=5, activation_ready=False)
+    assert len(rows) == 9 and sum(r["status"] == "verified" for r in rows[:-1]) == 3
     assert all("runtime.not_verified" in r["codes"] for r in rows[:-1])

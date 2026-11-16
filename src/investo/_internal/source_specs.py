@@ -197,6 +197,7 @@ SOURCE_SPECS: Final[tuple[SourceSpec, ...]] = (
     ),
     _spec(
         "dart-disclosure",
+        evidence_domains=frozenset({"dart.fss.or.kr"}),
         tier="S",
         market_window_segment="domestic-equity",
         item_segments=_DOMESTIC,

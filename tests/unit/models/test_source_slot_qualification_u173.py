@@ -10,6 +10,7 @@ from pydantic import ValidationError
 from investo.models.enrichment import (
     SLOT_REQUIRED_FIELDS,
     EndpointScope,
+    SourceQualification,
     SourceSlotQualification,
     SourceSlotQualificationSet,
 )
@@ -91,7 +92,7 @@ def test_duplicate_matrix_and_source_masquerade_fail(tmp_path: Path):
         load_source_slot_qualification(path)
 
 
-def test_current_matrix_limits_verified_slots_to_scoped_board_text_without_runtime_activation():
+def test_current_matrix_keeps_scoped_board_and_historical_dart_facts_inactive():
     from investo.models.enrichment import EVENT_ENRICHMENT_ACTIVE_READY
 
     path = Path(__file__).resolve().parents[3] / "ops/event_source_slot_qualification.json"
@@ -101,8 +102,58 @@ def test_current_matrix_limits_verified_slots_to_scoped_board_text_without_runti
     assert {r.source_name for r in result.records if r.status == "verified"} == {
         "fomc-rss",
         "fed-speech-rss",
+        "dart-disclosure",
     }
     assert all(
         not r.activation_ready and r.runtime_probe_status == "not_run" for r in result.records
     )
+    dart = next(row for row in result.records if row.source_name == "dart-disclosure")
+    assert dart.parser_version == "dart-cb-correction-6.4-v1"
+    assert dart.verified_slots == dart.required_slots and not dart.missing_slots
+    assert "historical" in dart.rights_scope and "completion" in dart.rights_scope
     assert EVENT_ENRICHMENT_ACTIVE_READY is False
+
+
+def test_dart_viewer_identity_metadata_does_not_grant_live_body_permission():
+    from investo._internal.source_specs import SOURCE_SPECS_BY_NAME
+
+    assert SOURCE_SPECS_BY_NAME["dart-disclosure"].evidence_domains == frozenset({"dart.fss.or.kr"})
+    with pytest.raises(ValidationError) as caught:
+        SourceQualification(
+            source_name="dart-disclosure",  # type: ignore[arg-type]
+            checked_at=NOW,
+            official_discovery_url="https://dart.fss.or.kr/dsaf001/main.do",
+            allowed_host="dart.fss.or.kr",
+            allowed_path="/dsaf001/",
+            content_type="text/html",
+            public_rights_basis="synthetic identity permission is not a body qualification",
+            extraction_selector_version="fed-article-body-v1",
+            fixture_sha256="a" * 64,
+            status="qualified",
+            reason="synthetic rejected request",
+        )
+    assert any(error["loc"] == ("source_name",) for error in caught.value.errors())
+
+
+@pytest.mark.parametrize(
+    "host,path",
+    [("opendart.fss.or.kr", "/api/document.xml"), ("foreign.example", "/dsaf001/main.do")],
+)
+def test_dart_slot_loader_accepts_only_qualified_viewer_provenance(tmp_path, host, path):
+    manifest = Path(__file__).resolve().parents[3] / "ops/event_source_slot_qualification.json"
+    matrix = load_source_slot_qualification(manifest)
+    records = tuple(
+        row.model_copy(
+            update={
+                "endpoint_scope": EndpointScope(host=host, path_prefix=path),
+                "official_discovery_url": f"https://{host}{path}",
+            }
+        )
+        if row.source_name == "dart-disclosure"
+        else row
+        for row in matrix.records
+    )
+    target = tmp_path / "foreign-provenance.json"
+    target.write_text(matrix.model_copy(update={"records": records}).model_dump_json())
+    with pytest.raises(ValueError, match="qualification unavailable"):
+        load_source_slot_qualification(target)

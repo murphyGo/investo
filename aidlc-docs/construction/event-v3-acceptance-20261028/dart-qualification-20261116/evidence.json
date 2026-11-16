@@ -1,7 +1,7 @@
 {
   "date_started": "2026-11-16",
   "scope": "fresh current responses for one historical filing; manual diagnostic only",
-  "code_sha": null,
+  "code_sha": "6ac349feddfdf007be6c9334aca3c45a28689082",
   "files": [
     {
       "path": "scripts/probe_dart_event_evidence.py",
@@ -23,16 +23,126 @@
     "formatted_files": 870,
     "mypy_source_and_script_files": 371,
     "strict_docs": "pass",
-    "independent_review": "pending",
-    "exact_ci": "pending"
+    "independent_review": {
+      "status": "APPROVE",
+      "remaining_critical_high_medium_low": 0,
+      "primary_passed": 142,
+      "primary_seconds": 2.01,
+      "xml_safety_passed": 2,
+      "xml_safety_seconds": 0.39
+    },
+    "exact_ci": {
+      "run_id": 43892236864,
+      "job_id": 133386244752,
+      "code_sha": "6ac349feddfdf007be6c9334aca3c45a28689082",
+      "status": "success",
+      "python_version": "3.11.9",
+      "passed": 8018,
+      "failed": 0,
+      "known_skipped": 1,
+      "seconds": 779.41,
+      "node_passed": 39,
+      "ruff": "pass",
+      "formatted_files": 870,
+      "mypy_sources": 370,
+      "policy_guards": "pass",
+      "strict_docs": "pass"
+    },
+    "qualification_integration": {
+      "focused_passed": 162,
+      "focused_seconds": 2.65,
+      "ruff": "pass",
+      "mypy_source_and_script_files": 371,
+      "exact_ci": "pending",
+      "independent_passed": 53,
+      "independent_seconds": 1.47,
+      "remaining_critical_high_medium": 0
+    }
   },
   "actual": {
-    "status": "not_run"
+    "workflow_run_id": 43894860556,
+    "workflow_job_id": 133395541843,
+    "workflow_sha": "a3e950038eefcc826b3e1a7075e2b6a15ac2ec6c",
+    "artifact_id": 14238178264,
+    "artifact_sha256": "838c5b7382fea1b9886bd965c1d2b43b3fe0794fa856742a37c99f09e984e82b",
+    "status": "validated",
+    "manifest": {
+      "filing_no": "20261027000337",
+      "request_count": 2,
+      "status": "validated",
+      "source_slot_verified": false,
+      "runtime_preparation_verified": false,
+      "activation_ready": false,
+      "publication_committed": false,
+      "notification_sent": false,
+      "historical_filing_current_response": true,
+      "listing_started_at": "2026-11-16T15:18:29.537182+00:00",
+      "listing_http_status": 200,
+      "listing_received_at": "2026-11-16T15:18:30.282299+00:00",
+      "listing_bytes": 590,
+      "listing_sha256": "f3be4b3b0f716c2a3e544c03815acad5110dc238dbb15660e3f8c73ed1f95377",
+      "listing_entries": 2,
+      "listing_follow_up": "superseded",
+      "document": {
+        "filing_no": "20261027000337",
+        "request_count": 1,
+        "source_slot_verified": false,
+        "activation_ready": false,
+        "publication_committed": false,
+        "notification_sent": false,
+        "request_started_at": "2026-11-16T15:18:30.292287+00:00",
+        "http_status": 200,
+        "received_at": "2026-11-16T15:18:31.089899+00:00",
+        "elapsed_seconds": 0.797631,
+        "response_bytes": 13524,
+        "response_sha256": "ed72e9458b32153a5277499a49cae8367960b53c41000cc33a3269e1d008e050",
+        "xml_files": 1,
+        "expanded_bytes": 79039,
+        "xml_nodes": 980,
+        "status": "captured",
+        "reason": "parser_qualification_pending"
+      },
+      "reason": "qualification.decision_pending",
+      "parser_version": "dart-cb-correction-6.4-v1",
+      "xml_sha256": "20084885250a7797c77f1755b27364445e35b6eb59e038752fe033efb0048964",
+      "field_ref_counts": {
+        "issuer": 1,
+        "action": 3,
+        "action_status": 4,
+        "action_terms": 16,
+        "filing_locator": 1
+      },
+      "xml_roundtrips": 29,
+      "projection_chars": 599,
+      "context_sha256": "444f3da88eebb90aef2ebd8a93602250859cc37b4782ab569b7c60da03ef2851",
+      "published_precision": "date",
+      "occurred_precision": "unknown",
+      "announced_precision": "unknown",
+      "elapsed_seconds": 1.571763
+    },
+    "file_sha256": {
+      "document.json": "675fecaef59431cf288a96217cd59ec2b5b0508a3ff7a1d8484069f174b14098",
+      "listing.json": "2f7f5e1b009a3f111d71088dca3f63e12892b3db737fe409b25821fe8cf7cddf",
+      "manifest.json": "29ff0e7ad664af8a3ed31c6b8ec06b1fc0f67fbdf7565c1c89f84720896189ba",
+      "parser.json": "d9fd5ca4e6dbda5e9ef9de5a2bc8e36b18b1375ce419b79516b05ae094c2691f"
+    },
+    "local_same_code_replay": "pass",
+    "independent_source_review": {
+      "status": "APPROVE",
+      "remaining_critical_high_medium": 0,
+      "xml_roundtrips_verified": 29,
+      "field_refs_verified": 25,
+      "raw_listing_and_clock": "pass"
+    },
+    "raw_public": false,
+    "counts_as_human_corpus": false,
+    "counts_as_latest_action_status": false,
+    "counts_as_production_preparation": false
   },
   "readiness": {
-    "local_qualified_slots": 2,
+    "local_qualified_slots": 3,
     "runtime_qualified_slots": 0,
-    "dart_qualified": false,
+    "dart_qualified": true,
     "human_documents": 0,
     "activation_ready": false,
     "release_ready": false
@@ -42,6 +152,27 @@
     "preview_pin": false,
     "production_source_path": false,
     "publication": false,
-    "notification": false
+    "notification": false,
+    "dedicated_manual_pin": "REVIEWED_DART_QUALIFICATION_SHA"
+  },
+  "qualification_decision": {
+    "qualified": 3,
+    "runtime_qualified": 0,
+    "replayed_samples": 3,
+    "field_slots": 10,
+    "qualification_sha256": "8b8d0d64f956a31212647b5616b4d8c071becfdcb3b92d91f25cb7fddde9787c",
+    "other_rows_unchanged": true,
+    "production_connected": false,
+    "real_loader_and_cli": "pass",
+    "historical_follow_up": "superseded",
+    "current_action_status_verified": false,
+    "scope": "historical supported correction form6.4/20260723 ACODE11324 only; not latest action status",
+    "access_evidence_canonical_sha256": "93b734d2477126b2fc6f34321838ececd7d98aa16dd31c7134cb7b7817fb9066",
+    "matrix_file_sha256": "3eb5d6c95e99425df90e95e666ced19d1e3615cbd6c28164308c62f6418408ad",
+    "candidate_independent_review": "APPROVE C/H/M 0",
+    "source_metadata_delta": "dart.fss.or.kr viewer provenance only; body sources/selectors/EnrichmentSource unchanged",
+    "related_independent_passed": 23,
+    "related_independent_seconds": 1.0,
+    "private_combined_capture_sha256": "09c0ed6b5c16a617a7ae1d5f8e1917ae19f4f5e3c66fcc347dc6e51cd35e91c2"
   }
 }

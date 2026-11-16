@@ -8401,3 +8401,8 @@ User requested commit and deployment. Reconstructed the 41 owned paths from the 
 ### 2026-11-16 — DART 현재 응답 검증 진입
 
 사용자 “진행해줘”로 기존 u173Step4/u184Step5의 수동 검증을 진행한다. 현재 API에서 과거 공시 목록과 원문을2GET/공유20초로 재수집하고 실제 수신 clock·5slot·29XML locator를 결속한다. source/runtime/activation 승격과 production 연결은 별도 판정이다. 전용 manual workflow/pin으로 기존 production/preview를 보존한다. [계획](construction/event-v3-acceptance-20261028/dart-qualification-20261116/plan.md).
+
+
+### 2026-11-17 — DART 과거 지원 양식 local qualification
+
+사용자 승인 범위의 실제 private43894860556은 code6ac349fe/CI43892236864 SUCCESS8,018PASS/1skip 후2GET/모두200/1.571763초로 목록·원문·실제clock/5slot25refs·29XML을 검증했다. 독립 readback과 실제 loader/CLI3sample10fieldslot 재생 C/H/M0. 다른7행·Fed2를 보존하고 DART6.4/11324 과거 기재정정 양식에만 local 자격을 추가해3verified/5blocked·runtime0/activationfalse다. 새 목록의 superseded 표지는 최신/발행완료 근거가 아니며 원래 진단 flagfalse를 유지한다. canonical viewer domain1행 보완은 body HTTP 권한을 늘리지 않는다. metadata/ops/test 최종 exact CI 확인 중, u173Step4/u184Step5 전체·human0/12·v3예약0·운영미완료 유지. [기록](../docs/sessions/2026-11-16-dart-source-qualification.md), [증거](construction/event-v3-acceptance-20261028/dart-qualification-20261116/evidence.json).

@@ -20,11 +20,16 @@ Functional Design/NFR Requirements: Required. 아래 계약으로 기존 parser 
 
 - [x] 1. 이전 설계·원문·공식 API/추출 범위·운영 pin을 확인하고 이 계약을 기록한다.
 - [x] 2. 기존 probe에 명시적인 qualification 모드와 실제 clock/목록 결속·private 결과를 구현한다.
-- [ ] 3. 합성 양성 및 pagination/identity/secret/HTTP/clock/refs/보안 음성 회귀와 독립 QA를 통과한다.
-- [ ] 4. exact code CI를 확인하고 별도 private 수동 workflow·전용 pin을 전달한다.
-- [ ] 5. 실제2GET probe의 암호문을 즉시 회수하고 새 목록/원문/수신 clock/5slot/29XML 근거를 검수한다.
+- [x] 3. 합성 양성 및 pagination/identity/secret/HTTP/clock/refs/보안 음성 회귀와 독립 QA를 통과한다.
+- [x] 4. exact code CI를 확인하고 별도 private 수동 workflow·전용 pin을 전달한다.
+- [x] 5. 실제2GET probe의 암호문을 즉시 회수하고 새 목록/원문/수신 clock/5slot/29XML 근거를 검수한다.
 - [ ] 6. 증거대로 qualification 판정·session/cross-check/state/audit를 기록하고 전달한다.
 
 ## 공식 근거
 
 2026-11-16 재확인: [목록 API](https://opendart.fss.or.kr/guide/detail.do?apiGrpCd=DS001&apiId=2019001), [원본 ZIP API](https://opendart.fss.or.kr/guide/detail.do?apiGrpCd=DS001&apiId=2019003), [원문에서 필요한 자료 추출 안내](https://opendart.fss.or.kr/intro/main.do). [약관](https://opendart.fss.or.kr/intro/terms.do)은 이번 공개 fetch에서 timeout으로 재열람하지 못했다. 기존 제한된 사실 추출/private 보관 범위를 유지하며 전체 문서·이미지·서명·첨부 재배포 허가로 확대하지 않는다.
+
+
+## 자격표의 출처 메타데이터 보완
+
+실제 loader가 빈 DART evidence_domains 때문에 후보를 거절해, 공개 viewer dart.fss.or.kr만 canonical source metadata에 등록했다. 기존 domain guard를 완화하지 않았다. 이 메타데이터는 출처 집계/자격표 locator 검증에 쓰이며 live body source/selector/EnrichmentSource에는 DART를 추가하지 않았다. 정적/집중 검사와 독립 검수 후 local3/runtime0의 자격표 및 이 보완에 대해 별도 exact CI를 확인한다. 새 HTTP 재실행은 필요 없으며 실제6ac의 parser/runner bytes는 그대로다.

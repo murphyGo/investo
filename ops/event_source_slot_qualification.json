@@ -262,23 +262,27 @@
       "proposed_source_name": null,
       "slot_id": "domestic.disclosure_action",
       "access_kind": "structured_api",
-      "endpoint_scope": null,
-      "official_discovery_url": null,
-      "checked_at": "2026-10-11T18:34:40Z",
-      "source_code_sha": "ca631e245d0341c09ea1671c32c4286dbd2c9c3a",
-      "status": "blocked",
+      "endpoint_scope": {
+        "scheme": "https",
+        "host": "dart.fss.or.kr",
+        "path_prefix": "/dsaf001/main.do",
+        "query_keys": [
+          "rcpNo"
+        ]
+      },
+      "official_discovery_url": "https://dart.fss.or.kr/dsaf001/main.do",
+      "checked_at": "2026-11-16T15:18:31.089899+00:00",
+      "source_code_sha": "6ac349feddfdf007be6c9334aca3c45a28689082",
+      "status": "verified",
       "reason_codes": [
-        "access.not_verified",
-        "rights.unknown",
-        "schema.unknown",
-        "slot.required_missing",
+        "time.unknown",
         "runtime.not_verified"
       ],
-      "access_evidence_hash": null,
-      "rights_evidence_url": null,
-      "rights_scope": null,
-      "schema_fixture_sha256": null,
-      "parser_version": null,
+      "access_evidence_hash": "93b734d2477126b2fc6f34321838ececd7d98aa16dd31c7134cb7b7817fb9066",
+      "rights_evidence_url": "https://opendart.fss.or.kr/intro/main.do",
+      "rights_scope": "OpenDART permits extraction of desired data from XML. Bounded private facts for FORMULA6.4/20260723 ACODE11324 correction only; excludes raw document, image, signature and attachment redistribution. Current retrieval of a historical filing does not establish latest terms or issuance completion. No live HTTP permission.",
+      "schema_fixture_sha256": "444f3da88eebb90aef2ebd8a93602250859cc37b4782ab569b7c60da03ef2851",
+      "parser_version": "dart-cb-correction-6.4-v1",
       "required_slots": [
         "issuer",
         "action",
@@ -286,17 +290,21 @@
         "action_terms",
         "filing_locator"
       ],
-      "verified_slots": [],
-      "missing_slots": [
+      "verified_slots": [
         "issuer",
         "action",
         "action_status",
         "action_terms",
         "filing_locator"
       ],
-      "chunk_roles": [],
+      "missing_slots": [],
+      "chunk_roles": [
+        "background",
+        "fact",
+        "identity"
+      ],
       "time_precision": "unknown",
-      "public_locator_basis": null,
+      "public_locator_basis": "DART viewer rcpNo bound to fresh list.json identity, exact rcept_no.xml ZIP/hash and current receive clock; supported historical correction form only, not current issuance status.",
       "runtime_probe_status": "not_run",
       "runtime_evidence_ref": null,
       "activation_ready": false
