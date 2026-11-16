@@ -8396,3 +8396,8 @@ User requested commit and deployment. Reconstructed the 41 owned paths from the 
 ### 2026-11-11 — DART parser 최종 CI와 전달
 
 최종 코드90dc6d2a의 [CI42982852064](https://github.com/murphyGo/investo/actions/runs/42982852064) SUCCESS: Python3.11.9·7,979PASS/1knownskip/801.80초, Node39·Ruff/format869·mypy370·정책/strictdocs PASS. 최초 CI의 타입 전용 stdlib XML import 위반은 내부 Protocol로 수정했고 기존 안전 규칙을 유지했다. macro505f5c1e와 통합집중304PASS/4.27초, 독립 타입 검수C/H/M0. 오프라인 subplan6/6과 main 코드 전달을 완료했다. 보관 원문의5slot25refs/29XML 재생은 현재 목록/수신 clock의 새 수집이나 live source qualification이 아니므로 local2/8·runtime0·DARTblocked·human0/12·v3예약0·u173Step4/u184Step5·운영 미완료는 유지한다. [검수](../docs/cross-checks/2026-11-11-dart-document-parser.md).
+
+
+### 2026-11-16 — DART 현재 응답 검증 진입
+
+사용자 “진행해줘”로 기존 u173Step4/u184Step5의 수동 검증을 진행한다. 현재 API에서 과거 공시 목록과 원문을2GET/공유20초로 재수집하고 실제 수신 clock·5slot·29XML locator를 결속한다. source/runtime/activation 승격과 production 연결은 별도 판정이다. 전용 manual workflow/pin으로 기존 production/preview를 보존한다. [계획](construction/event-v3-acceptance-20261028/dart-qualification-20261116/plan.md).

@@ -1,0 +1,47 @@
+{
+  "date_started": "2026-11-16",
+  "scope": "fresh current responses for one historical filing; manual diagnostic only",
+  "code_sha": null,
+  "files": [
+    {
+      "path": "scripts/probe_dart_event_evidence.py",
+      "sha256": "287e8773540008e5d5eeaeb07c03f3a6a6103f417a86fe5111c93da1edd75710"
+    },
+    {
+      "path": "tests/unit/orchestrator/test_dart_source_qualification_u173.py",
+      "sha256": "2093bb83af477051d088c066f30f70270c73d13496da360382b692ec478f373c"
+    },
+    {
+      "path": "ops/private-runtime/dart-source-qualification.yml",
+      "sha256": "f9555d2713c6f0022bd93141a34a7104c7e28320377ddce989b42888cbb7d14d"
+    }
+  ],
+  "validation": {
+    "focused_passed": 144,
+    "focused_seconds": 1.97,
+    "ruff": "pass",
+    "formatted_files": 870,
+    "mypy_source_and_script_files": 371,
+    "strict_docs": "pass",
+    "independent_review": "pending",
+    "exact_ci": "pending"
+  },
+  "actual": {
+    "status": "not_run"
+  },
+  "readiness": {
+    "local_qualified_slots": 2,
+    "runtime_qualified_slots": 0,
+    "dart_qualified": false,
+    "human_documents": 0,
+    "activation_ready": false,
+    "release_ready": false
+  },
+  "operational_changes": {
+    "production_pin": false,
+    "preview_pin": false,
+    "production_source_path": false,
+    "publication": false,
+    "notification": false
+  }
+}
