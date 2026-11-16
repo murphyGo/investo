@@ -1,0 +1,72 @@
+{
+  "scope": "Logged source-outcome replay only; failure messages replaced by a neutral placeholder; no provider payload, LLM or publish replay",
+  "results": [
+    {
+      "case": "observed",
+      "outcomes": {
+        "failed": 3,
+        "ok": 16,
+        "zero": 7,
+        "skipped": 2
+      },
+      "row_count": 4,
+      "rows": [
+        {
+          "source_name": "수집 실패 소스 3개",
+          "status": "failed",
+          "detail": "대표 bea-macro-actuals · Recorded source failure"
+        },
+        {
+          "source_name": "0건 반환 소스 7개",
+          "status": "zero",
+          "detail": "대표 cboe-volatility-indices · 0건 반환"
+        },
+        {
+          "source_name": "비활성 소스 2개",
+          "status": "skipped",
+          "detail": "대표 cnbc-top-news · 접근 제한"
+        },
+        {
+          "source_name": "정상 16개",
+          "status": "ok",
+          "detail": "bls-macro-actuals, cftc-cot-positioning, eia-petroleum-weekly 외 13개"
+        }
+      ]
+    },
+    {
+      "case": "without_three_added_sources",
+      "outcomes": {
+        "failed": 3,
+        "ok": 13,
+        "zero": 7,
+        "skipped": 2
+      },
+      "row_count": 4,
+      "rows": [
+        {
+          "source_name": "수집 실패 소스 3개",
+          "status": "failed",
+          "detail": "대표 bea-macro-actuals · Recorded source failure"
+        },
+        {
+          "source_name": "0건 반환 소스 7개",
+          "status": "zero",
+          "detail": "대표 cboe-volatility-indices · 0건 반환"
+        },
+        {
+          "source_name": "비활성 소스 2개",
+          "status": "skipped",
+          "detail": "대표 cnbc-top-news · 접근 제한"
+        },
+        {
+          "source_name": "정상 13개",
+          "status": "ok",
+          "detail": "bls-macro-actuals, cftc-cot-positioning, eia-petroleum-weekly 외 10개"
+        }
+      ]
+    }
+  ],
+  "code_base": "6d526e9b07641cf60f91de148f0217e3d9b22e48",
+  "runtime_run": "43143375754",
+  "coverage_object": "Constructed for projection testing, not full normalized-item/coverage reconstruction"
+}

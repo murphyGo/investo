@@ -208,3 +208,11 @@ If failures occur in the first week, the operator runbook in `CONTRIBUTING.md` w
 ## 2026-10-12 — Event/news v3 native development
 
 Native generation/seal/identity-story publication/reader surfaces and offline acceptance/source qualification tooling are implemented at `ca631e24` with current UI/sector integration. Final validation is recorded in [implementation evidence](../event-news-v3/implementation-evidence.md). This entry does not authorize v3 active: actual human corpus, native viewport, end-to-end runtime performance, source qualification/runtime, reviewed release and genuine scheduled/cleanup remain pending.
+
+
+## 2026-11-17 — u22 data-confidence row-budget scoped follow-up
+
+- Result: 590 affected visual/coverage/orchestrator/integration/boundary tests passed; 20 new regression cases included. Ruff, format, Mypy, independent review and cross-check passed.
+- Logged source-outcome replay: original 13-row inputs now produce four visible rows with all status counts. Light/dark previews inspected.
+- Reproduction commands, font/environment limits and release scope: `aidlc-docs/construction/u22-source-coverage-transparency/code/row-budget-summary-20261117.md`.
+- Repository-wide suite and production end-to-end execution were not run for this bounded follow-up. Local implementation is uncommitted and undeployed.

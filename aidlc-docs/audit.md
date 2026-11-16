@@ -8411,3 +8411,24 @@ User requested commit and deployment. Reconstructed the 41 owned paths from the 
 ### 2026-11-17 — DART local qualification 최종 CI
 
 최종 metadata/ops 코드 `b49752b8`의 [CI43896888436](https://github.com/murphyGo/investo/actions/runs/43896888436)가 Python3.11.9에서 **8,021PASS/1knownskip·655.09초**, Node39·Ruff/format870·mypy370·모든 정책/strictdocs PASS로 끝났다. 실제 source 수집은6ac/43894860556의2GET/200/1.571763초이며 이후 parser/runner는 불변·추가HTTP0이다. local3verified/5blocked·runtime0/activationfalse, superseded 과거 지원 양식에만 한정한다. 기존7행/Fed2 및 production/preview pin과 다른 dirty 작업은 보존했다. Root30PASS/3sample재생, 독립 source·metadata 검수C/H/M0. subplan6/6만 완료하며 u173Step4/u184Step5 전체·human0/12·v3예약0·화면/성능/운영 잔여는 유지한다. [검수](../docs/cross-checks/2026-11-17-dart-source-qualification.md).
+
+
+### 2026-11-17 — u22 data-confidence row-budget repair
+
+- Timestamp: 2026-11-16T16:26:30.291376+00:00
+- User decision: `진행시켜`, following the recommendation to repair the observed source-row overflow; authorized implementation and necessary verification. Existing authorization applied without a redundant stage approval.
+- Stage entry/decision: reuse u22; FD/NFR Requirements/NFR Design/Infrastructure Design skipped for a bounded projection fix. No new external IO or publication policy.
+- Completion: compact overflow to four status rows; 20 new regression cases; 590 related tests passed, static checks passed, separate code-review agent PASS, scoped cross-check PASS.
+- Replayed logged source outcomes with neutralized failure messages; no raw private logs committed or production dispatch.
+- Workspace: isolated base `6d526e9b07641cf60f91de148f0217e3d9b22e48`; owned-file before-hash check passed before integration, shared HEAD/index preserved.
+- Artifacts: `construction/u22-source-coverage-transparency/code/row-budget-summary-20261117.md` and adjacent review/replay; `docs/cross-checks/2026-11-17-u22-data-confidence-row-budget.md`.
+- Release: no commit/deployment/pin change in this step.
+
+
+### 2026-11-17 — u22 row-budget release authorization
+
+- Timestamp: 2026-11-16T16:42:25.260140+00:00
+- User: `진행시켜`, following the completed repair report stating commit/deployment remained. Proceed with scoped commit, CI and production pin promotion.
+- Public base: `6d526e9b07641cf60f91de148f0217e3d9b22e48`; production base: `b6b3fdc62abd5e63c19c1bcc2014c17a8a606bb7`.
+- Carry only the reviewed card/render change and regression tests to the production base; keep other deployment pins and workflows unchanged.
+- Gate: final candidate CI success before production promotion; no manual briefing or message dispatch.

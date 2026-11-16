@@ -490,3 +490,12 @@ User requested commit and deployment. Reconstructed the 41 owned paths from the 
 ### 2026-11-17 — DART local qualification 최종 CI
 
 최종 metadata/ops 코드 `b49752b8`의 [CI43896888436](https://github.com/murphyGo/investo/actions/runs/43896888436)가 Python3.11.9에서 **8,021PASS/1knownskip·655.09초**, Node39·Ruff/format870·mypy370·모든 정책/strictdocs PASS로 끝났다. 실제 source 수집은6ac/43894860556의2GET/200/1.571763초이며 이후 parser/runner는 불변·추가HTTP0이다. local3verified/5blocked·runtime0/activationfalse, superseded 과거 지원 양식에만 한정한다. 기존7행/Fed2 및 production/preview pin과 다른 dirty 작업은 보존했다. Root30PASS/3sample재생, 독립 source·metadata 검수C/H/M0. subplan6/6만 완료하며 u173Step4/u184Step5 전체·human0/12·v3예약0·화면/성능/운영 잔여는 유지한다. [검수](../docs/cross-checks/2026-11-17-dart-source-qualification.md).
+
+
+### 2026-11-17 — u22 data-confidence row-budget follow-up
+
+- Local code generation, scoped build/test, independent review, and cross-check complete; no new unit ID. FD/NFR separate stages skipped using existing u22 contracts.
+- Overflowing card input now retains failed/zero/skipped/ok in at most four visible rows; full coverage truth remains unchanged.
+- 590 related tests passed; 1,296 independent status combinations; logged outcome replay and both theme previews verified.
+- Plan: `construction/plans/u22-data-confidence-row-budget-code-generation-plan.md`. Evidence: `construction/u22-source-coverage-transparency/code/row-budget-summary-20261117.md`.
+- Local only: uncommitted, undeployed; production publication and unrelated domestic article-quality failures remain outside this result.
