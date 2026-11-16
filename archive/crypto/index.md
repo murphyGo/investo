@@ -25,7 +25,7 @@
 
 [2026-11-13](2026/11/2026-11-13.md){ .investo-archive-link }
 
-<p class="investo-archive-snippet" markdown="0">전체 시가총액은 $2.29T로 24시간 -4.07%를 기록했고, BTC 시장 점유율은 58.75%로 확인된다. 본문 참고.</p>
+<p class="investo-archive-snippet" markdown="0">시장 전체 시가총액 -1.79% 하락과 공포·탐욕 지수 10이 보고 대상 구간의 약한 시장 심리를 보여줍니다. 이번 문서는 수집 근거가 제한적입니다.</p>
 </div>
 <div class="investo-archive-entry" data-date="2026-11-12" markdown="1">
 

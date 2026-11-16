@@ -19,7 +19,7 @@
 <h2 data-investo-field="market" markdown="0">미국 증시</h2>
 <p class="investo-market-date" data-investo-field="date" markdown="0">발행 2026-11-13</p>
 <p class="investo-market-status" data-investo-field="quality" markdown="0">근거 상태: 부분</p>
-<p class="investo-market-summary" markdown="span">SEC가 Executive and Director Compensation Disclosure Reforms를 제안했습니다.</p>
+<p class="investo-market-summary" markdown="span">뉴스 수집이 제한되어 중요 사건을 판단하기 어렵습니다.</p>
 
 [미국 증시 2026-11-13 시황 읽기](archive/us-equity/2026/11/2026-11-13.md){ .investo-market-link }
 
@@ -28,7 +28,7 @@
 <h2 data-investo-field="market" markdown="0">크립토</h2>
 <p class="investo-market-date" data-investo-field="date" markdown="0">발행 2026-11-13</p>
 <p class="investo-market-status" data-investo-field="quality" markdown="0">근거 상태: 부분</p>
-<p class="investo-market-summary" markdown="span">전체 시가총액은 **$2.29T**로 24시간 **-4.07%**를 기록했고, BTC 시장 점유율은 **58.75%**로 확인된다. 본문 참고.</p>
+<p class="investo-market-summary" markdown="span">시장 전체 시가총액 **-1.79%** 하락과 공포·탐욕 지수 10이 보고 대상 구간의 약한 시장 심리를 보여줍니다. 이번 문서는 수집 근거가 제한적입니다.</p>
 
 [크립토 2026-11-13 시황 읽기](archive/crypto/2026/11/2026-11-13.md){ .investo-market-link }
 
