@@ -499,3 +499,8 @@ User requested commit and deployment. Reconstructed the 41 owned paths from the 
 - 590 related tests passed; 1,296 independent status combinations; logged outcome replay and both theme previews verified.
 - Plan: `construction/plans/u22-data-confidence-row-budget-code-generation-plan.md`. Evidence: `construction/u22-source-coverage-transparency/code/row-budget-summary-20261117.md`.
 - Local only: uncommitted, undeployed; production publication and unrelated domestic article-quality failures remain outside this result.
+
+
+### 2026-11-17 — DART 공통 준비와 관측 최신성 구현
+
+사용자 “진행해줘”와 기존 전달 승인을 적용해 u173Step4/u184Step5의 typed DART preview를 동일 prepare_event_evidence HTTP owner에 연결했다. 고정 latest-list 검사 후 single ZIP·기존 parser·새 한 문단 native projection/25refs를 검증한다. 명시 경로에서 실패·quota 밖 항목은 generic flag로 classifier/fact context에 재유입되지 않는다. 기본 off/Fed-only·activefalse와 기존 HTML policy hash를 보존한다. 집중338PASS·새main 통합29PASS·Ruff/format874/mypy373·strictdocs PASS, 독립검수/exactCI/실제비게시진단은 진행 중이다. main5ab1641a와 다른작업 production3ce35148을 보존한다. local3/8/runtime0/human0/12/v3예약0 및 상위 운영 미완료는 유지한다. [계획](construction/event-v3-acceptance-20261028/dart-preparation-20261117/plan.md), [세션](../docs/sessions/2026-11-17-dart-shared-preparation.md).

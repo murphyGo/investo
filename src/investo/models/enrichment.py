@@ -11,7 +11,14 @@ from hashlib import sha256
 from typing import Annotated, Literal, Self, cast
 from urllib.parse import urlsplit
 
-from pydantic import Field, StrictInt, field_validator, model_validator
+from pydantic import (
+    Field,
+    SerializerFunctionWrapHandler,
+    StrictInt,
+    field_validator,
+    model_serializer,
+    model_validator,
+)
 
 from investo.models.event_context import ContextRef
 from investo.models.event_evidence import evidence_clock_utc
@@ -20,6 +27,7 @@ from investo.models.items import NormalizedItem
 
 EnrichmentMode = Literal["off", "shadow", "preview", "active"]
 EnrichmentSource = Literal["fomc-rss", "fed-speech-rss", "sec-newsroom-rss", "cftc-policy-rss"]
+EvidenceSource = EnrichmentSource | Literal["dart-disclosure"]
 ENRICHMENT_MODE_ENV = "INVESTO_EVENT_ENRICHMENT_MODE"
 EVENT_ENRICHMENT_ACTIVE_READY = False
 EVENT_ENRICHMENT_PREVIEW_READY = True
@@ -37,7 +45,7 @@ class EnrichmentPolicy:
     max_excerpt_chars: int = 1200
     max_redirects: int = 1
     article_passages: bool = False
-    preview_sources: tuple[EnrichmentSource, ...] = ()
+    preview_sources: tuple[EvidenceSource, ...] = ()
     qualification_sha256: str | None = None
 
     def __post_init__(self) -> None:
@@ -47,7 +55,14 @@ class EnrichmentPolicy:
             raise ValueError("invalid passage policy")
         object.__setattr__(self, "preview_sources", tuple(self.preview_sources))
         if len(set(self.preview_sources)) != len(self.preview_sources) or any(
-            source not in {"fomc-rss", "fed-speech-rss", "sec-newsroom-rss", "cftc-policy-rss"}
+            source
+            not in {
+                "fomc-rss",
+                "fed-speech-rss",
+                "sec-newsroom-rss",
+                "cftc-policy-rss",
+                "dart-disclosure",
+            }
             for source in self.preview_sources
         ):
             raise ValueError("invalid preview sources")
@@ -161,9 +176,39 @@ class SourceQualification(EventModel):
         return self
 
 
+class DartTransportQualification(EventModel):
+    """Explicit preview transport permission, not runtime or publication acceptance."""
+
+    source_name: Literal["dart-disclosure"] = "dart-disclosure"
+    scope: Literal["preview_only"] = "preview_only"
+    status: Literal["approved", "blocked"]
+    checked_at: datetime
+    parser_version: Literal["dart-cb-correction-6.4-v1"]
+    projection_version: Literal["dart-field-paragraph-v1"] = "dart-field-paragraph-v1"
+    slot_qualification_sha256: Digest
+    source_code_sha: Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
+    fixture_sha256: Digest
+    rights_scope: Annotated[str, Field(min_length=1, max_length=500)]
+    private_retention_basis: Annotated[str, Field(min_length=1, max_length=1000)]
+    max_projection_chars: Annotated[StrictInt, Field(ge=1, le=1200)] = 1200
+
+    @field_validator("checked_at")
+    @classmethod
+    def checked_clock(cls, value: datetime) -> datetime:
+        return evidence_clock_utc(value)
+
+
 class EnrichmentQualification(EventModel):
     schema_version: Literal[1] = 1
     sources: Annotated[tuple[SourceQualification, ...], Field(max_length=4)] = ()
+    dart: DartTransportQualification | None = None
+
+    @model_serializer(mode="wrap")
+    def compatible_payload(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        payload = cast("dict[str, object]", handler(self))
+        if self.dart is None:
+            payload.pop("dart", None)
+        return payload
 
     @property
     def policy_hash(self) -> str:
@@ -187,14 +232,50 @@ EnrichmentReason = Literal[
     "empty_excerpt",
     "redirect_rejected",
     "evidence_invalid",
+    "credential_missing",
+    "latest_unavailable",
+    "superseded",
+    "withdrawn",
+    "listing_changed",
+    "parser_unsupported",
 ]
 
 
+class DartEnrichmentTrace(EventModel):
+    """Only hashes, receive clocks and closed states may leave the HTTP owner."""
+
+    requests: Annotated[StrictInt, Field(ge=0, le=2)] = 0
+    latest_report_filter: Literal["Y"] = "Y"
+    latest_status: Literal["unknown", "as_observed", "missing", "superseded", "withdrawn"] = (
+        "unknown"
+    )
+    listing_received_at: datetime | None = None
+    document_received_at: datetime | None = None
+    listing_sha256: Digest | None = None
+    response_sha256: Digest | None = None
+    xml_sha256: Digest | None = None
+    native_context_sha256: Digest | None = None
+    parser_version: Literal["dart-cb-correction-6.4-v1"] = "dart-cb-correction-6.4-v1"
+
+    @field_validator("listing_received_at", "document_received_at")
+    @classmethod
+    def actual_receive_clock(cls, value: datetime | None) -> datetime | None:
+        return evidence_clock_utc(value) if value is not None else None
+
+
 class EnrichmentOutcome(EventModel):
-    source_name: EnrichmentSource
+    source_name: EvidenceSource
     document_id: Digest
     status: Literal["enriched", "enrichment_unavailable"]
     reason: EnrichmentReason | None = None
+    dart: DartEnrichmentTrace | None = None
+
+    @model_serializer(mode="wrap")
+    def compatible_payload(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        payload = cast("dict[str, object]", handler(self))
+        if self.dart is None:
+            payload.pop("dart", None)
+        return payload
 
     @model_validator(mode="after")
     def coherent_status(self) -> Self:
@@ -205,7 +286,7 @@ class EnrichmentOutcome(EventModel):
 
 class EnrichmentResult(EventModel):
     items: tuple[NormalizedItem, ...]
-    outcomes: Annotated[tuple[EnrichmentOutcome, ...], Field(max_length=8)] = ()
+    outcomes: Annotated[tuple[EnrichmentOutcome, ...], Field(max_length=10)] = ()
     request_count: Annotated[StrictInt, Field(ge=0, le=6)] = 0
 
 

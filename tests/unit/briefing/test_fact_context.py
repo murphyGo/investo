@@ -68,3 +68,14 @@ def test_conflicting_fresh_fact_values_raise() -> None:
             date(2026, 6, 18),
             now,
         )
+
+
+def test_blocked_event_input_cannot_supply_or_conflict_with_verified_fact() -> None:
+    now = datetime(2026, 6, 18, 1, tzinfo=UTC)
+    blocked = _fact_item("Jerome Powell").model_copy(update={"event_input_blocked": True})
+
+    assert not build_verified_fact_bundle((blocked,), date(2026, 6, 18), now).facts
+    bundle = build_verified_fact_bundle((_fact_item(), blocked), date(2026, 6, 18), now)
+
+    assert len(bundle.facts) == 1
+    assert bundle.facts[0].value == "Kevin Warsh"

@@ -37,6 +37,8 @@ def build_verified_fact_bundle(
     _ensure_tz_aware(now_utc)
     by_id: dict[FactId, FactSnapshot] = {}
     for item in items:
+        if item.event_input_blocked:
+            continue
         fact_id_raw = item.raw_metadata.get("fact_id")
         if fact_id_raw != "fed.current_chair":
             continue

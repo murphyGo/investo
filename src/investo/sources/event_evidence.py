@@ -5,11 +5,12 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import math
+import os
 import re
 import time
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Literal, cast
@@ -18,13 +19,14 @@ from urllib.parse import parse_qsl, unquote, urljoin, urlsplit
 import httpx
 
 from investo.models.enrichment import (
+    DartEnrichmentTrace,
     EndpointScope,
     EnrichmentOutcome,
     EnrichmentPolicy,
     EnrichmentQualification,
     EnrichmentReason,
     EnrichmentResult,
-    EnrichmentSource,
+    EvidenceSource,
     SourceQualification,
     SourceSlotParserCapture,
     SourceSlotQualification,
@@ -41,6 +43,14 @@ from investo.models.event_evidence import (
 )
 from investo.models.event_passages import passage_spans
 from investo.models.items import NormalizedItem
+from investo.sources._dart_document import PARSER_VERSION
+from investo.sources._dart_evidence import (
+    DartRequestError,
+    DartRequestKind,
+    DartResponse,
+    dart_identity,
+    prepare_dart_item,
+)
 from investo.sources._retry import RetryConfig, retry_get
 from investo.sources.protocol import SourceFetchError
 
@@ -269,12 +279,16 @@ def _body_excerpt(
 class _Candidate:
     index: int
     item: NormalizedItem
-    source: EnrichmentSource
+    source: EvidenceSource
     document_id: str
 
 
 def _candidates(
-    items: Sequence[NormalizedItem], cap: int, records: Mapping[str, SourceQualification]
+    items: Sequence[NormalizedItem],
+    cap: int,
+    records: Mapping[str, SourceQualification],
+    *,
+    include_dart: bool = False,
 ) -> tuple[_Candidate, ...]:
     # A newer testimony or other non-qualified URL cannot spend the body quota
     # of an older, directly linked qualified release from the same RSS feed.
@@ -289,7 +303,12 @@ def _candidates(
             row[1].title,
         ),
     ):
-        if item.source_name not in _BODY_SOURCES or item.scheduled_at is not None:
+        is_dart = include_dart and item.source_name == "dart-disclosure"
+        if (
+            (item.source_name not in _BODY_SOURCES and not is_dart)
+            or item.scheduled_at is not None
+            or item.event_input_blocked
+        ):
             continue
         url = str(item.url) if item.url else None
         try:
@@ -303,13 +322,19 @@ def _candidates(
             and record.extraction_selector_version in _SELECTORS
             and _allowed_url(url or "", record)
         )
+        if is_dart:
+            try:
+                dart_identity(item)
+                eligible = True
+            except DartRequestError:
+                eligible = False
         key = item.source_name, document_id, eligible
         if key in seen:
             continue
         seen.add(key)
         lanes = grouped.setdefault(item.source_name, ([], []))
         lanes[0 if eligible else 1].append(
-            _Candidate(index, item, cast("EnrichmentSource", item.source_name), document_id)
+            _Candidate(index, item, cast("EvidenceSource", item.source_name), document_id)
         )
     selected: dict[str, list[_Candidate]] = {}
     for source, (eligible_items, rejected_items) in grouped.items():
@@ -325,6 +350,51 @@ def _candidates(
     )
 
 
+def quarantine_event_inputs(
+    items: Sequence[NormalizedItem],
+    policy: EnrichmentPolicy,
+    qualification: EnrichmentQualification,
+) -> tuple[NormalizedItem, ...]:
+    selected = (policy.mode == "preview" and "dart-disclosure" in policy.preview_sources) or (
+        policy.mode == "active" and qualification.dart is not None
+    )
+    return tuple(
+        item.model_copy(update={"event_input_blocked": True})
+        if selected and item.source_name == "dart-disclosure" and not item.event_input_blocked
+        else item
+        for item in items
+    )
+
+
+def _dart_transport_allowed(
+    qualification: EnrichmentQualification,
+    matrix: SourceSlotQualificationSet | None,
+) -> bool:
+    record = qualification.dart
+    if record is None or record.status != "approved":
+        return False
+    try:
+        matrix = matrix or load_source_slot_qualification(
+            Path("ops/event_source_slot_qualification.json")
+        )
+        if (
+            hashlib.sha256(matrix.model_dump_json().encode()).hexdigest()
+            != record.slot_qualification_sha256
+        ):
+            return False
+        rows = [row for row in matrix.records if row.source_name == "dart-disclosure"]
+        return len(rows) == 1 and (
+            rows[0].status == "verified"
+            and not rows[0].missing_slots
+            and rows[0].parser_version == record.parser_version == PARSER_VERSION
+            and rows[0].schema_fixture_sha256 == record.fixture_sha256
+            and rows[0].source_code_sha == record.source_code_sha
+            and rows[0].rights_scope == record.rights_scope
+        )
+    except ValueError:
+        return False
+
+
 async def enrich_event_evidence(
     items: Sequence[NormalizedItem],
     *,
@@ -333,6 +403,7 @@ async def enrich_event_evidence(
     qualification: EnrichmentQualification,
     received_at: datetime,
     deadline: float | None = None,
+    slot_qualification: SourceSlotQualificationSet | None = None,
 ) -> EnrichmentResult:
     """Bounded official body reads; each failure retains the original feed item."""
     if policy.mode not in {"active", "preview"}:
@@ -351,17 +422,131 @@ async def enrich_event_evidence(
     records: dict[str, SourceQualification] = {
         record.source_name: record for record in qualification.sources
     }
+    include_dart = policy.mode == "preview" and "dart-disclosure" in policy.preview_sources
+    base_items = quarantine_event_inputs(items, policy, qualification)
+    dart_allowed = (
+        include_dart
+        and policy.article_passages
+        and _dart_transport_allowed(qualification, slot_qualification)
+    )
+    credential = os.environ.get("OPENDART_API_KEY", "").strip() if dart_allowed else ""
+    if credential:
+        from investo._internal.redaction import install_secret_log_filters
+
+        install_secret_log_filters(
+            (
+                "httpx",
+                "httpcore.connection",
+                "httpcore.http11",
+                "httpcore.http2",
+                "httpcore.proxy",
+                "httpcore.socks",
+            )
+        )
     candidates = tuple(
         candidate
-        for candidate in _candidates(items, policy.max_items_per_source, records)
+        for candidate in _candidates(
+            items, policy.max_items_per_source, records, include_dart=include_dart
+        )
         if policy.mode != "preview" or candidate.source in policy.preview_sources
     )
     results: dict[int, tuple[NormalizedItem, EnrichmentReason | None]] = {}
     semaphore = asyncio.Semaphore(policy.concurrency)
     request_count = 0
+    traces: dict[int, DartEnrichmentTrace] = {}
+
+    async def enrich_dart(candidate: _Candidate) -> None:
+        nonlocal request_count
+        blocked = base_items[candidate.index]
+        traces[candidate.index] = DartEnrichmentTrace()
+        if not dart_allowed or not credential or len(credential) > 4096:
+            results[candidate.index] = (
+                blocked,
+                "unqualified" if not dart_allowed else "credential_missing",
+            )
+            return
+
+        async def request(kind: DartRequestKind, params: Mapping[str, str]) -> DartResponse:
+            nonlocal request_count
+            remaining = stop_at - time.monotonic()
+            if request_count >= policy.max_requests or remaining <= 0:
+                raise DartRequestError("budget_exhausted")
+            request_count += 1
+            trace = traces[candidate.index]
+            traces[candidate.index] = trace.model_copy(update={"requests": trace.requests + 1})
+            endpoint = "https://opendart.fss.or.kr/api/" + (
+                "list.json" if kind == "listing" else "document.xml"
+            )
+            try:
+                async with asyncio.timeout(min(policy.request_timeout_s, remaining)):
+                    async with client.stream(
+                        "GET",
+                        endpoint,
+                        params={**params, "crtfc_key": credential},
+                        headers={"Accept-Encoding": "identity"},
+                        timeout=min(policy.request_timeout_s, remaining),
+                        follow_redirects=False,
+                    ) as response:
+                        if response.status_code != 200:
+                            raise DartRequestError("request_failed", request_spent=True)
+                        if (
+                            response.headers.get("content-encoding", "identity").casefold()
+                            != "identity"
+                        ):
+                            raise DartRequestError("content_type", request_spent=True)
+                        data = bytearray()
+                        stream = (
+                            response.aiter_bytes(chunk_size=16384)
+                            if response.is_stream_consumed
+                            else response.aiter_raw(chunk_size=16384)
+                        )
+                        async for chunk in stream:
+                            if len(data) + len(chunk) > policy.max_response_bytes:
+                                raise DartRequestError("evidence_invalid", request_spent=True)
+                            data.extend(chunk)
+                        received = datetime.now(UTC)
+                payload = DartResponse(bytes(data), received)
+                trace = traces[candidate.index]
+                changes = (
+                    {
+                        "listing_received_at": received,
+                        "listing_sha256": hashlib.sha256(payload.data).hexdigest(),
+                    }
+                    if kind == "listing"
+                    else {
+                        "document_received_at": received,
+                        "response_sha256": hashlib.sha256(payload.data).hexdigest(),
+                    }
+                )
+                traces[candidate.index] = trace.model_copy(update=changes)
+                return payload
+            except (httpx.TimeoutException, TimeoutError):
+                raise DartRequestError("timed_out", request_spent=True) from None
+            except httpx.HTTPError:
+                raise DartRequestError("request_failed", request_spent=True) from None
+
+        async with semaphore:
+            item, reason, trace = await prepare_dart_item(
+                candidate.item, request, forbidden_token=credential.encode()
+            )
+            if reason is None and (
+                item.event_evidence is None
+                or item.event_evidence.document_id != candidate.document_id
+                or qualification.dart is None
+                or len(item.event_evidence.detail_excerpt)
+                > min(policy.max_excerpt_chars, qualification.dart.max_projection_chars)
+            ):
+                item, reason = blocked, "evidence_invalid"
+            if time.monotonic() >= stop_at:
+                item, reason = blocked, "timed_out"
+            traces[candidate.index] = trace
+            results[candidate.index] = item, reason
 
     async def enrich(candidate: _Candidate) -> None:
         nonlocal request_count
+        if candidate.source == "dart-disclosure":
+            await enrich_dart(candidate)
+            return
         item, record = candidate.item, records.get(candidate.source)
         reason: EnrichmentReason | None = "unqualified"
         if (
@@ -462,10 +647,10 @@ async def enrich_event_evidence(
             task.cancel()
         await asyncio.gather(*tasks, return_exceptions=True)
         raise
-    enriched_items = list(items)
+    enriched_items = list(base_items)
     outcomes: list[EnrichmentOutcome] = []
     for candidate in candidates:
-        item, reason = results.get(candidate.index, (candidate.item, "timed_out"))
+        item, reason = results.get(candidate.index, (base_items[candidate.index], "timed_out"))
         enriched_items[candidate.index] = item
         outcomes.append(
             EnrichmentOutcome(
@@ -473,6 +658,7 @@ async def enrich_event_evidence(
                 document_id=candidate.document_id,
                 status="enriched" if reason is None else "enrichment_unavailable",
                 reason=reason,
+                dart=traces.get(candidate.index),
             )
         )
     return EnrichmentResult(

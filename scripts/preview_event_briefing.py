@@ -263,6 +263,7 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument("--baseline-sha", help="Trusted remote data checkout commit; read only.")
     parser.add_argument("--document-schema", choices=(2, 3), type=int, default=2)
     parser.add_argument("--official-body-preview", action="store_true")
+    parser.add_argument("--dart-body-preview", action="store_true")
     parser.add_argument("--article-profile", choices=("role_v1", "article_v2"), default="role_v1")
     parser.add_argument(
         "--record-model-io",
@@ -275,6 +276,8 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     if args.official_body_preview and (
         args.document_schema != 3 or args.article_profile != "article_v2"
     ):
+        raise PreviewInputError
+    if args.dart_body_preview and not args.official_body_preview:
         raise PreviewInputError
     return args
 
@@ -514,6 +517,7 @@ async def run_preview(
     document_schema: int = 2,
     article_profile: EventProfile = "role_v1",
     official_body_preview: bool = False,
+    dart_body_preview: bool = False,
     enrichment_policy: EnrichmentPolicy = DEFAULT_ENRICHMENT_POLICY,
     enrichment_qualification: EnrichmentQualification | None = None,
     record_model_io: bool = False,
@@ -531,17 +535,30 @@ async def run_preview(
         official_body_preview and (article_profile != "article_v2" or document_schema != 3)
     ):
         raise PreviewInputError
+    if type(dart_body_preview) is not bool or (dart_body_preview and not official_body_preview):
+        raise PreviewInputError
     if official_body_preview:
         if enrichment_policy != DEFAULT_ENRICHMENT_POLICY or enrichment_qualification is not None:
             raise PreviewInputError
         enrichment_qualification = load_event_evidence_qualification(
             _REPOSITORY_ROOT / "ops/event_source_qualification.json"
         )
+        if dart_body_preview:
+            dart_qualification = load_event_evidence_qualification(
+                _REPOSITORY_ROOT / "ops/event_dart_preview_qualification.json"
+            )
+            if dart_qualification.sources or dart_qualification.dart is None:
+                raise PreviewInputError
+            enrichment_qualification = enrichment_qualification.model_copy(
+                update={"dart": dart_qualification.dart}
+            )
         enrichment_policy = EnrichmentPolicy(
             mode="preview",
             article_passages=True,
             max_excerpt_chars=6000,
-            preview_sources=("fomc-rss", "fed-speech-rss"),
+            preview_sources=("fomc-rss", "fed-speech-rss", "dart-disclosure")
+            if dart_body_preview
+            else ("fomc-rss", "fed-speech-rss"),
             qualification_sha256=enrichment_qualification.policy_hash,
         )
     if type(record_model_io) is not bool or (
@@ -760,6 +777,7 @@ def main(argv: list[str] | None = None) -> int:
                 document_schema=args.document_schema,
                 article_profile=args.article_profile,
                 official_body_preview=args.official_body_preview,
+                dart_body_preview=getattr(args, "dart_body_preview", False),
                 record_model_io=args.record_model_io,
             )
         )

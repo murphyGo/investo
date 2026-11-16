@@ -23,6 +23,8 @@ evidence bytes는 실제 직렬화한 UTF-8 기준이며 별칭 metadata/ref 목
 
 HTTP6회는 **전체 run 공유** 상한이다. production에서 세 시장별6회로 늘리지 않는다. 공통 collection preparation의 결과를 시장에 분배하고 동일 document를 재요청하지 않는다. preview의 각 market job도 자기 run의 상한을 지킨다. cache는 기존 private run 범위에만 두며 새로운 cross-run 원문 저장소를 만들지 않는다.
 
+2026-11-17 DART typed 예외: [shared preparation 계약](../../event-v3-acceptance-20261028/dart-preparation-20261117/plan.md)의 명시적 preview/transport/slot-hash 승인이 있는 DART 분기만 고정 list.json 최종보고서 조회와 document.xml ZIP을 허용한다. 두 GET 모두 위6HTTP/동시2/20초/8초 예산에 포함하며 redirect/retry0, raw·총해제500KiB·단일 exact XML/defusedxml/versioned parser 한도를 지킨다. HTML parser의 ZIP/PDF/JS 거절은 유지한다. latest-check 실패/미선택 항목은 source-neutral flag로 사건 입력에서 차단하고 source_limited로 기록한다. 후보5source×2를 위해 bounded outcome10만 허용하며 원문·prompt·모델/게시 예산은 늘리지 않는다. default off/Fed-only preview/production capability false와 운영 pin은 그대로다.
+
 권한이 확인된 raw만 private buffer에 저장하며 live excerpt 확대는 qualification에 해당 selector/version/retention 범위가 확인된 경우에만 가능하다. 공개 synthetic fixtures는 독립 작성한 소규모 예제로 만들고 공식 원문 corpus를 public git에 복사하지 않는다.
 
 ## N185. 모델 호출·시간 예산

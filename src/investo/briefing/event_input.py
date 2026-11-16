@@ -133,7 +133,7 @@ def select_event_input_items(
     # Compute validated identity once per input. Tracking parameters cannot
     # consume a source's entire reservation. The last tie only chooses a stable
     # representative among equivalent source rows and never changes priority.
-    keyed = [(item_evidence_key(item), item) for item in items]
+    keyed = [(item_evidence_key(item), item) for item in items if not item.event_input_blocked]
     ordered = sorted(
         keyed,
         key=lambda row: (

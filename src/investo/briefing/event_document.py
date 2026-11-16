@@ -260,8 +260,10 @@ async def generate_event_document(request: GenerationInput) -> NativeEventGenera
             start_utc=min(r.requested_start for r in request.news_window_consumptions),
             end_utc=max(r.end_utc for r in request.news_window_consumptions),
         )
-    limited = request.data_limited or any(
-        o.status in {"failed", "skipped"} for o in request.source_outcomes
+    limited = (
+        request.data_limited
+        or any(item.event_input_blocked for item in request.items)
+        or any(o.status in {"failed", "skipped"} for o in request.source_outcomes)
     )
     has_articles = any(p.placement == "article" for p in plan.events)
     base = EventEditionDraft(

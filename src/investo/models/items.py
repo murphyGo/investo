@@ -62,6 +62,7 @@ class NormalizedItem(BaseModel):
     scheduled_at: datetime | None = None
     raw_metadata: dict[str, _MetadataValue] = Field(default_factory=dict)
     event_evidence: EvidenceDocument | None = Field(default=None, repr=False)
+    event_input_blocked: bool = Field(default=False, strict=True)
 
     insight_envelope: SourceInsightEnvelope | None = Field(default=None, repr=False, exclude=True)
 
@@ -70,6 +71,8 @@ class NormalizedItem(BaseModel):
         payload = cast("dict[str, object]", handler(self))
         if self.event_evidence is None:
             payload.pop("event_evidence", None)
+        if not self.event_input_blocked:
+            payload.pop("event_input_blocked", None)
         return payload
 
     @field_validator("source_name", "title")

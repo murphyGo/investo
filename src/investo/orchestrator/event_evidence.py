@@ -9,9 +9,18 @@ from pathlib import Path
 import httpx
 
 from investo.models.coverage import SourceOutcome
-from investo.models.enrichment import EnrichmentPolicy, EnrichmentQualification, EnrichmentResult
+from investo.models.enrichment import (
+    EnrichmentPolicy,
+    EnrichmentQualification,
+    EnrichmentResult,
+    SourceSlotQualificationSet,
+)
 from investo.models.items import NormalizedItem
-from investo.sources.event_evidence import enrich_event_evidence, load_enrichment_qualification
+from investo.sources.event_evidence import (
+    enrich_event_evidence,
+    load_enrichment_qualification,
+    quarantine_event_inputs,
+)
 
 
 async def prepare_event_evidence(
@@ -23,6 +32,7 @@ async def prepare_event_evidence(
     received_at: datetime,
     deadline: float | None = None,
     client: httpx.AsyncClient | None = None,
+    slot_qualification: SourceSlotQualificationSet | None = None,
 ) -> EnrichmentResult:
     """Call once per collection, before routing; failed sources stay failed."""
     if policy.mode in {"off", "shadow"}:
@@ -30,6 +40,7 @@ async def prepare_event_evidence(
     policy.validate_activation()
     if policy.mode == "preview" and policy.qualification_sha256 != qualification.policy_hash:
         raise ValueError("event preview qualification hash mismatch")
+    quarantined = quarantine_event_inputs(items, policy, qualification)
     failed = {
         outcome.source_name for outcome in outcomes if outcome.status in {"failed", "skipped"}
     }
@@ -40,7 +51,7 @@ async def prepare_event_evidence(
         and (policy.mode != "preview" or item.source_name in policy.preview_sources)
     ]
     if not indexes:
-        return EnrichmentResult(items=tuple(items))
+        return EnrichmentResult(items=quarantined)
     selected = tuple(items[index] for index in indexes)
     if client is None:
         async with httpx.AsyncClient(follow_redirects=False, trust_env=False) as owned_client:
@@ -51,6 +62,7 @@ async def prepare_event_evidence(
                 qualification=qualification,
                 received_at=received_at,
                 deadline=deadline,
+                slot_qualification=slot_qualification,
             )
     else:
         result = await enrich_event_evidence(
@@ -60,8 +72,9 @@ async def prepare_event_evidence(
             qualification=qualification,
             received_at=received_at,
             deadline=deadline,
+            slot_qualification=slot_qualification,
         )
-    updated = list(items)
+    updated = list(quarantined)
     for index, item in zip(indexes, result.items, strict=True):
         updated[index] = item
     return EnrichmentResult(
