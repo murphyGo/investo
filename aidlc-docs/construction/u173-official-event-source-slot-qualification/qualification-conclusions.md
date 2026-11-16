@@ -94,3 +94,8 @@ DART는 이 로컬 capture에서 호출하지 않았다. 기존 managed credenti
 ## 2026-11-17 DART 과거 지원 양식 검증
 
 [후속 증거](../event-v3-acceptance-20261028/dart-qualification-20261116/evidence.json)의 현재 목록/원문2GET 및 실제 수신 시각을 독립 검수했다. DART6.4/20260723·11324 기재정정의 당시 계획/조건에만 local 자격1을 추가해3verified/5blocked다. 후속 정정(superseded) 때문에 최신 상태·발행 완료를 판정하지 않는다. 기존7행/Fed2는 그대로이고 runtime0/activationfalse·live XML 미연결·나머지 단계는 유지한다. 공개 viewer domain 등록은 provenance metadata이며 새로운 HTTP 권한이 아니다.
+
+
+### 2026-11-17 — DART qualification 최종 CI
+
+[b49752b8 전체 CI](https://github.com/murphyGo/investo/actions/runs/43896888436) 8,021PASS/1skip·정적/정책/docs PASS. bounded local3/runtime0·superseded 한정과 상위 단계/운영 미완료를 유지한다.

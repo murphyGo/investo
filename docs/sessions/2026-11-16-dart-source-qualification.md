@@ -12,7 +12,7 @@
 
 ## 수용 상태
 
-최종 local3/8·runtime0·DART 과거 지원 양식만 qualified·human0/12·v3예약0·운영 미완료다. metadata/ops 최종 CI와 운영 인수는 별도로 확인한다. N184의 live HTML-only/ZIP 금지는 변경하지 않는다.
+최종 local3/8·runtime0·DART 과거 지원 양식만 qualified·human0/12·v3예약0·운영 미완료다. metadata/ops 최종 CI도 통과했으며 운영 인수는 별도로 남는다. N184의 live HTML-only/ZIP 금지는 변경하지 않는다.
 
 
 ## exact CI와 실제 응답
@@ -30,4 +30,11 @@
 
 검수한 DART1행만 자격표에 반영해 **local3/8 verified·5blocked, runtime0/activationfalse**로 판정했다. 다른7행과 기존Fed2 sample은 완전히 보존했다. 새 matrix hash로3sample/10fieldslot을 실제 loader와 private CLI에서 재생했다. DART의 상태는 역사적 정정문의 한 지원 양식에만 한정되며 superseded 표지를 최신 조건이나 발행 완료로 바꾸지 않는다. 원래 진단의 false 영수증은 보존하고 이 오프라인 판정을 별도 기록한다.
 
-qualification 통합 집중162PASS/2.65초·Ruff/mypy371, 관련 독립23PASS/1.00초·C/H/M0을 확인했다. 자격표·viewer metadata·미활성 경계 회귀의 최종 exact CI는 아직 확인 중이다. u173 Step4/u184 Step5 전체, production source preparation 연결·나머지5source·사람12건/화면/성능/실제 기사/운영 전환은 계속 미완료다.
+qualification 통합 집중162PASS/2.65초·Ruff/mypy371, 관련 독립23PASS/1.00초·C/H/M0을 확인했다. 최종 metadata/ops 코드 `b49752b8`의 [CI43896888436](https://github.com/murphyGo/investo/actions/runs/43896888436)가 Python3.11.9에서 **8,021PASS/1knownskip·655.09초**, Node39·Ruff/format870·mypy370·모든 정책/strictdocs PASS로 끝났다. u173 Step4/u184 Step5 전체, production source preparation 연결·나머지5source·사람12건/화면/성능/실제 기사/운영 전환은 계속 미완료다.
+
+
+## 최종 전달
+
+최종 metadata/ops 코드 `b49752b8`의 [CI43896888436](https://github.com/murphyGo/investo/actions/runs/43896888436)가 Python3.11.9에서 **8,021PASS/1knownskip·655.09초**, Node39·Ruff/format870·mypy370·모든 정책/strictdocs PASS로 끝났다. 작업 폴더의 모델/CLI 회귀30PASS/1.35초와 실제 private capture3개 재생도 확인했다. 기존 production/preview/AI report pin은 보존했고 전용 수동 DART pin만6ac로 남겼다. 추가 source 요청은0회다. 검증 도구·자격표·메타데이터를 main에 전달하고 이 subplan만6/6 완료했다.
+
+다음은 현재 사건을 위한 live source preparation 연결과 별도 runtime 자격/운영 승인이다. superseded인 과거 공시를 최신 상태·발행 완료로 전이하지 않으며, 나머지5source·사람0/12·화면/성능·v3예약0·운영 전환은 계속 잔여다.

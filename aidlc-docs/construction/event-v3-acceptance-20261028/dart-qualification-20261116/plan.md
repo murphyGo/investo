@@ -23,7 +23,7 @@ Functional Design/NFR Requirements: Required. 아래 계약으로 기존 parser 
 - [x] 3. 합성 양성 및 pagination/identity/secret/HTTP/clock/refs/보안 음성 회귀와 독립 QA를 통과한다.
 - [x] 4. exact code CI를 확인하고 별도 private 수동 workflow·전용 pin을 전달한다.
 - [x] 5. 실제2GET probe의 암호문을 즉시 회수하고 새 목록/원문/수신 clock/5slot/29XML 근거를 검수한다.
-- [ ] 6. 증거대로 qualification 판정·session/cross-check/state/audit를 기록하고 전달한다.
+- [x] 6. 증거대로 qualification 판정·session/cross-check/state/audit를 기록하고 전달한다.
 
 ## 공식 근거
 
@@ -33,3 +33,5 @@ Functional Design/NFR Requirements: Required. 아래 계약으로 기존 parser 
 ## 자격표의 출처 메타데이터 보완
 
 실제 loader가 빈 DART evidence_domains 때문에 후보를 거절해, 공개 viewer dart.fss.or.kr만 canonical source metadata에 등록했다. 기존 domain guard를 완화하지 않았다. 이 메타데이터는 출처 집계/자격표 locator 검증에 쓰이며 live body source/selector/EnrichmentSource에는 DART를 추가하지 않았다. 정적/집중 검사와 독립 검수 후 local3/runtime0의 자격표 및 이 보완에 대해 별도 exact CI를 확인한다. 새 HTTP 재실행은 필요 없으며 실제6ac의 parser/runner bytes는 그대로다.
+
+후속 subplan6/6 완료. metadata/ops 코드 `b49752b8`의 [최종 CI](https://github.com/murphyGo/investo/actions/runs/43896888436)는 8,021PASS/1knownskip·655.09초다. local3/8·runtime0·activationfalse이며 상위 u173/u184 및 운영 수용은 계속 미완료다.

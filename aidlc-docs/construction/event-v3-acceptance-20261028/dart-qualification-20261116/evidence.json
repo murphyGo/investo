@@ -53,10 +53,29 @@
       "focused_seconds": 2.65,
       "ruff": "pass",
       "mypy_source_and_script_files": 371,
-      "exact_ci": "pending",
+      "exact_ci": {
+        "run_id": 43896888436,
+        "job_id": 133402756397,
+        "code_sha": "b49752b8976406da4c68a51766c1fa8eaefcf438",
+        "status": "success",
+        "python_version": "3.11.9",
+        "passed": 8021,
+        "failed": 0,
+        "known_skipped": 1,
+        "seconds": 655.09,
+        "node_passed": 39,
+        "ruff": "pass",
+        "formatted_files": 870,
+        "mypy_sources": 370,
+        "policy_guards": "pass",
+        "strict_docs": "pass"
+      },
       "independent_passed": 53,
       "independent_seconds": 1.47,
-      "remaining_critical_high_medium": 0
+      "remaining_critical_high_medium": 0,
+      "root_focused_passed": 30,
+      "root_focused_seconds": 1.35,
+      "root_private_factory_replay": "pass: 3 samples / 10 fields"
     }
   },
   "actual": {
@@ -153,7 +172,9 @@
     "production_source_path": false,
     "publication": false,
     "notification": false,
-    "dedicated_manual_pin": "REVIEWED_DART_QUALIFICATION_SHA"
+    "dedicated_manual_pin": "REVIEWED_DART_QUALIFICATION_SHA",
+    "existing_reviewed_pins_unchanged": true,
+    "additional_source_requests_after_capture": 0
   },
   "qualification_decision": {
     "qualified": 3,
@@ -174,5 +195,24 @@
     "related_independent_passed": 23,
     "related_independent_seconds": 1.0,
     "private_combined_capture_sha256": "09c0ed6b5c16a617a7ae1d5f8e1917ae19f4f5e3c66fcc347dc6e51cd35e91c2"
-  }
+  },
+  "qualification_code_sha": "b49752b8976406da4c68a51766c1fa8eaefcf438",
+  "qualification_metadata_files": [
+    {
+      "path": "src/investo/_internal/source_specs.py",
+      "sha256": "3c7d173d13323ef1b3407b711c67b64a71e24a513667f810b99af53b6c7cb939"
+    },
+    {
+      "path": "ops/event_source_slot_qualification.json",
+      "sha256": "3eb5d6c95e99425df90e95e666ced19d1e3615cbd6c28164308c62f6418408ad"
+    },
+    {
+      "path": "tests/unit/models/test_source_slot_qualification_u173.py",
+      "sha256": "fa5564681c480a39fc18a0dbb550b9009367015cce48cee6b2dc88b7f845a34a"
+    },
+    {
+      "path": "tests/integration/test_event_source_slot_checker_u173.py",
+      "sha256": "92d47a3a05317f4c9ec4a4f38c289c07dfb3289d478de5a2f9f43a1c15cc587a"
+    }
+  ]
 }

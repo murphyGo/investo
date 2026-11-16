@@ -485,3 +485,8 @@ User requested commit and deployment. Reconstructed the 41 owned paths from the 
 ### 2026-11-17 — DART 과거 지원 양식 local qualification
 
 사용자 승인 범위의 실제 private43894860556은 code6ac349fe/CI43892236864 SUCCESS8,018PASS/1skip 후2GET/모두200/1.571763초로 목록·원문·실제clock/5slot25refs·29XML을 검증했다. 독립 readback과 실제 loader/CLI3sample10fieldslot 재생 C/H/M0. 다른7행·Fed2를 보존하고 DART6.4/11324 과거 기재정정 양식에만 local 자격을 추가해3verified/5blocked·runtime0/activationfalse다. 새 목록의 superseded 표지는 최신/발행완료 근거가 아니며 원래 진단 flagfalse를 유지한다. canonical viewer domain1행 보완은 body HTTP 권한을 늘리지 않는다. metadata/ops/test 최종 exact CI 확인 중, u173Step4/u184Step5 전체·human0/12·v3예약0·운영미완료 유지. [기록](../docs/sessions/2026-11-16-dart-source-qualification.md), [증거](construction/event-v3-acceptance-20261028/dart-qualification-20261116/evidence.json).
+
+
+### 2026-11-17 — DART local qualification 최종 CI
+
+최종 metadata/ops 코드 `b49752b8`의 [CI43896888436](https://github.com/murphyGo/investo/actions/runs/43896888436)가 Python3.11.9에서 **8,021PASS/1knownskip·655.09초**, Node39·Ruff/format870·mypy370·모든 정책/strictdocs PASS로 끝났다. 실제 source 수집은6ac/43894860556의2GET/200/1.571763초이며 이후 parser/runner는 불변·추가HTTP0이다. local3verified/5blocked·runtime0/activationfalse, superseded 과거 지원 양식에만 한정한다. 기존7행/Fed2 및 production/preview pin과 다른 dirty 작업은 보존했다. Root30PASS/3sample재생, 독립 source·metadata 검수C/H/M0. subplan6/6만 완료하며 u173Step4/u184Step5 전체·human0/12·v3예약0·화면/성능/운영 잔여는 유지한다. [검수](../docs/cross-checks/2026-11-17-dart-source-qualification.md).
