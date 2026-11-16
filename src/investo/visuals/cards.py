@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from datetime import date
-from typing import Literal
+from typing import Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
@@ -30,6 +30,9 @@ CardKind = Literal[
     "watchlist-relevance",
 ]
 
+DATA_CONFIDENCE_VISIBLE_ROWS: Final = 4
+_SOURCE_DETAIL_MAX_CHARS: Final = 160
+
 
 class _CardInput(BaseModel):
     """Shared immutable base for visual card input models."""
@@ -41,13 +44,13 @@ class _CardInput(BaseModel):
 
 
 class DataConfidenceSourceRow(BaseModel):
-    """One adapter's verdict surfaced on the data-confidence card."""
+    """An adapter verdict or status summary on the data-confidence card."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     source_name: str = Field(min_length=1, max_length=100)
     status: Literal["ok", "zero", "failed", "skipped"]
-    detail: str = Field(default="", max_length=160)
+    detail: str = Field(default="", max_length=_SOURCE_DETAIL_MAX_CHARS)
 
 
 class DataConfidenceCardInput(_CardInput):
@@ -153,7 +156,8 @@ def build_data_confidence_card(
     Failure detail is taken from the already-sanitized
     ``failure_reason`` on the underlying outcome; never from the raw
     exception. Healthy adapters are summarized as a single trailing
-    "정상 N개" line so the card stays visually compact.
+    "정상 N개" line. If individual rows exceed the visible budget,
+    each status gets one row with its count and a representative detail.
     """
     return DataConfidenceCardInput(
         target_date=target_date,
@@ -204,10 +208,45 @@ def _build_data_confidence_source_rows(
             DataConfidenceSourceRow(
                 source_name=f"정상 {len(ok)}개",
                 status="ok",
-                detail=names,
+                detail=_bound_source_detail(names),
             )
         )
-    return tuple(rows)
+    return _compact_data_confidence_source_rows(rows)
+
+
+def _bound_source_detail(detail: str) -> str:
+    if len(detail) <= _SOURCE_DETAIL_MAX_CHARS:
+        return detail
+    return detail[: _SOURCE_DETAIL_MAX_CHARS - 1] + "…"
+
+
+def _compact_data_confidence_source_rows(
+    rows: Sequence[DataConfidenceSourceRow],
+) -> tuple[DataConfidenceSourceRow, ...]:
+    """Fit all present verdicts into the SVG budget without hiding healthy sources."""
+    if len(rows) <= DATA_CONFIDENCE_VISIBLE_ROWS:
+        return tuple(rows)
+    compact: list[DataConfidenceSourceRow] = []
+    for status, label in (
+        ("failed", "수집 실패 소스"),
+        ("zero", "0건 반환 소스"),
+        ("skipped", "비활성 소스"),
+    ):
+        group = [row for row in rows if row.status == status]
+        if len(group) == 1:
+            compact.append(group[0])
+        elif group:
+            first = group[0]
+            compact.append(
+                DataConfidenceSourceRow(
+                    source_name=f"{label} {len(group)}개",
+                    status=first.status,
+                    detail=_bound_source_detail(f"대표 {first.source_name} · {first.detail}"),
+                )
+            )
+    # The builder has already collapsed all healthy adapters into one row.
+    compact.extend(row for row in rows if row.status == "ok")
+    return tuple(compact)
 
 
 def build_price_snapshot_card(

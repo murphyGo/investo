@@ -10,6 +10,7 @@ from investo._internal.public_quality_language import project_public_quality_lan
 from investo.models.segments import SEGMENT_LABELS
 from investo.models.watchlist import DEFAULT_BUNDLE_BADGE_LABEL
 from investo.visuals.cards import (
+    DATA_CONFIDENCE_VISIBLE_ROWS,
     DataConfidenceCardInput,
     DataConfidenceSourceRow,
     EventFactCardInput,
@@ -174,13 +175,13 @@ def _render_source_rows(rows: tuple[DataConfidenceSourceRow, ...]) -> str:
     The metric grid runs down the left half (x=90..520). The source
     block lives in the right half (x=620..1140) so both can fit
     comfortably above the disclaimer line at ``y=555``. Up to four
-    rows are visible; ``_build_data_confidence_source_rows`` orders
-    failed first, then zero, then a healthy summary, so the highest-
-    signal entries always survive truncation.
+    rows are visible. The builder compacts overflowing rows by status,
+    preserving failed, zero, skipped, and healthy summaries. Truncation
+    here remains a defensive bound for legacy direct-input callers.
     """
     if not rows:
         return ""
-    visible = rows[:4]
+    visible = rows[:DATA_CONFIDENCE_VISIBLE_ROWS]
     rendered: list[str] = []
     rendered.append(
         f'<text class="card-label" x="620" y="200" font-family="{_FONT_FAMILY}" '
