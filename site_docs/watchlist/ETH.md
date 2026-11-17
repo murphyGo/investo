@@ -2,6 +2,20 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-16 begin -->
+
+## 2026-11-16
+
+- [coingecko-price] **ticker**: 조회 시점 가격 · ETH $1,826.56 (+0.28%)
+- [coinmetrics-exchange-flows] **ticker**: ETH 거래소 일별 순유입 (2026-11-15, UTC)
+- [coinmetrics-network-activity] **ticker**: ETH 일별 거래 건수 (2026-11-15, UTC)
+- [coinmetrics-network-activity] **ticker**: ETH 일별 활성 주소 수 (2026-11-16, UTC)
+- [defillama-market-structure] **ticker**: DeFi TVL $71.4B; leader Ethereum
+- [theblock-crypto] **ticker**: Peraire-Bueno brothers acquitted of wire fraud in $25 million Ethereum MEV case
+- [theblock-crypto] **ticker**: Tom Lee says Ethereum’s ‘waterfall decline in price’ defies fundamentals as Bitmine adds 7,653 ETH
+- [theblock-crypto] **ticker**: Vitalik Buterin backs higher gas costs for creating accounts and deploying smart contracts to help Ethereum scale
+
+<!-- u33 entry 2026-11-16 end -->
 <!-- u33 entry 2026-11-13 begin -->
 
 ## 2026-11-13

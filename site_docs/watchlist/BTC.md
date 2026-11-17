@@ -2,6 +2,23 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-16 begin -->
+
+## 2026-11-16
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -1243 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,228,449,027,284; BTC dominance 58.52%
+- [coingecko-price] **ticker**: 조회 시점 가격 · BTC $64,901.00 (-0.02%)
+- [coinmetrics-exchange-flows] **ticker**: BTC 거래소 일별 순유입 (2026-11-15, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 거래 건수 (2026-11-16, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 활성 주소 수 (2026-11-16, UTC)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $705,244,340 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitwise CIO says bitcoin may fall further in the near term but still calls it the best risk-adjusted trade of the nex…
+- [theblock-crypto] **ticker**: Boris Johnson backs tokenization months after likening bitcoin to a ‘Ponzi scheme’
+- [theblock-crypto] **ticker**: ‘This dip could use a little orange’: Michael Saylor’s Strategy buys another 485 BTC for $33 million as bitcoin tumbles
+
+<!-- u33 entry 2026-11-16 end -->
 <!-- u33 entry 2026-11-13 begin -->
 
 ## 2026-11-13

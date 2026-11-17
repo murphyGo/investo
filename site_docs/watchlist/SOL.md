@@ -2,6 +2,19 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-16 begin -->
+
+## 2026-11-16
+
+- [coingecko-price] **ticker**: 조회 시점 가격 · SOL $72.83 (+1.39%)
+- [defillama-market-structure] **ticker**: DeFi TVL $71.4B; leader Ethereum
+- [theblock-crypto] **ticker**: Bitwise sees Solana reaching $1,100 by 2031 in bull case as onchain trading grows
+- [theblock-crypto] **ticker**: Boris Johnson backs tokenization months after likening bitcoin to a ‘Ponzi scheme’
+- [theblock-crypto] **ticker**: DeFi Development Corp. adds 9,482 SOL as CHAD dividend streak hits 31 days
+- [theblock-crypto] **ticker**: Privacy on Solana is ‘non-negotiable’ for institutional adoption, Mert Mumtaz says
+- [theblock-crypto] **ticker**: Solana drops ‘mainnet beta’ label and adopts protocol version 1.0
+
+<!-- u33 entry 2026-11-16 end -->
 <!-- u33 entry 2026-11-13 begin -->
 
 ## 2026-11-13
