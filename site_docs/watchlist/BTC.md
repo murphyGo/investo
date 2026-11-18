@@ -2,6 +2,25 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-17 begin -->
+
+## 2026-11-17
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -1243 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,212,326,652,647; BTC dominance 58.38%
+- [coingecko-price] **ticker**: 조회 시점 가격 · BTC $64,373.00 (-0.55%)
+- [coinmetrics-exchange-flows] **ticker**: BTC 거래소 일별 순유입 (2026-11-16, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 거래 건수 (2026-11-17, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 활성 주소 수 (2026-11-17, UTC)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $704,282,560 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $704,284,560 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000406529504196 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Anchorage, Kalshi Prime let institutions use custodied bitcoin as margin
+- [theblock-crypto] **ticker**: Bernstein sees upside for bitcoin miners Riot and TeraWulf, citing discounts to implied AI data center values
+- [theblock-crypto] **ticker**: Coinbase expands onchain crypto loans to New York via Morpho
+- [theblock-crypto] **ticker**: Grayscale says crypto pullback offers ‘compelling entry points’ as bitcoin falls to $64,000
+
+<!-- u33 entry 2026-11-17 end -->
 <!-- u33 entry 2026-11-16 begin -->
 
 ## 2026-11-16

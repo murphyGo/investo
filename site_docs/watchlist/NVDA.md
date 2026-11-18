@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-17 begin -->
+
+## 2026-11-17
+
+- [theblock-crypto] **ticker**: Cathie Wood’s Ark Invest loads up on crypto stocks while selling $85 million in Nvidia
+- [theblock-crypto] **ticker**: Everyone is Trading Tokenized Nvidia Derivatives
+- [yfinance-price] **ticker**: NVDA 155.46 (-0.44%)
+
+<!-- u33 entry 2026-11-17 end -->
 <!-- u33 entry 2026-11-16 begin -->
 
 ## 2026-11-16

@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-17 begin -->
+
+## 2026-11-17
+
+- [coingecko-price] **ticker**: 조회 시점 가격 · SOL $74.70 (+3.27%)
+- [defillama-market-structure] **ticker**: DeFi TVL $71.3B; leader Ethereum
+- [theblock-crypto] **ticker**: Coinbase expands onchain crypto loans to New York via Morpho
+- [theblock-crypto] **ticker**: Solana’s Trump memecoin launch tested infrastructure ahead of institutional push, Lily Liu says
+
+<!-- u33 entry 2026-11-17 end -->
 <!-- u33 entry 2026-11-16 begin -->
 
 ## 2026-11-16
