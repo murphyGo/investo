@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-18 begin -->
+
+## 2026-11-18
+
+- [theblock-crypto] **ticker**: Coinbase AI defense blocks $4.7 million from being sent to deepfake Elon Musk scam
+- [yfinance-price] **ticker**: TSLA 383.72 (+0.95%)
+
+<!-- u33 entry 2026-11-18 end -->
 <!-- u33 entry 2026-11-17 begin -->
 
 ## 2026-11-17

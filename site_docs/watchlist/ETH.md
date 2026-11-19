@@ -2,6 +2,18 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-18 begin -->
+
+## 2026-11-18
+
+- [coingecko-price] **ticker**: 조회 시점 가격 · ETH $1,769.85 (-1.64%)
+- [coinmetrics-exchange-flows] **ticker**: ETH 거래소 일별 순유입 (2026-11-17, UTC)
+- [coinmetrics-network-activity] **ticker**: ETH 일별 거래 건수 (2026-11-18, UTC)
+- [coinmetrics-network-activity] **ticker**: ETH 일별 활성 주소 수 (2026-11-18, UTC)
+- [defillama-market-structure] **ticker**: DeFi TVL $70.4B; leader Ethereum
+- [theblock-crypto] **ticker**: TD Cowen tempers ether outlook, maintains Buy rating on Sharplink
+
+<!-- u33 entry 2026-11-18 end -->
 <!-- u33 entry 2026-11-17 begin -->
 
 ## 2026-11-17

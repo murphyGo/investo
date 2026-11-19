@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-18 begin -->
+
+## 2026-11-18
+
+- [theblock-crypto] **ticker**: Ark Invest buys crypto stocks as it sells $85 million in Nvidia, Coinbase brings onchain loans to New York, and more
+- [yfinance-price] **ticker**: NVDA 150.96 (-2.89%)
+
+<!-- u33 entry 2026-11-18 end -->
 <!-- u33 entry 2026-11-17 begin -->
 
 ## 2026-11-17

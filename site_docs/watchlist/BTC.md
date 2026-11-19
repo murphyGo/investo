@@ -2,6 +2,23 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-18 begin -->
+
+## 2026-11-18
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -1243 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,165,490,307,153; BTC dominance 58.00%
+- [coingecko-price] **ticker**: 조회 시점 가격 · BTC $62,594.00 (-2.52%)
+- [coinmetrics-exchange-flows] **ticker**: BTC 거래소 일별 순유입 (2026-11-17, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 거래 건수 (2026-11-18, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 활성 주소 수 (2026-11-18, UTC)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $700,428,550 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $700,432,610 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000058116979091 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: CryptoQuant says bitcoin is back in a bearish phase but has reached a ‘value zone’
+- [theblock-crypto] **ticker**: ‘Gift from the market’: Bitcoin shows signs of a local bottom after six weeks of losses, analyst says
+
+<!-- u33 entry 2026-11-18 end -->
 <!-- u33 entry 2026-11-17 begin -->
 
 ## 2026-11-17
