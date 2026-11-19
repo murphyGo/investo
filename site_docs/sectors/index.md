@@ -6,7 +6,7 @@
 
 <p class="sector-subtitle">세부 업종과 빅테크 테마의 상대성과를 한눈에.</p>
 <div class="sector-status">
-<span>기준일: <strong>2026-11-17</strong> · 미국 정규장 마감 기준</span>
+<span>기준일: <strong>2026-11-18</strong> · 미국 정규장 마감 기준</span>
 <span class="sector-status-chip" data-freshness="fresh">생성 시점 신선도: 최신</span>
 <span class="sector-status-chip">정상 · 11/11 섹터 사용 가능 · 11/11 비교 가능</span>
 </div>
@@ -32,9 +32,9 @@
 <p class="sector-filter-announcement" aria-live="polite"></p>
 
 <div class="sector-overview">
-<div class="sector-stat"><span class="sector-stat-label">상대강도 상위</span><strong class="sector-stat-value">XLV · XLP</strong><span class="sector-stat-note">5 · 21 · 63일 상대성과 기준</span></div>
+<div class="sector-stat"><span class="sector-stat-label">상대강도 상위</span><strong class="sector-stat-value">XLP · XLU</strong><span class="sector-stat-note">5 · 21 · 63일 상대성과 기준</span></div>
 <div class="sector-stat"><span class="sector-stat-label">상대강도 하위</span><strong class="sector-stat-value">대표 8종목 · SMH</strong><span class="sector-stat-note">14개 관찰 그룹 중 비교</span></div>
-<div class="sector-stat"><span class="sector-stat-label">가장 많은 국면</span><strong class="sector-stat-value">둔화</strong><span class="sector-stat-note">7개 그룹 · 종목 중복 가능</span></div>
+<div class="sector-stat"><span class="sector-stat-label">가장 많은 국면</span><strong class="sector-stat-value">주도</strong><span class="sector-stat-note">5개 그룹 · 종목 중복 가능</span></div>
 <div class="sector-stat"><span class="sector-stat-label">비교 가능한 그룹</span><strong class="sector-stat-value">14 / 14</strong><span class="sector-stat-note">8개 이상일 때 순위 표시</span></div>
 </div>
 
@@ -44,20 +44,20 @@
 <div class="sector-panel-heading"><h3 id="sector-group-performance-title">21일 상대성과</h3><span class="sector-tag">SPY 대비 · pp</span></div>
 <p class="sector-panel-description">ETF·대표주 가격지수의 같은 기간 상대성과</p>
 <ol class="sector-bars">
-<li class="sector-bar-row sector-group-row" data-group-category="other" data-testid="sector-bar-XLV"><span class="sector-bar-label"><strong>헬스케어</strong><small>XLV · 업종</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:40.7249%;"></span></span><span class="sector-bar-value">+9.90 pp</span></li>
-<li class="sector-bar-row sector-group-row" data-group-category="other" data-testid="sector-bar-XLU"><span class="sector-bar-label"><strong>유틸리티</strong><small>XLU · 업종</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:38.7543%;"></span></span><span class="sector-bar-value">+9.42 pp</span></li>
-<li class="sector-bar-row sector-group-row" data-group-category="consumer" data-testid="sector-bar-XLP"><span class="sector-bar-label"><strong>필수소비재</strong><small>XLP · 업종</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:38.3127%;"></span></span><span class="sector-bar-value">+9.31 pp</span></li>
-<li class="sector-bar-row sector-group-row" data-group-category="financial" data-testid="sector-bar-XLRE"><span class="sector-bar-label"><strong>부동산</strong><small>XLRE · 업종</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:37.2200%;"></span></span><span class="sector-bar-value">+9.05 pp</span></li>
-<li class="sector-bar-row sector-group-row" data-group-category="financial" data-testid="sector-bar-XLF"><span class="sector-bar-label"><strong>금융</strong><small>XLF · 업종</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:33.2833%;"></span></span><span class="sector-bar-value">+8.09 pp</span></li>
-<li class="sector-bar-row sector-group-row" data-group-category="consumer" data-testid="sector-bar-XLY"><span class="sector-bar-label"><strong>경기소비재</strong><small>XLY · 업종</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:27.7547%;"></span></span><span class="sector-bar-value">+6.75 pp</span></li>
-<li class="sector-bar-row sector-group-row" data-group-category="other" data-testid="sector-bar-XLB"><span class="sector-bar-label"><strong>소재</strong><small>XLB · 업종</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:17.3794%;"></span></span><span class="sector-bar-value">+4.23 pp</span></li>
-<li class="sector-bar-row sector-group-row" data-group-category="other" data-testid="sector-bar-XLI"><span class="sector-bar-label"><strong>산업재</strong><small>XLI · 업종</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:13.5047%;"></span></span><span class="sector-bar-value">+3.28 pp</span></li>
-<li class="sector-bar-row sector-group-row" data-group-category="technology" data-testid="sector-bar-software-services"><span class="sector-bar-label"><strong>소프트웨어·IT서비스</strong><small>XSW · 업종</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:11.5143%;"></span></span><span class="sector-bar-value">+2.80 pp</span></li>
-<li class="sector-bar-row sector-group-row" data-group-category="other" data-testid="sector-bar-XLC"><span class="sector-bar-label"><strong>커뮤니케이션 서비스</strong><small>XLC · 업종</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:0.2211%;"></span></span><span class="sector-bar-value">+0.05 pp</span></li>
-<li class="sector-bar-row sector-group-row" data-group-category="other" data-testid="sector-bar-XLE"><span class="sector-bar-label"><strong>에너지</strong><small>XLE · 업종</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--negative" style="left:41.3308%;width:8.6692%;"></span></span><span class="sector-bar-value">-2.11 pp</span></li>
-<li class="sector-bar-row sector-group-row" data-group-category="technology" data-testid="sector-bar-big-tech"><span class="sector-bar-label"><strong>빅테크(M7)</strong><small>MAGS · 테마</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--negative" style="left:33.9285%;width:16.0715%;"></span></span><span class="sector-bar-value">-3.91 pp</span></li>
-<li class="sector-bar-row sector-group-row" data-group-category="technology" data-testid="sector-bar-hardware"><span class="sector-bar-label"><strong>하드웨어·장비</strong><small>대표 8종목 · 대표주</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--negative" style="left:21.2718%;width:28.7282%;"></span></span><span class="sector-bar-value">-6.98 pp</span></li>
-<li class="sector-bar-row sector-group-row" data-group-category="technology" data-testid="sector-bar-semiconductors"><span class="sector-bar-label"><strong>반도체·장비</strong><small>SMH · 업종</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--negative" style="left:2.0000%;width:48.0000%;"></span></span><span class="sector-bar-value">-11.67 pp</span></li>
+<li class="sector-bar-row sector-group-row" data-group-category="other" data-testid="sector-bar-XLU"><span class="sector-bar-label"><strong>유틸리티</strong><small>XLU · 업종</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:40.0302%;"></span></span><span class="sector-bar-value">+9.04 pp</span></li>
+<li class="sector-bar-row sector-group-row" data-group-category="consumer" data-testid="sector-bar-XLP"><span class="sector-bar-label"><strong>필수소비재</strong><small>XLP · 업종</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:39.6815%;"></span></span><span class="sector-bar-value">+8.96 pp</span></li>
+<li class="sector-bar-row sector-group-row" data-group-category="consumer" data-testid="sector-bar-XLY"><span class="sector-bar-label"><strong>경기소비재</strong><small>XLY · 업종</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:36.5577%;"></span></span><span class="sector-bar-value">+8.26 pp</span></li>
+<li class="sector-bar-row sector-group-row" data-group-category="financial" data-testid="sector-bar-XLRE"><span class="sector-bar-label"><strong>부동산</strong><small>XLRE · 업종</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:35.3286%;"></span></span><span class="sector-bar-value">+7.98 pp</span></li>
+<li class="sector-bar-row sector-group-row" data-group-category="financial" data-testid="sector-bar-XLF"><span class="sector-bar-label"><strong>금융</strong><small>XLF · 업종</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:27.9347%;"></span></span><span class="sector-bar-value">+6.31 pp</span></li>
+<li class="sector-bar-row sector-group-row" data-group-category="other" data-testid="sector-bar-XLV"><span class="sector-bar-label"><strong>헬스케어</strong><small>XLV · 업종</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:25.6959%;"></span></span><span class="sector-bar-value">+5.80 pp</span></li>
+<li class="sector-bar-row sector-group-row" data-group-category="other" data-testid="sector-bar-XLI"><span class="sector-bar-label"><strong>산업재</strong><small>XLI · 업종</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:16.6897%;"></span></span><span class="sector-bar-value">+3.77 pp</span></li>
+<li class="sector-bar-row sector-group-row" data-group-category="other" data-testid="sector-bar-XLB"><span class="sector-bar-label"><strong>소재</strong><small>XLB · 업종</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:15.7152%;"></span></span><span class="sector-bar-value">+3.55 pp</span></li>
+<li class="sector-bar-row sector-group-row" data-group-category="technology" data-testid="sector-bar-software-services"><span class="sector-bar-label"><strong>소프트웨어·IT서비스</strong><small>XSW · 업종</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:7.0401%;"></span></span><span class="sector-bar-value">+1.59 pp</span></li>
+<li class="sector-bar-row sector-group-row" data-group-category="other" data-testid="sector-bar-XLC"><span class="sector-bar-label"><strong>커뮤니케이션 서비스</strong><small>XLC · 업종</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:3.8439%;"></span></span><span class="sector-bar-value">+0.87 pp</span></li>
+<li class="sector-bar-row sector-group-row" data-group-category="technology" data-testid="sector-bar-big-tech"><span class="sector-bar-label"><strong>빅테크(M7)</strong><small>MAGS · 테마</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--negative" style="left:39.4337%;width:10.5663%;"></span></span><span class="sector-bar-value">-2.39 pp</span></li>
+<li class="sector-bar-row sector-group-row" data-group-category="other" data-testid="sector-bar-XLE"><span class="sector-bar-label"><strong>에너지</strong><small>XLE · 업종</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--negative" style="left:28.8488%;width:21.1512%;"></span></span><span class="sector-bar-value">-4.78 pp</span></li>
+<li class="sector-bar-row sector-group-row" data-group-category="technology" data-testid="sector-bar-hardware"><span class="sector-bar-label"><strong>하드웨어·장비</strong><small>대표 8종목 · 대표주</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--negative" style="left:20.6252%;width:29.3748%;"></span></span><span class="sector-bar-value">-6.63 pp</span></li>
+<li class="sector-bar-row sector-group-row" data-group-category="technology" data-testid="sector-bar-semiconductors"><span class="sector-bar-label"><strong>반도체·장비</strong><small>SMH · 업종</small></span><span class="sector-bar-track" aria-hidden="true"><span class="sector-bar-fill sector-bar-fill--negative" style="left:2.0000%;width:48.0000%;"></span></span><span class="sector-bar-value">-10.84 pp</span></li>
 </ol><p class="sector-chart-caption">왼쪽: SPY 하회 · 오른쪽: SPY 상회</p>
 </section>
 
@@ -65,26 +65,26 @@
 <div class="sector-panel-heading"><h3 id="sector-group-regime-title">그룹 국면 분포</h3><span class="sector-tag">21일 상대강도 · 5일 가속</span></div>
 <p class="sector-panel-description">그룹 수 기준 · 시장 비중을 뜻하지 않습니다.</p>
 <div class="sector-regime-grid">
-<div class="sector-regime sector-regime--recovering"><h4>회복<span data-group-regime-count>3</span></h4><div class="sector-regime-members">
+<div class="sector-regime sector-regime--recovering"><h4>회복<span data-group-regime-count>2</span></h4><div class="sector-regime-members">
 <span class="sector-regime-ticker sector-group-chip" data-group-category="other" title="에너지">XLE</span>
-<span class="sector-regime-ticker sector-group-chip" data-group-category="technology" title="반도체·장비">SMH</span>
-<span class="sector-regime-ticker sector-group-chip" data-group-category="technology" title="하드웨어·장비">대표 8종목</span>
-<span class="sector-regime-empty" data-group-regime-empty hidden>해당 그룹 없음</span></div></div>
-<div class="sector-regime sector-regime--leading"><h4>주도<span data-group-regime-count>2</span></h4><div class="sector-regime-members">
-<span class="sector-regime-ticker sector-group-chip" data-group-category="other" title="산업재">XLI</span>
-<span class="sector-regime-ticker sector-group-chip" data-group-category="other" title="유틸리티">XLU</span>
-<span class="sector-regime-empty" data-group-regime-empty hidden>해당 그룹 없음</span></div></div>
-<div class="sector-regime sector-regime--lagging"><h4>부진<span data-group-regime-count>2</span></h4><div class="sector-regime-members">
-<span class="sector-regime-ticker sector-group-chip" data-group-category="other" title="커뮤니케이션 서비스">XLC</span>
 <span class="sector-regime-ticker sector-group-chip" data-group-category="technology" title="빅테크(M7)">MAGS</span>
 <span class="sector-regime-empty" data-group-regime-empty hidden>해당 그룹 없음</span></div></div>
-<div class="sector-regime sector-regime--weakening"><h4>둔화<span data-group-regime-count>7</span></h4><div class="sector-regime-members">
+<div class="sector-regime sector-regime--leading"><h4>주도<span data-group-regime-count>5</span></h4><div class="sector-regime-members">
 <span class="sector-regime-ticker sector-group-chip" data-group-category="consumer" title="경기소비재">XLY</span>
 <span class="sector-regime-ticker sector-group-chip" data-group-category="consumer" title="필수소비재">XLP</span>
 <span class="sector-regime-ticker sector-group-chip" data-group-category="financial" title="금융">XLF</span>
-<span class="sector-regime-ticker sector-group-chip" data-group-category="other" title="헬스케어">XLV</span>
-<span class="sector-regime-ticker sector-group-chip" data-group-category="other" title="소재">XLB</span>
 <span class="sector-regime-ticker sector-group-chip" data-group-category="financial" title="부동산">XLRE</span>
+<span class="sector-regime-ticker sector-group-chip" data-group-category="other" title="유틸리티">XLU</span>
+<span class="sector-regime-empty" data-group-regime-empty hidden>해당 그룹 없음</span></div></div>
+<div class="sector-regime sector-regime--lagging"><h4>부진<span data-group-regime-count>2</span></h4><div class="sector-regime-members">
+<span class="sector-regime-ticker sector-group-chip" data-group-category="technology" title="반도체·장비">SMH</span>
+<span class="sector-regime-ticker sector-group-chip" data-group-category="technology" title="하드웨어·장비">대표 8종목</span>
+<span class="sector-regime-empty" data-group-regime-empty hidden>해당 그룹 없음</span></div></div>
+<div class="sector-regime sector-regime--weakening"><h4>둔화<span data-group-regime-count>5</span></h4><div class="sector-regime-members">
+<span class="sector-regime-ticker sector-group-chip" data-group-category="other" title="커뮤니케이션 서비스">XLC</span>
+<span class="sector-regime-ticker sector-group-chip" data-group-category="other" title="헬스케어">XLV</span>
+<span class="sector-regime-ticker sector-group-chip" data-group-category="other" title="산업재">XLI</span>
+<span class="sector-regime-ticker sector-group-chip" data-group-category="other" title="소재">XLB</span>
 <span class="sector-regime-ticker sector-group-chip" data-group-category="technology" title="소프트웨어·IT서비스">XSW</span>
 <span class="sector-regime-empty" data-group-regime-empty hidden>해당 그룹 없음</span></div></div>
 </div>
@@ -99,20 +99,20 @@
 <div class="sector-group-table" tabindex="0" role="region" aria-label="분야별 상세 지표" markdown="1">
 
 <table class="sector-group-detail-table"><thead><tr><th>순위</th><th>관찰 그룹</th><th>측정 대상</th><th>국면</th><th>가격수익률 1D</th><th>SPY 대비 5D</th><th>SPY 대비 21D</th><th>SPY 대비 63D</th><th>실현변동성 20D</th><th>최대 낙폭 20D</th></tr></thead><tbody>
-<tr class="sector-group-row" data-group-category="other" data-testid="sector-row-XLV"><td>1/14</td><td><strong>헬스케어</strong><span class="sector-group-kind">업종</span></td><td title="S&amp;P 500 섹터 ETF 프록시">XLV</td><td>둔화</td><td>-1.41 %</td><td>+0.40 pp</td><td>+9.90 pp</td><td>+10.20 pp</td><td>+20.35 %</td><td>-2.56 %</td></tr>
-<tr class="sector-group-row" data-group-category="consumer" data-testid="sector-row-XLP"><td>2/14</td><td><strong>필수소비재</strong><span class="sector-group-kind">업종</span></td><td title="S&amp;P 500 섹터 ETF 프록시">XLP</td><td>둔화</td><td>-1.23 %</td><td>+2.80 pp</td><td>+9.31 pp</td><td>+10.45 pp</td><td>+24.36 %</td><td>-3.50 %</td></tr>
-<tr class="sector-group-row" data-group-category="other" data-testid="sector-row-XLU"><td>3/14</td><td><strong>유틸리티</strong><span class="sector-group-kind">업종</span></td><td title="S&amp;P 500 섹터 ETF 프록시">XLU</td><td>주도</td><td>-1.59 %</td><td>+1.62 pp</td><td>+9.42 pp</td><td>+3.40 pp</td><td>+14.07 %</td><td>-1.59 %</td></tr>
-<tr class="sector-group-row" data-group-category="financial" data-testid="sector-row-XLF"><td>4/14</td><td><strong>금융</strong><span class="sector-group-kind">업종</span></td><td title="S&amp;P 500 섹터 ETF 프록시">XLF</td><td>둔화</td><td>-1.91 %</td><td>+0.24 pp</td><td>+8.09 pp</td><td>+4.05 pp</td><td>+22.73 %</td><td>-3.60 %</td></tr>
-<tr class="sector-group-row" data-group-category="financial" data-testid="sector-row-XLRE"><td>5/14</td><td><strong>부동산</strong><span class="sector-group-kind">업종</span></td><td title="S&amp;P 500 섹터 ETF 프록시">XLRE</td><td>둔화</td><td>-1.49 %</td><td>+0.11 pp</td><td>+9.05 pp</td><td>+1.65 pp</td><td>+19.44 %</td><td>-3.39 %</td></tr>
-<tr class="sector-group-row" data-group-category="other" data-testid="sector-row-XLE"><td>6/14</td><td><strong>에너지</strong><span class="sector-group-kind">업종</span></td><td title="S&amp;P 500 섹터 ETF 프록시">XLE</td><td>회복</td><td>-0.52 %</td><td>+4.18 pp</td><td>-2.11 pp</td><td>+4.42 pp</td><td>+31.05 %</td><td>-12.00 %</td></tr>
-<tr class="sector-group-row" data-group-category="consumer" data-testid="sector-row-XLY"><td>7/14</td><td><strong>경기소비재</strong><span class="sector-group-kind">업종</span></td><td title="S&amp;P 500 섹터 ETF 프록시">XLY</td><td>둔화</td><td>-0.89 %</td><td>-0.93 pp</td><td>+6.75 pp</td><td>+3.51 pp</td><td>+27.54 %</td><td>-4.28 %</td></tr>
-<tr class="sector-group-row" data-group-category="technology" data-testid="sector-row-software-services"><td>8/14</td><td><strong>소프트웨어·IT서비스</strong><span class="sector-group-kind">업종</span></td><td title="미국 전 규모 소프트웨어·서비스 ETF · 일부 인접 업종 포함">XSW</td><td>둔화</td><td>-3.00 %</td><td>-1.37 pp</td><td>+2.80 pp</td><td>+3.53 pp</td><td>+23.86 %</td><td>-8.54 %</td></tr>
-<tr class="sector-group-row" data-group-category="other" data-testid="sector-row-XLB"><td>9/14</td><td><strong>소재</strong><span class="sector-group-kind">업종</span></td><td title="S&amp;P 500 섹터 ETF 프록시">XLB</td><td>둔화</td><td>-1.22 %</td><td>-1.47 pp</td><td>+4.23 pp</td><td>+1.56 pp</td><td>+21.54 %</td><td>-5.68 %</td></tr>
-<tr class="sector-group-row" data-group-category="other" data-testid="sector-row-XLI"><td>10/14</td><td><strong>산업재</strong><span class="sector-group-kind">업종</span></td><td title="S&amp;P 500 섹터 ETF 프록시">XLI</td><td>주도</td><td>-0.55 %</td><td>-0.03 pp</td><td>+3.28 pp</td><td>-4.69 pp</td><td>+26.09 %</td><td>-5.17 %</td></tr>
-<tr class="sector-group-row" data-group-category="other" data-testid="sector-row-XLC"><td>11/14</td><td><strong>커뮤니케이션 서비스</strong><span class="sector-group-kind">업종</span></td><td title="S&amp;P 500 섹터 ETF 프록시">XLC</td><td>부진</td><td>-1.46 %</td><td>+0.01 pp</td><td>+0.05 pp</td><td>-0.68 pp</td><td>+23.41 %</td><td>-9.34 %</td></tr>
-<tr class="sector-group-row" data-group-category="technology" data-testid="sector-row-big-tech"><td>12/14</td><td><strong>빅테크(M7)</strong><span class="sector-group-kind">테마</span></td><td title="M7 동일비중 노출 ETF · 다른 그룹과 종목 중복">MAGS</td><td>부진</td><td>-0.78 %</td><td>-0.78 pp</td><td>-3.91 pp</td><td>+2.93 pp</td><td>+28.90 %</td><td>-8.88 %</td></tr>
-<tr class="sector-group-row" data-group-category="technology" data-testid="sector-row-hardware"><td>13/14</td><td><strong>하드웨어·장비</strong><span class="sector-group-kind">대표주</span></td><td title="대표 8종목 · 일별 동일비중 가격지수">대표 8종목</td><td>회복</td><td>-0.02 %</td><td>+0.88 pp</td><td>-6.98 pp</td><td>-5.06 pp</td><td>+56.67 %</td><td>-19.09 %</td></tr>
-<tr class="sector-group-row" data-group-category="technology" data-testid="sector-row-semiconductors"><td>14/14</td><td><strong>반도체·장비</strong><span class="sector-group-kind">업종</span></td><td title="미국 상장 반도체·장비 ETF · 해외 기업 포함">SMH</td><td>회복</td><td>-0.39 %</td><td>-2.53 pp</td><td>-11.67 pp</td><td>-13.21 pp</td><td>+67.26 %</td><td>-21.13 %</td></tr>
+<tr class="sector-group-row" data-group-category="consumer" data-testid="sector-row-XLP"><td>1/14</td><td><strong>필수소비재</strong><span class="sector-group-kind">업종</span></td><td title="S&amp;P 500 섹터 ETF 프록시">XLP</td><td>주도</td><td>-0.31 %</td><td>+3.60 pp</td><td>+8.96 pp</td><td>+11.12 pp</td><td>+24.19 %</td><td>-3.50 %</td></tr>
+<tr class="sector-group-row" data-group-category="other" data-testid="sector-row-XLU"><td>2/14</td><td><strong>유틸리티</strong><span class="sector-group-kind">업종</span></td><td title="S&amp;P 500 섹터 ETF 프록시">XLU</td><td>주도</td><td>+0.30 %</td><td>+3.28 pp</td><td>+9.04 pp</td><td>+3.75 pp</td><td>+14.07 %</td><td>-1.59 %</td></tr>
+<tr class="sector-group-row" data-group-category="consumer" data-testid="sector-row-XLY"><td>3/14</td><td><strong>경기소비재</strong><span class="sector-group-kind">업종</span></td><td title="S&amp;P 500 섹터 ETF 프록시">XLY</td><td>주도</td><td>+1.79 %</td><td>+2.42 pp</td><td>+8.26 pp</td><td>+6.41 pp</td><td>+28.20 %</td><td>-4.28 %</td></tr>
+<tr class="sector-group-row" data-group-category="financial" data-testid="sector-row-XLRE"><td>4/14</td><td><strong>부동산</strong><span class="sector-group-kind">업종</span></td><td title="S&amp;P 500 섹터 ETF 프록시">XLRE</td><td>주도</td><td>+0.07 %</td><td>+1.72 pp</td><td>+7.98 pp</td><td>+1.01 pp</td><td>+19.15 %</td><td>-3.39 %</td></tr>
+<tr class="sector-group-row" data-group-category="other" data-testid="sector-row-XLV"><td>5/14</td><td><strong>헬스케어</strong><span class="sector-group-kind">업종</span></td><td title="S&amp;P 500 섹터 ETF 프록시">XLV</td><td>둔화</td><td>-2.20 %</td><td>-0.22 pp</td><td>+5.80 pp</td><td>+9.34 pp</td><td>+21.91 %</td><td>-4.48 %</td></tr>
+<tr class="sector-group-row" data-group-category="financial" data-testid="sector-row-XLF"><td>6/14</td><td><strong>금융</strong><span class="sector-group-kind">업종</span></td><td title="S&amp;P 500 섹터 ETF 프록시">XLF</td><td>주도</td><td>-1.14 %</td><td>+0.13 pp</td><td>+6.31 pp</td><td>+3.32 pp</td><td>+23.10 %</td><td>-4.70 %</td></tr>
+<tr class="sector-group-row" data-group-category="technology" data-testid="sector-row-software-services"><td>7/14</td><td><strong>소프트웨어·IT서비스</strong><span class="sector-group-kind">업종</span></td><td title="미국 전 규모 소프트웨어·서비스 ETF · 일부 인접 업종 포함">XSW</td><td>둔화</td><td>+0.99 %</td><td>-0.30 pp</td><td>+1.59 pp</td><td>+4.25 pp</td><td>+22.92 %</td><td>-8.54 %</td></tr>
+<tr class="sector-group-row" data-group-category="technology" data-testid="sector-row-big-tech"><td>8/14</td><td><strong>빅테크(M7)</strong><span class="sector-group-kind">테마</span></td><td title="M7 동일비중 노출 ETF · 다른 그룹과 종목 중복">MAGS</td><td>회복</td><td>+0.62 %</td><td>+0.91 pp</td><td>-2.39 pp</td><td>+4.16 pp</td><td>+28.71 %</td><td>-8.88 %</td></tr>
+<tr class="sector-group-row" data-group-category="other" data-testid="sector-row-XLI"><td>9/14</td><td><strong>산업재</strong><span class="sector-group-kind">업종</span></td><td title="S&amp;P 500 섹터 ETF 프록시">XLI</td><td>둔화</td><td>-0.05 %</td><td>+0.21 pp</td><td>+3.77 pp</td><td>-4.16 pp</td><td>+25.85 %</td><td>-5.17 %</td></tr>
+<tr class="sector-group-row" data-group-category="other" data-testid="sector-row-XLB"><td>10/14</td><td><strong>소재</strong><span class="sector-group-kind">업종</span></td><td title="S&amp;P 500 섹터 ETF 프록시">XLB</td><td>둔화</td><td>-0.75 %</td><td>-0.93 pp</td><td>+3.55 pp</td><td>+0.51 pp</td><td>+21.68 %</td><td>-6.38 %</td></tr>
+<tr class="sector-group-row" data-group-category="other" data-testid="sector-row-XLC"><td>11/14</td><td><strong>커뮤니케이션 서비스</strong><span class="sector-group-kind">업종</span></td><td title="S&amp;P 500 섹터 ETF 프록시">XLC</td><td>둔화</td><td>+0.30 %</td><td>+1.12 pp</td><td>+0.87 pp</td><td>-0.36 pp</td><td>+23.24 %</td><td>-8.32 %</td></tr>
+<tr class="sector-group-row" data-group-category="other" data-testid="sector-row-XLE"><td>12/14</td><td><strong>에너지</strong><span class="sector-group-kind">업종</span></td><td title="S&amp;P 500 섹터 ETF 프록시">XLE</td><td>회복</td><td>-3.27 %</td><td>+0.61 pp</td><td>-4.78 pp</td><td>+0.39 pp</td><td>+32.63 %</td><td>-12.47 %</td></tr>
+<tr class="sector-group-row" data-group-category="technology" data-testid="sector-row-hardware"><td>13/14</td><td><strong>하드웨어·장비</strong><span class="sector-group-kind">대표주</span></td><td title="대표 8종목 · 일별 동일비중 가격지수">대표 8종목</td><td>부진</td><td>+0.21 %</td><td>-2.16 pp</td><td>-6.63 pp</td><td>-4.44 pp</td><td>+55.75 %</td><td>-19.09 %</td></tr>
+<tr class="sector-group-row" data-group-category="technology" data-testid="sector-row-semiconductors"><td>14/14</td><td><strong>반도체·장비</strong><span class="sector-group-kind">업종</span></td><td title="미국 상장 반도체·장비 ETF · 해외 기업 포함">SMH</td><td>부진</td><td>-0.12 %</td><td>-5.46 pp</td><td>-10.84 pp</td><td>-14.08 pp</td><td>+66.58 %</td><td>-21.13 %</td></tr>
 </tbody></table>
 
 </div>
@@ -128,18 +128,18 @@
 <div class="sector-overview">
 <div class="sector-stat">
 <span class="sector-stat-label">상대강도 상위</span>
-<strong class="sector-stat-value">XLV · XLP</strong>
-<span class="sector-stat-note">헬스케어 · 필수소비재</span>
+<strong class="sector-stat-value">XLP · XLU</strong>
+<span class="sector-stat-note">필수소비재 · 유틸리티</span>
 </div>
 <div class="sector-stat">
 <span class="sector-stat-label">상대강도 하위</span>
-<strong class="sector-stat-value">XLI · XLK</strong>
-<span class="sector-stat-note">산업재 · 정보기술</span>
+<strong class="sector-stat-value">XLE · XLK</strong>
+<span class="sector-stat-note">에너지 · 정보기술</span>
 </div>
 <div class="sector-stat">
 <span class="sector-stat-label">가장 많은 국면</span>
-<strong class="sector-stat-value">둔화</strong>
-<span class="sector-stat-note">6개 섹터 · 관찰 국면</span>
+<strong class="sector-stat-value">주도</strong>
+<span class="sector-stat-note">5개 섹터 · 관찰 국면</span>
 </div>
 <div class="sector-stat">
 <span class="sector-stat-label">비교 가능한 섹터</span>
@@ -158,81 +158,81 @@
 <p class="sector-panel-description">같은 기간의 가격 수익률 차이</p>
 <ol class="sector-bars">
 <li class="sector-bar-row">
-<span class="sector-bar-label"><strong>헬스케어</strong><small>XLV</small></span>
+<span class="sector-bar-label"><strong>유틸리티</strong><small>XLU</small></span>
 <span class="sector-bar-track" aria-hidden="true">
 <span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:48.0000%;"></span>
 </span>
-<span class="sector-bar-value">+9.90 pp</span>
-</li>
-<li class="sector-bar-row">
-<span class="sector-bar-label"><strong>유틸리티</strong><small>XLU</small></span>
-<span class="sector-bar-track" aria-hidden="true">
-<span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:45.6774%;"></span>
-</span>
-<span class="sector-bar-value">+9.42 pp</span>
+<span class="sector-bar-value">+9.04 pp</span>
 </li>
 <li class="sector-bar-row">
 <span class="sector-bar-label"><strong>필수소비재</strong><small>XLP</small></span>
 <span class="sector-bar-track" aria-hidden="true">
-<span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:45.1569%;"></span>
+<span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:47.5818%;"></span>
 </span>
-<span class="sector-bar-value">+9.31 pp</span>
-</li>
-<li class="sector-bar-row">
-<span class="sector-bar-label"><strong>부동산</strong><small>XLRE</small></span>
-<span class="sector-bar-track" aria-hidden="true">
-<span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:43.8690%;"></span>
-</span>
-<span class="sector-bar-value">+9.05 pp</span>
-</li>
-<li class="sector-bar-row">
-<span class="sector-bar-label"><strong>금융</strong><small>XLF</small></span>
-<span class="sector-bar-track" aria-hidden="true">
-<span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:39.2290%;"></span>
-</span>
-<span class="sector-bar-value">+8.09 pp</span>
+<span class="sector-bar-value">+8.96 pp</span>
 </li>
 <li class="sector-bar-row">
 <span class="sector-bar-label"><strong>경기소비재</strong><small>XLY</small></span>
 <span class="sector-bar-track" aria-hidden="true">
-<span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:32.7128%;"></span>
+<span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:43.8362%;"></span>
 </span>
-<span class="sector-bar-value">+6.75 pp</span>
+<span class="sector-bar-value">+8.26 pp</span>
 </li>
 <li class="sector-bar-row">
-<span class="sector-bar-label"><strong>소재</strong><small>XLB</small></span>
+<span class="sector-bar-label"><strong>부동산</strong><small>XLRE</small></span>
 <span class="sector-bar-track" aria-hidden="true">
-<span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:20.4840%;"></span>
+<span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:42.3623%;"></span>
 </span>
-<span class="sector-bar-value">+4.23 pp</span>
+<span class="sector-bar-value">+7.98 pp</span>
+</li>
+<li class="sector-bar-row">
+<span class="sector-bar-label"><strong>금융</strong><small>XLF</small></span>
+<span class="sector-bar-track" aria-hidden="true">
+<span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:33.4963%;"></span>
+</span>
+<span class="sector-bar-value">+6.31 pp</span>
+</li>
+<li class="sector-bar-row">
+<span class="sector-bar-label"><strong>헬스케어</strong><small>XLV</small></span>
+<span class="sector-bar-track" aria-hidden="true">
+<span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:30.8119%;"></span>
+</span>
+<span class="sector-bar-value">+5.80 pp</span>
 </li>
 <li class="sector-bar-row">
 <span class="sector-bar-label"><strong>산업재</strong><small>XLI</small></span>
 <span class="sector-bar-track" aria-hidden="true">
-<span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:15.9171%;"></span>
+<span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:20.0125%;"></span>
 </span>
-<span class="sector-bar-value">+3.28 pp</span>
+<span class="sector-bar-value">+3.77 pp</span>
+</li>
+<li class="sector-bar-row">
+<span class="sector-bar-label"><strong>소재</strong><small>XLB</small></span>
+<span class="sector-bar-track" aria-hidden="true">
+<span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:18.8440%;"></span>
+</span>
+<span class="sector-bar-value">+3.55 pp</span>
 </li>
 <li class="sector-bar-row">
 <span class="sector-bar-label"><strong>커뮤니케이션 서비스</strong><small>XLC</small></span>
 <span class="sector-bar-track" aria-hidden="true">
-<span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:0.2607%;"></span>
+<span class="sector-bar-fill sector-bar-fill--positive" style="left:50.0000%;width:4.6092%;"></span>
 </span>
-<span class="sector-bar-value">+0.05 pp</span>
+<span class="sector-bar-value">+0.87 pp</span>
 </li>
 <li class="sector-bar-row">
 <span class="sector-bar-label"><strong>에너지</strong><small>XLE</small></span>
 <span class="sector-bar-track" aria-hidden="true">
-<span class="sector-bar-fill sector-bar-fill--negative" style="left:39.7822%;width:10.2178%;"></span>
+<span class="sector-bar-fill sector-bar-fill--negative" style="left:24.6377%;width:25.3623%;"></span>
 </span>
-<span class="sector-bar-value">-2.11 pp</span>
+<span class="sector-bar-value">-4.78 pp</span>
 </li>
 <li class="sector-bar-row">
 <span class="sector-bar-label"><strong>정보기술</strong><small>XLK</small></span>
 <span class="sector-bar-track" aria-hidden="true">
-<span class="sector-bar-fill sector-bar-fill--negative" style="left:12.3504%;width:37.6496%;"></span>
+<span class="sector-bar-fill sector-bar-fill--negative" style="left:14.8867%;width:35.1133%;"></span>
 </span>
-<span class="sector-bar-value">-7.77 pp</span>
+<span class="sector-bar-value">-6.61 pp</span>
 </li>
 </ol>
 <p class="sector-chart-caption">왼쪽: SPY 하회 · 오른쪽: SPY 상회</p>
@@ -246,34 +246,34 @@
 <p class="sector-panel-description">같은 기준일의 관찰 국면</p>
 <div class="sector-regime-grid">
 <div class="sector-regime sector-regime--recovering">
-<h3>회복 <span>2</span></h3>
+<h3>회복 <span>1</span></h3>
 <div class="sector-regime-members">
 <span class="sector-regime-ticker" title="에너지">XLE</span>
-<span class="sector-regime-ticker" title="정보기술">XLK</span>
 </div>
 </div>
 <div class="sector-regime sector-regime--leading">
-<h3>주도 <span>2</span></h3>
+<h3>주도 <span>5</span></h3>
 <div class="sector-regime-members">
-<span class="sector-regime-ticker" title="산업재">XLI</span>
+<span class="sector-regime-ticker" title="경기소비재">XLY</span>
+<span class="sector-regime-ticker" title="필수소비재">XLP</span>
+<span class="sector-regime-ticker" title="금융">XLF</span>
+<span class="sector-regime-ticker" title="부동산">XLRE</span>
 <span class="sector-regime-ticker" title="유틸리티">XLU</span>
 </div>
 </div>
 <div class="sector-regime sector-regime--lagging">
 <h3>부진 <span>1</span></h3>
 <div class="sector-regime-members">
-<span class="sector-regime-ticker" title="커뮤니케이션 서비스">XLC</span>
+<span class="sector-regime-ticker" title="정보기술">XLK</span>
 </div>
 </div>
 <div class="sector-regime sector-regime--weakening">
-<h3>둔화 <span>6</span></h3>
+<h3>둔화 <span>4</span></h3>
 <div class="sector-regime-members">
-<span class="sector-regime-ticker" title="경기소비재">XLY</span>
-<span class="sector-regime-ticker" title="필수소비재">XLP</span>
-<span class="sector-regime-ticker" title="금융">XLF</span>
+<span class="sector-regime-ticker" title="커뮤니케이션 서비스">XLC</span>
 <span class="sector-regime-ticker" title="헬스케어">XLV</span>
+<span class="sector-regime-ticker" title="산업재">XLI</span>
 <span class="sector-regime-ticker" title="소재">XLB</span>
-<span class="sector-regime-ticker" title="부동산">XLRE</span>
 </div>
 </div>
 </div>
@@ -287,17 +287,17 @@
 
 | 순위 | 섹터/티커 | 가용성 | 국면 | 가격수익률 1D | SPY 대비 5D | SPY 대비 21D | 5D 상대 가속 | 실현변동성 20D | 최대 낙폭 20D |
 | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| 1/11 | 헬스케어 (XLV) | 사용 가능 | 둔화 | -1.41 % | +0.40 pp | +9.90 pp | -2.82 pp | +20.35 % | -2.56 % |
-| 2/11 | 필수소비재 (XLP) | 사용 가능 | 둔화 | -1.23 % | +2.80 pp | +9.31 pp | -0.12 pp | +24.36 % | -3.50 % |
-| 3/11 | 유틸리티 (XLU) | 사용 가능 | 주도 | -1.59 % | +1.62 pp | +9.42 pp | +0.32 pp | +14.07 % | -1.59 % |
-| 4/11 | 금융 (XLF) | 사용 가능 | 둔화 | -1.91 % | +0.24 pp | +8.09 pp | -2.27 pp | +22.73 % | -3.60 % |
-| 5/11 | 부동산 (XLRE) | 사용 가능 | 둔화 | -1.49 % | +0.11 pp | +9.05 pp | -2.56 pp | +19.44 % | -3.39 % |
-| 6/11 | 에너지 (XLE) | 사용 가능 | 회복 | -0.52 % | +4.18 pp | -2.11 pp | +10.30 pp | +31.05 % | -12.00 % |
-| 7/11 | 경기소비재 (XLY) | 사용 가능 | 둔화 | -0.89 % | -0.93 pp | +6.75 pp | -4.69 pp | +27.54 % | -4.28 % |
-| 8/11 | 소재 (XLB) | 사용 가능 | 둔화 | -1.22 % | -1.47 pp | +4.23 pp | -2.55 pp | +21.54 % | -5.68 % |
-| 9/11 | 커뮤니케이션 서비스 (XLC) | 사용 가능 | 부진 | -1.46 % | +0.01 pp | +0.05 pp | -6.81 pp | +23.41 % | -9.34 % |
-| 10/11 | 산업재 (XLI) | 사용 가능 | 주도 | -0.55 % | -0.03 pp | +3.28 pp | +0.90 pp | +26.09 % | -5.17 % |
-| 11/11 | 정보기술 (XLK) | 사용 가능 | 회복 | -0.91 % | -1.01 pp | -7.77 pp | +2.70 pp | +45.50 % | -14.98 % |
+| 1/11 | 필수소비재 (XLP) | 사용 가능 | 주도 | -0.31 % | +3.60 pp | +8.96 pp | +3.22 pp | +24.19 % | -3.50 % |
+| 2/11 | 유틸리티 (XLU) | 사용 가능 | 주도 | +0.30 % | +3.28 pp | +9.04 pp | +1.89 pp | +14.07 % | -1.59 % |
+| 3/11 | 경기소비재 (XLY) | 사용 가능 | 주도 | +1.79 % | +2.42 pp | +8.26 pp | +2.60 pp | +28.20 % | -4.28 % |
+| 4/11 | 부동산 (XLRE) | 사용 가능 | 주도 | +0.07 % | +1.72 pp | +7.98 pp | +1.98 pp | +19.15 % | -3.39 % |
+| 5/11 | 헬스케어 (XLV) | 사용 가능 | 둔화 | -2.20 % | -0.22 pp | +5.80 pp | -0.76 pp | +21.91 % | -4.48 % |
+| 6/11 | 금융 (XLF) | 사용 가능 | 주도 | -1.14 % | +0.13 pp | +6.31 pp | +0.18 pp | +23.10 % | -4.70 % |
+| 7/11 | 산업재 (XLI) | 사용 가능 | 둔화 | -0.05 % | +0.21 pp | +3.77 pp | -1.60 pp | +25.85 % | -5.17 % |
+| 8/11 | 소재 (XLB) | 사용 가능 | 둔화 | -0.75 % | -0.93 pp | +3.55 pp | -0.21 pp | +21.68 % | -6.38 % |
+| 9/11 | 커뮤니케이션 서비스 (XLC) | 사용 가능 | 둔화 | +0.30 % | +1.12 pp | +0.87 pp | -3.26 pp | +23.24 % | -8.32 % |
+| 10/11 | 에너지 (XLE) | 사용 가능 | 회복 | -3.27 % | +0.61 pp | -4.78 pp | -0.06 pp | +32.63 % | -12.47 % |
+| 11/11 | 정보기술 (XLK) | 사용 가능 | 부진 | +0.34 % | -2.15 pp | -6.61 pp | -1.85 pp | +44.86 % | -14.98 % |
 
 ## 미제공 커버리지
 
@@ -342,6 +342,6 @@
 
 
 이 자료는 정보 제공용이며 투자 권유, 예측 또는 개인화된 조언이 아닙니다.
-<!-- snapshot_id: sha256:e68b6660aea95574a92af9425ed7357ea8df70963d3b2ab6343b8304833eea7c -->
+<!-- snapshot_id: sha256:395eff105070fa810d033aeb21fddcbbd85d7ad11ba3878a3791c3c3b5fa7f32 -->
 
 </div>
