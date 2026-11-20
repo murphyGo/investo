@@ -2,6 +2,24 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-19 begin -->
+
+## 2026-11-19
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -1243 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,133,105,775,681; BTC dominance 58.00%
+- [coingecko-price] **ticker**: 조회 시점 가격 · BTC $61,634.00 (-1.54%)
+- [coinmetrics-exchange-flows] **ticker**: BTC 거래소 일별 순유입 (2026-11-18, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 거래 건수 (2026-11-19, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 활성 주소 수 (2026-11-19, UTC)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $706,027,390 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000064115383163 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Binance gets $6.5 billion freezing order, CryptoQuant says bitcoin is in a ‘value zone’, and more
+- [theblock-crypto] **ticker**: Bitcoin finance protocol Hashi goes live on Sui mainnet
+- [theblock-crypto] **ticker**: Sygnum sees bitcoin carry trades beating Treasury bills in 2027 as funding recovers
+- [theblock-crypto] **ticker**: Tokenized Stocks Shrug Off the Crypto Selloff
+
+<!-- u33 entry 2026-11-19 end -->
 <!-- u33 entry 2026-11-18 begin -->
 
 ## 2026-11-18
