@@ -8437,3 +8437,8 @@ User requested commit and deployment. Reconstructed the 41 owned paths from the 
 ### 2026-11-17 — DART 공통 준비와 관측 최신성 구현
 
 사용자 “진행해줘”와 기존 전달 승인을 적용해 u173Step4/u184Step5의 typed DART preview를 동일 prepare_event_evidence HTTP owner에 연결했다. 고정 latest-list 검사 후 single ZIP·기존 parser·새 한 문단 native projection/25refs를 검증한다. 명시 경로에서 실패·quota 밖 항목은 generic flag로 classifier/fact context에 재유입되지 않는다. 기본 off/Fed-only·activefalse와 기존 HTML policy hash를 보존한다. 집중338PASS·새main 통합29PASS·Ruff/format874/mypy373·strictdocs PASS, 독립검수/exactCI/실제비게시진단은 진행 중이다. main5ab1641a와 다른작업 production3ce35148을 보존한다. local3/8/runtime0/human0/12/v3예약0 및 상위 운영 미완료는 유지한다. [계획](construction/event-v3-acceptance-20261028/dart-preparation-20261117/plan.md), [세션](../docs/sessions/2026-11-17-dart-shared-preparation.md).
+
+
+### 2026-11-21 — DART 공통 준비·실측 차단 검수 완료
+
+u173Step4/u184Step5의명시적DARTpreview를공통owner에연결하고exacteff7/CI43915660414(8,087PASS/1skip·562.90초·Node39·정적/정책/docs)를통과했다. 실제44781000456은4GET/200·1.401445초, 과거targetlatestmissing/XML0·별도candidate허용범위밖정정표로거절됐다. 즉시암호문19,317bytes와private5파일을확보해clock/hash/문서ID/차단2/native0을독립재생하고source_limited·모델0·C/H/M0을확인했다. 만료된앞선2run은수용0이다. subplan6/6만완료하고local3/8·runtime0/activationfalse·human0/12·v3예약0·상위unit미완료를유지한다. canonical자격표/기존4핀/다른dirty작업은보존했다. 다음은보관된새정정표7행의versionedparser지원판정이며기존guard를완화하지않는다. [기록](../docs/sessions/2026-11-17-dart-shared-preparation.md), [증거](construction/event-v3-acceptance-20261028/dart-preparation-20261117/evidence.json), [검수](../docs/cross-checks/2026-11-17-dart-shared-preparation.md).

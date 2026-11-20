@@ -38,8 +38,8 @@ API key는 source HTTP owner가 기존 env에서 읽어 고정 endpoint에만 �
 - [x] 2. backward-compatible typed policy/trace/차단 flag와 DART source helper·공유 HTTP 분기를 구현한다.
 - [x] 3. prepare/preview 및 generic event selector·source_limited 경계를 연결한다.
 - [x] 4. 혼합quota·secret/cancel·JSON/ZIP/parser·최신성·legacy hash·기사 재유입 회귀와 독립 QA를 통과한다.
-- [ ] 5. exact CI 후 동일 경로의 비게시 실제 진단을 실행하고 원문/clock/trace를 독립 대조한다.
-- [ ] 6. runtime 판정을 증거대로 기록하고 session/cross-check/state/audit 및 승인 범위를 전달한다.
+- [x] 5. exact CI 후 동일 경로의 비게시 실제 진단을 실행하고 원문/clock/trace를 독립 대조한다.
+- [x] 6. runtime 판정을 증거대로 기록하고 session/cross-check/state/audit 및 승인 범위를 전달한다.
 
 ## 공식 계약
 
@@ -49,3 +49,8 @@ API key는 source HTTP owner가 기존 env에서 읽어 고정 endpoint에만 �
 ## Native field paragraph
 
 원래 XML parser/오프라인 fixture hash는 그대로다. 생성된25줄의 field projection은 native passage6개 한도에서 일부가 탈락하므로, 별도 projection_version=dart-field-paragraph-v1이 LF만1:1 space로 바꿔 ≤1,200자/한 문단으로 구성한다. 새 EvidenceDocument/revision/native2 context를 만들고 각 ref는 원래 title/summary/detail source locator에 대응시켜25refs 원값을 다시 검증한다. 29XML binding은 원래 parser에서 결속한다. 정책 max_excerpt_chars와 transport max_projection_chars 중 작은 값을 넘으면 전체를 거절하고 잘라내지 않는다. 전체 문서 평탄화나 과거 fixture hash를 새 runtime hash로 재사용하지 않는다.
+
+
+## 최종 판정(2026-11-21)
+
+이 bounded subplan6/6만 완료했다. 실제44781000456에서 공통 HTTP/최신검사·차단·clock/hash·비게시 source_limited를 독립 대조했고 C/H/M0이다. positive원문은0이며새정정표7행이현재v1지원범위밖이므로runtime0/activationfalse를유지한다. u173Step4/u184Step5전체는계속미완료다. 기존승인된parser/정책bytes와local3/8자격표를보존하고, 보관된새변형의versioned지원판정을다음기존unit후속으로넘긴다.

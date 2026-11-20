@@ -1,0 +1,76 @@
+{
+  "status": "approve",
+  "critical": 0,
+  "high": 0,
+  "medium": 0,
+  "low": 0,
+  "independent_passed": 300,
+  "seconds": 5.83,
+  "mypy_files": 373,
+  "scope_sha256": "1c8a59e3a7dfa5157b93ff762dbf9d72ec19c731337cd83ee4a35f42f0b0a1c7",
+  "paths": [
+    {
+      "path": "ops/event_dart_preview_qualification.json",
+      "sha256": "9573cd15aeb03432708a4b957cd38a792f8ef066014dd24f1b59e9d9420824b8"
+    },
+    {
+      "path": "ops/private-runtime/dart-preparation.yml",
+      "sha256": "1d9d2140868431be3c73188071fd10f727e204369d2b8468c0d01d628b40c3e7"
+    },
+    {
+      "path": "scripts/preview_event_briefing.py",
+      "sha256": "f88c7cf489e917b85298a6fc6e2601a26797ce87e7258c13e930103cc598067e"
+    },
+    {
+      "path": "scripts/probe_dart_preparation.py",
+      "sha256": "d93ffc4929f258b2051f4efba4057bd0f3c3a026a1e950eb5fb1384639307ce1"
+    },
+    {
+      "path": "src/investo/briefing/event_document.py",
+      "sha256": "f243c91b72880f6c34be544e9d508e4477e86a64726b9fc85995f972723e486e"
+    },
+    {
+      "path": "src/investo/briefing/event_input.py",
+      "sha256": "805da576825ad72ca03aeb311c88c0db4cee55dceddcd2f31cfc0f6ac7f2bef8"
+    },
+    {
+      "path": "src/investo/briefing/fact_context.py",
+      "sha256": "7c767ab0d516d31c7d5e7dc945d5e6a4768c31ed0ecdfa73adaa83228ae7a442"
+    },
+    {
+      "path": "src/investo/models/enrichment.py",
+      "sha256": "f4657046bf73eaf4a63179de02fb377b0a64bbe4714021e626c39c03cc697f16"
+    },
+    {
+      "path": "src/investo/models/items.py",
+      "sha256": "2d45a389fac31c1f19cb52a8a748e0ffaca73e930b8b36ad7df411a60e822512"
+    },
+    {
+      "path": "src/investo/orchestrator/event_evidence.py",
+      "sha256": "008ddc62574ff186bc871f3b2f405ab3894662c165dbc17ed61b77e37eb1f465"
+    },
+    {
+      "path": "src/investo/sources/_dart_evidence.py",
+      "sha256": "739a1d84d64052b5f40c2f7b11ee51cec2d3894edf78637af1c9fef6077df27d"
+    },
+    {
+      "path": "src/investo/sources/event_evidence.py",
+      "sha256": "14a83d22edb5baffae595b6d32909f4690f9baedf3c5e190ef9aab1683f66372"
+    },
+    {
+      "path": "tests/unit/briefing/test_fact_context.py",
+      "sha256": "5b04f4b086660a72941b0286147be3b36ec98e40869239bcf2f63a30a9883451"
+    },
+    {
+      "path": "tests/unit/orchestrator/test_dart_preparation_probe.py",
+      "sha256": "4f88e3e68fb7edc653fa885e43622ac4da4a49a14e585cf520805e698b6f42eb"
+    },
+    {
+      "path": "tests/unit/orchestrator/test_dart_preparation_u184.py",
+      "sha256": "c1f116f051b545dfefdeef98325ce748771dd094506592e4c7cb3c3454fd1770"
+    }
+  ],
+  "parser_sha256": "8bae1c71b79f26b22391679c4c9ebfed1ad574135c02c91f75298426346ae166",
+  "live_http": 0,
+  "runtime_promotion": false
+}

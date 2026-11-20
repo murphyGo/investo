@@ -104,3 +104,8 @@ In progress — 6/7; private parser capture pending. [공통 검증](../event-ne
 ### 2026-11-17 — DART qualification 최종 CI
 
 [b49752b8 전체 CI](https://github.com/murphyGo/investo/actions/runs/43896888436) 8,021PASS/1skip·정적/정책/docs PASS. bounded local3/runtime0·superseded 한정과 상위 단계/운영 미완료를 유지한다.
+
+
+## 2026-11-21 — DART 공통 준비 실측·차단 경계
+
+동일 prepare_event_evidence의 명시적 preview 연결과 exacteff7/CI43915660414 8,087PASS/1skip를 완료했다. 실제44781000456은4GET/200·1.401445초이며 과거target은latest목록missing/XML0, 별도최신candidate는as_observed 후정정표mismatch로거절됐다. native0/차단2·classifier선정0·모델/게시/알림/ledger/cursor0, 원문은private암호문과0700/0600에보관했다. [세션](../../../docs/sessions/2026-11-17-dart-shared-preparation.md), [증거](../event-v3-acceptance-20261028/dart-preparation-20261117/evidence.json). 공통연결구현과실제차단검증만완료하며local3/8/runtime0/activationfalse·상위Step미완료를유지한다. 다음은보관된새정정표변형의필수field/locator/정정후값을별도검수하고versionedparser지원범위를판정하는후속이다. 기존parser를완화하거나현재실행을positive인수로세지않는다.
