@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-20 begin -->
+
+## 2026-11-20
+
+- [yfinance-price] **ticker**: GOOGL 265.29 (-2.70%)
+- [yonhap-market] **ticker**: 구글 우주 AI위성 발사에 블루오리진 로켓 선정
+- [yonhap-market] **ticker**: 머크, 아이소모픽과 AI 항암 신약 공동 연구
+- [yonhap-market] **ticker**: 알파벳, 캐나다서 회사채 발행해 5조6천억원 조달
+
+<!-- u33 entry 2026-11-20 end -->
 <!-- u33 entry 2026-11-19 begin -->
 
 ## 2026-11-19

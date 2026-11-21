@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="국내 증시 관심 자산 관련성">
+<style>.card-bg{fill:#f7f5ef;}.card-frame{fill:#ffffff;stroke:#253238;}.card-title{fill:#1d2b2f;}.card-subtitle{fill:#617176;}.card-label{fill:#476169;}.card-emphasis{fill:#14555f;}.card-text{fill:#1d2b2f;}.card-disclaimer{fill:#7b5e2a;}</style>
+<rect class="card-bg" width="1200" height="630"/>
+<rect class="card-frame" x="40" y="40" width="1120" height="550" rx="8" stroke-width="3"/>
+<text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">국내 증시 관심 자산 관련성</text>
+<text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-11-20 · 매칭 6건 · 기본 바스켓</text>
+<text class="card-emphasis" x="90" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">AMZN</text>
+<text class="card-text" x="310" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">구글 우주 AI위성 발사에 블루오리진 로켓 선정</text>
+<text class="card-emphasis" x="90" y="256" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">GOOGL</text>
+<text class="card-text" x="310" y="256" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">구글 우주 AI위성 발사에 블루오리진 로켓 선정</text>
+<text class="card-emphasis" x="90" y="332" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">GOOGL</text>
+<text class="card-text" x="310" y="332" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">머크, 아이소모픽과 AI 항암 신약 공동 연구</text>
+<text class="card-emphasis" x="90" y="408" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">GOOGL</text>
+<text class="card-text" x="310" y="408" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">알파벳, 캐나다서 회사채 발행해 5조6천억원 조달</text>
+<text class="card-emphasis" x="90" y="484" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">NVDA</text>
+<text class="card-text" x="310" y="484" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">[게시판] 하나운용, 엔비디아·AI 반도체 전망 웹세미나</text>
+<text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
+</svg>

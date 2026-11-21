@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-20 begin -->
+
+## 2026-11-20
+
+- [yfinance-price] **ticker**: NVDA 125.53 (-14.01%)
+- [yonhap-market] **ticker**: [게시판] 하나운용, 엔비디아·AI 반도체 전망 웹세미나
+- [yonhap-market] **ticker**: 中문샷AI, 엔비디아 첨단칩 우회 확보 2천억원 계약 취소
+
+<!-- u33 entry 2026-11-20 end -->
 <!-- u33 entry 2026-11-19 begin -->
 
 ## 2026-11-19

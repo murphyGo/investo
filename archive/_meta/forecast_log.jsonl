@@ -340,3 +340,6 @@
 {"action_tag": "[데이터부족]", "briefing_url": "archive/us-equity/2026/11/2026-11-18.md", "published_at": "2026-11-19T03:02:50.218616+00:00", "segment": "us-equity", "target_date": "2026-11-18", "tickers": []}
 {"action_tag": "[데이터부족]", "briefing_url": "archive/crypto/2026/11/2026-11-19.md", "published_at": "2026-11-20T03:01:51.843652+00:00", "segment": "crypto", "target_date": "2026-11-19", "tickers": []}
 {"action_tag": "[데이터부족]", "briefing_url": "archive/us-equity/2026/11/2026-11-19.md", "published_at": "2026-11-20T03:01:51.843652+00:00", "segment": "us-equity", "target_date": "2026-11-19", "tickers": ["INC.", "INTUIT"]}
+{"action_tag": "[데이터부족]", "briefing_url": "archive/crypto/2026/11/2026-11-20.md", "published_at": "2026-11-21T06:10:34.063730+00:00", "segment": "crypto", "target_date": "2026-11-20", "tickers": []}
+{"action_tag": "[데이터부족]", "briefing_url": "archive/domestic-equity/2026/11/2026-11-20.md", "published_at": "2026-11-21T06:10:34.063730+00:00", "segment": "domestic-equity", "target_date": "2026-11-20", "tickers": []}
+{"action_tag": "[데이터부족]", "briefing_url": "archive/us-equity/2026/11/2026-11-20.md", "published_at": "2026-11-21T06:10:34.063730+00:00", "segment": "us-equity", "target_date": "2026-11-20", "tickers": ["SEC"]}

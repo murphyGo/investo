@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-20 begin -->
+
+## 2026-11-20
+
+- [coingecko-price] **ticker**: 조회 시점 가격 · SOL $65.35 (-10.07%)
+- [defillama-market-structure] **ticker**: DeFi TVL $64.8B; leader Ethereum
+- [theblock-crypto] **ticker**: Ark buys $90 million worth of Anthropic shares on debut, trims Ethereum and Solana staking ETF holdings
+
+<!-- u33 entry 2026-11-20 end -->
 <!-- u33 entry 2026-11-19 begin -->
 
 ## 2026-11-19

@@ -2,6 +2,24 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-20 begin -->
+
+## 2026-11-20
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -1211 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $1,954,236,056,028; BTC dominance 57.14%
+- [coingecko-price] **ticker**: 조회 시점 가격 · BTC $55,684.00 (-10.01%)
+- [coinmetrics-exchange-flows] **ticker**: BTC 거래소 일별 순유입 (2026-11-19, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 거래 건수 (2026-11-20, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 활성 주소 수 (2026-11-20, UTC)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $695,466,610 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $695,471,610 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000083483662374 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Binance hack laundering ramps up as $149 million in bitcoin mixed through coinjoins: Elliptic
+- [theblock-crypto] **ticker**: JPMorgan says bitcoin price correction widens gap to estimated $86,000 production cost
+- [theblock-crypto] **ticker**: US spot bitcoin ETFs see $582 million in daily net outflows as November total nears $3.5 billion
+
+<!-- u33 entry 2026-11-20 end -->
 <!-- u33 entry 2026-11-19 begin -->
 
 ## 2026-11-19
