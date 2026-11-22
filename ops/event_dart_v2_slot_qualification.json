@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "records": [
+    {
+      "source_name": "dart-disclosure",
+      "proposed_source_name": null,
+      "slot_id": "domestic.disclosure_action",
+      "access_kind": "structured_api",
+      "endpoint_scope": {
+        "scheme": "https",
+        "host": "dart.fss.or.kr",
+        "path_prefix": "/dsaf001/main.do",
+        "query_keys": [
+          "rcpNo"
+        ]
+      },
+      "official_discovery_url": "https://dart.fss.or.kr/dsaf001/main.do",
+      "checked_at": "2026-11-22T19:13:33.087607Z",
+      "source_code_sha": "a4b6f5dd402767cd1f4f060867e523d20876d551",
+      "status": "verified",
+      "reason_codes": [
+        "time.unknown",
+        "runtime.not_verified"
+      ],
+      "access_evidence_hash": "dda39721595ce3b467315ff8c0e4c4ae7d0674b072c46177bc194810d50e0bd0",
+      "rights_evidence_url": "https://opendart.fss.or.kr/intro/main.do",
+      "rights_scope": "OpenDART permits desired XML data extraction. Bounded private facts for FORMULA6.4/20260723 ACODE11324 seven-row contract-terms correction and its complete linked note23 only. Same issue and corrected columns; excludes raw document, images, signatures and attachment redistribution. A retained fixture establishes no latest issuance completion. HTTP authority requires the separate preview-only transport grant.",
+      "schema_fixture_sha256": "4556979982e0e0e1200c7b43381624bb4d51faceed8f990f5c756e624afa280d",
+      "parser_version": "dart-cb-terms-correction-6.4-v2",
+      "required_slots": [
+        "issuer",
+        "action",
+        "action_status",
+        "action_terms",
+        "filing_locator"
+      ],
+      "verified_slots": [
+        "issuer",
+        "action",
+        "action_status",
+        "action_terms",
+        "filing_locator"
+      ],
+      "missing_slots": [],
+      "chunk_roles": [
+        "background",
+        "fact",
+        "identity"
+      ],
+      "time_precision": "unknown",
+      "public_locator_basis": "Exact canonical filing viewer; corrected7rows and complete after-note23/current-issue XML bindings; native2 exact source refs.",
+      "runtime_probe_status": "not_run",
+      "runtime_evidence_ref": null,
+      "activation_ready": false,
+      "context_contract_version": 2
+    }
+  ]
+}

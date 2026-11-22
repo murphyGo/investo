@@ -28,6 +28,7 @@ from investo.models.items import NormalizedItem
 EnrichmentMode = Literal["off", "shadow", "preview", "active"]
 EnrichmentSource = Literal["fomc-rss", "fed-speech-rss", "sec-newsroom-rss", "cftc-policy-rss"]
 EvidenceSource = EnrichmentSource | Literal["dart-disclosure"]
+DartParserVersion = Literal["dart-cb-correction-6.4-v1", "dart-cb-terms-correction-6.4-v2"]
 ENRICHMENT_MODE_ENV = "INVESTO_EVENT_ENRICHMENT_MODE"
 EVENT_ENRICHMENT_ACTIVE_READY = False
 EVENT_ENRICHMENT_PREVIEW_READY = True
@@ -183,19 +184,33 @@ class DartTransportQualification(EventModel):
     scope: Literal["preview_only"] = "preview_only"
     status: Literal["approved", "blocked"]
     checked_at: datetime
-    parser_version: Literal["dart-cb-correction-6.4-v1"]
-    projection_version: Literal["dart-field-paragraph-v1"] = "dart-field-paragraph-v1"
+    parser_version: DartParserVersion
+    projection_version: Literal["dart-field-paragraph-v1", "dart-field-paragraph-v2"] = (
+        "dart-field-paragraph-v1"
+    )
     slot_qualification_sha256: Digest
     source_code_sha: Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
     fixture_sha256: Digest
     rights_scope: Annotated[str, Field(min_length=1, max_length=500)]
     private_retention_basis: Annotated[str, Field(min_length=1, max_length=1000)]
-    max_projection_chars: Annotated[StrictInt, Field(ge=1, le=1200)] = 1200
+    max_projection_chars: Annotated[StrictInt, Field(ge=1, le=3600)] = 1200
 
     @field_validator("checked_at")
     @classmethod
     def checked_clock(cls, value: datetime) -> datetime:
         return evidence_clock_utc(value)
+
+    @model_validator(mode="after")
+    def versioned_projection(self) -> Self:
+        if self.parser_version == "dart-cb-correction-6.4-v1":
+            if (
+                self.projection_version != "dart-field-paragraph-v1"
+                or self.max_projection_chars > 1200
+            ):
+                raise ValueError("v1 projection bounds are immutable")
+        elif self.projection_version != "dart-field-paragraph-v2":
+            raise ValueError("v2 requires its explicit projection contract")
+        return self
 
 
 class EnrichmentQualification(EventModel):
@@ -255,7 +270,7 @@ class DartEnrichmentTrace(EventModel):
     response_sha256: Digest | None = None
     xml_sha256: Digest | None = None
     native_context_sha256: Digest | None = None
-    parser_version: Literal["dart-cb-correction-6.4-v1"] = "dart-cb-correction-6.4-v1"
+    parser_version: DartParserVersion = "dart-cb-correction-6.4-v1"
 
     @field_validator("listing_received_at", "document_received_at")
     @classmethod
@@ -407,6 +422,16 @@ class SourceSlotQualification(EventModel):
     runtime_probe_status: Literal["verified", "blocked", "not_run"] = "not_run"
     runtime_evidence_ref: Annotated[str, Field(min_length=1, max_length=300)] | None = None
     activation_ready: Literal[False] = False
+    context_contract_version: Literal[1, 2] = 1
+
+    @model_serializer(mode="wrap")
+    def compatible_context_contract(
+        self, handler: SerializerFunctionWrapHandler
+    ) -> dict[str, object]:
+        payload = cast("dict[str, object]", handler(self))
+        if self.context_contract_version == 1:
+            payload.pop("context_contract_version", None)
+        return payload
 
     @field_validator("checked_at")
     @classmethod

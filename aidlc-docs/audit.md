@@ -8442,3 +8442,8 @@ User requested commit and deployment. Reconstructed the 41 owned paths from the 
 ### 2026-11-21 — DART 공통 준비·실측 차단 검수 완료
 
 u173Step4/u184Step5의명시적DARTpreview를공통owner에연결하고exacteff7/CI43915660414(8,087PASS/1skip·562.90초·Node39·정적/정책/docs)를통과했다. 실제44781000456은4GET/200·1.401445초, 과거targetlatestmissing/XML0·별도candidate허용범위밖정정표로거절됐다. 즉시암호문19,317bytes와private5파일을확보해clock/hash/문서ID/차단2/native0을독립재생하고source_limited·모델0·C/H/M0을확인했다. 만료된앞선2run은수용0이다. subplan6/6만완료하고local3/8·runtime0/activationfalse·human0/12·v3예약0·상위unit미완료를유지한다. canonical자격표/기존4핀/다른dirty작업은보존했다. 다음은보관된새정정표7행의versionedparser지원판정이며기존guard를완화하지않는다. [기록](../docs/sessions/2026-11-17-dart-shared-preparation.md), [증거](construction/event-v3-acceptance-20261028/dart-preparation-20261117/evidence.json), [검수](../docs/cross-checks/2026-11-17-dart-shared-preparation.md).
+
+
+### 2026-11-23 — DART 계약조건 정정 v2 진입
+
+사용자 “진행시켜”를 보관된 새7행 정정표의 parser 지원/공통경로 검수 진행 승인으로 적용한다. FD/NFR은v1보존·v2명시선택·긴필드전체검증·native2내용완전성·기존예산/private경계를 확정했다. [계획](construction/event-v3-acceptance-20261028/dart-correction-v2-20261123/plan.md). 현재추가HTTP0·local3/8/runtime0/activationfalse·human0/12와상위unit미완료를유지한다.

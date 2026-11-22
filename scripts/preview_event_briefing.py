@@ -15,7 +15,7 @@ import threading
 import time
 from datetime import UTC, date, datetime
 from pathlib import Path
-from typing import Never, cast, get_args
+from typing import Literal, Never, cast, get_args
 
 from investo.briefing._core.classification import event_classification_diagnostics
 from investo.briefing.claude_code import ClaudeRunner
@@ -264,6 +264,7 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument("--document-schema", choices=(2, 3), type=int, default=2)
     parser.add_argument("--official-body-preview", action="store_true")
     parser.add_argument("--dart-body-preview", action="store_true")
+    parser.add_argument("--dart-parser-version", choices=("v1", "v2"), default="v1")
     parser.add_argument("--article-profile", choices=("role_v1", "article_v2"), default="role_v1")
     parser.add_argument(
         "--record-model-io",
@@ -278,6 +279,8 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     ):
         raise PreviewInputError
     if args.dart_body_preview and not args.official_body_preview:
+        raise PreviewInputError
+    if args.dart_parser_version != "v1" and not args.dart_body_preview:
         raise PreviewInputError
     return args
 
@@ -518,6 +521,7 @@ async def run_preview(
     article_profile: EventProfile = "role_v1",
     official_body_preview: bool = False,
     dart_body_preview: bool = False,
+    dart_parser_version: Literal["v1", "v2"] = "v1",
     enrichment_policy: EnrichmentPolicy = DEFAULT_ENRICHMENT_POLICY,
     enrichment_qualification: EnrichmentQualification | None = None,
     record_model_io: bool = False,
@@ -537,6 +541,10 @@ async def run_preview(
         raise PreviewInputError
     if type(dart_body_preview) is not bool or (dart_body_preview and not official_body_preview):
         raise PreviewInputError
+    if dart_parser_version not in {"v1", "v2"} or (
+        dart_parser_version != "v1" and not dart_body_preview
+    ):
+        raise PreviewInputError
     if official_body_preview:
         if enrichment_policy != DEFAULT_ENRICHMENT_POLICY or enrichment_qualification is not None:
             raise PreviewInputError
@@ -545,7 +553,12 @@ async def run_preview(
         )
         if dart_body_preview:
             dart_qualification = load_event_evidence_qualification(
-                _REPOSITORY_ROOT / "ops/event_dart_preview_qualification.json"
+                _REPOSITORY_ROOT
+                / (
+                    "ops/event_dart_preview_qualification.json"
+                    if dart_parser_version == "v1"
+                    else "ops/event_dart_v2_preview_qualification.json"
+                )
             )
             if dart_qualification.sources or dart_qualification.dart is None:
                 raise PreviewInputError
@@ -778,6 +791,7 @@ def main(argv: list[str] | None = None) -> int:
                 article_profile=args.article_profile,
                 official_body_preview=args.official_body_preview,
                 dart_body_preview=getattr(args, "dart_body_preview", False),
+                dart_parser_version=getattr(args, "dart_parser_version", "v1"),
                 record_model_io=args.record_model_io,
             )
         )

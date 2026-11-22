@@ -1,0 +1,63 @@
+{
+  "status": "approve",
+  "critical": 0,
+  "high": 0,
+  "medium": 0,
+  "phase1": {
+    "commit": "a4b6f5dd402767cd1f4f060867e523d20876d551",
+    "independent_passed": 105,
+    "source_sha256": "c13fe967699b1c0d219fdf78a2a996058f5675b5b248ce4585f682c907799337",
+    "fixture_sha256": "c35c0615834c70401a3a54c8dbe9a645358a18c6720d56ebb497a02306e52b78",
+    "test_sha256": "f92a8af4dd533e44c4bf33c48092e5470007563bdc4215749697f03a799df6e6"
+  },
+  "phase2": {
+    "independent_passed": 255,
+    "scope_sha256": "ba26c0329e4476a1c28ffd8b2bdbc412c65e5bfbb45a731916a941d0df36482e",
+    "scope_encoding": "sorted [{path,sha256}], JSON sort_keys true and compact separators",
+    "reviewer_pair_encoding_sha256": "04b264f1a72ad137c83d6bfd5fad7da9a1ead670a32a1bfae30eb49261dae8e7",
+    "paths": [
+      {
+        "path": "ops/event_dart_v2_preview_qualification.json",
+        "sha256": "ef0f1f748dc7ef9de218163d33bc62d33a8ffb16ed5d787aeb2301926397f1ce"
+      },
+      {
+        "path": "ops/event_dart_v2_slot_qualification.json",
+        "sha256": "b2bd4448b4ce5fecdc3ac2e68d20b9d4399a66cb8722aaa8d978b24578eaf4ed"
+      },
+      {
+        "path": "ops/private-runtime/dart-preparation.yml",
+        "sha256": "0ce471ba5e694c6a8a4edbf15c54267753100656406a10e99333e3445ed4e122"
+      },
+      {
+        "path": "scripts/preview_event_briefing.py",
+        "sha256": "62ea7e5d75d5c4af843e9c4fb771d78d81f1520011777c1b65886962277190db"
+      },
+      {
+        "path": "scripts/probe_dart_preparation.py",
+        "sha256": "4a1032ff224df2f68e33c75f6d7f66876a73c5b9af54b4b5e362d9ac81e3f3a4"
+      },
+      {
+        "path": "src/investo/models/enrichment.py",
+        "sha256": "e2d589dd6482f244936eed83a2d5f21f45942d237b14c75d4d65aabb4deeb7e9"
+      },
+      {
+        "path": "src/investo/sources/_dart_evidence.py",
+        "sha256": "c873acbc80ce8dff6c27dc43536521deec5e4d79bbb14043423c4c19e79cd760"
+      },
+      {
+        "path": "src/investo/sources/event_evidence.py",
+        "sha256": "73bd8cee12499c801607221fe1a3a725489c21d4ea6ba07beb2795caa2b0d12d"
+      },
+      {
+        "path": "tests/unit/orchestrator/test_dart_preparation_probe.py",
+        "sha256": "c7e616d5129d6df40a8b3357e7b4a23681206dc929d467edee50bcb4a5ebe938"
+      },
+      {
+        "path": "tests/unit/orchestrator/test_dart_terms_preparation_u184.py",
+        "sha256": "aeccb3ada11476fe310356910314ec47d8cff7abc89d2d3425a01da7500ded77"
+      }
+    ]
+  },
+  "new_source_http": 0,
+  "runtime_promotion": false
+}

@@ -20,6 +20,7 @@ import httpx
 
 from investo.models.enrichment import (
     DartEnrichmentTrace,
+    DartTransportQualification,
     EndpointScope,
     EnrichmentOutcome,
     EnrichmentPolicy,
@@ -43,8 +44,8 @@ from investo.models.event_evidence import (
 )
 from investo.models.event_passages import passage_spans
 from investo.models.items import NormalizedItem
-from investo.sources._dart_document import PARSER_VERSION
 from investo.sources._dart_evidence import (
+    DART_PARSER_VERSIONS,
     DartRequestError,
     DartRequestKind,
     DartResponse,
@@ -374,8 +375,13 @@ def _dart_transport_allowed(
     if record is None or record.status != "approved":
         return False
     try:
+        record = DartTransportQualification.model_validate(record.model_dump())
         matrix = matrix or load_source_slot_qualification(
-            Path("ops/event_source_slot_qualification.json")
+            Path(
+                "ops/event_source_slot_qualification.json"
+                if record.parser_version == "dart-cb-correction-6.4-v1"
+                else "ops/event_dart_v2_slot_qualification.json"
+            )
         )
         if (
             hashlib.sha256(matrix.model_dump_json().encode()).hexdigest()
@@ -386,7 +392,10 @@ def _dart_transport_allowed(
         return len(rows) == 1 and (
             rows[0].status == "verified"
             and not rows[0].missing_slots
-            and rows[0].parser_version == record.parser_version == PARSER_VERSION
+            and rows[0].parser_version == record.parser_version
+            and record.parser_version in DART_PARSER_VERSIONS
+            and rows[0].context_contract_version
+            == (2 if record.parser_version == "dart-cb-terms-correction-6.4-v2" else 1)
             and rows[0].schema_fixture_sha256 == record.fixture_sha256
             and rows[0].source_code_sha == record.source_code_sha
             and rows[0].rights_scope == record.rights_scope
@@ -458,7 +467,13 @@ async def enrich_event_evidence(
     async def enrich_dart(candidate: _Candidate) -> None:
         nonlocal request_count
         blocked = base_items[candidate.index]
-        traces[candidate.index] = DartEnrichmentTrace()
+        parser_version = (
+            qualification.dart.parser_version
+            if qualification.dart is not None
+            and qualification.dart.parser_version in DART_PARSER_VERSIONS
+            else "dart-cb-correction-6.4-v1"
+        )
+        traces[candidate.index] = DartEnrichmentTrace(parser_version=parser_version)
         if not dart_allowed or not credential or len(credential) > 4096:
             results[candidate.index] = (
                 blocked,
@@ -527,7 +542,10 @@ async def enrich_event_evidence(
 
         async with semaphore:
             item, reason, trace = await prepare_dart_item(
-                candidate.item, request, forbidden_token=credential.encode()
+                candidate.item,
+                request,
+                forbidden_token=credential.encode(),
+                parser_version=parser_version,
             )
             if reason is None and (
                 item.event_evidence is None
@@ -763,6 +781,7 @@ def map_source_slot_context(
         evidence_document_from_item(item, received_at=received_at),
         metadata=item.raw_metadata,
         item=item,
+        article_passages=qualification.context_contract_version == 2,
     )
     from investo._internal.event_context import (
         context_lookup,

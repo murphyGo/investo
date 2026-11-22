@@ -11,7 +11,7 @@ from datetime import date, datetime
 from typing import Literal
 
 from investo._internal.event_context import resolve_context_ref
-from investo.models.enrichment import DartEnrichmentTrace, EnrichmentReason
+from investo.models.enrichment import DartEnrichmentTrace, DartParserVersion, EnrichmentReason
 from investo.models.event_context import ContextRef, EventContextDocument
 from investo.models.event_evidence import (
     evidence_clock_utc,
@@ -22,9 +22,16 @@ from investo.models.event_evidence import (
 from investo.models.items import NormalizedItem
 from investo.sources._dart_document import MAX_BYTES, DartDocumentError, DartDocumentEvidence
 from investo.sources._dart_document import parse_dart_document as _parse
+from investo.sources._dart_terms_document import PARSER_VERSION as TERMS_PARSER_VERSION
+from investo.sources._dart_terms_document import parse_dart_terms_document
 from investo.sources.dart_disclosure import DartDisclosureAdapter
 
 DartRequestKind = Literal["listing", "document"]
+_PARSERS = {
+    "dart-cb-correction-6.4-v1": _parse,
+    TERMS_PARSER_VERSION: parse_dart_terms_document,
+}
+DART_PARSER_VERSIONS = frozenset(_PARSERS)
 
 
 class DartRequestError(ValueError):
@@ -153,6 +160,16 @@ def dart_runtime_evidence(parsed: DartDocumentEvidence) -> DartRuntimeEvidence:
     previous = parsed.item.event_evidence
     if previous is None:
         raise DartRequestError("evidence_invalid")
+    if parsed.parser_version == TERMS_PARSER_VERSION:
+        context = make_event_context_document(
+            previous, metadata=parsed.item.raw_metadata, item=parsed.item, article_passages=True
+        )
+        if context.model_dump_json() != parsed.context.model_dump_json():
+            raise DartRequestError("evidence_invalid")
+        for group in parsed.field_refs.values():
+            for ref in group:
+                resolve_context_ref(ref, (context,))
+        return DartRuntimeEvidence(parsed.item, context, parsed.field_refs)
     projection = previous.detail_excerpt.replace("\n", " ")
     evidence = make_evidence_document(
         source_name=previous.source_name,
@@ -207,10 +224,16 @@ def dart_runtime_evidence(parsed: DartDocumentEvidence) -> DartRuntimeEvidence:
 
 
 async def prepare_dart_item(
-    item: NormalizedItem, request: DartRequest, *, forbidden_token: bytes
+    item: NormalizedItem,
+    request: DartRequest,
+    *,
+    forbidden_token: bytes,
+    parser_version: DartParserVersion = "dart-cb-correction-6.4-v1",
 ) -> tuple[NormalizedItem, EnrichmentReason | None, DartEnrichmentTrace]:
-    trace = DartEnrichmentTrace()
     blocked = item.model_copy(update={"event_input_blocked": True})
+    if parser_version not in _PARSERS:
+        return blocked, "parser_unsupported", DartEnrichmentTrace()
+    trace = DartEnrichmentTrace(parser_version=parser_version)
 
     async def get(kind: DartRequestKind, params: Mapping[str, str]) -> DartResponse:
         nonlocal trace
@@ -253,13 +276,15 @@ async def prepare_dart_item(
         )
         if document.received_at < listing.received_at:
             raise DartRequestError("evidence_invalid")
-        parsed = _parse(
+        parsed = _PARSERS[parser_version](
             item,
             document.data,
             response_sha256=response_sha,
             received_at=document.received_at,
             forbidden_token=forbidden_token,
         )
+        if parsed.parser_version != parser_version:
+            raise DartRequestError("evidence_invalid")
         runtime = dart_runtime_evidence(parsed)
         trace = trace.model_copy(
             update={

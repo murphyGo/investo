@@ -82,6 +82,69 @@ async def test_collection_and_two_candidates_rehearse_old_rejection_and_native_s
     assert "dart-disclosure" in json.dumps(files["prepared-items.json"])
 
 
+async def test_explicit_v2_probe_uses_approved_variant_and_preserves_full_native_input(monkeypatch):
+    from tests.unit.sources.test_dart_terms_document_u173 import FILING as V2_FILING
+    from tests.unit.sources.test_dart_terms_document_u173 import FIXTURE as V2_FIXTURE
+
+    newer = item_case(rcept_no=V2_FILING, rcept_dt=V2_FILING[:8])
+
+    def respond(request):
+        if request.url.path == "/api/document.xml":
+            return streamed(archive_case(V2_FIXTURE.read_bytes(), name=V2_FILING + ".xml"))
+        if request.url.params["last_reprt_at"] == "N":
+            payload = listing_case(rm="정")
+            payload["list"].append(listing_case(newer)["list"][0])
+            payload["total_count"] = 2
+            return streamed(payload)
+        if request.url.params["bgn_de"] == FILING[:8]:
+            return streamed({"status": "013"})
+        return streamed(listing_case(newer))
+
+    install_mock(monkeypatch, respond)
+    manifest, files = await probe.rehearse(
+        filing=FILING, corp="00000001", credential=SECRET, parser_version="v2"
+    )
+    assert manifest["status"] == "completed" and manifest["request_count"] == 4
+    assert manifest["enriched_count"] == manifest["native_context_count"] == 1
+    assert manifest["blocked_count"] == 1 and manifest["model_call_count"] == 0
+    assert not manifest["runtime_qualified"] and not manifest["activation_ready"]
+    assert {value["dart"]["parser_version"] for value in manifest["outcomes"]} == {
+        "dart-cb-terms-correction-6.4-v2"
+    }
+    prepared = files["prepared-items.json"]
+    detail = next(
+        item["event_evidence"]["detail_excerpt"]
+        for item in prepared["items"]
+        if not item.get("event_input_blocked", False)
+    )
+    assert 1200 < len(detail) <= 3600 and len(detail.splitlines()) <= 6
+
+
+@pytest.mark.parametrize("version", ["v2", "v3"])
+async def test_invalid_or_unqualified_version_cannot_make_collection_request(monkeypatch, version):
+    from investo.sources.event_evidence import load_enrichment_qualification
+
+    def forbidden(request):
+        pytest.fail("invalid version permission opened collection HTTP")
+
+    install_mock(monkeypatch, forbidden)
+    if version == "v2":
+        qualification = load_enrichment_qualification(
+            probe.ROOT / "ops/event_dart_v2_preview_qualification.json"
+        )
+        monkeypatch.setattr(
+            probe,
+            "load_enrichment_qualification",
+            lambda _: qualification.model_copy(
+                update={"dart": qualification.dart.model_copy(update={"status": "blocked"})}
+            ),
+        )
+    manifest, files = await probe.rehearse(
+        filing=FILING, corp="00000001", credential=SECRET, parser_version=version
+    )
+    assert manifest["request_count"] == 0 and not files
+
+
 async def test_missing_key_invalid_window_or_bad_input_makes_no_requests(monkeypatch):
     def forbidden(request):
         pytest.fail("invalid rehearsal opened HTTP")
