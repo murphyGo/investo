@@ -20,6 +20,7 @@ import httpx
 
 from investo.models.enrichment import (
     DartEnrichmentTrace,
+    DartParserVersion,
     EndpointScope,
     EnrichmentOutcome,
     EnrichmentPolicy,
@@ -43,7 +44,7 @@ from investo.models.event_evidence import (
 )
 from investo.models.event_passages import passage_spans
 from investo.models.items import NormalizedItem
-from investo.sources._dart_document import PARSER_VERSION
+from investo.sources._dart_document import PARSER_VERSION, SCHEDULE_PARSER_VERSION
 from investo.sources._dart_evidence import (
     DartRequestError,
     DartRequestKind,
@@ -386,7 +387,8 @@ def _dart_transport_allowed(
         return len(rows) == 1 and (
             rows[0].status == "verified"
             and not rows[0].missing_slots
-            and rows[0].parser_version == record.parser_version == PARSER_VERSION
+            and rows[0].parser_version == record.parser_version
+            and record.parser_version in {PARSER_VERSION, SCHEDULE_PARSER_VERSION}
             and rows[0].schema_fixture_sha256 == record.fixture_sha256
             and rows[0].source_code_sha == record.source_code_sha
             and rows[0].rights_scope == record.rights_scope
@@ -429,6 +431,12 @@ async def enrich_event_evidence(
         and policy.article_passages
         and _dart_transport_allowed(qualification, slot_qualification)
     )
+    dart_version: DartParserVersion = (
+        qualification.dart.parser_version
+        if qualification.dart
+        and qualification.dart.parser_version in {PARSER_VERSION, SCHEDULE_PARSER_VERSION}
+        else "dart-cb-correction-6.4-v1"
+    )
     credential = os.environ.get("OPENDART_API_KEY", "").strip() if dart_allowed else ""
     if credential:
         from investo._internal.redaction import install_secret_log_filters
@@ -458,7 +466,7 @@ async def enrich_event_evidence(
     async def enrich_dart(candidate: _Candidate) -> None:
         nonlocal request_count
         blocked = base_items[candidate.index]
-        traces[candidate.index] = DartEnrichmentTrace()
+        traces[candidate.index] = DartEnrichmentTrace(parser_version=dart_version)
         if not dart_allowed or not credential or len(credential) > 4096:
             results[candidate.index] = (
                 blocked,
@@ -527,7 +535,10 @@ async def enrich_event_evidence(
 
         async with semaphore:
             item, reason, trace = await prepare_dart_item(
-                candidate.item, request, forbidden_token=credential.encode()
+                candidate.item,
+                request,
+                forbidden_token=credential.encode(),
+                parser_version=dart_version,
             )
             if reason is None and (
                 item.event_evidence is None

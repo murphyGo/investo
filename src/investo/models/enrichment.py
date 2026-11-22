@@ -176,6 +176,9 @@ class SourceQualification(EventModel):
         return self
 
 
+DartParserVersion = Literal["dart-cb-correction-6.4-v1", "dart-cb-schedule-6.4-v1"]
+
+
 class DartTransportQualification(EventModel):
     """Explicit preview transport permission, not runtime or publication acceptance."""
 
@@ -183,7 +186,7 @@ class DartTransportQualification(EventModel):
     scope: Literal["preview_only"] = "preview_only"
     status: Literal["approved", "blocked"]
     checked_at: datetime
-    parser_version: Literal["dart-cb-correction-6.4-v1"]
+    parser_version: DartParserVersion
     projection_version: Literal["dart-field-paragraph-v1"] = "dart-field-paragraph-v1"
     slot_qualification_sha256: Digest
     source_code_sha: Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
@@ -255,7 +258,7 @@ class DartEnrichmentTrace(EventModel):
     response_sha256: Digest | None = None
     xml_sha256: Digest | None = None
     native_context_sha256: Digest | None = None
-    parser_version: Literal["dart-cb-correction-6.4-v1"] = "dart-cb-correction-6.4-v1"
+    parser_version: DartParserVersion = "dart-cb-correction-6.4-v1"
 
     @field_validator("listing_received_at", "document_received_at")
     @classmethod

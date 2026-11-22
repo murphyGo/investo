@@ -1,0 +1,24 @@
+{
+  "scope": "DART schedule correction offline parser",
+  "independent_agent": "dart_schedule_review",
+  "status": "approve",
+  "correctness": "pass",
+  "safety": "pass",
+  "reliability": "pass",
+  "maintainability": "pass",
+  "test_coverage": "pass",
+  "fixed_medium_findings": [
+    "pagebreak boundary and mixed-text omission",
+    "flattened note-table hierarchy collision"
+  ],
+  "remaining_critical": 0,
+  "remaining_high": 0,
+  "remaining_medium": 0,
+  "remaining_low": 0,
+  "independent_tests_passed": 150,
+  "independent_test_seconds": 1.92,
+  "retained_replay_independently_verified": true,
+  "v1_baseline_independently_verified": true,
+  "new_source_http": 0,
+  "runtime_qualification": "not_claimed"
+}

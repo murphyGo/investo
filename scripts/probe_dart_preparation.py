@@ -14,7 +14,7 @@ from collections.abc import AsyncIterator
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from time import monotonic
-from typing import Any, cast
+from typing import Any, Literal, cast
 from zoneinfo import ZoneInfo
 
 import httpx
@@ -27,6 +27,7 @@ from investo.sources._dart_document import MAX_BYTES, _read_xml
 from investo.sources._dart_evidence import _unique_object, dart_identity
 from investo.sources.dart_disclosure import DartDisclosureAdapter
 from investo.sources.event_evidence import (
+    _dart_transport_allowed,
     load_enrichment_qualification,
     load_source_slot_qualification,
 )
@@ -128,7 +129,11 @@ class RecordingTransport(httpx.AsyncBaseTransport):
 
 
 async def rehearse(
-    *, filing: str, corp: str, credential: str
+    *,
+    filing: str,
+    corp: str,
+    credential: str,
+    parser_profile: Literal["price", "schedule"] = "price",
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """One collection GET and at most two two-GET candidates, all within20s/6."""
     manifest: dict[str, Any] = {
@@ -142,7 +147,10 @@ async def rehearse(
         "notification_sent": False,
         "original_filing": filing if re.fullmatch(r"[0-9]{14}", filing) else None,
         "discovered_filing": None,
+        "parser_profile": parser_profile if parser_profile in {"price", "schedule"} else "unknown",
     }
+    if parser_profile not in {"price", "schedule"}:
+        return {**manifest, "reason": "input_invalid"}, {}
     if not re.fullmatch(r"[0-9]{14}", filing) or not re.fullmatch(r"[0-9]{8}", corp):
         return {**manifest, "reason": "input_invalid"}, {}
     if not credential:
@@ -154,6 +162,29 @@ async def rehearse(
     today = datetime.now(ZoneInfo("Asia/Seoul")).date()
     if first > today or today - first > timedelta(days=31):
         return {**manifest, "reason": "collection_window_invalid"}, {}
+    try:
+        policy_path, matrix_path, version = {
+            "price": (
+                "ops/event_dart_preview_qualification.json",
+                "ops/event_source_slot_qualification.json",
+                "dart-cb-correction-6.4-v1",
+            ),
+            "schedule": (
+                "ops/event_dart_schedule_preview_qualification.json",
+                "ops/event_dart_schedule_slot_qualification.json",
+                "dart-cb-schedule-6.4-v1",
+            ),
+        }[parser_profile]
+        qualification = load_enrichment_qualification(ROOT / policy_path)
+        matrix = load_source_slot_qualification(ROOT / matrix_path)
+        if (
+            qualification.dart is None
+            or qualification.dart.parser_version != version
+            or not _dart_transport_allowed(qualification, matrix)
+        ):
+            raise ValueError("preparation.qualification")
+    except (OSError, ValueError):
+        return {**manifest, "reason": "qualification_invalid"}, {}
     install_secret_log_filters(
         (
             "httpx",
@@ -244,9 +275,6 @@ async def rehearse(
                 manifest["discovered_filing"] = (
                     candidates[0].raw_metadata["rcept_no"] if candidates else None
                 )
-                qualification = load_enrichment_qualification(
-                    ROOT / "ops/event_dart_preview_qualification.json"
-                )
                 policy = EnrichmentPolicy(
                     mode="preview",
                     article_passages=True,
@@ -262,9 +290,7 @@ async def rehearse(
                     received_at=datetime.now(UTC),
                     deadline=began + 20,
                     client=client,
-                    slot_qualification=load_source_slot_qualification(
-                        ROOT / "ops/event_source_slot_qualification.json"
-                    ),
+                    slot_qualification=matrix,
                 )
                 native = prepare_context_documents(
                     tuple(item for item in prepared.items if not item.event_input_blocked),
@@ -366,6 +392,7 @@ def main() -> int:
     parser.add_argument("--filing-no", required=True)
     parser.add_argument("--corp-code", required=True)
     parser.add_argument("--output-dir", required=True, type=Path)
+    parser.add_argument("--parser-profile", choices=("price", "schedule"), default="price")
     args = parser.parse_args()
     try:
         output = private_output(args.output_dir)
@@ -374,6 +401,7 @@ def main() -> int:
                 filing=args.filing_no,
                 corp=args.corp_code,
                 credential=os.environ.get("OPENDART_API_KEY", "").strip(),
+                parser_profile=cast(Literal["price", "schedule"], args.parser_profile),
             )
         )
         for name, payload in files.items():

@@ -11,7 +11,7 @@ from datetime import date, datetime
 from typing import Literal
 
 from investo._internal.event_context import resolve_context_ref
-from investo.models.enrichment import DartEnrichmentTrace, EnrichmentReason
+from investo.models.enrichment import DartEnrichmentTrace, DartParserVersion, EnrichmentReason
 from investo.models.event_context import ContextRef, EventContextDocument
 from investo.models.event_evidence import (
     evidence_clock_utc,
@@ -22,6 +22,7 @@ from investo.models.event_evidence import (
 from investo.models.items import NormalizedItem
 from investo.sources._dart_document import MAX_BYTES, DartDocumentError, DartDocumentEvidence
 from investo.sources._dart_document import parse_dart_document as _parse
+from investo.sources._dart_document import parse_dart_schedule_document as _parse_schedule
 from investo.sources.dart_disclosure import DartDisclosureAdapter
 
 DartRequestKind = Literal["listing", "document"]
@@ -207,10 +208,20 @@ def dart_runtime_evidence(parsed: DartDocumentEvidence) -> DartRuntimeEvidence:
 
 
 async def prepare_dart_item(
-    item: NormalizedItem, request: DartRequest, *, forbidden_token: bytes
+    item: NormalizedItem,
+    request: DartRequest,
+    *,
+    forbidden_token: bytes,
+    parser_version: DartParserVersion = "dart-cb-correction-6.4-v1",
 ) -> tuple[NormalizedItem, EnrichmentReason | None, DartEnrichmentTrace]:
-    trace = DartEnrichmentTrace()
     blocked = item.model_copy(update={"event_input_blocked": True})
+    if parser_version == "dart-cb-correction-6.4-v1":
+        parse = _parse
+    elif parser_version == "dart-cb-schedule-6.4-v1":
+        parse = _parse_schedule
+    else:
+        return blocked, "parser_unsupported", DartEnrichmentTrace()
+    trace = DartEnrichmentTrace(parser_version=parser_version)
 
     async def get(kind: DartRequestKind, params: Mapping[str, str]) -> DartResponse:
         nonlocal trace
@@ -253,7 +264,7 @@ async def prepare_dart_item(
         )
         if document.received_at < listing.received_at:
             raise DartRequestError("evidence_invalid")
-        parsed = _parse(
+        parsed = parse(
             item,
             document.data,
             response_sha256=response_sha,

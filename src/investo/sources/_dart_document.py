@@ -38,6 +38,8 @@ class Element(Protocol):
 
     tag: str
     attrib: dict[str, str]
+    text: str | None
+    tail: str | None
 
     def __iter__(self) -> Iterator[Element]: ...
     def __len__(self) -> int: ...
@@ -48,6 +50,7 @@ class Element(Protocol):
 
 
 PARSER_VERSION = "dart-cb-correction-6.4-v1"
+SCHEDULE_PARSER_VERSION = "dart-cb-schedule-6.4-v1"
 MAX_BYTES = 500 * 1024
 _FORM = "주요사항보고서(전환사채권발행결정)"
 _NUMBER = re.compile(r"(?:0|[1-9]\d*|[1-9]\d{0,2}(?:,\d{3})+)(?:\.\d+)?")
@@ -211,6 +214,152 @@ def _date_value(node: Element) -> date:
     return value
 
 
+def _schedule_notes(correction: Element, section: Element) -> list[Element]:
+    """Bind the complete after-note to the current section's explicit item 23."""
+    nodes = list(correction)
+    children = list(section)
+    if (
+        (correction.text or "").strip()
+        or (section.text or "").strip()
+        or any((n.tail or "").strip() for n in [*nodes, *children])
+    ):
+        raise DartDocumentError("dart.correction_mismatch")
+    before = _one([n for n in nodes if _text(n).startswith("주1) 정정전")])
+    after = _one([n for n in nodes if _text(n).startswith("주2) 정정후")])
+    if (
+        before.tag != "P"
+        or after.tag != "P"
+        or len(before)
+        or len(after)
+        or _text(before) != "주1) 정정전"
+        or nodes.index(before) >= nodes.index(after)
+    ):
+        raise DartDocumentError("dart.correction_mismatch")
+    end = _one([n for n in nodes[nodes.index(after) + 1 :] if n.tag == "PGBRK"])
+
+    def empty_paragraph(node: Element) -> bool:
+        return node.tag == "P" and not len(node) and not _text(node)
+
+    if len(end) or _text(end) or any(not empty_paragraph(n) for n in nodes[nodes.index(end) + 1 :]):
+        raise DartDocumentError("dart.correction_mismatch")
+    after_nodes = [
+        n for n in nodes[nodes.index(after) : nodes.index(end)] if not empty_paragraph(n)
+    ]
+    expected_tags = ["P"] * 7 + ["TABLE", "P"]
+    if [n.tag for n in after_nodes] != expected_tags:
+        raise DartDocumentError("dart.correction_mismatch")
+    heading = _one(
+        [
+            n
+            for n in children
+            if n.tag == "TABLE" and _compact(_text(n)) == "23.기타투자판단에참고할사항"
+        ]
+    )
+    following = [n for n in children[children.index(heading) + 1 :] if not empty_paragraph(n)]
+    current = following[: len(after_nodes)]
+    if (
+        [n.tag for n in current] != expected_tags
+        or len(following) <= len(current)
+        or following[len(current)].tag != "TABLE-GROUP"
+    ):
+        raise DartDocumentError("dart.correction_mismatch")
+
+    def shape(node: Element) -> tuple[tuple[str, int, str, str, str], ...]:
+        return tuple(
+            (n.tag, len(n), n.attrib.get("ROWSPAN", "1"), n.attrib.get("COLSPAN", "1"), _text(n))
+            for n in node.iter()
+        )
+
+    if len(current[0]) or _text(after_nodes[0]).removeprefix("주2) 정정후").strip() != _text(
+        current[0]
+    ):
+        raise DartDocumentError("dart.correction_mismatch")
+    if any(shape(a) != shape(b) for a, b in zip(after_nodes[1:], current[1:], strict=True)):
+        raise DartDocumentError("dart.correction_mismatch")
+    return after_nodes + current
+
+
+def _schedule_correction(
+    changed: dict[str, list[Element]],
+    correction: Element,
+    sections: list[Element],
+    main: Element,
+    section: Element,
+    parents: dict[Element, Element],
+) -> tuple[list[tuple[str, Element]], list[Element]]:
+    """Validate all seven changes while projecting only bounded date terms."""
+    expected = {
+        "5.사채만기일": ("TU", "AUNIT", "EXP_DT"),
+        "6.이자지급방법": ("TE", "ACODE", "INT_GV_MTH"),
+        "7.원금상환방법": ("TE", "ACODE", "RTN_MTH"),
+        "9-1.옵션에관한사항": ("TE", "ACODE", "OPT_FCT"),
+        "12.납입일": ("TU", "AUNIT", "PYM_DT"),
+    }
+    conversion_label = "9.전환에관한사항-전환청구기간"
+    notes_label = "23.기타투자판단에참고할사항"
+    if set(changed) != {*expected, conversion_label, notes_label}:
+        raise DartDocumentError("dart.correction_mismatch")
+    bindings: list[Element] = [cell for row in changed.values() for cell in row]
+
+    def current(tag: str, attr: str, code: str) -> Element:
+        node = _one([n for s in sections for n in s.iter(tag) if n.attrib.get(attr) == code])
+        ancestor = parents[node]
+        while ancestor.tag != "TABLE" and ancestor in parents:
+            ancestor = parents[ancestor]
+        if ancestor is not main:
+            raise DartDocumentError("dart.source_mismatch")
+        bindings.append(node)
+        return node
+
+    projection: list[tuple[str, Element]] = []
+    for label, (tag, attr, code) in expected.items():
+        row = changed[label]
+        node = current(tag, attr, code)
+        labels = [n for n in parents[node] if n.tag == "TD"]
+        if not labels or _compact(_text(labels[-1])) != label or _text(row[3]) != _text(node):
+            raise DartDocumentError("dart.correction_mismatch")
+        if tag == "TU":
+            _date_value(node)
+            _date_value(row[2])
+            _date_value(row[3])
+            projection.extend(
+                [(code + "_label", row[0]), (code + "_before", row[2]), (code + "_after", row[3])]
+            )
+    row = changed[conversion_label]
+    period = re.compile(
+        r"시작일\s*:\s*(\d{4}\s*년\s*\d{1,2}\s*월\s*\d{1,2}\s*일)\s*"
+        r"종료일\s*:\s*(\d{4}\s*년\s*\d{1,2}\s*월\s*\d{1,2}\s*일)"
+    )
+    for cell in row[2:]:
+        match = period.fullmatch(_text(cell))
+        if match is None:
+            raise DartDocumentError("dart.correction_mismatch")
+        dates = [date(*(int(v) for v in re.findall(r"\d+", value))) for value in match.groups()]
+        if dates[0] > dates[1]:
+            raise DartDocumentError("dart.correction_mismatch")
+    after_period = period.fullmatch(_text(row[3]))
+    assert after_period is not None  # Both cells were validated above.
+    for code, value, label in zip(
+        ("SB_BGN_DT", "SB_END_DT"), after_period.groups(), ("시작일", "종료일"), strict=True
+    ):
+        node = current("TU", "AUNIT", code)
+        _date_value(node)
+        labels = [n for n in parents[node] if n.tag == "TD"]
+        if (
+            not labels
+            or _compact(_text(labels[-1])) != label
+            or _compact(_text(node)) != _compact(value)
+        ):
+            raise DartDocumentError("dart.correction_mismatch")
+    projection.extend(
+        [("conversion_label", row[0]), ("conversion_before", row[2]), ("conversion_after", row[3])]
+    )
+    if [_text(c) for c in changed[notes_label][2:]] != ["주1) 정정전", "주2) 정정후"]:
+        raise DartDocumentError("dart.correction_mismatch")
+    bindings.extend(_schedule_notes(correction, section))
+    return projection, bindings
+
+
 def _parse_document(
     item: NormalizedItem,
     data: bytes,
@@ -218,6 +367,7 @@ def _parse_document(
     response_sha256: str,
     received_at: datetime,
     forbidden_token: bytes = b"",
+    schedule_correction: bool = False,
 ) -> DartDocumentEvidence:
     """Preserve a listing while binding five slots to one corrected XML form.
 
@@ -436,18 +586,26 @@ def _parse_document(
         "-전환에따라발행할주식",
         "【미상환주권관련사채권에관한사항】",
     }
-    if len(changed) != len(grid) - 1 or not changed.keys() <= supported_rows:
+    if len(changed) != len(grid) - 1:
+        raise DartDocumentError("dart.correction_mismatch")
+    schedule_projection: list[tuple[str, Element]] = []
+    schedule_bindings: list[Element] = []
+    if schedule_correction:
+        schedule_projection, schedule_bindings = _schedule_correction(
+            changed, correction, body_sections, main, ancestor(main, "SECTION-1"), parents
+        )
+    elif not changed.keys() <= supported_rows:
         raise DartDocumentError("dart.correction_mismatch")
     price = [row for label, row in changed.items() if label == "9.전환에관한사항-전환가액"]
     floor = [row for label, row in changed.items() if label == "-최저조정가액"]
     shares = [row for label, row in changed.items() if label == "-전환에따라발행할주식"]
-    if len(price) != 1 or len(floor) != 1 or len(shares) != 1:
+    if not schedule_correction and (len(price) != 1 or len(floor) != 1 or len(shares) != 1):
         raise DartDocumentError("dart.correction_mismatch")
     share_after = re.fullmatch(
         r"-\s*주식수\s*:\s*([0-9,]+)\s*-\s*주식총수대비비율\(%\)\s*:\s*([0-9.]+)",
-        _text(shares[0][3]),
+        _text(shares[0][3]) if shares else "",
     )
-    if (
+    if not schedule_correction and (
         _text(price[0][3]) != _text(fields["EXE_PRC"])
         or _text(floor[0][3]) != _text(fields["MIN_PRC"])
         or share_after is None
@@ -470,6 +628,13 @@ def _parse_document(
         if _compact(_text(labels[-1])) != expected_date_labels[name]:
             raise DartDocumentError("dart.schema_unsupported")
         add(name + "_label", labels[-1])
+    if schedule_correction:
+        # Keep identity/status, amount and decision date; current unchanged
+        # prices are not substituted for the actual schedule correction.
+        omitted = {"EXE_PRC", "STK_CNT", "STK_RT", "MIN_PRC", "PYM_DT", "EXP_DT"}
+        values = [v for v in values if v[0].removesuffix("_label") not in omitted]
+        for name, node in schedule_projection:
+            add(name, node)
     projection = "\n".join(f"{name}: {value}" for name, _, value in values)
     if len(projection) > 1200:
         raise DartDocumentError("dart.context_budget")
@@ -521,15 +686,29 @@ def _parse_document(
         "action_status": ("correction", "CRT_RSN", "CRT_PLN", "correction_date"),
         "action_terms": tuple(key for name in terms for key in (name, name + "_label")),
     }
+    if schedule_correction:
+        groups["action_terms"] = (
+            "DNM_SUM",
+            "DNM_SUM_label",
+            "DRC_DT",
+            "DRC_DT_label",
+            *(name for name, _ in schedule_projection),
+        )
     refs = {name: tuple(positions[key] for key in keys) for name, keys in groups.items()}
     refs["filing_locator"] = (locator,)
     bindings = tuple(DartXmlBinding(name, path(node), value) for name, node, value in values)
-    bindings += (
-        DartXmlBinding("issuer_code", path(company) + "/@AREGCIK", corp),
-        DartXmlBinding("corrected_price", path(price[0][3]), _text(price[0][3])),
-        DartXmlBinding("corrected_floor", path(floor[0][3]), _text(floor[0][3])),
-        DartXmlBinding("corrected_shares", path(shares[0][3]), _text(shares[0][3])),
-    )
+    bindings += (DartXmlBinding("issuer_code", path(company) + "/@AREGCIK", corp),)
+    if schedule_correction:
+        bindings += tuple(
+            DartXmlBinding(f"schedule_check_{index}", path(node), _text(node))
+            for index, node in enumerate(schedule_bindings)
+        )
+    else:
+        bindings += (
+            DartXmlBinding("corrected_price", path(price[0][3]), _text(price[0][3])),
+            DartXmlBinding("corrected_floor", path(floor[0][3]), _text(floor[0][3])),
+            DartXmlBinding("corrected_shares", path(shares[0][3]), _text(shares[0][3])),
+        )
     return DartDocumentEvidence(
         updated,
         context,
@@ -537,6 +716,7 @@ def _parse_document(
         bindings,
         response_sha256,
         hashlib.sha256(raw).hexdigest(),
+        SCHEDULE_PARSER_VERSION if schedule_correction else PARSER_VERSION,
     )
 
 
@@ -556,6 +736,30 @@ def parse_dart_document(
             response_sha256=response_sha256,
             received_at=received_at,
             forbidden_token=forbidden_token,
+        )
+    except DartDocumentError:
+        raise
+    except (ValueError, TypeError, EOFError):
+        raise DartDocumentError("dart.source_mismatch") from None
+
+
+def parse_dart_schedule_document(
+    item: NormalizedItem,
+    data: bytes,
+    *,
+    response_sha256: str,
+    received_at: datetime,
+    forbidden_token: bytes = b"",
+) -> DartDocumentEvidence:
+    """Explicit offline schedule-form parser; never a fallback for live v1."""
+    try:
+        return _parse_document(
+            item,
+            data,
+            response_sha256=response_sha256,
+            received_at=received_at,
+            forbidden_token=forbidden_token,
+            schedule_correction=True,
         )
     except DartDocumentError:
         raise

@@ -3,6 +3,14 @@ name: Private DART shared preparation
 on:
   workflow_dispatch:
     inputs:
+      parser_profile:
+        description: 'Explicit reviewed parser profile; no fallback between forms.'
+        required: true
+        type: choice
+        default: price
+        options:
+          - price
+          - schedule
       filing_no:
         description: 'One known fourteen-digit DART filing number.'
         required: true
@@ -40,6 +48,7 @@ jobs:
           FILING_NO: ${{ inputs.filing_no }}
           CORP_CODE: ${{ inputs.corp_code }}
           RECIPIENT: ${{ inputs.recipient_public_key }}
+          PARSER_PROFILE: ${{ inputs.parser_profile || 'price' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -47,6 +56,7 @@ jobs:
           [[ "$FILING_NO" =~ ^[0-9]{14}$ ]]
           [[ "$CORP_CODE" =~ ^[0-9]{8}$ ]]
           [[ "$RECIPIENT" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$PARSER_PROFILE" =~ ^(price|schedule)$ ]]
           echo "UV_PROJECT_ENVIRONMENT=$RUNNER_TEMP/dart-probe-venv" >> "$GITHUB_ENV"
       - name: Checkout reviewed probe code
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -82,13 +92,14 @@ jobs:
           OPENDART_API_KEY: ${{ secrets.OPENDART_API_KEY }}
           FILING_NO: ${{ inputs.filing_no }}
           CORP_CODE: ${{ inputs.corp_code }}
+          PARSER_PROFILE: ${{ inputs.parser_profile || 'price' }}
         shell: bash
         run: |
           set -euo pipefail
           "$UV_PROJECT_ENVIRONMENT/bin/python" -I -c 'import investo, os; from pathlib import Path; assert Path(investo.__file__).resolve().is_relative_to(Path(os.environ["UV_PROJECT_ENVIRONMENT"]).resolve())'
           set +e
           "$UV_PROJECT_ENVIRONMENT/bin/python" -I scripts/probe_dart_preparation.py \
-            --filing-no "$FILING_NO" --corp-code "$CORP_CODE" \
+            --filing-no "$FILING_NO" --corp-code "$CORP_CODE" --parser-profile "$PARSER_PROFILE" \
             --output-dir .tmp/event-news-v3/dart-preparation
           rc=$?
           set -e
