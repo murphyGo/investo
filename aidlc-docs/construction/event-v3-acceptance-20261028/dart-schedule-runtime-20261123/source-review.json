@@ -1,0 +1,29 @@
+{
+  "scope": "explicit DART schedule profile and shared preparation source changes",
+  "reviewer": "independent dart_runtime_review agent",
+  "verdict": "APPROVE",
+  "critical": 0,
+  "high": 0,
+  "medium": 0,
+  "low": 0,
+  "independent_python": "3.11.9",
+  "independent_tests_passed": 234,
+  "delivery_python": "3.11.9",
+  "delivery_tests_passed": 235,
+  "ruff_check": "pass",
+  "ruff_format_files": 877,
+  "mypy_source_files": 371,
+  "invariants": [
+    "explicit parser selection with no fallback",
+    "profile qualification is checked before collection",
+    "matrix hash, parser, source SHA, fixture and rights are bound",
+    "unknown or tampered parser versions fail closed",
+    "shared resource bounds and quarantine are preserved",
+    "workflow inputs are validated via environment variables",
+    "default price profile and existing policy files are preserved"
+  ],
+  "limitations": [
+    "schedule qualification review and actual private run tracked separately",
+    "existing malformed HTML test differs between local Python 3.11.18 and workflow Python 3.11.9; unchanged HTML implementation"
+  ]
+}

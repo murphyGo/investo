@@ -16,7 +16,7 @@ Functional Design/NFR Requirements: 아래 제한된 계약으로 완료. 기존
 ## 단계
 
 - [x] 1. 기존 설계·보관본·최신 remote/pin과 독립 checkout 경계를 확인한다.
-- [ ] 2. 명시적 parser/profile 선택과 shared preparation·probe·회귀를 구현한다.
+- [x] 2. 명시적 parser/profile 선택과 shared preparation·probe·회귀를 구현한다.
 - [ ] 3. 별도 source/transport 자격 및 private capture 재생을 검수하고 정확한 코드 CI를 통과한다.
 - [ ] 4. 전용 진단의 profile/pin을 반영하고 실제 비게시 수집·암호문 보관·독립 검수를 마친다.
 - [ ] 5. 실제 결과와 하위 완료/상위 잔여를 session/cross-check/state/audit에 기록한다.

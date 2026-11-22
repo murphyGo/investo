@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "sources": [],
+  "dart": {
+    "source_name": "dart-disclosure",
+    "scope": "preview_only",
+    "status": "approved",
+    "checked_at": "2026-11-20T17:12:51.525123Z",
+    "parser_version": "dart-cb-schedule-6.4-v1",
+    "projection_version": "dart-field-paragraph-v1",
+    "slot_qualification_sha256": "e0a679877ab82474051140828d8d8c535a12b311bea3feb372b5fd8774c5eb32",
+    "source_code_sha": "fc84d7c1d1c4f2ed140606e9a5ca38fb667f086c",
+    "fixture_sha256": "1031e9b17f9718bd2770fdf92294a8ea42b0c10d246cb44e66e18b84cc441663",
+    "rights_scope": "OpenDART permits extraction of desired data from XML. Bounded private facts for FORMULA6.4/20260723 ACODE11324 schedule correction only; excludes raw document, image, signature and attachment redistribution. Historical retained retrieval does not establish current latest terms or issuance completion. Source-slot evidence alone grants no live HTTP permission.",
+    "private_retention_basis": "Bounded current-list and single XML ZIP in private run memory only; no public raw body/images/signatures/attachments. Optional manual diagnostic capture uses ignored0700/0600 and recipient-encrypted artifact retained one day. Generated field paragraph <=1200 characters preserves exact XML field values.",
+    "max_projection_chars": 1200
+  }
+}
