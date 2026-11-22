@@ -87,13 +87,13 @@ async def test_empty_object_group_does_not_require_an_invented_object() -> None:
     assert len(runner.prompts) == 1
 
 
-def test_entity_feedback_does_not_echo_exception_context_or_change_other_codes() -> None:
+def test_entity_feedback_does_not_echo_exception_context_or_mix_other_hints() -> None:
     feedback = _stage2_retry_feedback(
         ValueError("event.entity_unsupported: PRIVATE_SOURCE"), schema_version=2
     )
     assert "PRIVATE_SOURCE" not in feedback
     for code in ("event.fact_unsupported", "event.output_invalid"):
         other = _stage2_retry_feedback(ValueError(code), schema_version=2)
-        assert other.endswith(f"Validation code: {code}\n")
+        assert f"Validation code: {code}\n" in other
         assert "each nonempty" not in other
     assert _stage2_retry_feedback(None, schema_version=2) == ""

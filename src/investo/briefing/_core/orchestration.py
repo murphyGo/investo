@@ -15,7 +15,6 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-import re
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
@@ -28,6 +27,7 @@ from investo.briefing._assembly.markdown_render import (
     _render_required_macro_actuals,
     _render_unassigned,
     _stage2_retry_feedback,
+    _stage2_validation_code,
 )
 from investo.briefing._assembly.prompt_fields import (
     _render_stage1_prompt_summary,
@@ -40,6 +40,7 @@ from investo.briefing._core.classification import (
     EventClassificationResult,
     _parse_classification,
     event_classification_diagnostics,
+    event_classification_retry_feedback,
     invalid_event_evidence,
     parse_event_classification,
 )
@@ -355,16 +356,8 @@ async def _classify(
             budget.record(accounted_backoff)
 
         attempt_prompt = full_prompt
-        if uses_events and "evidence.fact_metadata_missing" in event_classification_diagnostics(
-            last_cause
-        ):
-            attempt_prompt += (
-                "\nA fact period or unit was absent from its supplied source. For each fact, "
-                "copy period/unit only as exact substrings from the title, summary or detail "
-                "of the document referenced by that fact's evidence_ref. Use null when absent; "
-                "do not infer, translate or normalize these labels. Keep the source fact and "
-                "its actual/forecast status unchanged.\n"
-            )
+        if uses_events:
+            attempt_prompt += event_classification_retry_feedback(last_cause)
         outcome = await call_claude_code(attempt_prompt, timeout_s=policy.timeout_s, runner=runner)
         _logger.info(
             "llm attempt segment=%s stage=classification attempt=%d timeout_s=%.1f "
@@ -425,6 +418,14 @@ async def _classify(
             )
         except (json.JSONDecodeError, ValidationError, ValueError) as exc:
             last_cause = exc
+            if uses_events:
+                _logger.warning(
+                    "llm validation segment=%s stage=classification attempt=%d diagnostics=%s",
+                    segment,
+                    attempt + 1,
+                    ",".join(event_classification_diagnostics(exc))
+                    or "classification.invalid_output",
+                )
             continue
 
     raise BriefingGenerationError(
@@ -716,10 +717,7 @@ async def _synthesize(
             _validate_required_macro_mentions(body, plan.required_macro_items)
         except ValueError as exc:
             if uses_events:
-                code = str(exc).split(":", 1)[0]
-                message = (
-                    code if re.fullmatch(r"event\.[a-z_]{1,60}", code) else "event.output_invalid"
-                )
+                message = _stage2_validation_code(exc)
                 diagnostics = event_synthesis_diagnostics(exc)
                 if validation_step == "sections":
                     diagnostics = ("synthesis.invalid_sections",)
@@ -729,6 +727,13 @@ async def _synthesize(
                     EventSynthesisError(message, diagnostics)
                     if diagnostics
                     else ValueError(message)
+                )
+                _logger.warning(
+                    "llm validation segment=%s stage=synthesis attempt=%d code=%s diagnostics=%s",
+                    segment,
+                    attempt + 1,
+                    message,
+                    ",".join(diagnostics) or "none",
                 )
             else:
                 last_cause = exc
