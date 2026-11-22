@@ -509,3 +509,10 @@ User requested commit and deployment. Reconstructed the 41 owned paths from the 
 ### 2026-11-21 — DART 공통 준비·실측 차단 검수 완료
 
 u173Step4/u184Step5의명시적DARTpreview를공통owner에연결하고exacteff7/CI43915660414(8,087PASS/1skip·562.90초·Node39·정적/정책/docs)를통과했다. 실제44781000456은4GET/200·1.401445초, 과거targetlatestmissing/XML0·별도candidate허용범위밖정정표로거절됐다. 즉시암호문19,317bytes와private5파일을확보해clock/hash/문서ID/차단2/native0을독립재생하고source_limited·모델0·C/H/M0을확인했다. 만료된앞선2run은수용0이다. subplan6/6만완료하고local3/8·runtime0/activationfalse·human0/12·v3예약0·상위unit미완료를유지한다. canonical자격표/기존4핀/다른dirty작업은보존했다. 다음은보관된새정정표7행의versionedparser지원판정이며기존guard를완화하지않는다. [기록](../docs/sessions/2026-11-17-dart-shared-preparation.md), [증거](construction/event-v3-acceptance-20261028/dart-preparation-20261117/evidence.json), [검수](../docs/cross-checks/2026-11-17-dart-shared-preparation.md).
+
+
+### 2026-11-23 — DART 일정 정정 공통 준비 실측 완료
+
+사용자 “진행시켜”에 따라 별도 schedule parser/profile·자격을 공통 준비 경로에 연결했다. source `fc84d7c1`, 전달본 `3eafd2bc`의 CI45056435819는 8,147PASS/1skip·Node39·정적/정책/docs 통과다. 실제 private45059739620은 4GET/200·2.039706초, 일정 정정1건의5slot/22refs/76XML·661자/native1 성공이며 원래 과거공시는 latest missing으로 XML 없이 차단했다. 암호문21,466bytes/private5파일·동일run clock/hash/native refs를 독립 재생해 C0/H0/M0/L0이다. 전용 진단 workflow/pin만 갱신하고 다른 작업의 production378bccee 갱신 및 main을 보존했다. source/model/게시/알림 경계를 유지하며 모델/게시/알림/ledger/cursor0이다. 하위계획5/5만 완료하고 canonical local3/8·runtime0/activationfalse·human0/12·v3예약수용0·상위unit 미완료는 유지한다. 구현과 기록은 `codex/dart-schedule-runtime-20261123`, private 진단 pin은 정확히3e다.
+
+[계획](construction/event-v3-acceptance-20261028/dart-schedule-runtime-20261123/plan.md), [증거](construction/event-v3-acceptance-20261028/dart-schedule-runtime-20261123/evidence.json), [검수](../docs/cross-checks/2026-11-23-dart-schedule-runtime.md).

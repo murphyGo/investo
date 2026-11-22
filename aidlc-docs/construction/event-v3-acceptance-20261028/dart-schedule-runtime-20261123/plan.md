@@ -17,10 +17,14 @@ Functional Design/NFR Requirements: 아래 제한된 계약으로 완료. 기존
 
 - [x] 1. 기존 설계·보관본·최신 remote/pin과 독립 checkout 경계를 확인한다.
 - [x] 2. 명시적 parser/profile 선택과 shared preparation·probe·회귀를 구현한다.
-- [ ] 3. 별도 source/transport 자격 및 private capture 재생을 검수하고 정확한 코드 CI를 통과한다.
-- [ ] 4. 전용 진단의 profile/pin을 반영하고 실제 비게시 수집·암호문 보관·독립 검수를 마친다.
-- [ ] 5. 실제 결과와 하위 완료/상위 잔여를 session/cross-check/state/audit에 기록한다.
+- [x] 3. 별도 source/transport 자격 및 private capture 재생을 검수하고 정확한 코드 CI를 통과한다.
+- [x] 4. 전용 진단의 profile/pin을 반영하고 실제 비게시 수집·암호문 보관·독립 검수를 마친다.
+- [x] 5. 실제 결과와 하위 완료/상위 잔여를 session/cross-check/state/audit에 기록한다.
 
 ## 수용 판정
 
 오프라인/합성/actual shared-preparation을 각각 분리한다. 실제5slot/native 확보 시 이 명시적 profile의 준비 경로 성공만 기록하며, 전체 source readiness·기사12개/사람 검수·예약 발행·public activation을 완료로 올리지 않는다. production 설정을 바꾸지 않는다.
+
+## 완료 근거
+
+정확한 code `3eafd2bc` CI45056435819: 8,147PASS/1skip, Node39 및 모든 정적·정책·docs 통과. 실제 private45059739620: 4GET/200·2.039706초, 일정 정정1건의5slot/22refs/76XML/661자/native1 성공, 원래 과거공시1건 차단 유지. 독립 source/qualification/actual 검수 C0/H0/M0/L0. [증거](evidence.json), [실측 검수](actual-review.json). 이 하위계획5/5만 완료하고 상위 u173/u184 및 운영 활성화는 미완료다. 구현은 전용 branch/pin으로 전달했고 동시 작업으로 갱신된 main과 production pin은 보존했다.
