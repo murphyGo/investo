@@ -144,6 +144,82 @@ def invalid_event_evidence(exc: BaseException) -> EventClassificationError:
     )
 
 
+_EVIDENCE_REPAIR_HINTS: Final[dict[str, str]] = {
+    "evidence.unknown_document": (
+        "Copy document_id and revision_id together from the same supplied evidence document; "
+        "do not use origin_revision_id, a URL, an item ID or a prior response's revision."
+    ),
+    "evidence.span_out_of_bounds": (
+        "Recompute start/end against the exact transmitted field, using zero-based Unicode "
+        "codepoints and an exclusive end: 0 <= start < end <= field length. Do not count UTF-8 "
+        "bytes or JSON escape characters, or refer to text beyond a truncated field."
+    ),
+    "evidence.blank_span": (
+        "Each evidence span must select non-whitespace source text from the indicated field. "
+        "Do not substitute an empty span for unavailable evidence."
+    ),
+    "evidence.item_mismatch": (
+        "Every reference must belong to a supplied document of that event's item_ids. "
+        "Do not combine another item's document/revision with this event's item IDs."
+    ),
+    "evidence.relation_missing": (
+        "Support the proposed relation with relation_refs from this event's supplied sources; "
+        "a relation label alone is not evidence."
+    ),
+    "evidence.impact_missing": (
+        "Support the proposed impact with impact_refs from this event's supplied sources; "
+        "an impact label alone is not evidence."
+    ),
+    "evidence.object_missing": (
+        "A product_service event requires object_refs identifying the product or service "
+        "in its supplied source. Do not invent an object or reclassify it to evade this rule."
+    ),
+    "evidence.date_conflict": (
+        "Do not merge source documents whose event dates disagree into one event. "
+        "Keep each event tied to consistent supplied date evidence."
+    ),
+    "evidence.future_occurred": (
+        "Future scheduled evidence is not an occurred event. Preserve the supplied timing "
+        "and scheduled status rather than claiming that a future event already happened."
+    ),
+    "evidence.fact_metadata_missing": (
+        "A fact period or unit was absent from its supplied source. For each fact, "
+        "copy period/unit only as exact substrings from the title, summary or detail "
+        "of the document referenced by that fact's evidence_ref. Use null when absent; "
+        "do not infer, translate or normalize these labels. Keep the source fact and "
+        "its actual/forecast status unchanged."
+    ),
+    "evidence.invalid": (
+        "Recheck every reference against its supplied document, revision, field and span, "
+        "and preserve source ownership and fact status. Do not fabricate missing evidence."
+    ),
+    "classification.invalid_items": (
+        "Use only supplied item IDs in assignments, unassigned and events.item_ids. "
+        "Assign every required macro item ID to a valid section; do not omit it or mark "
+        "it unassigned."
+    ),
+}
+
+
+def event_classification_retry_feedback(cause: BaseException | None) -> str:
+    """Bound feedback to eight closed diagnostics and fixed, source-free hints (R13)."""
+    diagnostics = event_classification_diagnostics(cause)
+    if not diagnostics:
+        return ""
+    hints = [_EVIDENCE_REPAIR_HINTS[code] for code in diagnostics if code in _EVIDENCE_REPAIR_HINTS]
+    if any(code.startswith("schema.") for code in diagnostics):
+        hints.append(
+            "Follow the supplied JSON schema for the indicated fields, types, required keys "
+            "and bounds. Return the complete envelope with assignments, unassigned and events."
+        )
+    return (
+        "\nPrevious Stage 1 JSON failed validation. Rebuild one complete schema_version=2 "
+        "JSON object from the original supplied evidence. Do not modify the source text, "
+        "invent evidence or replace a failed classification with an empty-events fallback.\n"
+        f"Validation diagnostics: {', '.join(diagnostics)}\n" + "\n".join(hints) + "\n"
+    )
+
+
 def parse_event_classification(
     stdout: str, item_count: int, *, required_item_ids: frozenset[int] = frozenset()
 ) -> EventClassificationResult:

@@ -216,3 +216,8 @@ Native generation/seal/identity-story publication/reader surfaces and offline ac
 - Logged source-outcome replay: original 13-row inputs now produce four visible rows with all status counts. Light/dark previews inspected.
 - Reproduction commands, font/environment limits and release scope: `aidlc-docs/construction/u22-source-coverage-transparency/code/row-budget-summary-20261117.md`.
 - Repository-wide suite and production end-to-end execution were not run for this bounded follow-up. Local implementation is uncommitted and undeployed.
+
+
+## 2026-11-23 — u157/u158 event validation retry feedback
+
+Related public-base tests: 2,088 passed in 103.57s. Production-base compatibility: 111 passed in 2.57s. Ruff/format/Mypy/diff and independent review passed. Synthetic fixtures verify recovery, bounded feedback, closed diagnostics and repeated-invalid blocking; production failed payloads were not retained. Nov 19 terminal cause remains unresolved. Local implementation only; no release or operational improvement claim. [Reproduction and limits](../u157-event-evidence-selection-contract/code/retry-feedback-summary-20261123.md).

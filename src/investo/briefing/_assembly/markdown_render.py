@@ -11,9 +11,9 @@ behavior-preserving (move-only).
 
 from __future__ import annotations
 
-import re
-from typing import Final
+from typing import Final, get_args
 
+from investo._internal.event_rendering import EventErrorCode
 from investo.briefing._assembly.prompt_fields import (
     _STAGE2_URL_MAX_CHARS,
     _render_prompt_url,
@@ -37,6 +37,9 @@ _CRYPTO_MAX_STAGE2_UNASSIGNED_ITEMS: Final[int] = 4
 _STAGE2_RETRY_FEEDBACK_MAX_CHARS: Final[int] = 360
 _STAGE2_TITLE_MAX_CHARS: Final[int] = 180
 _STAGE2_SUMMARY_MAX_CHARS: Final[int] = 260
+_EVENT_RETRY_CODES: Final[frozenset[str]] = frozenset(get_args(EventErrorCode)) | {
+    "event.output_invalid"
+}
 
 
 def _render_grouped_sections(
@@ -191,15 +194,19 @@ def _render_story_prefix(
     return f"[tier={metadata.tier} score={metadata.score} reasons={reasons}] "
 
 
+def _stage2_validation_code(cause: BaseException) -> str:
+    """Allow only fixed event codes, never arbitrary event-prefixed exception text."""
+    code = str(cause).split(":", 1)[0]
+    return code if code in _EVENT_RETRY_CODES else "event.output_invalid"
+
+
 def _stage2_retry_feedback(cause: BaseException | None, *, schema_version: int = 1) -> str:
     if cause is None:
         return ""
     if schema_version == 2:
         # Only closed codes belong in the v2 feedback channel; exception input
         # values can contain private source text or a malformed model response.
-        code = str(cause).split(":", 1)[0]
-        if not re.fullmatch(r"event\.[a-z_]+", code):
-            code = "event.output_invalid"
+        code = _stage2_validation_code(cause)
         entity_hint = (
             "The first complete sentence of what_happened must include at least one "
             "exact source span from each nonempty actor_refs and object_refs group. "
@@ -211,12 +218,33 @@ def _stage2_retry_feedback(cause: BaseException | None, *, schema_version: int =
             if code == "event.entity_unsupported"
             else ""
         )
+        fact_hint = (
+            "Use unique fact_ids belonging to each selected event and include all of its "
+            "required_fact_ids. Preserve the selected events and required facts. Ground every "
+            "number in headline and what_happened in those facts or the supplied actor/object "
+            "spans; do not calculate, round, convert units or add dates/numbers from unrelated "
+            "context. Keep actual and forecast values distinct and label forecasts explicitly. "
+            "Meaning/reaction numbers require their own field-local evidence_refs. Copy supplied "
+            "period/unit labels exactly and do not alter protected source facts.\n"
+            if code == "event.fact_unsupported"
+            else ""
+        )
+        evidence_hint = (
+            "Use only unique source_refs supplied for the selected event, including its actor, "
+            "action, object and claimed fact references. Preserve each document_id, revision_id, "
+            "field, start and end exactly. Meaning/reaction evidence_refs must be contained in "
+            "that event's source_refs and support that field; identity-only spans cannot support "
+            "an impact or market reaction. Use the schema's unavailable form for unsupported "
+            "meaning/reaction, retaining the selected event and all required facts.\n"
+            if code == "event.evidence_invalid"
+            else ""
+        )
         return (
             "\n\nPrevious Stage 2 JSON failed validation. Return one complete "
             "schema_version=2 JSON object with all five sections and exactly the "
             "selected events in order. Do not continue a fragment or emit Markdown "
             f"outside JSON. Validation code: {code}\n"
-            f"{entity_hint}"
+            f"{entity_hint}{fact_hint}{evidence_hint}"
         )
     message = _truncate_prompt_field(str(cause), _STAGE2_RETRY_FEEDBACK_MAX_CHARS)
     return (
