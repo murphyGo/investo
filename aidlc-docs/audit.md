@@ -8442,3 +8442,9 @@ User requested commit and deployment. Reconstructed the 41 owned paths from the 
 ### 2026-11-21 — DART 공통 준비·실측 차단 검수 완료
 
 u173Step4/u184Step5의명시적DARTpreview를공통owner에연결하고exacteff7/CI43915660414(8,087PASS/1skip·562.90초·Node39·정적/정책/docs)를통과했다. 실제44781000456은4GET/200·1.401445초, 과거targetlatestmissing/XML0·별도candidate허용범위밖정정표로거절됐다. 즉시암호문19,317bytes와private5파일을확보해clock/hash/문서ID/차단2/native0을독립재생하고source_limited·모델0·C/H/M0을확인했다. 만료된앞선2run은수용0이다. subplan6/6만완료하고local3/8·runtime0/activationfalse·human0/12·v3예약0·상위unit미완료를유지한다. canonical자격표/기존4핀/다른dirty작업은보존했다. 다음은보관된새정정표7행의versionedparser지원판정이며기존guard를완화하지않는다. [기록](../docs/sessions/2026-11-17-dart-shared-preparation.md), [증거](construction/event-v3-acceptance-20261028/dart-preparation-20261117/evidence.json), [검수](../docs/cross-checks/2026-11-17-dart-shared-preparation.md).
+
+
+### 2026-11-23 — u157/u158 event validation retry feedback
+
+분류 단계의 closed evidence/schema 진단과 생성 단계의 fact/evidence 오류에 고정 수정 안내를 연결하고, 거절된 시도별로 원문 없는 진단 코드를 남긴다. 실제 validator를 거치는 합성 회귀 입력으로 복구와 반복 거절을 검증했다. 최신 public 기준 관련 2,088PASS, 현 운영 SHA에 이 수정만 적용한 111PASS, Ruff/format/Mypy 및 독립 검수 잔여0. 검증 규칙·시도/시간 예산·최종 게시 gate를 보존했다. 실패 원문이 없어 과거 사건의 정확한 재현과 Nov 19 terminal 실패 원인·운영 성공률 개선은 미확인이다. 이 하위 계획만 5/5 완료하며 다른 단위·v3 자격/활성 상태는 변경하지 않는다. 공유 HEAD/index와 다른 세션 변경을 보존했고 이번 수정의 commit/push/배포/모델 실행/게시/알림은 없다.
+사용자 원문: “진행시켜”. 기존 구현 진행 지시에 따라 조사·구현·검증을 완료했다. [세션](../docs/sessions/2026-11-23-event-retry-feedback.md), [독립 리뷰](construction/u157-event-evidence-selection-contract/code/retry-feedback-review-20261123.md).

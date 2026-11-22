@@ -1,0 +1,108 @@
+{
+  "date": "2026-11-23",
+  "scope": "Local retry-feedback implementation; synthetic regression inputs",
+  "public_base": "af3ca28920944880b19b86981f23826fa9b8541d",
+  "runtime_base": "3ce35148947db7f5ec8c4011578e078d03ee19b7",
+  "tests": {
+    "public_related": {
+      "passed": 2088,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 103.57,
+      "command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/unit/briefing",
+        "tests/unit/orchestrator/test_run_pipeline.py",
+        "tests/unit/_internal/test_module_boundary.py",
+        "tests/unit/publisher/test_event_article_projection_u185.py",
+        "tests/unit/publisher/test_event_blocks.py",
+        "tests/unit/publisher/test_event_quality.py",
+        "tests/unit/publisher/test_event_quality_history.py",
+        "tests/unit/publisher/test_event_surface_views_v3.py",
+        "tests/unit/publisher/test_event_watchpoint_composition.py",
+        "tests/unit/publisher/test_event_watchpoints.py",
+        "tests/unit/models/test_event_context_v3.py",
+        "tests/unit/models/test_event_quality.py",
+        "tests/unit/models/test_event_semantic_acceptance_u172.py",
+        "tests/unit/models/test_event_story_contract_v3.py",
+        "tests/unit/models/test_events.py",
+        "tests/integration/test_event_article_acceptance_u186.py",
+        "tests/integration/test_event_article_prose_v3.py",
+        "tests/integration/test_event_component_prose_v3.py",
+        "tests/integration/test_event_content_quality_v3.py",
+        "tests/integration/test_event_context_budget_v3.py",
+        "tests/integration/test_event_context_handoff_v3.py",
+        "tests/integration/test_event_coverage_replay.py",
+        "tests/integration/test_event_document_claim_boundaries_v3.py",
+        "tests/integration/test_event_document_finalization_v3.py",
+        "tests/integration/test_event_document_v3_replay_u172.py",
+        "tests/integration/test_event_enrichment.py",
+        "tests/integration/test_event_finalization.py",
+        "tests/integration/test_event_generation.py",
+        "tests/integration/test_event_metadata_spans_v3.py",
+        "tests/integration/test_event_numeric_containment_native_v3.py",
+        "tests/integration/test_event_preview_native_v3.py",
+        "tests/integration/test_event_prompt_budget.py",
+        "tests/integration/test_event_publication_boundary.py",
+        "tests/integration/test_event_publication_v3.py",
+        "tests/integration/test_event_reader_html_v3.py",
+        "tests/integration/test_event_source_slot_checker_u173.py",
+        "--tb=short"
+      ]
+    },
+    "runtime_compatibility": {
+      "passed": 111,
+      "failed": 0,
+      "seconds": 2.57,
+      "command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/unit/briefing/test_event_retry_feedback.py",
+        "tests/unit/briefing/test_event_classification.py",
+        "tests/unit/briefing/test_event_entity_retry.py",
+        "tests/unit/briefing/test_event_pipeline_boundaries.py",
+        "tests/unit/briefing/test_pipeline_unit.py",
+        "--tb=short"
+      ]
+    },
+    "independent_review": {
+      "passed": 159,
+      "overlaps_parent_suite": true
+    }
+  },
+  "environment": {
+    "python": "3.11",
+    "PYTHONPATH": "src",
+    "additional_dependencies": false
+  },
+  "static_checks": {
+    "ruff_five_python_files": "pass",
+    "ruff_format_five_python_files": "pass",
+    "mypy_three_source_files": "pass",
+    "diff_check": "pass"
+  },
+  "source_hashes_sha256": {
+    "src/investo/briefing/_core/classification.py": "3b19676b572e859479f3c5af21f1dd34dc048cb4eb4ea944bd518e6a19a3228a",
+    "src/investo/briefing/_core/orchestration.py": "cba6c09eaa2e82b10c55a0072061bf68b248ac127ff2401395e6c7833ed3ba81",
+    "src/investo/briefing/_assembly/markdown_render.py": "17d017fa20312714775301ed8215bdfe6a48616173504358d57eb55f1c727474",
+    "tests/unit/briefing/test_event_retry_feedback.py": "3f06cccf907bc021a33e8d27abd2581ab81691ff968e174826c61d254c435686",
+    "tests/unit/briefing/test_event_entity_retry.py": "ed2bcf962b204b3a44d69cc0b1c30fb0758cf7c7466f952a822fe7c1bc6aacaa"
+  },
+  "feedback_max_bytes": {
+    "stage1": 2069,
+    "stage2": 809
+  },
+  "terminal_validators_changed": false,
+  "failed_production_payload_replayed": false,
+  "live_success_rate_measured": false,
+  "nov19_terminal_cause": "unresolved",
+  "manual_llm_calls": 0,
+  "publications": 0,
+  "notifications": 0,
+  "commit_push_deployment": false
+}

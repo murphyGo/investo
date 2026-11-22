@@ -1,0 +1,57 @@
+{
+  "scope": "Code-level retry hardening informed by production stage/error logs; synthetic regression inputs, not original failed model output",
+  "public_base": "af3ca28920944880b19b86981f23826fa9b8541d",
+  "runtime_base": "3ce35148947db7f5ec8c4011578e078d03ee19b7",
+  "incidents": [
+    {
+      "run": 44016557182,
+      "date": "2026-11-17",
+      "segment": "domestic-equity",
+      "stage": "classification",
+      "code": "event_classification_unavailable: invalid_evidence",
+      "prompt_bytes": [
+        60653,
+        60653,
+        60653
+      ]
+    },
+    {
+      "run": 44229865263,
+      "date": "2026-11-18",
+      "segment": "domestic-equity",
+      "stage": "classification",
+      "code": "event_classification_unavailable: invalid_evidence",
+      "prompt_bytes": [
+        66754,
+        66754,
+        66754
+      ]
+    },
+    {
+      "run": 44447938754,
+      "date": "2026-11-19",
+      "segment": "domestic-equity",
+      "stage": "finalize",
+      "code": "event.evidence_invalid",
+      "status": "trust_blocked",
+      "exact_cause_unverified": true
+    },
+    {
+      "run": 44663776058,
+      "date": "2026-11-20",
+      "segment": "domestic-equity",
+      "stage": "synthesis",
+      "code": "event.fact_unsupported",
+      "prompt_bytes": [
+        33276,
+        33531,
+        33531
+      ]
+    }
+  ],
+  "failed_model_payloads_retained": false,
+  "terminal_validators_changed": false,
+  "manual_live_llm_calls": 0,
+  "publications": 0,
+  "messages": 0
+}
