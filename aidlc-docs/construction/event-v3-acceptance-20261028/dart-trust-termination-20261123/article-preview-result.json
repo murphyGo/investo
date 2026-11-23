@@ -1,0 +1,73 @@
+{
+  "run_id": 45143245424,
+  "code_sha": "386d1390b153de9b47b4e7a731dbb08518d9d17e",
+  "private_head": "9fb112b0f8098f47934c959a2ee75fe8c1e67d10",
+  "artifact_id": 14801979643,
+  "artifact_bytes": 63679,
+  "artifact_sha256": "1456cadb27a1c8dd6797ba36a0620d0a6f15cbfde4d731b66247c145a9bedf99",
+  "receipt": {
+    "article_content_status": "brief_only",
+    "article_profile": "article_v2",
+    "availability": "source_limited",
+    "classified_event_count": 1,
+    "collected_item_count": 296,
+    "dart_body_preview": true,
+    "dart_parser_profile": "trust-termination",
+    "detailed_article_count": 0,
+    "document_schema": 3,
+    "enrichment_request_count": 0,
+    "input_manifest_hash": "2fb032c7d24833cbf688a648dbf00d4358e59a08382ca48b2c4b0d2330e5d578",
+    "markdown_sha256": "c16d8f2088ef82f7e6e80879f24e580bd419d3294f57b6757845237572fc1183",
+    "model_call_count": 3,
+    "projection_sha256": "cc00aff536dd7475d26458f24aa17e945bab5f5471944a65eadda541ea2038c9",
+    "routed_item_count": 156,
+    "segment": "domestic-equity",
+    "slot_qualification_sha256": "6c1f19884fa78674f6c7a927f570c982338542fbb8310d80d40cace403b54c5b",
+    "source_qualification_hash": "76a0c8a9fdacf84efec36611738974ab7e9ab33e619b954a5720da38fc249cfb",
+    "source_status_counts": {
+      "failed": 3,
+      "ok": 31,
+      "zero": 11
+    },
+    "status": "sealed",
+    "target_date": "2026-11-23",
+    "terminal_event_count": 1
+  },
+  "file_sha256": {
+    "dart-http-recording.json": "4112b9a18df6832f78b3cd60888edc481078e0c103e6e091738f525ed4a7ce13",
+    "edition.json": "7cc882b3581b0b4106ad6ca4617785ee1c4dfa74d8a6ff90e1043003d36eb9e9",
+    "manifest.json": "8e7694750c0ca3e4b9337aa5bb9dfa28cfc43e8d4977cf4010e0eeec4099a086",
+    "model-recording.json": "606c7c6e7af4563addfb47e688b5b4db7d59762362bbc77102a2ae644014620c",
+    "preview.md": "c16d8f2088ef82f7e6e80879f24e580bd419d3294f57b6757845237572fc1183",
+    "source-evidence.json": "ea4ba112a4bc3ea836a25282416917bb963b6a238ac3303d138a83356195fcbe"
+  },
+  "source_counts": {
+    "routed_items": 156,
+    "contexts_verified": 39,
+    "dart_inputs": 30,
+    "dart_prepared": 30,
+    "dart_http_records_verified": 0,
+    "dart_preparation_replays": 0
+  },
+  "independent_semantic_review": {
+    "verdict": "pass_for_one_brief",
+    "same_run_documents": 15,
+    "same_run_refs": 41,
+    "fact_count": 1,
+    "claim_count": 1,
+    "detail_basis": "core_only",
+    "expected_detail": false,
+    "article_readiness": "brief_ready",
+    "detailed_articles": 0,
+    "human_review": "pending"
+  },
+  "dart_supported_plain_reports": 0,
+  "dart_attachment_variant_reports": 1,
+  "dart_input_blocked": 30,
+  "dart_selected_unsupported": 2,
+  "publication": false,
+  "notification": false,
+  "human_accepted": 0,
+  "runtime_source_positive": false,
+  "remaining": "Fresh current-list/source preparation for known same-day filing; this run is not DART or detailed-article acceptance."
+}

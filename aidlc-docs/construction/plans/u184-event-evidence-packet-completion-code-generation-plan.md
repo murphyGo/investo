@@ -93,3 +93,6 @@ private40926975241의 DART1GET/HTTP200에서 ZIP13,524/XML79,039bytes·980nodes 
 
 
 2026-11-23 기사 preview 후속: 명시적 DART schedule 연결·실제 검수 중 core-only 상세 오판을 발견해 brief 상한으로 수리했다. exact5d9885d2/CI45123784115(8,238PASS/1skip)·실제45125524648(3calls/brief_ready1/detailed0)과 독립C/H/M/L0이다. 현재지원DART기사양성0·human0/12·v3예약0 및 이 상위 plan의 남은 수용 단계는 유지한다. [하위계획/증거](../event-v3-acceptance-20261028/article-preview-20261123/plan.md).
+
+
+2026-11-23 신탁계약 해지 결정 후속: explicit trust-termination6.2와 개별 준비를 구현했다. CI45150453547/4737ec42 8316PASS/1skip·JS39. 실제45152929626 현재목록N/Y+XML3GET/model0/native1/5slots29refs32XMLbindings/945자 및 독립 검수 통과. 일반 기사45143245424는지원양식0/DART HTTP0·단신1/상세0/source_limited로 별도 유지한다. 하위계획5/5만 완료하며 해당 부모 단계는 계속미완료다. [인계](../event-v3-acceptance-20261028/dart-trust-termination-20261123/handoff.json).

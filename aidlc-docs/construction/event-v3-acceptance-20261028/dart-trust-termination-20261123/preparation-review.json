@@ -1,0 +1,38 @@
+{
+  "scope": "bounded diagnostic; current-list discovery and shared preparation only",
+  "model_calls": 0,
+  "publication": false,
+  "runtime_config": {
+    "code_sha": "4737ec42fc287a37d70cdf1c587cd3db72a5c63b",
+    "private_head": "aef573a71f8f2066562dc64c49e229e384367e99",
+    "workflow_hash": "4a6391f4b16a782a5fe9cfe2b7df5e667a8a05118f196228deeb39e6833209a4",
+    "quality_run_id": 45150453547
+  },
+  "independent_review": {
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 0,
+    "fixed_medium": 1
+  },
+  "fixed_issue": "Environment-scoped variables could override the repository pin; require empty environment map before and after dispatch, with bounded pagination/unique-name verification.",
+  "private_workflow_diff": {
+    "added_lines": 2,
+    "deleted_lines": 1,
+    "v1_only_preserved": true
+  },
+  "request_budget": {
+    "max": 6,
+    "normal_single_candidate": 3,
+    "two_candidates": 5,
+    "seconds": 20
+  },
+  "helper_sha256": {
+    "run_and_capture.py": "bb20561bf9f5fa35186334a2167c36f5fe6de70f2de54e451b70d33c91cd2914",
+    "open_artifact.py": "3419917bafd608ecd53582588ff4e093d8eba57f90eb2222db5a98fb03a1849c",
+    "fetch_artifact.py": "6b4df56944a1f8808d8bd27829fb4945fbb2762901cdcf71eaa0a755e676f011"
+  },
+  "source_runtime": "pending",
+  "human_accepted": 0,
+  "phase": "pre_execution_review"
+}

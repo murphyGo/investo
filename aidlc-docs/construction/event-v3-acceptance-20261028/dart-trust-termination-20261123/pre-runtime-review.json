@@ -1,0 +1,43 @@
+{
+  "scope": "source parser and source-slot preview qualification; actual runtime pending",
+  "reviewer": "separate dart_runtime_review agent",
+  "source_commit": "27c926a59b6b60ab90af4d37806511f82d7da387",
+  "ci_candidate": "386d1390b153de9b47b4e7a731dbb08518d9d17e",
+  "parser_review": {
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 0,
+    "fixed_low": 1
+  },
+  "qualification_review": {
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 0,
+    "fixed_medium": 1
+  },
+  "targeted_tests": {
+    "new_parser": 67,
+    "profile": 23,
+    "shared_preparation_regressions": 103
+  },
+  "actual_source_slot_replay": {
+    "samples": 1,
+    "fields": 5,
+    "status": "pass",
+    "capture_sha256": "a15436a6ce3bd82b38c21062370f3866a3692742131db1928cf9d990b2054305"
+  },
+  "blocked_sample": {
+    "run_id": 45136966583,
+    "retained_raw": false,
+    "reason": "request_or_document_invalid",
+    "diagnosis": "unknown",
+    "retry": false
+  },
+  "raw_capture_requests": 2,
+  "raw_capture_model_calls": 0,
+  "publication": false,
+  "production_pin": "378bccee40065441d181f8ca2816a91907567634",
+  "human_accepted": 0
+}

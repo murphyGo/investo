@@ -8467,3 +8467,14 @@ u173Step4/u184Step5의명시적DARTpreview를공통owner에연결하고exacteff7
 사용자 “진행시켜”에 따라 일정 profile을 private article_v2 경로에 연결하고 실제 기사 검수를 완료했다. 최초0e3f389d/CI45120572446(8,229PASS/1skip)·run45122245131은3calls/기사1/source_limited였으나 core-only를detailed로세는M1을발견했다. 명시적detail_basis·brief상한·why근거구분·policyhash/terminal재구성으로수리한5d9885d2/CI45123784115는8,238PASS/1skip·Node39·정적/정책/docs통과다. 재실행45125524648은3calls/core_only/brief_ready·detailed0,60850bytes암호문6파일즉시확보및독립C/H/M/L0·terminalPASS. 실제DART는지원양식없음으로25차단/HTTP0이며DART기사양성은아니다. 전체변수readback에서전용previewpin외다른작업변경없고production378bccee·예약·게시/알림/ledger/cursor를보존했다. 하위계획5/5만완료하며canonical local3/8/runtime0/activationfalse·human0/12·externalrecallnull·v3예약수용0·viewport/성능/운영미완료유지. 구현은codex/dart-article-readiness-20261123,preview는exact5d9885d2다. 공유dirty소스/HEAD/index와publicmain을보존했다.
 
 [계획](construction/event-v3-acceptance-20261028/article-preview-20261123/plan.md), [증거](construction/event-v3-acceptance-20261028/article-preview-20261123/evidence.json), [검수](../docs/cross-checks/2026-11-23-dart-article-preview.md).
+
+
+### 2026-11-23 — DART 신탁계약 해지 결정 원문 지원
+
+사용자 “진행시켜”에 따라 explicit trust-termination profile과 별도6.2 원문 parser/자격/개별 준비 진단을 격리 브랜치 codex/dart-trust-termination-20261123에 구현했다. source27c926a5, 최종4737ec42/CI45150453547은8316PASS/1skip·JS39·Ruff887/mypy374·정책/strictdocs10.02초 PASS. 현재 원문 probe1양성/1차단과 기존 source-slot 재생1sample5fields, 독립 검수의 날짜속성/fixturehash/캡처설정·입력·환경 경계를 수정해 잔여C/H/M/L0이다.
+
+기사45143245424는model3/단신1/core_only/brief_ready/상세0/source_limited, 원천15문서41refs 일치. DART30건은 일반 지원양식0·첨부추가변형1로 모두차단, HTTP0/native0이므로 DART 기사 양성이 아니다. 이어 당일 알려진 공시를 새 회사별 N목록→Y목록→XML로 확인한45152929626은3GET/1.410751초/model0/native1/5slots29refs32XMLbindings/945자,5파일10246bytes 즉시암호문확보·독립실제C/H/M/L0이다. as_observed 관측이며 영구최신성/해지완료/기사수용을 주장하지 않는다.
+
+privateHEADaef573a7, previewpin386d1390·preparationpin4737ec42만 필요한 범위로 변경했고 production378bccee/qualification6ac349fe·다른repo변수·빈environment·게시/알림/cursor/receipt를 보존했다. 일반수집의 지원양식 coverage와 현재DART상세기사, human0/12·externalrecallnull·canonical local3/8/runtime0/activationfalse·v3예약수용0·viewport/성능/운영인수는 남는다. 하위계획5/5만 완료하며 부모 u173/u184/u172/u171은 미완료다. 공유dirty소스/HEAD/index와publicmain을 보존했다.
+
+[계획](construction/event-v3-acceptance-20261028/dart-trust-termination-20261123/plan.md), [인계](construction/event-v3-acceptance-20261028/dart-trust-termination-20261123/handoff.json), [세션](../docs/sessions/2026-11-23-dart-trust-termination.md).

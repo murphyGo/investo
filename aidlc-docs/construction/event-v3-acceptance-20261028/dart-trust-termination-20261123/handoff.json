@@ -1,0 +1,47 @@
+{
+  "subplan": "complete",
+  "source_code_sha": "27c926a59b6b60ab90af4d37806511f82d7da387",
+  "delivery_branch": "codex/dart-trust-termination-20261123",
+  "final_application_code_sha": "4737ec42fc287a37d70cdf1c587cd3db72a5c63b",
+  "quality_run_id": 45150453547,
+  "pytest_passed": 8316,
+  "pytest_skipped": 1,
+  "javascript_tests": 39,
+  "source_preparation": {
+    "run_id": 45152929626,
+    "technical_positive": 1,
+    "requests": 3,
+    "model_calls": 0,
+    "native_contexts": 1,
+    "independent_review": "C0/H0/M0/L0"
+  },
+  "article_preview": {
+    "run_id": 45143245424,
+    "model_calls": 3,
+    "brief_articles": 1,
+    "detailed_articles": 0,
+    "dart_articles": 0,
+    "availability": "source_limited",
+    "independent_review": "pass"
+  },
+  "private_head": "aef573a71f8f2066562dc64c49e229e384367e99",
+  "pins": {
+    "REVIEWED_CODE_SHA": "378bccee40065441d181f8ca2816a91907567634",
+    "REVIEWED_EVENT_PREVIEW_SHA": "386d1390b153de9b47b4e7a731dbb08518d9d17e",
+    "REVIEWED_DART_PREPARATION_SHA": "4737ec42fc287a37d70cdf1c587cd3db72a5c63b",
+    "REVIEWED_DART_QUALIFICATION_SHA": "6ac349feddfdf007be6c9334aca3c45a28689082"
+  },
+  "production_publication_or_cutover": false,
+  "canonical_runtime_qualification": 0,
+  "activation_ready": false,
+  "human_accepted": 0,
+  "human_required": 12,
+  "external_recall": null,
+  "genuine_v3_scheduled_accepted": 0,
+  "next_automatable_work": "Bounded discovery coverage for supported same-day forms before general latest-item cutoff; current DART detailed-article evidence. Keep attachment-added forms unsupported until separately observed and qualified.",
+  "pending_acceptance": [
+    "human pre-annotation and 5/5 review corpus",
+    "viewport and performance",
+    "genuine scheduled runs and production cutover"
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "manifest": {
+    "status": "completed",
+    "request_count": 3,
+    "enrichment_request_count": 2,
+    "model_call_count": 0,
+    "runtime_qualified": false,
+    "activation_ready": false,
+    "publication_committed": false,
+    "notification_sent": false,
+    "original_filing": "20261123000148",
+    "discovered_filing": null,
+    "parser_profile": "trust-termination",
+    "reason": "independent_review_pending",
+    "collection_request_count": 1,
+    "input_count": 1,
+    "enriched_count": 1,
+    "blocked_count": 0,
+    "native_context_count": 1,
+    "outcomes": [
+      {
+        "source_name": "dart-disclosure",
+        "document_id": "63dcaf8fba67cd3049ab7b99f19ec5c37a464621bae926166cb763626f32c480",
+        "status": "enriched",
+        "reason": null,
+        "dart": {
+          "requests": 2,
+          "latest_report_filter": "Y",
+          "latest_status": "as_observed",
+          "listing_received_at": "2026-11-23T10:06:04.150467Z",
+          "document_received_at": "2026-11-23T10:06:04.470369Z",
+          "listing_sha256": "6410e1c2ffa26a04006646c77e816fc89847f081fa6917df398b22497672f340",
+          "response_sha256": "df7a9f4f9cf6c4f10ccbe03a1bb92c7834e7723752f1862b6b89b86bc75a482c",
+          "xml_sha256": "eee8f1c6d5cb2a2eeea92305d9a55f384326e382a0600d61103ef6ee59d3afbb",
+          "native_context_sha256": "21d8f835b303287f63c9da34f3b5b435857ba75528456414ec45e7ae07bb680d",
+          "parser_version": "dart-trust-termination-6.2-v1"
+        }
+      }
+    ],
+    "elapsed_seconds": 1.410751,
+    "qualification_sha256": "e5c94f2656d0c1d9d7a90a594b719891ae58211b7e05cb5e9a12fc19d937d24c"
+  },
+  "artifact_sha256": "d9ac471d2b7c9fa0da1f8fbce5db72cd079136058c114a67288abfcb4e2a5297",
+  "file_sha256": {
+    "http-recording.json": "032ee2e37b348adba44965eace1b75ab3cecd93c0fc3db7c3d02628e64ef9b3a",
+    "input-items.json": "d8122884d7bd003c65fafec87717673d5a9dec5cb26c4fe212eece21680851c4",
+    "manifest.json": "5768dc0b7f67dc1baec6d2377b8d503d94dbbeb9a7ecc75e3dd0a909b864b5ac",
+    "native-contexts.json": "5d5cafa879a9f44b8a3da5433355587c5e8713d8a27597ccf182ed3b67f9e092",
+    "prepared-items.json": "9b8a75fbc8cc60da263fb0d576ed6ac29c88f1c9573f543efd051a5ac7099c25"
+  },
+  "positive_replays": [
+    {
+      "filing_no": "20261123000148",
+      "field_slots": 5,
+      "field_refs": 29,
+      "xml_bindings": 32,
+      "native_context_sha256": "21d8f835b303287f63c9da34f3b5b435857ba75528456414ec45e7ae07bb680d",
+      "xml_sha256": "eee8f1c6d5cb2a2eeea92305d9a55f384326e382a0600d61103ef6ee59d3afbb",
+      "projection_chars": 945
+    }
+  ],
+  "independent_replay": "pass",
+  "run_id": 45152929626,
+  "code_sha": "4737ec42fc287a37d70cdf1c587cd3db72a5c63b",
+  "private_head": "aef573a71f8f2066562dc64c49e229e384367e99",
+  "artifact_id": 14807790444,
+  "artifact_bytes": 10246,
+  "technical_preparation_verified": true,
+  "independent_review": {
+    "verdict": "pass_for_current_source_preparation",
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 0,
+    "field_slots": 5,
+    "field_refs": 29,
+    "xml_bindings": 32,
+    "projection_chars": 945,
+    "same_run_clock_and_checkout": "pass",
+    "all_repository_variables_and_empty_environment": "pass",
+    "limit": "as_observed only; no permanent-latest, completed termination/custody, article/human/scheduled acceptance claim"
+  },
+  "canonical_runtime_qualified": false,
+  "article_positive": false,
+  "detailed_article_positive": false,
+  "human_accepted": 0
+}
