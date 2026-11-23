@@ -1,0 +1,33 @@
+{
+  "source_code_sha": "27c926a59b6b60ab90af4d37806511f82d7da387",
+  "parser_version": "dart-trust-termination-6.2-v1",
+  "source_sample_count": 1,
+  "blocked_sample_count": 1,
+  "private_source_run": 45130745466,
+  "response_sha256": "09d4248a13da3837828c390ec04b2a71ec897e7a263ec4007a7f1d053cea7687",
+  "xml_sha256": "eee8f1c6d5cb2a2eeea92305d9a55f384326e382a0600d61103ef6ee59d3afbb",
+  "source_fixture_sha256": "2dc210b1d9e572f110443576f6cbc044b6efb117aa52abf21a69515a57d902a2",
+  "parser_file_sha256": "920a321f19ecebdd29ddb39e56cb3d1afe3ad371f5007eaf5f57e387f69f5032",
+  "projection_chars": 945,
+  "xml_bindings": 32,
+  "field_ref_counts": {
+    "issuer": 1,
+    "action": 1,
+    "action_status": 14,
+    "action_terms": 12,
+    "filing_locator": 1
+  },
+  "slot_matrix_sha256": "2c7ff136c55cca519bc7c36e7cb8017320f7ffb12ad18b883b70ba6cd0a63953",
+  "preview_policy_sha256": "509ee5691d9e546a74d53316b6845cc38832fb3370bf935f51ae976d58b3379f",
+  "independent_review": {
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 0,
+    "fixed_low": 1
+  },
+  "runtime_preparation_verified": false,
+  "article_positive": false,
+  "activation_ready": false,
+  "human_accepted": 0
+}

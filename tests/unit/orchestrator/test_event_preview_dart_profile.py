@@ -28,6 +28,7 @@ repository = preview_helpers.repository
         ("price", "v1", "dart-cb-correction-6.4-v1"),
         ("price", "v2", "dart-cb-terms-correction-6.4-v2"),
         ("schedule", "v1", "dart-cb-schedule-6.4-v1"),
+        ("trust-termination", "v1", "dart-trust-termination-6.2-v1"),
     ],
 )
 async def test_profile_uses_reviewed_matrix_before_collection(
@@ -74,7 +75,10 @@ async def test_profile_uses_reviewed_matrix_before_collection(
     assert calls == ["collect", "prepare"]
 
 
-async def test_bad_profile_policy_rejected_without_collection(script, repository, monkeypatch):
+@pytest.mark.parametrize("profile", ["schedule", "trust-termination"])
+async def test_bad_profile_policy_rejected_without_collection(
+    script, repository, monkeypatch, profile
+):
     monkeypatch.setattr(script, "_dart_transport_allowed", lambda *args: False)
 
     async def forbidden(*args, **kwargs):
@@ -91,13 +95,14 @@ async def test_bad_profile_policy_rejected_without_collection(script, repository
             article_profile="article_v2",
             official_body_preview=True,
             dart_body_preview=True,
-            dart_parser_profile="schedule",
+            dart_parser_profile=profile,
         )
     assert not (repository / ".tmp/preview").exists()
 
 
+@pytest.mark.parametrize("profile", ["schedule", "trust-termination"])
 @pytest.mark.parametrize("extra", [[], ["--dart-parser-version", "v2"]])
-def test_schedule_requires_body_and_unambiguous_version(script, extra):
+def test_form_requires_body_and_unambiguous_version(script, extra, profile):
     args = [
         "--target-date",
         "2026-11-23",
@@ -106,7 +111,7 @@ def test_schedule_requires_body_and_unambiguous_version(script, extra):
         "--output-dir",
         ".tmp/preview",
         "--dart-parser-profile",
-        "schedule",
+        profile,
     ]
     if extra:
         args += [
@@ -224,3 +229,33 @@ def test_private_snapshot_rejects_source_credential_before_writing(
     with pytest.raises(script.PreviewInputError):
         script._write_private(tmp_path, "source-evidence.json", content)
     assert not (tmp_path / "source-evidence.json").exists()
+
+
+def test_trust_matrix_is_dedicated_and_keeps_other_source_rows():
+    from investo.models.enrichment import (
+        load_event_evidence_qualification,
+        load_source_slot_qualification,
+    )
+    from investo.sources.event_evidence import _dart_transport_allowed
+
+    root = Path(__file__).parents[3]
+    previous = load_source_slot_qualification(
+        root / "ops/event_dart_schedule_slot_qualification.json"
+    )
+    matrix = load_source_slot_qualification(root / "ops/event_dart_trust_slot_qualification.json")
+    policy = load_event_evidence_qualification(
+        root / "ops/event_dart_trust_preview_qualification.json"
+    )
+    assert [r for r in previous.records if r.source_name != "dart-disclosure"] == [
+        r for r in matrix.records if r.source_name != "dart-disclosure"
+    ]
+    assert _dart_transport_allowed(policy, matrix)
+    assert not _dart_transport_allowed(policy, previous)
+    row = next(r for r in matrix.records if r.source_name == "dart-disclosure")
+    assert row.parser_version == policy.dart.parser_version == "dart-trust-termination-6.2-v1"
+    assert row.runtime_probe_status == "not_run" and not row.activation_ready
+    assert policy.dart.max_projection_chars == 1200
+    bad = policy.model_copy(
+        update={"dart": policy.dart.model_copy(update={"max_projection_chars": 1201})}
+    )
+    assert not _dart_transport_allowed(bad, matrix)

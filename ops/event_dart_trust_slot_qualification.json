@@ -1,0 +1,353 @@
+{
+  "schema_version": 1,
+  "records": [
+    {
+      "source_name": "fomc-rss",
+      "proposed_source_name": null,
+      "slot_id": "policy.monetary_decision",
+      "access_kind": "official_body",
+      "endpoint_scope": {
+        "scheme": "https",
+        "host": "www.federalreserve.gov",
+        "path_prefix": "/newsevents/pressreleases/",
+        "query_keys": []
+      },
+      "official_discovery_url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260916a.htm",
+      "checked_at": "2026-10-28T14:30:46.835528Z",
+      "source_code_sha": "4cc546755f1175111b377d42d3b26b426274dd52",
+      "status": "verified",
+      "reason_codes": [
+        "time.unknown",
+        "runtime.not_verified"
+      ],
+      "access_evidence_hash": "03ebd916bc62d9362bddad9391bc8ab8c8d0554e9720eb7e0207f3cee811d7a4",
+      "rights_evidence_url": "https://www.federalreserve.gov/disclaimer.htm",
+      "rights_scope": "Board-authored text only; source attribution required. Excludes third-party content, images, logos, linked attachments and testimony. Bounded private parser buffers; no runtime or public raw-body activation.",
+      "schema_fixture_sha256": "c0ba9799e04f5239b0744658b84c2e35b293b8da1723b69552a0cf2099b2e1de",
+      "parser_version": "fed-article-body-v1",
+      "required_slots": [
+        "actor",
+        "decision",
+        "size_or_scope"
+      ],
+      "verified_slots": [
+        "actor",
+        "decision",
+        "size_or_scope"
+      ],
+      "missing_slots": [],
+      "chunk_roles": [
+        "identity",
+        "fact",
+        "background"
+      ],
+      "time_precision": "unknown",
+      "public_locator_basis": "source-linked Board announcement or speech URL; exact source-owned field refs",
+      "runtime_probe_status": "not_run",
+      "runtime_evidence_ref": null,
+      "activation_ready": false
+    },
+    {
+      "source_name": "fed-speech-rss",
+      "proposed_source_name": null,
+      "slot_id": "policy.official_statement",
+      "access_kind": "official_body",
+      "endpoint_scope": {
+        "scheme": "https",
+        "host": "www.federalreserve.gov",
+        "path_prefix": "/newsevents/speech/",
+        "query_keys": []
+      },
+      "official_discovery_url": "https://www.federalreserve.gov/newsevents/speech/bowman20261014a.htm",
+      "checked_at": "2026-10-28T14:30:46.835528Z",
+      "source_code_sha": "4cc546755f1175111b377d42d3b26b426274dd52",
+      "status": "verified",
+      "reason_codes": [
+        "time.unknown",
+        "runtime.not_verified"
+      ],
+      "access_evidence_hash": "03ebd916bc62d9362bddad9391bc8ab8c8d0554e9720eb7e0207f3cee811d7a4",
+      "rights_evidence_url": "https://www.federalreserve.gov/disclaimer.htm",
+      "rights_scope": "Board-authored text only; source attribution required. Excludes third-party content, images, logos, linked attachments and testimony. Bounded private parser buffers; no runtime or public raw-body activation.",
+      "schema_fixture_sha256": "5672d31d40412d202756b8d9b448bf82d3dffead2a88d6fb2c14db654fbe7138",
+      "parser_version": "fed-article-body-v1",
+      "required_slots": [
+        "speaker",
+        "quoted_claim"
+      ],
+      "verified_slots": [
+        "speaker",
+        "quoted_claim"
+      ],
+      "missing_slots": [],
+      "chunk_roles": [
+        "identity",
+        "fact",
+        "background"
+      ],
+      "time_precision": "unknown",
+      "public_locator_basis": "source-linked Board announcement or speech URL; exact source-owned field refs",
+      "runtime_probe_status": "not_run",
+      "runtime_evidence_ref": null,
+      "activation_ready": false
+    },
+    {
+      "source_name": "cftc-policy-rss",
+      "proposed_source_name": null,
+      "slot_id": "policy.regulatory_action",
+      "access_kind": "official_body",
+      "endpoint_scope": null,
+      "official_discovery_url": null,
+      "checked_at": "2026-10-11T18:34:40Z",
+      "source_code_sha": "ca631e245d0341c09ea1671c32c4286dbd2c9c3a",
+      "status": "blocked",
+      "reason_codes": [
+        "access.not_verified",
+        "rights.unknown",
+        "schema.unknown",
+        "slot.required_missing",
+        "runtime.not_verified"
+      ],
+      "access_evidence_hash": null,
+      "rights_evidence_url": null,
+      "rights_scope": null,
+      "schema_fixture_sha256": null,
+      "parser_version": null,
+      "required_slots": [
+        "authority",
+        "action",
+        "action_status",
+        "target_scope"
+      ],
+      "verified_slots": [],
+      "missing_slots": [
+        "authority",
+        "action",
+        "action_status",
+        "target_scope"
+      ],
+      "chunk_roles": [],
+      "time_precision": "unknown",
+      "public_locator_basis": null,
+      "runtime_probe_status": "not_run",
+      "runtime_evidence_ref": null,
+      "activation_ready": false
+    },
+    {
+      "source_name": "korea-policy-rss",
+      "proposed_source_name": null,
+      "slot_id": "policy.domestic_announcement",
+      "access_kind": "official_body",
+      "endpoint_scope": null,
+      "official_discovery_url": null,
+      "checked_at": "2026-10-11T18:34:40Z",
+      "source_code_sha": "ca631e245d0341c09ea1671c32c4286dbd2c9c3a",
+      "status": "blocked",
+      "reason_codes": [
+        "access.not_verified",
+        "rights.unknown",
+        "schema.unknown",
+        "slot.required_missing",
+        "runtime.not_verified"
+      ],
+      "access_evidence_hash": null,
+      "rights_evidence_url": null,
+      "rights_scope": null,
+      "schema_fixture_sha256": null,
+      "parser_version": null,
+      "required_slots": [
+        "authority",
+        "action",
+        "target_scope"
+      ],
+      "verified_slots": [],
+      "missing_slots": [
+        "authority",
+        "action",
+        "target_scope"
+      ],
+      "chunk_roles": [],
+      "time_precision": "unknown",
+      "public_locator_basis": null,
+      "runtime_probe_status": "not_run",
+      "runtime_evidence_ref": null,
+      "activation_ready": false
+    },
+    {
+      "source_name": "sec-company-facts",
+      "proposed_source_name": null,
+      "slot_id": "earnings.reported_actual",
+      "access_kind": "structured_api",
+      "endpoint_scope": null,
+      "official_discovery_url": null,
+      "checked_at": "2026-10-11T18:34:40Z",
+      "source_code_sha": "ca631e245d0341c09ea1671c32c4286dbd2c9c3a",
+      "status": "blocked",
+      "reason_codes": [
+        "access.not_verified",
+        "schema.unknown",
+        "slot.required_missing",
+        "runtime.not_verified"
+      ],
+      "access_evidence_hash": null,
+      "rights_evidence_url": "https://www.sec.gov/files/about/webmaster-faq.htm",
+      "rights_scope": "SEC government-created and public EDGAR filing content; excludes illustrative stock photographs.",
+      "schema_fixture_sha256": null,
+      "parser_version": null,
+      "required_slots": [
+        "issuer",
+        "metric",
+        "actual_value",
+        "unit",
+        "period",
+        "filing_locator"
+      ],
+      "verified_slots": [],
+      "missing_slots": [
+        "issuer",
+        "metric",
+        "actual_value",
+        "unit",
+        "period",
+        "filing_locator"
+      ],
+      "chunk_roles": [],
+      "time_precision": "unknown",
+      "public_locator_basis": null,
+      "runtime_probe_status": "not_run",
+      "runtime_evidence_ref": null,
+      "activation_ready": false
+    },
+    {
+      "source_name": "sec-edgar-8k",
+      "proposed_source_name": null,
+      "slot_id": "earnings.guidance",
+      "access_kind": "official_body",
+      "endpoint_scope": null,
+      "official_discovery_url": null,
+      "checked_at": "2026-10-11T18:34:40Z",
+      "source_code_sha": "ca631e245d0341c09ea1671c32c4286dbd2c9c3a",
+      "status": "blocked",
+      "reason_codes": [
+        "access.not_verified",
+        "schema.unknown",
+        "slot.required_missing",
+        "runtime.not_verified"
+      ],
+      "access_evidence_hash": null,
+      "rights_evidence_url": "https://www.sec.gov/files/about/webmaster-faq.htm",
+      "rights_scope": "SEC government-created and public EDGAR filing content; excludes illustrative stock photographs.",
+      "schema_fixture_sha256": null,
+      "parser_version": null,
+      "required_slots": [
+        "issuer",
+        "guidance_claim",
+        "guidance_period"
+      ],
+      "verified_slots": [],
+      "missing_slots": [
+        "issuer",
+        "guidance_claim",
+        "guidance_period"
+      ],
+      "chunk_roles": [],
+      "time_precision": "unknown",
+      "public_locator_basis": null,
+      "runtime_probe_status": "not_run",
+      "runtime_evidence_ref": null,
+      "activation_ready": false
+    },
+    {
+      "source_name": "dart-disclosure",
+      "proposed_source_name": null,
+      "slot_id": "domestic.disclosure_action",
+      "access_kind": "structured_api",
+      "endpoint_scope": {
+        "scheme": "https",
+        "host": "dart.fss.or.kr",
+        "path_prefix": "/dsaf001/main.do",
+        "query_keys": [
+          "rcpNo"
+        ]
+      },
+      "official_discovery_url": "https://dart.fss.or.kr/dsaf001/main.do",
+      "checked_at": "2026-11-23T08:26:52.258086Z",
+      "source_code_sha": "27c926a59b6b60ab90af4d37806511f82d7da387",
+      "status": "verified",
+      "reason_codes": [
+        "time.unknown",
+        "runtime.not_verified"
+      ],
+      "access_evidence_hash": "d8ba59b307c66e5a61d5515c48c952fc017e0eb9231937c973cea75fe3243c33",
+      "rights_evidence_url": "https://opendart.fss.or.kr/intro/main.do",
+      "rights_scope": "OpenDART permits extraction of desired XML data. Bounded private facts only for uncorrected FORMULA6.2/20260723 ACODE11335 trust termination decisions. Excludes raw documents, images, signatures and attachments. Decisions, scheduled termination and share custody are not completed termination or cancellation of shares. Source-slot evidence alone grants no live HTTP permission.",
+      "schema_fixture_sha256": "eee8f1c6d5cb2a2eeea92305d9a55f384326e382a0600d61103ef6ee59d3afbb",
+      "parser_version": "dart-trust-termination-6.2-v1",
+      "required_slots": [
+        "issuer",
+        "action",
+        "action_status",
+        "action_terms",
+        "filing_locator"
+      ],
+      "verified_slots": [
+        "issuer",
+        "action",
+        "action_status",
+        "action_terms",
+        "filing_locator"
+      ],
+      "missing_slots": [],
+      "chunk_roles": [
+        "identity",
+        "fact",
+        "background"
+      ],
+      "time_precision": "unknown",
+      "public_locator_basis": "DART receipt and exact XML ZIP member; response/XML hashes and source-owned field refs. Private raw probe run45130745466 and offline replay; latest-list/runtime/article acceptance remains separate.",
+      "runtime_probe_status": "not_run",
+      "runtime_evidence_ref": null,
+      "activation_ready": false
+    },
+    {
+      "source_name": "nasdaq-earnings-calendar",
+      "proposed_source_name": null,
+      "slot_id": "earnings.schedule_context",
+      "access_kind": "structured_api",
+      "endpoint_scope": null,
+      "official_discovery_url": null,
+      "checked_at": "2026-10-11T18:34:40Z",
+      "source_code_sha": "ca631e245d0341c09ea1671c32c4286dbd2c9c3a",
+      "status": "blocked",
+      "reason_codes": [
+        "access.not_verified",
+        "rights.unknown",
+        "schema.unknown",
+        "slot.required_missing",
+        "runtime.not_verified"
+      ],
+      "access_evidence_hash": null,
+      "rights_evidence_url": null,
+      "rights_scope": null,
+      "schema_fixture_sha256": null,
+      "parser_version": null,
+      "required_slots": [
+        "issuer",
+        "scheduled_date",
+        "report_bucket"
+      ],
+      "verified_slots": [],
+      "missing_slots": [
+        "issuer",
+        "scheduled_date",
+        "report_bucket"
+      ],
+      "chunk_roles": [],
+      "time_precision": "unknown",
+      "public_locator_basis": null,
+      "runtime_probe_status": "not_run",
+      "runtime_evidence_ref": null,
+      "activation_ready": false
+    }
+  ]
+}
