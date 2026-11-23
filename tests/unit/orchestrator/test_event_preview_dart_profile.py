@@ -232,18 +232,18 @@ def test_private_snapshot_rejects_source_credential_before_writing(
 
 
 def test_trust_matrix_is_dedicated_and_keeps_other_source_rows():
-    from investo.models.enrichment import (
-        load_event_evidence_qualification,
+    from investo.sources.event_evidence import (
+        _dart_transport_allowed,
+        load_enrichment_qualification,
         load_source_slot_qualification,
     )
-    from investo.sources.event_evidence import _dart_transport_allowed
 
     root = Path(__file__).parents[3]
     previous = load_source_slot_qualification(
         root / "ops/event_dart_schedule_slot_qualification.json"
     )
     matrix = load_source_slot_qualification(root / "ops/event_dart_trust_slot_qualification.json")
-    policy = load_event_evidence_qualification(
+    policy = load_enrichment_qualification(
         root / "ops/event_dart_trust_preview_qualification.json"
     )
     assert [r for r in previous.records if r.source_name != "dart-disclosure"] == [
