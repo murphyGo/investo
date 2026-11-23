@@ -134,7 +134,7 @@ async def rehearse(
     corp: str,
     credential: str,
     parser_version: Literal["v1", "v2"] = "v1",
-    parser_profile: Literal["price", "schedule"] = "price",
+    parser_profile: Literal["price", "schedule", "trust-termination"] = "price",
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """One collection GET and at most two two-GET candidates, all within20s/6."""
     manifest: dict[str, Any] = {
@@ -148,14 +148,16 @@ async def rehearse(
         "notification_sent": False,
         "original_filing": filing if re.fullmatch(r"[0-9]{14}", filing) else None,
         "discovered_filing": None,
-        "parser_profile": parser_profile if parser_profile in {"price", "schedule"} else "unknown",
+        "parser_profile": parser_profile
+        if parser_profile in {"price", "schedule", "trust-termination"}
+        else "unknown",
     }
     if not re.fullmatch(r"[0-9]{14}", filing) or not re.fullmatch(r"[0-9]{8}", corp):
         return {**manifest, "reason": "input_invalid"}, {}
     if (
         parser_version not in {"v1", "v2"}
-        or parser_profile not in {"price", "schedule"}
-        or (parser_profile == "schedule" and parser_version != "v1")
+        or parser_profile not in {"price", "schedule", "trust-termination"}
+        or (parser_profile != "price" and parser_version != "v1")
     ):
         return {**manifest, "reason": "input_invalid"}, {}
     if not credential:
@@ -171,7 +173,9 @@ async def rehearse(
         qualification = load_enrichment_qualification(
             ROOT
             / (
-                "ops/event_dart_schedule_preview_qualification.json"
+                "ops/event_dart_trust_preview_qualification.json"
+                if parser_profile == "trust-termination"
+                else "ops/event_dart_schedule_preview_qualification.json"
                 if parser_profile == "schedule"
                 else "ops/event_dart_preview_qualification.json"
                 if parser_version == "v1"
@@ -181,7 +185,9 @@ async def rehearse(
         matrix = load_source_slot_qualification(
             ROOT
             / (
-                "ops/event_dart_schedule_slot_qualification.json"
+                "ops/event_dart_trust_slot_qualification.json"
+                if parser_profile == "trust-termination"
+                else "ops/event_dart_schedule_slot_qualification.json"
                 if parser_profile == "schedule"
                 else "ops/event_source_slot_qualification.json"
                 if parser_version == "v1"
@@ -189,7 +195,9 @@ async def rehearse(
             )
         )
         expected = (
-            "dart-cb-schedule-6.4-v1"
+            "dart-trust-termination-6.2-v1"
+            if parser_profile == "trust-termination"
+            else "dart-cb-schedule-6.4-v1"
             if parser_profile == "schedule"
             else "dart-cb-correction-6.4-v1"
             if parser_version == "v1"
@@ -204,7 +212,7 @@ async def rehearse(
     except (OSError, ValueError):
         return {
             **manifest,
-            "reason": "qualification_invalid" if parser_profile == "schedule" else "unqualified",
+            "reason": "qualification_invalid" if parser_profile != "price" else "unqualified",
         }, {}
     install_secret_log_filters(
         (
@@ -287,7 +295,7 @@ async def rehearse(
                     item = DartDisclosureAdapter()._normalize_entry(entry, date_precision=True)
                     if item is not None:
                         try:
-                            dart_identity(item)
+                            dart_identity(item, qualification.dart.parser_version)
                             candidates.append(item)
                         except ValueError:
                             pass
@@ -414,7 +422,9 @@ def main() -> int:
     parser.add_argument("--filing-no", required=True)
     parser.add_argument("--corp-code", required=True)
     parser.add_argument("--output-dir", required=True, type=Path)
-    parser.add_argument("--parser-profile", choices=("price", "schedule"), default="price")
+    parser.add_argument(
+        "--parser-profile", choices=("price", "schedule", "trust-termination"), default="price"
+    )
     parser.add_argument("--parser-version", choices=("v1", "v2"), default="v1")
     args = parser.parse_args()
     try:

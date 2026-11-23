@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       parser_profile:
-        description: Explicit price or schedule form; v2 terms selection remains separate.
+        description: Explicit qualified form; v2 terms selection remains separate.
         required: true
         type: choice
         default: price
-        options: [price, schedule]
+        options: [price, schedule, trust-termination]
       filing_no:
         description: 'One known fourteen-digit DART filing number.'
         required: true
@@ -64,8 +64,8 @@ jobs:
           [[ "$CORP_CODE" =~ ^[0-9]{8}$ ]]
           [[ "$RECIPIENT" =~ ^[0-9a-f]{64}$ ]]
           [[ "$DART_PARSER_VERSION" == "v1" || "$DART_PARSER_VERSION" == "v2" ]]
-          [[ "$PARSER_PROFILE" =~ ^(price|schedule)$ ]]
-          [[ "$PARSER_PROFILE" != "schedule" || "$DART_PARSER_VERSION" == "v1" ]]
+          [[ "$PARSER_PROFILE" =~ ^(price|schedule|trust-termination)$ ]]
+          [[ "$PARSER_PROFILE" == "price" || "$DART_PARSER_VERSION" == "v1" ]]
           echo "UV_PROJECT_ENVIRONMENT=$RUNNER_TEMP/dart-probe-venv" >> "$GITHUB_ENV"
       - name: Checkout reviewed probe code
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
