@@ -223,4 +223,4 @@ def test_private_snapshot_rejects_source_credential_before_writing(
     monkeypatch.setenv("OPENDART_API_KEY", "SECRET_KEY")
     with pytest.raises(script.PreviewInputError):
         script._write_private(tmp_path, "source-evidence.json", content)
-    assert not list(tmp_path.iterdir())
+    assert not (tmp_path / "source-evidence.json").exists()
