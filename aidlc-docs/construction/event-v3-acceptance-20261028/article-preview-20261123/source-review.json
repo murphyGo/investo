@@ -1,0 +1,19 @@
+{
+  "verdict": "APPROVE",
+  "reviewer": "independent dart_runtime_review agent",
+  "critical": 0,
+  "high": 0,
+  "medium": 0,
+  "low": 0,
+  "resolved_high": [
+    "decoded credential echo before raw retention"
+  ],
+  "resolved_medium": [
+    "retain original DART inputs for exact preparation replay"
+  ],
+  "independent_related_tests": 327,
+  "post_fix_preview_tests": 85,
+  "ruff": "pass",
+  "mypy_source_files": 373,
+  "scope": "source integration, explicit profiles, bounded private evidence; actual preview pending"
+}

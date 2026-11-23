@@ -447,7 +447,7 @@ async def test_private_recording_preserves_native_success_and_failure(
             try:
                 return await original_preview(request)
             finally:
-                output.rmdir()
+                output.rename(output.with_name("retained-private-output"))
                 output.symlink_to(outside, target_is_directory=True)
 
         monkeypatch.setattr(script, "preview_event_briefing", redirect_after_await)

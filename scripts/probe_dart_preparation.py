@@ -129,7 +129,12 @@ class RecordingTransport(httpx.AsyncBaseTransport):
 
 
 async def rehearse(
-    *, filing: str, corp: str, credential: str, parser_version: Literal["v1", "v2"] = "v1"
+    *,
+    filing: str,
+    corp: str,
+    credential: str,
+    parser_version: Literal["v1", "v2"] = "v1",
+    parser_profile: Literal["price", "schedule"] = "price",
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """One collection GET and at most two two-GET candidates, all within20s/6."""
     manifest: dict[str, Any] = {
@@ -143,10 +148,15 @@ async def rehearse(
         "notification_sent": False,
         "original_filing": filing if re.fullmatch(r"[0-9]{14}", filing) else None,
         "discovered_filing": None,
+        "parser_profile": parser_profile if parser_profile in {"price", "schedule"} else "unknown",
     }
     if not re.fullmatch(r"[0-9]{14}", filing) or not re.fullmatch(r"[0-9]{8}", corp):
         return {**manifest, "reason": "input_invalid"}, {}
-    if parser_version not in {"v1", "v2"}:
+    if (
+        parser_version not in {"v1", "v2"}
+        or parser_profile not in {"price", "schedule"}
+        or (parser_profile == "schedule" and parser_version != "v1")
+    ):
         return {**manifest, "reason": "input_invalid"}, {}
     if not credential:
         return {**manifest, "reason": "credential_missing"}, {}
@@ -161,7 +171,9 @@ async def rehearse(
         qualification = load_enrichment_qualification(
             ROOT
             / (
-                "ops/event_dart_preview_qualification.json"
+                "ops/event_dart_schedule_preview_qualification.json"
+                if parser_profile == "schedule"
+                else "ops/event_dart_preview_qualification.json"
                 if parser_version == "v1"
                 else "ops/event_dart_v2_preview_qualification.json"
             )
@@ -169,13 +181,17 @@ async def rehearse(
         matrix = load_source_slot_qualification(
             ROOT
             / (
-                "ops/event_source_slot_qualification.json"
+                "ops/event_dart_schedule_slot_qualification.json"
+                if parser_profile == "schedule"
+                else "ops/event_source_slot_qualification.json"
                 if parser_version == "v1"
                 else "ops/event_dart_v2_slot_qualification.json"
             )
         )
         expected = (
-            "dart-cb-correction-6.4-v1"
+            "dart-cb-schedule-6.4-v1"
+            if parser_profile == "schedule"
+            else "dart-cb-correction-6.4-v1"
             if parser_version == "v1"
             else "dart-cb-terms-correction-6.4-v2"
         )
@@ -185,8 +201,11 @@ async def rehearse(
             or not _dart_transport_allowed(qualification, matrix)
         ):
             raise ValueError("preparation.unqualified")
-    except ValueError:
-        return {**manifest, "reason": "unqualified"}, {}
+    except (OSError, ValueError):
+        return {
+            **manifest,
+            "reason": "qualification_invalid" if parser_profile == "schedule" else "unqualified",
+        }, {}
     install_secret_log_filters(
         (
             "httpx",
@@ -395,6 +414,7 @@ def main() -> int:
     parser.add_argument("--filing-no", required=True)
     parser.add_argument("--corp-code", required=True)
     parser.add_argument("--output-dir", required=True, type=Path)
+    parser.add_argument("--parser-profile", choices=("price", "schedule"), default="price")
     parser.add_argument("--parser-version", choices=("v1", "v2"), default="v1")
     args = parser.parse_args()
     try:
@@ -405,6 +425,7 @@ def main() -> int:
                 corp=args.corp_code,
                 credential=os.environ.get("OPENDART_API_KEY", "").strip(),
                 parser_version=args.parser_version,
+                parser_profile=args.parser_profile,
             )
         )
         for name, payload in files.items():

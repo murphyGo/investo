@@ -1,0 +1,133 @@
+{
+  "scope": "u173 Step4/u184 Step5 explicit schedule-profile shared preparation only",
+  "code_sha": "3eafd2bc8ea0aff906ba2d23466a75a66fe945d3",
+  "source_code_sha": "fc84d7c1d1c4f2ed140606e9a5ca38fb667f086c",
+  "code_branch": "codex/dart-schedule-runtime-20261123",
+  "quality": {
+    "run_id": 45056435819,
+    "conclusion": "success",
+    "pytest_passed": 8147,
+    "pytest_skipped": 1,
+    "pytest_seconds": 564.48,
+    "node_passed": 39,
+    "ruff_format_files": 877,
+    "mypy_source_files": 371,
+    "strict_docs_seconds": 6.02,
+    "policy_guards": "pass",
+    "log_sha256": "f1a74f306a81275ca43d95f0ab9deb34662f397bc42a6c230f136875a84fb9f5"
+  },
+  "actual_probe": {
+    "run_id": 45059739620,
+    "conclusion": "success",
+    "private_head": "a6dbb7db558aee02aab177aad525fe7bb71935ab",
+    "artifact_id": 14769425470,
+    "artifact_bytes": 21466,
+    "manifest": {
+      "status": "completed",
+      "request_count": 4,
+      "enrichment_request_count": 3,
+      "model_call_count": 0,
+      "runtime_qualified": false,
+      "activation_ready": false,
+      "publication_committed": false,
+      "notification_sent": false,
+      "original_filing": "20261027000337",
+      "discovered_filing": "20261029000461",
+      "parser_profile": "schedule",
+      "reason": "independent_review_pending",
+      "collection_request_count": 1,
+      "input_count": 2,
+      "enriched_count": 1,
+      "blocked_count": 1,
+      "native_context_count": 1,
+      "outcomes": [
+        {
+          "source_name": "dart-disclosure",
+          "document_id": "307b3f2646ff512778991e959e989bfd760b51f8226c619f807ec9bbd7322156",
+          "status": "enriched",
+          "reason": null,
+          "dart": {
+            "requests": 2,
+            "latest_report_filter": "Y",
+            "latest_status": "as_observed",
+            "listing_received_at": "2026-11-22T19:16:02.273588Z",
+            "document_received_at": "2026-11-22T19:16:03.066113Z",
+            "listing_sha256": "2cffc50b62d2092de60cf4bc614eb2e011aba16b75bf962c60c8ecfee16b10f7",
+            "response_sha256": "7142d4ee6c8eb46069135b0b44bba21b099590f06780f26af128305bef6c1720",
+            "xml_sha256": "c5973d229d7c88943532b2cc5a7d0ba89432e013efca81fe907032fef7ea0edd",
+            "native_context_sha256": "bc7b6fc2d333c2046938746ddec61b7702ad52c0f383b7ac8b93fdd5da4c5eeb",
+            "parser_version": "dart-cb-schedule-6.4-v1"
+          }
+        },
+        {
+          "source_name": "dart-disclosure",
+          "document_id": "0b44cc95b243a107bd00bbfac0d4d463da92fa0ac8245d99a19efceac4ce8c60",
+          "status": "enrichment_unavailable",
+          "reason": "latest_unavailable",
+          "dart": {
+            "requests": 1,
+            "latest_report_filter": "Y",
+            "latest_status": "missing",
+            "listing_received_at": "2026-11-22T19:16:02.773845Z",
+            "document_received_at": null,
+            "listing_sha256": "3b5b7b4f903a93fc7716a71d2500f5ab6380ed0cc1497b63ebaf58e2859f28e3",
+            "response_sha256": null,
+            "xml_sha256": null,
+            "native_context_sha256": null,
+            "parser_version": "dart-cb-schedule-6.4-v1"
+          }
+        }
+      ],
+      "elapsed_seconds": 2.039706,
+      "qualification_sha256": "9f0a8e638f9b0ba6f3c537eee280d455432f7beb0d0111eca4a999ecea4d518a"
+    },
+    "artifact_sha256": "cd92762641c8b8b85acd6978f18d95b2305f9691719fe87bb0d39ef88330c293",
+    "file_sha256": {
+      "http-recording.json": "e533f13a26dac300a589ce48ae98dacaf57d6501b17451827b79aba4cd502048",
+      "input-items.json": "f062adba583c4fc79c1a8c28ce37e4c7dadfa20a2a2736847e6a441076da37cd",
+      "manifest.json": "fe232bdb93e0125c2b329ebbd721fbe215db5204b5f7dd2efe8c7fd807004531",
+      "native-contexts.json": "62122e4d493aab325b83e5884ad491c0947048b07504913606e84eb2f89cb2dc",
+      "prepared-items.json": "42bf4ea9b38eaee5c6faa5ad7436677b354be6c4f1774da8ef3b1c13907fa24a"
+    },
+    "positive_replays": [
+      {
+        "filing_no": "20261029000461",
+        "field_slots": 5,
+        "field_refs": 22,
+        "xml_bindings": 76,
+        "parser_version": "dart-cb-schedule-6.4-v1",
+        "native_context_sha256": "bc7b6fc2d333c2046938746ddec61b7702ad52c0f383b7ac8b93fdd5da4c5eeb",
+        "xml_sha256": "c5973d229d7c88943532b2cc5a7d0ba89432e013efca81fe907032fef7ea0edd",
+        "projection_chars": 661
+      }
+    ],
+    "independent_replay": "pass"
+  },
+  "pins": {
+    "before_preparation": "eff7b5c0309fc48b16048a7a9d92954c2291be36",
+    "after_preparation": "3eafd2bc8ea0aff906ba2d23466a75a66fe945d3",
+    "pre_dispatch_and_post_equal": true,
+    "other_variables_modified_by_this_task": 0,
+    "concurrent_external_update": {
+      "name": "REVIEWED_CODE_SHA",
+      "initial_observed": "3ce35148947db7f5ec8c4011578e078d03ee19b7",
+      "pre_dispatch_preserved": "378bccee40065441d181f8ca2816a91907567634",
+      "result": "initial preflight stopped before dispatch; new snapshot preserved externally updated value"
+    }
+  },
+  "public_raw": false,
+  "model_calls": 0,
+  "publication": false,
+  "notification": false,
+  "ledger_changes": 0,
+  "cursor_changes": 0,
+  "canonical_qualified_local": 3,
+  "canonical_total_slots": 8,
+  "canonical_runtime_verified": 0,
+  "activation_ready": false,
+  "human_accepted": 0,
+  "genuine_v3_scheduled_accepted": 0,
+  "upper_units_complete": false,
+  "independent_actual_review": "APPROVE C0/H0/M0/L0",
+  "subplan_complete": true
+}

@@ -34,6 +34,17 @@ on:
         required: false
         default: false
         type: boolean
+      dart_body_preview:
+        description: Explicit qualified DART preparation for article_v2.
+        required: false
+        default: false
+        type: boolean
+      dart_parser_profile:
+        description: Explicit DART form; never falls back between parsers.
+        required: false
+        default: price
+        type: choice
+        options: [price, schedule]
       record_model_io:
         description: 'Capture bounded model IO in the encrypted schema 3 artifact.'
         required: false
@@ -151,6 +162,8 @@ jobs:
           PREVIEW_DOCUMENT_SCHEMA: ${{ inputs.document_schema }}
           PREVIEW_ARTICLE_PROFILE: ${{ inputs.article_profile || 'role_v1' }}
           PREVIEW_RECORD_MODEL_IO: ${{ inputs.record_model_io }}
+          PREVIEW_DART_BODY: ${{ inputs.dart_body_preview }}
+          PREVIEW_DART_PROFILE: ${{ inputs.dart_parser_profile || 'price' }}
           PREVIEW_OFFICIAL_BODY: ${{ inputs.official_body_preview }}
           PREVIEW_BASELINE_SHA: ${{ steps.public_data.outputs.commit }}
         run: |
@@ -161,6 +174,10 @@ jobs:
           if [ "$PREVIEW_OFFICIAL_BODY" = "true" ]; then
             record_args+=(--official-body-preview)
           fi
+          if [ "$PREVIEW_DART_BODY" = "true" ]; then
+            record_args+=(--dart-body-preview)
+          fi
+          record_args+=(--dart-parser-profile "$PREVIEW_DART_PROFILE")
           mkdir -p .tmp
           set +e
           "$UV_PROJECT_ENVIRONMENT/bin/python" -I "$GITHUB_WORKSPACE/runtime-code/scripts/preview_event_briefing_codex.py" \

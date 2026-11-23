@@ -1,0 +1,22 @@
+{
+  "source_code_sha": "fc84d7c1d1c4f2ed140606e9a5ca38fb667f086c",
+  "parser_version": "dart-cb-schedule-6.4-v1",
+  "retained_run_id": 44781000456,
+  "retained_received_at": "2026-11-20T17:12:51.525123+00:00",
+  "raw_input_hashes_verified": 5,
+  "response_sha256": "7142d4ee6c8eb46069135b0b44bba21b099590f06780f26af128305bef6c1720",
+  "xml_sha256": "c5973d229d7c88943532b2cc5a7d0ba89432e013efca81fe907032fef7ea0edd",
+  "schema_fixture_sha256": "1031e9b17f9718bd2770fdf92294a8ea42b0c10d246cb44e66e18b84cc441663",
+  "slot_qualification_sha256": "e0a679877ab82474051140828d8d8c535a12b311bea3feb372b5fd8774c5eb32",
+  "replay_samples": 1,
+  "field_slots": 5,
+  "field_refs": 22,
+  "xml_bindings": 76,
+  "other_seven_rows_unchanged": true,
+  "source_http": 0,
+  "model_calls": 0,
+  "public_raw": false,
+  "runtime_verified": false,
+  "activation_ready": false,
+  "qualification_scope": "schedule profile only; price policy untouched"
+}

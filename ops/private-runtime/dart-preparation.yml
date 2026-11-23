@@ -3,6 +3,12 @@ name: Private DART shared preparation
 on:
   workflow_dispatch:
     inputs:
+      parser_profile:
+        description: Explicit price or schedule form; v2 terms selection remains separate.
+        required: true
+        type: choice
+        default: price
+        options: [price, schedule]
       filing_no:
         description: 'One known fourteen-digit DART filing number.'
         required: true
@@ -42,6 +48,7 @@ jobs:
     environment: codex-runtime
     env:
       REVIEWED_CODE_SHA: ${{ vars.REVIEWED_DART_PREPARATION_SHA }}
+      PARSER_PROFILE: ${{ inputs.parser_profile || 'price' }}
       DART_PARSER_VERSION: ${{ inputs.parser_version }}
     steps:
       - name: Validate inputs before credentials
@@ -57,6 +64,8 @@ jobs:
           [[ "$CORP_CODE" =~ ^[0-9]{8}$ ]]
           [[ "$RECIPIENT" =~ ^[0-9a-f]{64}$ ]]
           [[ "$DART_PARSER_VERSION" == "v1" || "$DART_PARSER_VERSION" == "v2" ]]
+          [[ "$PARSER_PROFILE" =~ ^(price|schedule)$ ]]
+          [[ "$PARSER_PROFILE" != "schedule" || "$DART_PARSER_VERSION" == "v1" ]]
           echo "UV_PROJECT_ENVIRONMENT=$RUNNER_TEMP/dart-probe-venv" >> "$GITHUB_ENV"
       - name: Checkout reviewed probe code
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -99,7 +108,7 @@ jobs:
           set +e
           "$UV_PROJECT_ENVIRONMENT/bin/python" -I scripts/probe_dart_preparation.py \
             --filing-no "$FILING_NO" --corp-code "$CORP_CODE" \
-            --parser-version "$DART_PARSER_VERSION" \
+            --parser-version "$DART_PARSER_VERSION" --parser-profile "$PARSER_PROFILE" \
             --output-dir .tmp/event-news-v3/dart-preparation
           rc=$?
           set -e

@@ -223,11 +223,12 @@ def test_unknown_ambiguous_foreign_or_oversized_inputs_close(mode):
         parse_case(tostring(root))
 
 
-def test_old_version_bytes_and_old_form_stay_separate():
+def test_reviewed_price_schedule_bytes_and_terms_form_stay_separate():
+    # Schedule support is separately reviewed; price/terms rejection stays explicit.
     path = Path(__file__).parents[3] / "src/investo/sources/_dart_document.py"
     assert (
         hashlib.sha256(path.read_bytes()).hexdigest()
-        == "8bae1c71b79f26b22391679c4c9ebfed1ad574135c02c91f75298426346ae166"
+        == "8361deebc4136df9ad7391f854e1dc4bb066da655e313708e263219469837db0"
     )
     original = FIXTURE.with_name("cb-correction-6.4.xml").read_bytes()
     with pytest.raises(DartDocumentError):

@@ -17,12 +17,15 @@ from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Literal, Never, cast, get_args
 
+import httpx
+
 from investo.briefing._core.classification import event_classification_diagnostics
 from investo.briefing.claude_code import ClaudeRunner
 from investo.briefing.codex_cli import CodexRunner
 from investo.briefing.context import load_recent_briefings, resolve_recent_days
 from investo.briefing.errors import BriefingGenerationError
-from investo.briefing.event_context import ContextEvidenceError
+from investo.briefing.event_context import ContextEvidenceError, prepare_context_documents
+from investo.briefing.event_input import select_event_input_items
 from investo.briefing.event_narrative import event_synthesis_diagnostics
 from investo.briefing.event_routing import share_official_event_candidates
 from investo.briefing.generation_contract import GenerationInput
@@ -37,6 +40,7 @@ from investo.models.event_article import ARTICLE_FAILURE_CODES
 from investo.models.event_config import EventExecutionConfig, EventProfile
 from investo.models.event_context import ContextRule
 from investo.models.segments import DOMESTIC_EQUITY, MarketSegment
+from investo.orchestrator._event_preview_capture import DartCapture
 from investo.orchestrator.domestic_anchor_quarantine import (
     load_previous_domestic_anchor_closes,
     project_domestic_public_items,
@@ -65,6 +69,7 @@ from investo.publisher._public_document_policy import SURFACE_ISSUE_CODES
 from investo.publisher.errors import PublisherGitError
 from investo.publisher.public_document import PublicDocumentFinalizationError
 from investo.sources import collect_sources
+from investo.sources.event_evidence import _dart_transport_allowed, load_source_slot_qualification
 
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 _MAX_MARKDOWN_BYTES = 256 * 1024
@@ -264,6 +269,7 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument("--document-schema", choices=(2, 3), type=int, default=2)
     parser.add_argument("--official-body-preview", action="store_true")
     parser.add_argument("--dart-body-preview", action="store_true")
+    parser.add_argument("--dart-parser-profile", choices=("price", "schedule"), default="price")
     parser.add_argument("--dart-parser-version", choices=("v1", "v2"), default="v1")
     parser.add_argument("--article-profile", choices=("role_v1", "article_v2"), default="role_v1")
     parser.add_argument(
@@ -281,6 +287,10 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     if args.dart_body_preview and not args.official_body_preview:
         raise PreviewInputError
     if args.dart_parser_version != "v1" and not args.dart_body_preview:
+        raise PreviewInputError
+    if args.dart_parser_profile == "schedule" and (
+        not args.dart_body_preview or args.dart_parser_version != "v1"
+    ):
         raise PreviewInputError
     return args
 
@@ -368,7 +378,11 @@ def _private_path(
             raise PreviewInputError
     if output.exists():
         raise PreviewInputError
-    names = ("preview.md", "manifest.json") + (("model-recording.json",) if record_model_io else ())
+    names = ("preview.md", "manifest.json") + (
+        ("model-recording.json", "source-evidence.json", "dart-http-recording.json", "edition.json")
+        if record_model_io
+        else ()
+    )
     for name in names:
         relative = (output / name).relative_to(root).as_posix()
         ignored = subprocess.run(
@@ -395,6 +409,17 @@ def _private_path(
 def _write_private(output: Path, name: str, content: bytes) -> None:
     # A new directory and exclusive/no-follow files also reject existing
     # symlinks and hard links instead of overwriting their targets.
+    if any(part.is_symlink() for part in (output, *output.parents)):
+        raise PreviewInputError
+    dart_token = os.environ.get("OPENDART_API_KEY", "").strip()
+    if dart_token and (
+        dart_token.encode() in content
+        or (
+            name.endswith(".json")
+            and dart_token in json.dumps(json.loads(content), ensure_ascii=False)
+        )
+    ):
+        raise PreviewInputError
     with os.fdopen(
         os.open(output / name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600),
         "wb",
@@ -521,6 +546,7 @@ async def run_preview(
     article_profile: EventProfile = "role_v1",
     official_body_preview: bool = False,
     dart_body_preview: bool = False,
+    dart_parser_profile: Literal["price", "schedule"] = "price",
     dart_parser_version: Literal["v1", "v2"] = "v1",
     enrichment_policy: EnrichmentPolicy = DEFAULT_ENRICHMENT_POLICY,
     enrichment_qualification: EnrichmentQualification | None = None,
@@ -545,6 +571,11 @@ async def run_preview(
         dart_parser_version != "v1" and not dart_body_preview
     ):
         raise PreviewInputError
+    if dart_parser_profile not in {"price", "schedule"} or (
+        dart_parser_profile == "schedule" and (not dart_body_preview or dart_parser_version != "v1")
+    ):
+        raise PreviewInputError
+    slot_qualification = None
     if official_body_preview:
         if enrichment_policy != DEFAULT_ENRICHMENT_POLICY or enrichment_qualification is not None:
             raise PreviewInputError
@@ -552,15 +583,36 @@ async def run_preview(
             _REPOSITORY_ROOT / "ops/event_source_qualification.json"
         )
         if dart_body_preview:
+            profile_key = "schedule" if dart_parser_profile == "schedule" else dart_parser_version
+            policy_name, matrix_name, expected_parser = {
+                "v1": (
+                    "event_dart_preview_qualification.json",
+                    "event_source_slot_qualification.json",
+                    "dart-cb-correction-6.4-v1",
+                ),
+                "v2": (
+                    "event_dart_v2_preview_qualification.json",
+                    "event_dart_v2_slot_qualification.json",
+                    "dart-cb-terms-correction-6.4-v2",
+                ),
+                "schedule": (
+                    "event_dart_schedule_preview_qualification.json",
+                    "event_dart_schedule_slot_qualification.json",
+                    "dart-cb-schedule-6.4-v1",
+                ),
+            }[profile_key]
             dart_qualification = load_event_evidence_qualification(
-                _REPOSITORY_ROOT
-                / (
-                    "ops/event_dart_preview_qualification.json"
-                    if dart_parser_version == "v1"
-                    else "ops/event_dart_v2_preview_qualification.json"
-                )
+                _REPOSITORY_ROOT / "ops" / policy_name
             )
-            if dart_qualification.sources or dart_qualification.dart is None:
+            slot_qualification = load_source_slot_qualification(
+                _REPOSITORY_ROOT / "ops" / matrix_name
+            )
+            if (
+                dart_qualification.sources
+                or dart_qualification.dart is None
+                or dart_qualification.dart.parser_version != expected_parser
+                or not _dart_transport_allowed(dart_qualification, slot_qualification)
+            ):
                 raise PreviewInputError
             enrichment_qualification = enrichment_qualification.model_copy(
                 update={"dart": dart_qualification.dart}
@@ -594,13 +646,28 @@ async def run_preview(
     output.mkdir(parents=True, mode=0o700, exist_ok=False)
     preparation_started = time.monotonic()
     report = await collect_sources(target_date, evidence_received_at=clock)
-    prepared = await prepare_event_evidence(
-        report.items,
-        report.outcomes,
-        policy=enrichment_policy,
-        qualification=enrichment_qualification or EnrichmentQualification(),
-        received_at=clock,
+    capture = (
+        DartCapture(os.environ.get("OPENDART_API_KEY", "").strip().encode())
+        if record_model_io
+        else None
     )
+    async with httpx.AsyncClient(
+        transport=capture, follow_redirects=False, trust_env=False
+    ) as client:
+        prepared = await prepare_event_evidence(
+            report.items,
+            report.outcomes,
+            policy=enrichment_policy,
+            qualification=enrichment_qualification or EnrichmentQualification(),
+            received_at=clock,
+            slot_qualification=slot_qualification,
+            client=client,
+        )
+    if capture is not None:
+        capture.validate()
+        _write_private(
+            output, "dart-http-recording.json", json.dumps({"records": capture.records}).encode()
+        )
     anchors, _history = await _load_market_anchors_for_run(target_date)
     archive = repository_root.resolve() / "archive"
     projection = project_domestic_public_items(
@@ -640,7 +707,58 @@ async def run_preview(
             separators=(",", ":"),
         ).encode()
     ).hexdigest()
+    contexts = (
+        prepare_context_documents(
+            select_event_input_items(
+                candidates[segment],
+                target_date=target_date,
+                article_v2=article_profile == "article_v2",
+            ),
+            received_at=clock,
+            article_passages=article_profile == "article_v2",
+        )
+        if record_model_io
+        else ()
+    )
+    if record_model_io:
+        source_snapshot = {
+            "schema_version": 1,
+            "segment": segment,
+            "target_date": target_date.isoformat(),
+            "clock": clock.isoformat(),
+            "input_manifest_hash": input_manifest_hash,
+            "items": [item.model_dump(mode="json") for item in candidates[segment]],
+            "dart_inputs": [
+                item.model_dump(mode="json")
+                for item in report.items
+                if item.source_name == "dart-disclosure"
+            ],
+            "dart_prepared": [
+                item.model_dump(mode="json")
+                for item in prepared.items
+                if item.source_name == "dart-disclosure"
+            ],
+            "source_outcomes": [
+                {
+                    "source_name": row.source_name,
+                    "category": row.category,
+                    "status": row.status,
+                    "item_count": row.item_count,
+                    "transient": row.transient,
+                    "tier": row.tier,
+                }
+                for row in report.outcomes
+            ],
+            "failure_details_omitted": True,
+            "contexts": [context.model_dump(mode="json") for context in contexts],
+            "enrichment_outcomes": [row.model_dump(mode="json") for row in prepared.outcomes],
+        }
+        snapshot_bytes = json.dumps(source_snapshot, ensure_ascii=False, sort_keys=True).encode()
+        if len(snapshot_bytes) > 256 * 1024:
+            raise PreviewInputError
+        _write_private(output, "source-evidence.json", snapshot_bytes)
     request = GenerationInput(
+        event_context_documents=contexts,
         target_date=target_date,
         items=candidates[segment],
         segment=segment,
@@ -691,11 +809,24 @@ async def run_preview(
     if document and hashlib.sha256(markdown).hexdigest() != document.markdown_sha256:
         raise ValueError("preview seal mismatch")
     native = result.generation.document
+    if record_model_io and hasattr(native, "model_dump_json"):
+        edition_bytes = native.model_dump_json().encode()
+        if len(edition_bytes) > 128 * 1024:
+            raise PreviewInputError
+        _write_private(output, "edition.json", edition_bytes)
     trace = getattr(native, "article_generation_trace", None)
     readiness = getattr(native, "article_readiness", ())
     manifest: dict[str, object] = {
         "schema_version": 1,
         "mode": "preview",
+        "dart_body_preview": dart_body_preview,
+        "dart_parser_profile": dart_parser_profile,
+        "dart_parser_version": dart_parser_version,
+        "slot_qualification_sha256": hashlib.sha256(
+            slot_qualification.model_dump_json().encode()
+        ).hexdigest()
+        if slot_qualification
+        else None,
         "article_profile": article_profile,
         "article_content_status": (
             "detailed_ready"
@@ -791,6 +922,7 @@ def main(argv: list[str] | None = None) -> int:
                 article_profile=args.article_profile,
                 official_body_preview=args.official_body_preview,
                 dart_body_preview=getattr(args, "dart_body_preview", False),
+                dart_parser_profile=getattr(args, "dart_parser_profile", "price"),
                 dart_parser_version=getattr(args, "dart_parser_version", "v1"),
                 record_model_io=args.record_model_io,
             )

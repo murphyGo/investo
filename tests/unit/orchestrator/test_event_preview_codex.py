@@ -59,6 +59,8 @@ def test_private_preview_uses_supervisor_and_never_public_pipeline(
         assert kwargs["repository_root"] == repository.resolve()
         assert kwargs["baseline_sha"] == "a" * 40
         assert kwargs["record_model_io"] is record_model_io
+        assert kwargs["dart_body_preview"] is record_model_io
+        assert kwargs["dart_parser_profile"] == ("schedule" if record_model_io else "price")
         if outcome == "generation_failure":
             raise RuntimeError("PRIVATE_MODEL_RESPONSE")
         return {"status": "blocked" if outcome == "blocked" else "sealed", "provider": "codex"}
@@ -86,7 +88,19 @@ def test_private_preview_uses_supervisor_and_never_public_pipeline(
         "a" * 40,
     ]
     if record_model_io:
-        argv.extend(["--document-schema", "3", "--record-model-io"])
+        argv.extend(
+            [
+                "--document-schema",
+                "3",
+                "--record-model-io",
+                "--article-profile",
+                "article_v2",
+                "--official-body-preview",
+                "--dart-body-preview",
+                "--dart-parser-profile",
+                "schedule",
+            ]
+        )
     result = wrapper.main(argv)
     captured = capsys.readouterr()
     manifest = json.loads(captured.out)
