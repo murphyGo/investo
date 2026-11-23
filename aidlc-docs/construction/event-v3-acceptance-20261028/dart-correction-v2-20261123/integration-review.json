@@ -1,0 +1,117 @@
+{
+  "reviewed_at": "2026-11-23T07:19:48.902768+00:00",
+  "status": "APPROVE",
+  "severity_counts": {
+    "C": 0,
+    "H": 0,
+    "M": 0,
+    "L": 0
+  },
+  "scope_sha256": "9a14e71f29ab4d44ae93df30be563d1dd0bd4fbcf84449d0e63e6989eeff9d38",
+  "scope_file_count": 18,
+  "scope_hash_encoding": "path-sorted objects {path,sha256}; json.dumps(sort_keys=True,separators=(comma,colon))",
+  "scope_bytes_match": true,
+  "independent_checks": {
+    "focused_pytest_passed": 331,
+    "focused_pytest_seconds": 5.0,
+    "ruff_check": "PASS (12 changed Python files)",
+    "ruff_format": "PASS (12 changed Python files)",
+    "mypy": "PASS (7 app/script files)",
+    "git_diff_check": "PASS",
+    "source_http": 0,
+    "actual_capture_hashes": "5/5 PASS",
+    "legacy_price_semantic_sha256": "a76ec0768d4851b49651e9b4396f920bfdd738f464505963144c092df7bdcf1b",
+    "original95f_price_item_context_refs_bindings": "exact equality PASS",
+    "schedule_module_and_four_policies_and_workflow_vs_d6ce1050": "exact bytes PASS",
+    "workflow_sha256": "4f8c4a881f0c1996b01e54685eeb5ffb2af3ae000117ddb93aad4d683fad3802",
+    "merge_content_markers": "none; current integration commits resolved",
+    "original_M1_reproductions_closed": "4/4 PASS",
+    "new_XML_scope_negatives": "13/13 PASS",
+    "post_fix_ruff_format_mypy": "PASS",
+    "fixed_foundation_exact_bytes": "3/3 PASS",
+    "fixed_policy_capture_replay": "1sample/5fields PASS"
+  },
+  "retained_replay": {
+    "source_run": 45059739620,
+    "source_http": 0,
+    "mocked_requests": 2,
+    "schedule_projection_chars": 661,
+    "schedule_field_refs": 22,
+    "schedule_xml_roundtrip": 76,
+    "terms_projection_chars": 2950,
+    "terms_paragraphs": 3,
+    "terms_field_refs": 22,
+    "terms_xml_roundtrip": 154,
+    "terms_native_sha256": "927c47a4e318959c355dfb7ccd0063d1c1adb002ffeb36b1e6f15a7e983533d5",
+    "terms_complete_ref_coverage": true,
+    "terms_live_acceptance": false,
+    "canonical_runtime_promoted": false,
+    "post_fix_terms_xml_roundtrip": 154,
+    "post_fix_terms_native_sha256": "927c47a4e318959c355dfb7ccd0063d1c1adb002ffeb36b1e6f15a7e983533d5"
+  },
+  "comparison": {
+    "schedule": "Validates seven correction rows and linked note; retains bounded corrected schedule dates, not full interest/principal/options/note text. This is a limited schedule projection, not full contract evidence.",
+    "terms": "Retains complete bound clauses and linked note as explicit native2 opt-in. No auto fallback, new source count or new live/runtime acceptance.",
+    "incremental_projection_chars": 2289,
+    "incremental_source_http_for_retained_replay": 0,
+    "smallest_integration": "Preserve existing schedule delivery, policies/workflow/pins. Keep terms as separate explicit candidate and reuse retained source response."
+  },
+  "findings": [
+    {
+      "id": "M1",
+      "severity": "M",
+      "file": "src/investo/sources/_dart_terms_document.py",
+      "function": "_notes",
+      "status": "resolved",
+      "problem": "Non-whitespace CORRECTION/SECTION parent text, direct child tails and PGBRK content can be discarded while approving complete note scope.",
+      "synthetic_reproduction": "Add a synthetic cancellation condition independently to CORRECTION.text, current SECTION-1.text, last after-note P.tail, or PGBRK.text. parse_case(tostring(root)) accepts all four and excludes the condition from projection.",
+      "reproduced_cases": 4,
+      "minimum_fix": "Reject unwrapped parent text/direct child tails; require empty PGBRK with no children; allow only known empty paragraphs outside the complete note. Add focused negatives. Rebind fixed parser commit in v2 slot/transport qualifications.",
+      "resolution": "Added unwrapped-text/tail, empty-pagebreak, exact note-order/empty-node and table-layout guards; 13 negative cases pass. Synthetic note table now uses actual qualified position. Original four failures close. Actual 154 bindings and native927c digest are unchanged. Both v2 grants bind the fixed immutable commit."
+    },
+    {
+      "id": "L1",
+      "severity": "L",
+      "files": [
+        "docs/sessions/2026-11-23-dart-contract-terms-v2.md",
+        "aidlc-docs/construction/event-v3-acceptance-20261028/dart-correction-v2-20261123/plan.md"
+      ],
+      "status": "resolved",
+      "problem": "Earlier current-tense passages still promise unchanged v1 module bytes and a new DART pin/manual rerun, while reconciliation correctly preserves schedule module semantics and existing workflow/pin with retained replay.",
+      "minimum_fix": "Rewrite these passages to final scope, or explicitly label superseded history.",
+      "resolution": "Session rewritten around final integrated scope; plan explicitly supersedes the old module-byte freeze and planned new pin/manual run. Existing workflow/pin and retained source evidence remain the final path."
+    }
+  ],
+  "privacy": {
+    "raw_source_or_company_or_secret_in_report": false,
+    "public_evidence_contains_raw_payload": false,
+    "operational_mutations_by_reviewer": 0,
+    "app_edits_by_reviewer": 0
+  },
+  "remaining_acceptance": {
+    "final_exact_ci": "pending",
+    "canonical_local_qualified": 3,
+    "canonical_slot_total": 8,
+    "canonical_runtime_verified": 0,
+    "terms_live_verified": false,
+    "activation_ready": false,
+    "human_accepted": 0,
+    "v3_scheduled_accepted": 0,
+    "upper_units_complete": false
+  },
+  "initial_review_scope_sha256": "7ec204d22df03669a66575df5ed2231f0f2faca6ea48684dfedcafc068306eca",
+  "qualification_binding": {
+    "parser_source_commit": "34d4fe27becf776599a18ff590b69ce03665e7a8",
+    "slot_typed_sha256": "414f5f08322e113a96948e3a8ea97f621bdc19bf4fec2cc924a8a245940619a2",
+    "transport_typed_sha256": "9d1b700aa70ce53cbc4c18adc4044fab797a8bfa96a0ff7ea59599db3b37f27d",
+    "slot_and_transport_source_commit_match": true,
+    "transport_allowed": true,
+    "fixed_capture_file": "fixed-policy-capture.json",
+    "original_capture_preserved": true
+  },
+  "review_limitations": [
+    "Final exact-head CI is pending and is not counted as passed.",
+    "No new source HTTP, private workflow/pin mutation, or terms-v2 live/runtime acceptance performed by reviewer.",
+    "Existing schedule evidence remains a distinct prior actual result; terms is a retained-response replay."
+  ]
+}

@@ -63,3 +63,6 @@ Pre-integration3b8 CI45060834986 passed8152 tests/1skip and39Node tests. Integra
 ## Integration review repair
 
 Independent integration review found M1: unwrapped correction/section text, direct child tails and page-break content could be ignored. Reject all those shapes, unknown empty nodes and text outside table cells. Thirteen negative regressions cover these cases. Move only the invented terms fixture's note table to the actual qualified position after seven paragraphs; price/schedule fixtures are untouched. Actual retained context927c and154XML bindings remain unchanged. The fixed parser source/fixture/tests are committed as a new immutable ancestor before qualification is rebound.
+
+
+Final integration review APPROVE C/H/M/L0: independent331PASS/5.00s; fixed ancestor34d4fe27becf776599a18ff590b69ce03665e7a8,18file scope9a14e71f29ab4d44ae93df30be563d1dd0bd4fbcf84449d0e63e6989eeff9d38. V2 typed slot414f5f08322e113a96948e3a8ea97f621bdc19bf4fec2cc924a8a245940619a2 and transport9d1b700aa70ce53cbc4c18adc4044fab797a8bfa96a0ff7ea59599db3b37f27d were independently rebound/replayed. Final exact-head CI remains pending.

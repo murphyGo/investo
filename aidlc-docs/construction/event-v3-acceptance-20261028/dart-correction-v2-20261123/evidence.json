@@ -1,7 +1,7 @@
 {
   "scope": "u173 Step4 / u184 Step5 bounded DART full-term evidence candidate",
   "source_parser_version": "dart-cb-terms-correction-6.4-v2",
-  "parser_foundation_sha": "a4b6f5dd402767cd1f4f060867e523d20876d551",
+  "parser_foundation_sha": "34d4fe27becf776599a18ff590b69ce03665e7a8",
   "existing_schedule_evidence_commit": "d6ce1050a0f8b351d820febcf899b603a1c91220",
   "existing_schedule_code_sha": "3eafd2bc8ea0aff906ba2d23466a75a66fe945d3",
   "existing_schedule_live_run": 45059739620,
@@ -41,7 +41,7 @@
     "node_passed": 39,
     "conclusion": "success"
   },
-  "integration_focused_passed": 226,
+  "integration_focused_passed": 239,
   "integration_exact_ci": "pending",
   "canonical_local_qualified": 3,
   "canonical_slot_total": 8,
@@ -51,5 +51,21 @@
   "human_accepted": 0,
   "human_required": 12,
   "v3_scheduled_accepted": 0,
-  "upper_units_complete": false
+  "upper_units_complete": false,
+  "initial_parser_foundation_sha": "a4b6f5dd402767cd1f4f060867e523d20876d551",
+  "variant_slot_qualification_sha256": "414f5f08322e113a96948e3a8ea97f621bdc19bf4fec2cc924a8a245940619a2",
+  "variant_transport_sha256": "9d1b700aa70ce53cbc4c18adc4044fab797a8bfa96a0ff7ea59599db3b37f27d",
+  "integration_review": {
+    "status": "APPROVE",
+    "severity_counts": {
+      "C": 0,
+      "H": 0,
+      "M": 0,
+      "L": 0
+    },
+    "scope_file_count": 18,
+    "scope_sha256": "9a14e71f29ab4d44ae93df30be563d1dd0bd4fbcf84449d0e63e6989eeff9d38",
+    "report_sha256": "93a82045244fe295ba75d8bed74234bcfb0861166b2a34b2c458bf24d8917344",
+    "independent_tests_passed": 331
+  }
 }

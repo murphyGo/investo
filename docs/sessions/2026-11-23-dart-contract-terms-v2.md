@@ -23,3 +23,6 @@ Verify five private files from actual45059739620 against public hashes, then rep
 Pre-integration [CI45060834986](https://github.com/murphyGo/investo/actions/runs/45060834986) passed8152tests/1skip and39Node tests. Integration and final exact-head verification follow below. Canonical local3/8, runtime0, activationfalse, human0/12 and v3scheduled0 remain unchanged. Upper units remain incomplete.
 
 [Plan](../../aidlc-docs/construction/event-v3-acceptance-20261028/dart-correction-v2-20261123/plan.md) - [Evidence](../../aidlc-docs/construction/event-v3-acceptance-20261028/dart-correction-v2-20261123/evidence.json)
+
+
+Final independent integration review: APPROVE C/H/M/L0,331tests/5.00s. Fixed parser ancestor34d4fe27 and18file scope9a14e71f bind both v2 qualification files; the old retained capture is preserved and a separate fixed-policy capture replays1sample/5fields. [Review](../../aidlc-docs/construction/event-v3-acceptance-20261028/dart-correction-v2-20261123/integration-review.json). Final exact-head CI is pending.
