@@ -378,9 +378,11 @@ def _dart_transport_allowed(
         record = DartTransportQualification.model_validate(record.model_dump())
         matrix = matrix or load_source_slot_qualification(
             Path(
-                "ops/event_source_slot_qualification.json"
-                if record.parser_version == "dart-cb-correction-6.4-v1"
-                else "ops/event_dart_v2_slot_qualification.json"
+                {
+                    "dart-cb-correction-6.4-v1": "ops/event_source_slot_qualification.json",
+                    "dart-cb-schedule-6.4-v1": "ops/event_dart_schedule_slot_qualification.json",
+                    "dart-cb-terms-correction-6.4-v2": "ops/event_dart_v2_slot_qualification.json",
+                }[record.parser_version]
             )
         )
         if (

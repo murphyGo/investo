@@ -109,3 +109,8 @@ In progress — 6/7; private parser capture pending. [공통 검증](../event-ne
 ## 2026-11-21 — DART 공통 준비 실측·차단 경계
 
 동일 prepare_event_evidence의 명시적 preview 연결과 exacteff7/CI43915660414 8,087PASS/1skip를 완료했다. 실제44781000456은4GET/200·1.401445초이며 과거target은latest목록missing/XML0, 별도최신candidate는as_observed 후정정표mismatch로거절됐다. native0/차단2·classifier선정0·모델/게시/알림/ledger/cursor0, 원문은private암호문과0700/0600에보관했다. [세션](../../../docs/sessions/2026-11-17-dart-shared-preparation.md), [증거](../event-v3-acceptance-20261028/dart-preparation-20261117/evidence.json). 공통연결구현과실제차단검증만완료하며local3/8/runtime0/activationfalse·상위Step미완료를유지한다. 다음은보관된새정정표변형의필수field/locator/정정후값을별도검수하고versionedparser지원범위를판정하는후속이다. 기존parser를완화하거나현재실행을positive인수로세지않는다.
+
+
+## 2026-11-23 — 일정 정정 공통 준비·실제 비게시 검증 완료
+
+[하위계획](../event-v3-acceptance-20261028/dart-schedule-runtime-20261123/plan.md)5/5. schedule 전용 parser/자격·공통 준비 연결과 정확한3eafd2bc/CI45056435819(8,147PASS/1skip)를 완료했다. 실제45059739620에서4GET/200·2.039706초, 일정 정정1건5slot/22refs/76XML·661자/native1을 확보하고 원래 과거공시의 latest missing 차단을 보존했다. 독립 실측 재생 C0/H0/M0/L0. 전용 진단만 반영, 모델/게시/알림/ledger/cursor0이며 다른 작업의 main/production pin은 보존했다. canonical local3/8·runtime0/activationfalse와 상위Step 전체 미완료는 유지한다. [검수](../../../docs/cross-checks/2026-11-23-dart-schedule-runtime.md).

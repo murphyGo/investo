@@ -88,6 +88,14 @@ def _ranges(text: str) -> tuple[tuple[int, int], ...]:
 def _table_signature(table: Element) -> tuple[tuple[tuple[str, str, str, str], ...], ...]:
     if [node.tag for node in table] not in (["TBODY"], ["COLGROUP", "TBODY"]):
         raise DartDocumentError("dart.correction_mismatch")
+    for node in table.iter():
+        if (
+            node.tag in {"TABLE", "COLGROUP", "COL", "TBODY", "TR"} and (node.text or "").strip()
+        ) or (node is not table and (node.tail or "").strip()):
+            raise DartDocumentError("dart.correction_mismatch")
+    for group in table.findall("./COLGROUP"):
+        if any(node.tag != "COL" or len(node) for node in group):
+            raise DartDocumentError("dart.correction_mismatch")
     body = _one(table.findall("./TBODY"))
     if any(node.tag != "TR" for node in body):
         raise DartDocumentError("dart.correction_mismatch")
@@ -148,6 +156,17 @@ def _notes(correction: Element, section: Element, row: list[Element]) -> tuple[E
     if _text(row[2]) != before or _text(row[3]) != after:
         raise DartDocumentError("dart.correction_mismatch")
     children = list(correction)
+    direct = list(section)
+    if (
+        (correction.text or "").strip()
+        or (section.text or "").strip()
+        or any((node.tail or "").strip() for node in [*children, *direct])
+    ):
+        raise DartDocumentError("dart.correction_mismatch")
+
+    def empty_paragraph(node: Element) -> bool:
+        return node.tag == "P" and not len(node) and not _text(node)
+
     markers = [
         (index, node, re.match(r"주\d+\)\s*정정[전후]", _text(node)))
         for index, node in enumerate(children)
@@ -159,10 +178,14 @@ def _notes(correction: Element, section: Element, row: list[Element]) -> tuple[E
     if before_index >= after_index:
         raise DartDocumentError("dart.correction_mismatch")
     end = [i for i in range(after_index + 1, len(children)) if children[i].tag == "PGBRK"]
-    if len(end) != 1 or any(_text(node) for node in children[end[0] + 1 :]):
+    if (
+        len(end) != 1
+        or len(children[end[0]])
+        or _text(children[end[0]])
+        or any(not empty_paragraph(node) for node in children[end[0] + 1 :])
+    ):
         raise DartDocumentError("dart.correction_mismatch")
-    corrected = tuple(node for node in children[after_index : end[0]] if _text(node))
-    direct = list(section)
+    corrected = tuple(node for node in children[after_index : end[0]] if not empty_paragraph(node))
     headers = [i for i, node in enumerate(direct) if _compact(_text(node)) == _ROWS[6]]
     if len(headers) != 1 or direct[headers[0]].tag != "TABLE":
         raise DartDocumentError("dart.correction_mismatch")
@@ -172,13 +195,11 @@ def _notes(correction: Element, section: Element, row: list[Element]) -> tuple[E
     stops = [i for i in range(headers[0] + 1, len(direct)) if direct[i].tag == "TABLE-GROUP"]
     if not stops:
         raise DartDocumentError("dart.correction_mismatch")
-    current = tuple(node for node in direct[headers[0] + 1 : stops[0]] if _text(node))
-    if (
-        len(corrected) != 9
-        or len(current) != 9
-        or sum(node.tag == "P" for node in corrected) != 8
-        or sum(node.tag == "TABLE" for node in corrected) != 1
-    ):
+    current = tuple(node for node in direct[headers[0] + 1 : stops[0]] if not empty_paragraph(node))
+    expected_tags = ["P"] * 7 + ["TABLE", "P"]
+    if [node.tag for node in corrected] != expected_tags or [
+        node.tag for node in current
+    ] != expected_tags:
         raise DartDocumentError("dart.correction_mismatch")
     for index, (old, new) in enumerate(zip(corrected, current, strict=True)):
         text = _text(old)

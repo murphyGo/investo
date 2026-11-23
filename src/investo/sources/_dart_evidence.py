@@ -20,8 +20,14 @@ from investo.models.event_evidence import (
     normalize_evidence_text,
 )
 from investo.models.items import NormalizedItem
-from investo.sources._dart_document import MAX_BYTES, DartDocumentError, DartDocumentEvidence
+from investo.sources._dart_document import (
+    MAX_BYTES,
+    SCHEDULE_PARSER_VERSION,
+    DartDocumentError,
+    DartDocumentEvidence,
+)
 from investo.sources._dart_document import parse_dart_document as _parse
+from investo.sources._dart_document import parse_dart_schedule_document as _parse_schedule
 from investo.sources._dart_terms_document import PARSER_VERSION as TERMS_PARSER_VERSION
 from investo.sources._dart_terms_document import parse_dart_terms_document
 from investo.sources.dart_disclosure import DartDisclosureAdapter
@@ -29,6 +35,7 @@ from investo.sources.dart_disclosure import DartDisclosureAdapter
 DartRequestKind = Literal["listing", "document"]
 _PARSERS = {
     "dart-cb-correction-6.4-v1": _parse,
+    SCHEDULE_PARSER_VERSION: _parse_schedule,
     TERMS_PARSER_VERSION: parse_dart_terms_document,
 }
 DART_PARSER_VERSIONS = frozenset(_PARSERS)

@@ -129,9 +129,17 @@ class RecordingTransport(httpx.AsyncBaseTransport):
 
 
 async def rehearse(
-    *, filing: str, corp: str, credential: str, parser_version: Literal["v1", "v2"] = "v1"
+    *,
+    filing: str,
+    corp: str,
+    credential: str,
+    parser_profile: Literal["price", "schedule", "terms"] = "price",
+    parser_version: Literal["v1", "v2"] | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """One collection GET and at most two two-GET candidates, all within20s/6."""
+    selected_profile = parser_profile
+    if parser_version == "v2" and parser_profile == "price":
+        selected_profile = "terms"
     manifest: dict[str, Any] = {
         "status": "blocked",
         "request_count": 0,
@@ -143,10 +151,17 @@ async def rehearse(
         "notification_sent": False,
         "original_filing": filing if re.fullmatch(r"[0-9]{14}", filing) else None,
         "discovered_filing": None,
+        "parser_profile": selected_profile
+        if selected_profile in {"price", "schedule", "terms"}
+        else "unknown",
     }
     if not re.fullmatch(r"[0-9]{14}", filing) or not re.fullmatch(r"[0-9]{8}", corp):
         return {**manifest, "reason": "input_invalid"}, {}
-    if parser_version not in {"v1", "v2"}:
+    if (
+        selected_profile not in {"price", "schedule", "terms"}
+        or parser_version not in {None, "v1", "v2"}
+        or (parser_version is not None and parser_profile != "price")
+    ):
         return {**manifest, "reason": "input_invalid"}, {}
     if not credential:
         return {**manifest, "reason": "credential_missing"}, {}
@@ -158,35 +173,33 @@ async def rehearse(
     if first > today or today - first > timedelta(days=31):
         return {**manifest, "reason": "collection_window_invalid"}, {}
     try:
-        qualification = load_enrichment_qualification(
-            ROOT
-            / (
-                "ops/event_dart_preview_qualification.json"
-                if parser_version == "v1"
-                else "ops/event_dart_v2_preview_qualification.json"
-            )
-        )
-        matrix = load_source_slot_qualification(
-            ROOT
-            / (
-                "ops/event_source_slot_qualification.json"
-                if parser_version == "v1"
-                else "ops/event_dart_v2_slot_qualification.json"
-            )
-        )
-        expected = (
-            "dart-cb-correction-6.4-v1"
-            if parser_version == "v1"
-            else "dart-cb-terms-correction-6.4-v2"
-        )
+        policy_path, matrix_path, expected = {
+            "price": (
+                "ops/event_dart_preview_qualification.json",
+                "ops/event_source_slot_qualification.json",
+                "dart-cb-correction-6.4-v1",
+            ),
+            "schedule": (
+                "ops/event_dart_schedule_preview_qualification.json",
+                "ops/event_dart_schedule_slot_qualification.json",
+                "dart-cb-schedule-6.4-v1",
+            ),
+            "terms": (
+                "ops/event_dart_v2_preview_qualification.json",
+                "ops/event_dart_v2_slot_qualification.json",
+                "dart-cb-terms-correction-6.4-v2",
+            ),
+        }[selected_profile]
+        qualification = load_enrichment_qualification(ROOT / policy_path)
+        matrix = load_source_slot_qualification(ROOT / matrix_path)
         if (
             qualification.dart is None
             or qualification.dart.parser_version != expected
             or not _dart_transport_allowed(qualification, matrix)
         ):
             raise ValueError("preparation.unqualified")
-    except ValueError:
-        return {**manifest, "reason": "unqualified"}, {}
+    except (OSError, ValueError):
+        return {**manifest, "reason": "qualification_invalid"}, {}
     install_secret_log_filters(
         (
             "httpx",
@@ -395,7 +408,11 @@ def main() -> int:
     parser.add_argument("--filing-no", required=True)
     parser.add_argument("--corp-code", required=True)
     parser.add_argument("--output-dir", required=True, type=Path)
-    parser.add_argument("--parser-version", choices=("v1", "v2"), default="v1")
+    profiles = parser.add_mutually_exclusive_group()
+    profiles.add_argument(
+        "--parser-profile", choices=("price", "schedule", "terms"), default="price"
+    )
+    profiles.add_argument("--parser-version", choices=("v1", "v2"))
     args = parser.parse_args()
     try:
         output = private_output(args.output_dir)
@@ -405,6 +422,7 @@ def main() -> int:
                 corp=args.corp_code,
                 credential=os.environ.get("OPENDART_API_KEY", "").strip(),
                 parser_version=args.parser_version,
+                parser_profile=cast(Literal["price", "schedule", "terms"], args.parser_profile),
             )
         )
         for name, payload in files.items():

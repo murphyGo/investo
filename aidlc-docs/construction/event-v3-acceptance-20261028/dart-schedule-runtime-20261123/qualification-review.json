@@ -1,0 +1,27 @@
+{
+  "scope": "schedule profile qualification and bounded encrypted private capture driver",
+  "reviewer": "independent dart_runtime_review agent",
+  "verdict": "APPROVE",
+  "critical": 0,
+  "high": 0,
+  "medium": 0,
+  "low": 0,
+  "resolved_medium": 1,
+  "resolved_low": 1,
+  "retained_private_file_hashes": 5,
+  "samples": 1,
+  "field_slots": 5,
+  "field_refs": 22,
+  "xml_bindings": 76,
+  "other_seven_rows_unchanged": true,
+  "price_files_byte_unchanged": 2,
+  "runtime_promotion": false,
+  "actual_capture_review": "APPROVE; see actual-review.json",
+  "checks": [
+    "clock,fixture,matrix,transport and access-evidence hash bound",
+    "source executable payload identical",
+    "every actual trace must use schedule parser with 22 refs and 76 XML bindings",
+    "standalone artifact fetch binds runtime-config private head",
+    "private driver syntax passes"
+  ]
+}

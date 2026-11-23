@@ -1,19 +1,25 @@
-# DART 계약조건 정정 v2 지원 검수
+# 2026-11-23 - DART full contract-term evidence candidate
 
-사용자 “진행시켜”로 기존 u173 Step4/u184 Step5의 [계획](../../aidlc-docs/construction/event-v3-acceptance-20261028/dart-correction-v2-20261123/plan.md)을 진행한다. 이전 commit/push/private 비게시 진단 승인을 적용한다.
+## Scope and reconciliation
 
-## 구현과 독립 검수
+Continue the user's u173Step4/u184Step5 work under existing implementation, review and delivery authorization. The initial workspace audit discovered the completed schedule work late. Reuse its reviewed d6ce1050 branch, qualification and live run45059739620 rather than repeat source collection or overwrite the private workflow/pin.
 
-같은6.4/20260723·11324 양식 안에서도 가격 정정과 계약조건 정정은 서로 다른 profile이다. 기존 v1 파일과 fixture는 바꾸지 않고 v2 source parser를 분리했다. v2는 정확한7행의 정정 후 값을 같은 차수의 본표 만기·이자·상환·전환기간·옵션·납입일 및 현재23항 전체에 결속한다. 23항 포인터는 정정후8P+1TABLE 전체와 현재 본문의 순서·태그·전체 텍스트·각cell/span 구조를 대조한다.
+Schedule v1 checks the seven correction rows and linked note23 but projects661characters of corrected schedule facts. Terms v2 retains2950characters of complete corrected clauses and note23. It is a separate opt-in article-passage candidate, not a fallback or another qualified source.
 
-기존240자 ref 제한을 유지하면서 숫자·날짜·단위를 자르지 않도록 범위를 나눈다. 표는 원문 header와span에서 논리5열을 구성하고 모든 데이터 cell 경계를 보존한다. 필드 전체를 ≤1200자 문단·최대6문단·총3600자 안에 배치한다. 예산이 부족하면 전체를 거절하며 잘라낸 내용을 완전한 계약으로 승인하지 않는다.
+## Implementation and boundaries
 
-가격 정정과 자동 fallback을 섞지 않는다. 기본값은 v1이며 v2는 별도1행 slot snapshot/preview transport와 명시적인 version 선택이 필요하다. generic context contract2는 기존값1을 직렬화에서 생략하므로 기존 canonical8행과 v1 정책 hash가 정확히 같다. 두 version 모두 동일 prepare_event_evidence owner의 전체6HTTP/동시2/20초·GET8초·raw/ZIP/XML500KiB와 기존 XML/비밀값 경계를 쓴다. runtime active capability는 false다.
+The new source-owned parser binds the exact correction form, current issue, complete clauses and note/table hierarchy. Project complete fields into at most6paragraphs, each1200characters, total3600; reject overflow without truncation. Preserve date/number/unit reference boundaries and the existing16refs-per-slot cap. Typed v2 projection, context contract2 and separate private qualification are required.
 
-보관된11월21일 실제 응답을 새 parser로 offline 재생해 **2950자·3문단·5slot22refs·154 XML binding**과 native2 전체 보존을 확인했다. 새 수집이나 현재 최신성 증거는 아니다. 새 HTTP와 모델/게시/알림/ledger/cursor 호출은0이다. 전용 snapshot은 같은 source-slot의 추가 형식 근거로 다루며 source 수를4로 늘리거나 default8slot CLI 인수로 세지 않는다.
+The shared owner selects an exact parser with matching policy, matrix, code, fixture and rights hashes. The probe supports --parser-profile price|schedule|terms; the initially introduced --parser-version v1|v2 aliases are mutually exclusive with profile selection. Conflicting internal selectors fail before HTTP. Existing private price/schedule workflow, reviewed pins and canonical policies remain unchanged.
 
-별도 QA가 foundation3파일105PASS와 연결255PASS·C/H/M0으로 승인했다. 합성 계약만 공개 fixture로 만들었고 실제 issuer/장문 원문은 공개하지 않는다. 초기 날짜 overlap과 table cell 연접 문제를 회귀로 고쳤다. foundation `a4b6f5dd`는 parser code 근거로 고정하고, 모든 연결과 함께 전달한 최종head의 CI를 확인한 뒤 비게시 재측정한다. 비용 영향은 기존 무료 OpenDART 진단 최대5calls와 manual Actions job이다. 실제 결과·최종 CI는 후속 기록으로 추가한다.
+The original price parser's item/context/refs/29XML output is byte-identical to original95f. Its synthetic fixture is unchanged. The shared source module legitimately expands with the already reviewed schedule implementation; a frozen whole-module hash is superseded by the semantic golden. The new terms synthetic note-table position matches the actual qualified shape.
 
-## 현재 수용 범위
+## Independent review and retained source evidence
 
-local3/8·runtime0·activationfalse·human0/12·v3예약0과 상위 유닛 미완료를 유지한다. 운영/preview/AI report 핀은 보존하며, 검수된 새 code만 별도 DART preparation pin으로 전달할 예정이다. 실제 positive source/native를 독립 검수하기 전에는 runtime 성공으로 세지 않는다.
+Initial parser and seam reviews passed. Integration review then found one Medium issue: unwrapped XML conditions or content inside a page break could be omitted. Close correction/section mixed text, direct child tails, page-break content/children, unknown empty elements, and text outside table cells. Add13 negative cases, keeping the full actual projection unchanged. Rebind qualification to the fixed immutable parser ancestor. Final independent status is recorded below.
+
+Verify five private files from actual45059739620 against public hashes, then replay the original responses and receipt clock through two intercepted shared-owner requests and the native factory. Result:2950characters/3paragraphs/5slots22refs154XML bindings; nativeSHA927c47a4e318959c355dfb7ccd0063d1c1adb002ffeb36b1e6f15a7e983533d5. New HTTP0; model/publication/notification/ledger/cursor0. V2 live/runtime/current-latest acceptance is unclaimed.
+
+Pre-integration [CI45060834986](https://github.com/murphyGo/investo/actions/runs/45060834986) passed8152tests/1skip and39Node tests. Integration and final exact-head verification follow below. Canonical local3/8, runtime0, activationfalse, human0/12 and v3scheduled0 remain unchanged. Upper units remain incomplete.
+
+[Plan](../../aidlc-docs/construction/event-v3-acceptance-20261028/dart-correction-v2-20261123/plan.md) - [Evidence](../../aidlc-docs/construction/event-v3-acceptance-20261028/dart-correction-v2-20261123/evidence.json)

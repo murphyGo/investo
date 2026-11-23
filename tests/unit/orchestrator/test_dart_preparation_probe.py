@@ -244,3 +244,21 @@ def test_workflow_is_manual_pinned_secret_scoped_and_ciphertext_only():
         if "run" in step:
             assert "${{ inputs." not in step["run"]
             subprocess.run(["bash", "-n"], input=step["run"], text=True, check=True, timeout=5)
+
+
+@pytest.mark.parametrize(
+    "profile,version", [("schedule", "v2"), ("terms", "v1"), ("unknown", None)]
+)
+async def test_conflicting_explicit_parser_selectors_are_rejected_before_http(
+    monkeypatch, profile, version
+):
+    install_mock(monkeypatch, lambda request: pytest.fail("conflicting profile opened HTTP"))
+    manifest, files = await probe.rehearse(
+        filing=FILING,
+        corp="00000001",
+        credential=SECRET,
+        parser_profile=profile,
+        parser_version=version,
+    )
+    assert manifest["request_count"] == 0 and not files
+    assert manifest["reason"] == "input_invalid"

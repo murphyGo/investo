@@ -1,7 +1,9 @@
 """Invented v2 contracts exercise full after/current binding and native coverage."""
 
 import hashlib
+import json
 from copy import deepcopy
+from dataclasses import asdict
 from pathlib import Path
 
 import pytest
@@ -224,12 +226,26 @@ def test_unknown_ambiguous_foreign_or_oversized_inputs_close(mode):
 
 
 def test_old_version_bytes_and_old_form_stay_separate():
-    path = Path(__file__).parents[3] / "src/investo/sources/_dart_document.py"
-    assert (
-        hashlib.sha256(path.read_bytes()).hexdigest()
-        == "8bae1c71b79f26b22391679c4c9ebfed1ad574135c02c91f75298426346ae166"
-    )
+    from tests.unit.sources.test_dart_document_u173 import parse_case as parse_price
+
     original = FIXTURE.with_name("cb-correction-6.4.xml").read_bytes()
+    assert hashlib.sha256(original).hexdigest() == (
+        "0b92c7582de317c6a4490772f54b83b5984fb9a3e1dff1f430ba82726ebb28cb"
+    )
+    result = parse_price()
+    payload = {
+        "item": result.item.model_dump(mode="json"),
+        "context": result.context.model_dump(mode="json"),
+        "refs": {
+            k: [r.model_dump(mode="json") for r in refs] for k, refs in result.field_refs.items()
+        },
+        "bindings": [asdict(binding) for binding in result.xml_bindings],
+    }
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    # Captured from the original price parser before adding schedule support.
+    assert hashlib.sha256(encoded.encode()).hexdigest() == (
+        "a76ec0768d4851b49651e9b4396f920bfdd738f464505963144c092df7bdcf1b"
+    )
     with pytest.raises(DartDocumentError):
         parse_case(original)
 
@@ -302,5 +318,72 @@ def test_same_invalid_table_in_both_blocks_is_not_a_qualified_note(change):
                 rows[0][-1].text = "합성 다른 지표"
             else:
                 rows[-1][0].text = "1 | 2"
+    with pytest.raises(DartDocumentError):
+        parse_case(tostring(root))
+
+
+@pytest.mark.parametrize(
+    "mode",
+    [
+        "correction_text",
+        "section_text",
+        "after_tail",
+        "current_tail",
+        "pagebreak_text",
+        "pagebreak_child",
+        "unknown_after",
+        "unknown_current",
+        "unknown_after_end",
+        "table_text",
+        "table_body_text",
+        "table_cell_tail",
+        "unknown_column_group",
+    ],
+)
+def test_unwrapped_conditions_and_unqualified_empty_nodes_are_never_dropped(mode):
+    root = tree()
+    correction = root.find("./BODY/LIBRARY/CORRECTION")
+    section = root.find("./BODY/SECTION-1")
+    pagebreak = correction.find("./PGBRK")
+    marker = next(n for n in correction if n.tag == "P" and _text(n).startswith("주2) 정정후"))
+    last_after = list(correction)[list(correction).index(pagebreak) - 1]
+    condition = "SYNTHETIC_CANCELLATION_CONDITION"
+    if mode == "correction_text":
+        correction.text = condition
+    elif mode == "section_text":
+        section.text = condition
+    elif mode == "after_tail":
+        last_after.tail = condition
+    elif mode == "current_tail":
+        next(n for n in section if n.tag == "P" and _text(n)).tail = condition
+    elif mode == "pagebreak_text":
+        pagebreak.text = condition
+    elif mode == "pagebreak_child":
+        pagebreak.append(fromstring("<P>" + condition + "</P>"))
+    elif mode == "unknown_after":
+        correction.insert(list(correction).index(marker) + 1, fromstring("<UNKNOWN/>"))
+    elif mode == "unknown_current":
+        header = next(n for n in section if n.tag == "TABLE" and _text(n).startswith("23."))
+        section.insert(list(section).index(header) + 1, fromstring("<UNKNOWN/>"))
+    elif mode == "unknown_after_end":
+        correction.append(fromstring("<UNKNOWN/>"))
+    else:
+        # Keep both source copies equal, so equality alone cannot catch omitted text.
+        for container in (correction, section):
+            table = next(
+                n for n in container if n.tag == "TABLE" and len(n.findall("./TBODY/TR")) == 10
+            )
+            if mode == "table_text":
+                table.text = condition
+            elif mode == "table_body_text":
+                table.find("./TBODY").text = condition
+            elif mode == "table_cell_tail":
+                table.find("./TBODY/TR/TD").tail = condition
+            else:
+                group = fromstring("<COLGROUP><UNKNOWN/></COLGROUP>")
+                existing = table.find("./COLGROUP")
+                if existing is not None:
+                    table.remove(existing)
+                table.insert(0, group)
     with pytest.raises(DartDocumentError):
         parse_case(tostring(root))
