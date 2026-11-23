@@ -8459,3 +8459,12 @@ u173Step4/u184Step5의명시적DARTpreview를공통owner에연결하고exacteff7
 사용자 “진행시켜”에 따라 별도 schedule parser/profile·자격을 공통 준비 경로에 연결했다. source `fc84d7c1`, 전달본 `3eafd2bc`의 CI45056435819는 8,147PASS/1skip·Node39·정적/정책/docs 통과다. 실제 private45059739620은 4GET/200·2.039706초, 일정 정정1건의5slot/22refs/76XML·661자/native1 성공이며 원래 과거공시는 latest missing으로 XML 없이 차단했다. 암호문21,466bytes/private5파일·동일run clock/hash/native refs를 독립 재생해 C0/H0/M0/L0이다. 전용 진단 workflow/pin만 갱신하고 다른 작업의 production378bccee 갱신 및 main을 보존했다. source/model/게시/알림 경계를 유지하며 모델/게시/알림/ledger/cursor0이다. 하위계획5/5만 완료하고 canonical local3/8·runtime0/activationfalse·human0/12·v3예약수용0·상위unit 미완료는 유지한다. 구현과 기록은 `codex/dart-schedule-runtime-20261123`, private 진단 pin은 정확히3e다.
 
 [계획](construction/event-v3-acceptance-20261028/dart-schedule-runtime-20261123/plan.md), [증거](construction/event-v3-acceptance-20261028/dart-schedule-runtime-20261123/evidence.json), [검수](../docs/cross-checks/2026-11-23-dart-schedule-runtime.md).
+
+
+### 2026-11-23 — DART 전체 계약조건 근거와 기존 schedule 전달본 통합
+
+u173Step4/u184Step5의 기존 schedule v1 전달본(d6ce1050)과 actual45059739620을 재사용해 별도 terms v2 전체 문장 근거를 연결했다. schedule은661자 일정 사실, v2는2950자/3문단/5slot22refs154XML이며 자동fallback은 없다. 독립 검수의 XML 문단 밖 취소조건 누락M1과 문서L1을 수정했고331PASS·C/H/M/L0이다. fixedancestor34d4fe27와18file scope9a14e71f로 전용 정책을 재결속했다.
+
+정확한556900e7/CI45130380087은8228PASS/1knownskip·Node39·Ruff881·mypy372·정책/strictdocs6.92초 PASS, 공유tree239PASS 및 index 보존이다. 실제450597의5파일hash·원래clock·공통owner2Mock응답→native927c 재생이며 새sourceHTTP/모델/게시/알림/ledger/cursor0이다. 다른 작업의 preview pin5d9885d2/privateHEAD64981a4f 갱신을 보존했고 이번작업의 private변수writes0, DART workflow/pin3eafd2bc는 그대로다.
+
+이 하위계획6/6만 완료한다. canonicallocal3/8·runtime0/activationfalse·v2live미수용·human0/12·v3예약수용0·u171viewport/상위u173·u184미완료를 유지한다. [세션](../docs/sessions/2026-11-23-dart-contract-terms-v2.md), [증거](construction/event-v3-acceptance-20261028/dart-correction-v2-20261123/evidence.json), [인계](construction/event-v3-acceptance-20261028/dart-correction-v2-20261123/handoff.json).

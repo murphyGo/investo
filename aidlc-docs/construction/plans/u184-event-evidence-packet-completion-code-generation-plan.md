@@ -90,3 +90,10 @@ private40926975241의 DART1GET/HTTP200에서 ZIP13,524/XML79,039bytes·980nodes 
 ## 2026-11-23 — 일정 정정 공통 준비·실제 비게시 검증 완료
 
 [하위계획](../event-v3-acceptance-20261028/dart-schedule-runtime-20261123/plan.md)5/5. schedule 전용 parser/자격·공통 준비 연결과 정확한3eafd2bc/CI45056435819(8,147PASS/1skip)를 완료했다. 실제45059739620에서4GET/200·2.039706초, 일정 정정1건5slot/22refs/76XML·661자/native1을 확보하고 원래 과거공시의 latest missing 차단을 보존했다. 독립 실측 재생 C0/H0/M0/L0. 전용 진단만 반영, 모델/게시/알림/ledger/cursor0이며 다른 작업의 main/production pin은 보존했다. canonical local3/8·runtime0/activationfalse와 상위Step 전체 미완료는 유지한다. [검수](../../../docs/cross-checks/2026-11-23-dart-schedule-runtime.md).
+
+
+## 2026-11-23 — DART 전체 계약조건 v2 보관재생·통합 완료
+
+기존 schedule v1의 전달본/실측을 보존하고 별도 terms v2의 완전한 계약 문장·23항·논리5열 표 근거를 연결했다. v2는2950자/3문단/5slot22refs154XML이며 actual450597의동일response/clock을 공통owner에서 재생한native927c와일치한다. XML 경계M1수정·331독립PASS·C/H/M/L0·source34d4fe27/전용정책hash결속을 확인했다. exact556900e7/CI45130380087은8228PASS/1skip·Node39·정적/정책/docs통과다. 새sourceHTTP/모델/게시/알림0, 기존privateDARTworkflow/pin유지다.
+
+이는 같은DARTslot의추가fullpassage형식근거이며 canonical3/8/runtime0/activationfalse·v2live미수용을 유지한다. 기존상위uncheckedstep은닫지않는다. [계획](../event-v3-acceptance-20261028/dart-correction-v2-20261123/plan.md), [검수](../../../docs/cross-checks/2026-11-23-dart-contract-terms-v2.md).

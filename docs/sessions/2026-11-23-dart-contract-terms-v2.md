@@ -25,4 +25,13 @@ Pre-integration [CI45060834986](https://github.com/murphyGo/investo/actions/runs
 [Plan](../../aidlc-docs/construction/event-v3-acceptance-20261028/dart-correction-v2-20261123/plan.md) - [Evidence](../../aidlc-docs/construction/event-v3-acceptance-20261028/dart-correction-v2-20261123/evidence.json)
 
 
-Final independent integration review: APPROVE C/H/M/L0,331tests/5.00s. Fixed parser ancestor34d4fe27 and18file scope9a14e71f bind both v2 qualification files; the old retained capture is preserved and a separate fixed-policy capture replays1sample/5fields. [Review](../../aidlc-docs/construction/event-v3-acceptance-20261028/dart-correction-v2-20261123/integration-review.json). Final exact-head CI is pending.
+Final independent integration review: APPROVE C/H/M/L0,331tests/5.00s. Fixed parser ancestor34d4fe27 and18file scope9a14e71f bind both v2 qualification files; the old retained capture is preserved and a separate fixed-policy capture replays1sample/5fields. [Review](../../aidlc-docs/construction/event-v3-acceptance-20261028/dart-correction-v2-20261123/integration-review.json). Final exact-head CI is recorded below.
+
+
+## Final verification and delivery
+
+Exact556900e7 [CI45130380087](https://github.com/murphyGo/investo/actions/runs/45130380087) passed8228Python tests/1knownskip in679.59s,39Node tests,Ruff/format881,mypy372source and all policy/docs gates(6.92s). The approved18file scope is mirrored to the shared workspace and239focused tests pass there. The shared index is unchanged. Public56file privacy scanning found none of20private issuer/long-prose strings.
+
+Another task changed the event-preview pin7c5b8912 to5d9885d2 and private HEADa6dbb7db to64981a4f while CI ran. Preserve those changes. DART preparation workflow blob0d474dae and preparation pin3eafd2bc remain unchanged; this work wrote no private variables. Earlier references to preserving pins mean no writes by this substep, not a claim that other tasks did not change their own settings.
+
+The reconciled bounded plan is6/6. Upper u173/u184 source work remains incomplete; u171viewport and u172actual human/scheduled acceptance remain pending. V2retained replay is not live acceptance. [Exact-SHA handoff](../../aidlc-docs/construction/event-v3-acceptance-20261028/dart-correction-v2-20261123/handoff.json).

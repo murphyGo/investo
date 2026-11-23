@@ -1,0 +1,52 @@
+{
+  "code_sha": "556900e7684f334aaa22d407a9fecf35e7c9a562",
+  "parser_code_sha": "34d4fe27becf776599a18ff590b69ce03665e7a8",
+  "article_profile": "article_v2",
+  "document_schema": 3,
+  "context_contract_version": 2,
+  "preview_source_selection": "explicit dart-body-preview with dart-parser-version v2",
+  "source_http_in_this_substep": 0,
+  "private_workflow_modified": false,
+  "production_changed": false,
+  "canonical_qualified_source_count": 3,
+  "canonical_source_slot_count": 8,
+  "new_qualified_source_count": 0,
+  "terms_v2_live_accepted": false,
+  "human_accepted": 0,
+  "required_human_articles": 12,
+  "required_markets": 3,
+  "required_articles_per_market": 4,
+  "required_distinct_publication_dates": 2,
+  "v3_scheduled_accepted": 0,
+  "remaining_units": {
+    "u171": "Step7 actual final HTML/DTO/home/history/asset identity and390x844/1440x900 viewport evidence",
+    "u172": "Steps4/7/8/9 actual human corpus, code acceptance, market-specific scheduled cutover/rollback and eventual cleanup",
+    "u173": "Step4 source mappings and fixtures; remaining five canonical source slots are blocked",
+    "u184": "Step5 remaining source-specific access/rights/parser/retention evidence",
+    "u185": "Code-generation plan already complete; actual article/human acceptance belongs to u172",
+    "u186": "Code-generation plan already complete; actual article/human acceptance belongs to u172"
+  },
+  "remaining_canonical_slots": [
+    "policy.regulatory_action",
+    "policy.domestic_announcement",
+    "earnings.reported_actual",
+    "earnings.guidance",
+    "earnings.schedule_context"
+  ],
+  "scope_rule": "Keep code readiness, retained source replay, live source evidence, human acceptance and scheduled production acceptance separate; evaluate ready markets independently.",
+  "quality": {
+    "code_sha": "556900e7684f334aaa22d407a9fecf35e7c9a562",
+    "run_id": 45130380087,
+    "job_id": 137544263521,
+    "conclusion": "success",
+    "python_passed": 8228,
+    "python_skipped": 1,
+    "python_seconds": 679.59,
+    "node_passed": 39,
+    "ruff_files": 881,
+    "mypy_source_files": 372,
+    "strict_docs_seconds": 6.92
+  },
+  "private_runtime_pins_modified_by_this_substep": false,
+  "external_preview_pin_change_preserved": true
+}

@@ -32,7 +32,6 @@
   "canonical_source_matrix_unchanged": true,
   "schedule_qualification_unchanged": true,
   "private_workflow_unchanged": true,
-  "private_variables_unchanged": true,
   "pre_integration_ci": {
     "sha": "3b8c47a531deef70224b4fa66c88beaaf72328aa",
     "run": 45060834986,
@@ -42,7 +41,19 @@
     "conclusion": "success"
   },
   "integration_focused_passed": 239,
-  "integration_exact_ci": "pending",
+  "integration_exact_ci": {
+    "code_sha": "556900e7684f334aaa22d407a9fecf35e7c9a562",
+    "run_id": 45130380087,
+    "job_id": 137544263521,
+    "conclusion": "success",
+    "python_passed": 8228,
+    "python_skipped": 1,
+    "python_seconds": 679.59,
+    "node_passed": 39,
+    "ruff_files": 881,
+    "mypy_source_files": 372,
+    "strict_docs_seconds": 6.92
+  },
   "canonical_local_qualified": 3,
   "canonical_slot_total": 8,
   "canonical_runtime_verified": 0,
@@ -67,5 +78,32 @@
     "scope_sha256": "9a14e71f29ab4d44ae93df30be563d1dd0bd4fbcf84449d0e63e6989eeff9d38",
     "report_sha256": "93a82045244fe295ba75d8bed74234bcfb0861166b2a34b2c458bf24d8917344",
     "independent_tests_passed": 331
-  }
+  },
+  "code_sha": "556900e7684f334aaa22d407a9fecf35e7c9a562",
+  "privacy_scan": {
+    "public_files_checked": 56,
+    "private_issuer_or_long_prose_strings_checked": 20,
+    "matches": 0
+  },
+  "workspace_focused_passed": 239,
+  "workspace_index_preserved": true,
+  "subplan_complete": true,
+  "scope_delivered_to_main": true,
+  "private_variables_written_by_this_substep": 0,
+  "private_head_after": "64981a4fecff18afb3d4603953aa49ebe85a2607",
+  "private_dart_workflow_git_blob": "0d474dae346f05fde0cd93ab21399e1fde1c1ae3",
+  "external_changes_preserved": [
+    {
+      "kind": "event_preview_reviewed_pin",
+      "before": "7c5b8912ebe5a60204351508a0c79367bd5ce5ca",
+      "after": "5d9885d2bebc7ea1a9b9d51b4c5d7df4338c708d"
+    },
+    {
+      "kind": "private_runtime_head",
+      "before": "a6dbb7db558aee02aab177aad525fe7bb71935ab",
+      "after": "64981a4fecff18afb3d4603953aa49ebe85a2607",
+      "dart_preparation_workflow_unchanged": true
+    }
+  ],
+  "final_local_strict_docs_seconds": 6.29
 }

@@ -30,9 +30,9 @@ v2는 명시적인 version 선택과 전용 preview qualification/slot snapshot�
 - [x] 1. 이전 실측 원문과 현 경계를 대조하고 FD/NFR·버전 분리·승인 범위를 기록한다.
 - [x] 2. 새 7행 parser와 synthetic fixture를 구현하고 원문 binding/5slot/native2 완전성 및 부정 회귀를 통과한다.
 - [x] 3. 선택적 context contract·typed v2 qualification·동일 HTTP owner/preview probe의 명시적 version을 연결한다.
-- [ ] 4. 독립 QA·기존 hash/보안/예산 회귀·정적 검사와 exact code CI를 통과한다.
+- [x] 4. 독립 QA·기존 hash/보안/예산 회귀·정적 검사와 exact code CI를 통과한다.
 - [x] 5. 기존 실측 run45059739620의 암호문·private5파일 해시를 재확인하고 같은 clock/원문을 shared owner에서 v2로 재생한다. 새 HTTP·v2 runtime 판정은 만들지 않는다.
-- [ ] 6. session/cross-check/evidence/state/audit와 기존 u173/u184 잔여를 갱신하고 승인 범위만 전달한다.
+- [x] 6. session/cross-check/evidence/state/audit와 기존 u173/u184 잔여를 갱신하고 승인 범위만 전달한다.
 
 ## 승인·미해결 입력
 
@@ -57,7 +57,7 @@ The public manual template remains byte-identical to the reviewed price/schedule
 
 The actual450597 capture's five files, response/XML digests and original receipt clock were verified. A MockTransport replay through the shared owner/native factory produced2950 characters/3paragraphs/5slots22refs154XML bindings, nativeSHA927c47a4e318959c355dfb7ccd0063d1c1adb002ffeb36b1e6f15a7e983533d5. New source HTTP0 and model/publication/notification/ledger/cursor0. This is retained-response evidence, not a new live run.
 
-Pre-integration3b8 CI45060834986 passed8152 tests/1skip and39Node tests. Integrated focused226PASS, Ruff/format881 files and source/script mypy374 passed; final exact-head CI and independent integration review remain pending.
+Pre-integration3b8 CI45060834986 passed8152 tests/1skip and39Node tests. Integrated focused226PASS, Ruff/format881 files and source/script mypy374 passed; final exact-head CI and independent integration review are recorded below.
 
 
 ## Integration review repair
@@ -65,4 +65,13 @@ Pre-integration3b8 CI45060834986 passed8152 tests/1skip and39Node tests. Integra
 Independent integration review found M1: unwrapped correction/section text, direct child tails and page-break content could be ignored. Reject all those shapes, unknown empty nodes and text outside table cells. Thirteen negative regressions cover these cases. Move only the invented terms fixture's note table to the actual qualified position after seven paragraphs; price/schedule fixtures are untouched. Actual retained context927c and154XML bindings remain unchanged. The fixed parser source/fixture/tests are committed as a new immutable ancestor before qualification is rebound.
 
 
-Final integration review APPROVE C/H/M/L0: independent331PASS/5.00s; fixed ancestor34d4fe27becf776599a18ff590b69ce03665e7a8,18file scope9a14e71f29ab4d44ae93df30be563d1dd0bd4fbcf84449d0e63e6989eeff9d38. V2 typed slot414f5f08322e113a96948e3a8ea97f621bdc19bf4fec2cc924a8a245940619a2 and transport9d1b700aa70ce53cbc4c18adc4044fab797a8bfa96a0ff7ea59599db3b37f27d were independently rebound/replayed. Final exact-head CI remains pending.
+Final integration review APPROVE C/H/M/L0: independent331PASS/5.00s; fixed ancestor34d4fe27becf776599a18ff590b69ce03665e7a8,18file scope9a14e71f29ab4d44ae93df30be563d1dd0bd4fbcf84449d0e63e6989eeff9d38. V2 typed slot414f5f08322e113a96948e3a8ea97f621bdc19bf4fec2cc924a8a245940619a2 and transport9d1b700aa70ce53cbc4c18adc4044fab797a8bfa96a0ff7ea59599db3b37f27d were independently rebound/replayed. Final exact-head CI is recorded below.
+
+
+## Final delivery
+
+Exact code556900e7684f334aaa22d407a9fecf35e7c9a562 passed CI45130380087:8228PASS/1knownskip in679.59s,Node39,Ruff/format881,mypy372source and all policy/strict-docs gates(6.92s). The shared workspace mirrors all18 approved scope files and passes239focused tests; its index and unrelated work are preserved.
+
+No source HTTP, model, publication, notification, ledger or cursor changes were made by this substep. During CI another task changed the event-preview pin7c5b8912 to5d9885d2 and private HEADa6dbb7db to64981a4f. Preserve those external changes. Final DART preparation workflow blob0d474dae and reviewed preparation pin3eafd2bc remain unchanged. No private variables were written here.
+
+Only this reconciled six-step subplan is complete. V2live/runtime/activation, remaining five canonical source slots, u171actualviewport,12human articles and genuine scheduled production acceptance remain pending. See handoff.json.
