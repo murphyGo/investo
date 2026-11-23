@@ -7,9 +7,9 @@
 <text class="card-emphasis" x="90" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">상태</text>
 <text class="card-text" x="310" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">partial</text>
 <text class="card-emphasis" x="90" y="292" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">수집</text>
-<text class="card-text" x="310" y="292" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">153건</text>
+<text class="card-text" x="310" y="292" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">161건</text>
 <text class="card-emphasis" x="90" y="364" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">소스</text>
-<text class="card-text" x="310" y="364" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">20개</text>
+<text class="card-text" x="310" y="364" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">21개</text>
 <text class="card-emphasis" x="90" y="436" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">누락</text>
 <text class="card-text" x="310" y="436" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">없음</text>
 <text class="card-emphasis" x="90" y="508" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">사유</text>
@@ -17,11 +17,11 @@
 <text class="card-label" x="620" y="200" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22" font-weight="700">소스별 상태</text>
 <text class="card-emphasis" x="620" y="240" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="20" font-weight="700">수집 실패 소스 3개</text>
 <text class="card-text" x="620" y="266" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="18">실패 · 대표 bea-macro-actuals · source</text>
-<text class="card-emphasis" x="620" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="20" font-weight="700">0건 반환 소스 3개</text>
-<text class="card-text" x="620" y="326" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="18">0건 · 대표 bls-macro-actuals · 0건 반환</text>
+<text class="card-emphasis" x="620" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="20" font-weight="700">0건 반환 소스 2개</text>
+<text class="card-text" x="620" y="326" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="18">0건 · 대표 cboe-volatility-indices · 0건 반환</text>
 <text class="card-emphasis" x="620" y="360" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="20" font-weight="700">비활성 소스 2개</text>
 <text class="card-text" x="620" y="386" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="18">비활성 · 대표 cnbc-top-news · 접근 제한</text>
-<text class="card-emphasis" x="620" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="20" font-weight="700">정상 20개</text>
-<text class="card-text" x="620" y="446" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="18">정상 · cftc-cot-positioning, cftc-policy-rss,</text>
+<text class="card-emphasis" x="620" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="20" font-weight="700">정상 21개</text>
+<text class="card-text" x="620" y="446" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="18">정상 · bls-macro-actuals,</text>
 <text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
 </svg>

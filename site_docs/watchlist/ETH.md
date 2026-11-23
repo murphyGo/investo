@@ -6,14 +6,14 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-11-20
 
-- [coingecko-price] **ticker**: 조회 시점 가격 · ETH $1,558.28 (-10.42%)
-- [coinmetrics-exchange-flows] **ticker**: ETH 거래소 일별 순유입 (2026-11-19, UTC)
+- [coingecko-price] **ticker**: 조회 시점 가격 · ETH $1,707.21 (+1.79%)
 - [coinmetrics-network-activity] **ticker**: ETH 일별 거래 건수 (2026-11-20, UTC)
 - [coinmetrics-network-activity] **ticker**: ETH 일별 활성 주소 수 (2026-11-20, UTC)
-- [defillama-market-structure] **ticker**: DeFi TVL $64.8B; leader Ethereum
+- [defillama-market-structure] **ticker**: DeFi TVL $69.5B; leader Ethereum
 - [theblock-crypto] **ticker**: Ark buys $90 million worth of Anthropic shares on debut, trims Ethereum and Solana staking ETF holdings
 
 <!-- u33 entry 2026-11-20 end -->
+
 <!-- u33 entry 2026-11-19 begin -->
 
 ## 2026-11-19
