@@ -527,3 +527,10 @@ u173Step4/u184Step5의명시적DARTpreview를공통owner에연결하고exacteff7
 사용자 “진행시켜”에 따라 별도 schedule parser/profile·자격을 공통 준비 경로에 연결했다. source `fc84d7c1`, 전달본 `3eafd2bc`의 CI45056435819는 8,147PASS/1skip·Node39·정적/정책/docs 통과다. 실제 private45059739620은 4GET/200·2.039706초, 일정 정정1건의5slot/22refs/76XML·661자/native1 성공이며 원래 과거공시는 latest missing으로 XML 없이 차단했다. 암호문21,466bytes/private5파일·동일run clock/hash/native refs를 독립 재생해 C0/H0/M0/L0이다. 전용 진단 workflow/pin만 갱신하고 다른 작업의 production378bccee 갱신 및 main을 보존했다. source/model/게시/알림 경계를 유지하며 모델/게시/알림/ledger/cursor0이다. 하위계획5/5만 완료하고 canonical local3/8·runtime0/activationfalse·human0/12·v3예약수용0·상위unit 미완료는 유지한다. 구현과 기록은 `codex/dart-schedule-runtime-20261123`, private 진단 pin은 정확히3e다.
 
 [계획](construction/event-v3-acceptance-20261028/dart-schedule-runtime-20261123/plan.md), [증거](construction/event-v3-acceptance-20261028/dart-schedule-runtime-20261123/evidence.json), [검수](../docs/cross-checks/2026-11-23-dart-schedule-runtime.md).
+
+
+### 2026-11-23 — DART 기사 연결과 core-only 판정 수리
+
+사용자 “진행시켜”에 따라 일정 profile을 private article_v2 경로에 연결하고 실제 기사 검수를 완료했다. 최초0e3f389d/CI45120572446(8,229PASS/1skip)·run45122245131은3calls/기사1/source_limited였으나 core-only를detailed로세는M1을발견했다. 명시적detail_basis·brief상한·why근거구분·policyhash/terminal재구성으로수리한5d9885d2/CI45123784115는8,238PASS/1skip·Node39·정적/정책/docs통과다. 재실행45125524648은3calls/core_only/brief_ready·detailed0,60850bytes암호문6파일즉시확보및독립C/H/M/L0·terminalPASS. 실제DART는지원양식없음으로25차단/HTTP0이며DART기사양성은아니다. 전체변수readback에서전용previewpin외다른작업변경없고production378bccee·예약·게시/알림/ledger/cursor를보존했다. 하위계획5/5만완료하며canonical local3/8/runtime0/activationfalse·human0/12·externalrecallnull·v3예약수용0·viewport/성능/운영미완료유지. 구현은codex/dart-article-readiness-20261123,preview는exact5d9885d2다. 공유dirty소스/HEAD/index와publicmain을보존했다.
+
+[계획](construction/event-v3-acceptance-20261028/article-preview-20261123/plan.md), [증거](construction/event-v3-acceptance-20261028/article-preview-20261123/evidence.json), [검수](../docs/cross-checks/2026-11-23-dart-article-preview.md).

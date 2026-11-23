@@ -1,0 +1,20 @@
+{
+  "recorded_at": "2026-11-23T06:24:30.271606+00:00",
+  "author_kind": "assistant",
+  "reason": "Verify repair of original automatic detailed-readiness false positive",
+  "original_run_id": 45122245131,
+  "reviewed_code_sha": "5d9885d2bebc7ea1a9b9d51b4c5d7df4338c708d",
+  "target_date": "2026-11-23",
+  "segment": "domestic-equity",
+  "source": "fresh current-date collection; no historical fixture insertion",
+  "expected_news_rich": null,
+  "external_must_cover": null,
+  "external_recall": null,
+  "human_pre_annotation": false,
+  "acceptance": [
+    "All invariant checks from original pre-run basis remain",
+    "Any core_only packet must produce brief_ready or a truthful blocked result, never detailed_ready",
+    "New model IO is unmodified and counts remain <=5",
+    "Do not count this rerun as a separate human or scheduled acceptance sample"
+  ]
+}

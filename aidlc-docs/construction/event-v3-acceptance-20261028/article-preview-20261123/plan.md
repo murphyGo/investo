@@ -19,8 +19,8 @@ Functional Design/NFR Requirements는 아래 계약으로 완료한다. 기존 F
 - [x] 1. 준비 결과와 기사/운영 수용 계약, 최신 main·private 설정을 조사한다.
 - [x] 2. parser branch 통합, preview profile 전달과 bounded private evidence를 구현·검수한다.
 - [x] 3. 정확한 CI 통과 후 전용 preview에 반영하고 현재 날짜 국내 비게시 실행 1회의 암호문을 즉시 확보한다.
-- [ ] 4. 실제 결과의 사실·근거·내용·봉인/실패 원인을 독립 검수하고 발견된 결함은 범위 내 수리한다.
-- [ ] 5. 검수 가능한 자료와 운영 전환 잔여 조건을 기록한다.
+- [x] 4. 실제 결과의 사실·근거·내용·봉인/실패 원인을 독립 검수하고 발견된 결함은 범위 내 수리한다.
+- [x] 5. 검수 가능한 자료와 운영 전환 잔여 조건을 기록한다.
 
 ## 완료와 잔여 구분
 
@@ -35,3 +35,5 @@ Functional Design/NFR Requirements는 아래 계약으로 완료한다. 기존 F
 - writer/reviewer는 핵심 주체·행위·대상·상태 및 업종 소개 반복을 why 설명으로 인정하지 않는다. 실제 비교·영향 범위·절차·조건을 근거로 답해야 한다.
 - 새 policy hash와 terminal packet 재구성으로 판정 근거를 결속한다. 기존 packet의 default 직렬화/hash는 읽기 호환을 유지한다.
 - 원run의 같은 근거·fact IDs에서 core_only/expected_detail=false로 재생하고, synthetic 핵심 반복 거절·조건 있는 summary·숫자 비교·본문·context-only 보존을 검증한다.
+
+최종: 수정본5d9885d2/CI45123784115 통과, 실제45125524648에서3calls·core_only/brief_ready·detailed0 봉인 및 독립C/H/M/L0. 하위계획5/5를 완료하며 상위 unit·source/사람/운영 수용은 완료로 변경하지 않는다.
