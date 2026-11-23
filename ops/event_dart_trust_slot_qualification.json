@@ -281,7 +281,7 @@
       "access_evidence_hash": "d8ba59b307c66e5a61d5515c48c952fc017e0eb9231937c973cea75fe3243c33",
       "rights_evidence_url": "https://opendart.fss.or.kr/intro/main.do",
       "rights_scope": "OpenDART permits extraction of desired XML data. Bounded private facts only for uncorrected FORMULA6.2/20260723 ACODE11335 trust termination decisions. Excludes raw documents, images, signatures and attachments. Decisions, scheduled termination and share custody are not completed termination or cancellation of shares. Source-slot evidence alone grants no live HTTP permission.",
-      "schema_fixture_sha256": "eee8f1c6d5cb2a2eeea92305d9a55f384326e382a0600d61103ef6ee59d3afbb",
+      "schema_fixture_sha256": "a38bd77e69c690f619518b52cba2d273eb1f20479265ca6b8314a9de33393283",
       "parser_version": "dart-trust-termination-6.2-v1",
       "required_slots": [
         "issuer",

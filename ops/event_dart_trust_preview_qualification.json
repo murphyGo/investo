@@ -8,9 +8,9 @@
     "checked_at": "2026-11-23T08:26:52.258086Z",
     "parser_version": "dart-trust-termination-6.2-v1",
     "projection_version": "dart-field-paragraph-v1",
-    "slot_qualification_sha256": "2c7ff136c55cca519bc7c36e7cb8017320f7ffb12ad18b883b70ba6cd0a63953",
+    "slot_qualification_sha256": "6c1f19884fa78674f6c7a927f570c982338542fbb8310d80d40cace403b54c5b",
     "source_code_sha": "27c926a59b6b60ab90af4d37806511f82d7da387",
-    "fixture_sha256": "eee8f1c6d5cb2a2eeea92305d9a55f384326e382a0600d61103ef6ee59d3afbb",
+    "fixture_sha256": "a38bd77e69c690f619518b52cba2d273eb1f20479265ca6b8314a9de33393283",
     "rights_scope": "OpenDART permits extraction of desired XML data. Bounded private facts only for uncorrected FORMULA6.2/20260723 ACODE11335 trust termination decisions. Excludes raw documents, images, signatures and attachments. Decisions, scheduled termination and share custody are not completed termination or cancellation of shares. Source-slot evidence alone grants no live HTTP permission.",
     "private_retention_basis": "Fixed-host latest listing plus XML ZIP in private run memory. Manual recipient-encrypted diagnostics retain one day; ignored local0700/0600 only. No raw public redistribution. Exact XML fields in paragraph <=1200 characters; image/signature/contact/attachment tables excluded.",
     "max_projection_chars": 1200

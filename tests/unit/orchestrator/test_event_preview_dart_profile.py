@@ -257,3 +257,31 @@ def test_trust_matrix_is_dedicated_and_keeps_other_source_rows():
         update={"dart": policy.dart.model_copy(update={"max_projection_chars": 1201})}
     )
     assert not _dart_transport_allowed(bad, matrix)
+
+
+def test_trust_qualification_binds_context_fixture_separately_from_xml():
+    from investo.sources.event_evidence import (
+        load_enrichment_qualification,
+        load_source_slot_qualification,
+    )
+
+    root = Path(__file__).parents[3]
+    evidence = json.loads(
+        (
+            root
+            / "aidlc-docs/construction/event-v3-acceptance-20261028"
+            / "dart-trust-termination-20261123/source-qualification.json"
+        ).read_text()
+    )
+    matrix = load_source_slot_qualification(root / "ops/event_dart_trust_slot_qualification.json")
+    policy = load_enrichment_qualification(root / "ops/event_dart_trust_preview_qualification.json")
+    row = next(r for r in matrix.records if r.source_name == "dart-disclosure")
+    assert row.schema_fixture_sha256 == policy.dart.fixture_sha256 == evidence["context_sha256"]
+    assert row.schema_fixture_sha256 != evidence["xml_sha256"]
+    assert (
+        hashlib.sha256(matrix.model_dump_json().encode()).hexdigest()
+        == evidence["slot_matrix_sha256"]
+        == policy.dart.slot_qualification_sha256
+    )
+    assert policy.policy_hash == evidence["preview_policy_sha256"]
+    assert evidence["source_slot_replay"]["status"] == "pass"
