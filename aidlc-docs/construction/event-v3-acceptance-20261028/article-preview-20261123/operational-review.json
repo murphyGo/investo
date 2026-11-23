@@ -1,0 +1,28 @@
+{
+  "verdict": "APPROVE",
+  "reviewer": "independent dart_runtime_review agent",
+  "critical": 0,
+  "high": 0,
+  "medium": 0,
+  "low": 0,
+  "resolved_medium": [
+    "sealed evidence files must be mandatory and manifest/source identity linked",
+    "all recording statuses enforce exact integer call budgets and complete recording call IDs"
+  ],
+  "synthetic_valid_passed": 2,
+  "synthetic_invalid_rejected": 11,
+  "private_workflow_diff": {
+    "files": 1,
+    "insertions": 17,
+    "deletions": 0,
+    "existing_queue_max_preserved": true
+  },
+  "guards": [
+    "exact successful CI SHA",
+    "private HEAD and workflow hash",
+    "preview pin and other variables",
+    "at-most-once dispatch state",
+    "bounded immediate ciphertext download before decryption"
+  ],
+  "actual_semantic_review": "pending"
+}

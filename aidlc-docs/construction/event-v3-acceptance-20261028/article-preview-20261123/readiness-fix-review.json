@@ -1,0 +1,28 @@
+{
+  "verdict": "APPROVE",
+  "reviewer": "independent dart_runtime_review agent",
+  "critical": 0,
+  "high": 0,
+  "medium": 0,
+  "low": 0,
+  "resolved": "article.core_only_detailed_false_positive",
+  "related_tests": 58,
+  "related_seconds": 1.41,
+  "broad_tests": 3352,
+  "broad_seconds": 84.73,
+  "additional_terminal_forgery_test": "pass",
+  "ruff": "pass",
+  "mypy_source_files": 373,
+  "original_run_replay": {
+    "historical_packet_hash_preserved": true,
+    "new_basis": "core_only",
+    "new_expected_detail": false,
+    "facts_passages_allowed_refs_required_fact_ids_unchanged": true,
+    "old_terminal_reseal": "article.packet_mismatch"
+  },
+  "limits": [
+    "source_context and structured_facts are eligibility, not semantic acceptance",
+    "original run remains under original policy",
+    "new actual producer verification pending"
+  ]
+}

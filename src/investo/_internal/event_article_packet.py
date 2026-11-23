@@ -9,11 +9,12 @@ from collections.abc import Sequence
 from investo._internal.event_context import resolve_context_ref
 from investo.models.event_article import (
     ArticleQuestion,
+    DetailBasis,
     EventEvidencePacket,
     EvidencePassage,
 )
 from investo.models.event_context import ContextRef, EventContextDocument
-from investo.models.event_document import EditorialPlan
+from investo.models.event_document import EditorialEventPlan, EditorialPlan
 from investo.models.event_evidence import event_digest
 from investo.models.event_identity import CanonicalEventBinding
 
@@ -37,6 +38,44 @@ def classification_documents(
             )
         )
     return tuple(result)
+
+
+def _detail_basis(
+    event: EditorialEventPlan,
+    binding: CanonicalEventBinding,
+    passages: Sequence[EvidencePassage],
+    documents: Sequence[EventContextDocument],
+) -> DetailBasis:
+    """Cap unsupported core-only text events at brief, without a length threshold."""
+    source = event.source_event
+    if source.impact == "context":
+        return "context_only"
+    explanation_refs = (
+        *source.background_refs,
+        *source.comparison_refs,
+        *source.meaning_refs,
+        *source.follow_up_refs,
+    )
+    assigned = set(event.assigned_refs)
+    if any(ref in assigned for ref in explanation_refs):
+        return "source_context"
+    summaries = {
+        " ".join(chunk.text.split())
+        for item_id in source.item_ids
+        for chunk in documents[item_id - 1].chunks
+        if chunk.source_locator.startswith("summary:")
+    }
+    if any(
+        not passage.source_locator.startswith("summary:")
+        and " ".join(passage.text.split()) not in summaries
+        for passage in passages
+    ):
+        return "source_context"
+    if len(binding.facts) > 1 or any(
+        not fact.canonical.value.startswith("text-action:") for fact in binding.facts
+    ):
+        return "structured_facts"
+    return "core_only"
 
 
 def build_article_packets(
@@ -135,21 +174,22 @@ def build_article_packets(
             ),
             "regulation": "무엇이 발표·확정됐으며, 구체적인 적용 대상과 범위는 무엇인가?",
         }.get(event.source_event.event_kind, "무엇이 실제로 달라졌는가?")
+        detail_basis = _detail_basis(event, by_id[event.event_id], passages, documents)
+        expected_detail = detail_basis in {"source_context", "structured_facts"}
         packets.append(
             EventEvidencePacket(
                 event_id=event.event_id,
                 entities=by_id[event.event_id].entities,
                 facts=by_id[event.event_id].facts,
-                expected_detail=event.source_event.impact != "context",
+                expected_detail=expected_detail,
+                detail_basis=detail_basis,
                 required_fact_ids=event.required_fact_ids,
                 passages=tuple(passages),
                 allowed_refs=tuple(dict.fromkeys(refs)),
                 questions=(
                     ArticleQuestion(question_id="what", text=what),
                     ArticleQuestion(question_id="when", text="언제 발생했으며 현재 어떤 상태인가?"),
-                    ArticleQuestion(
-                        question_id="why", text=why, required=event.source_event.impact != "context"
-                    ),
+                    ArticleQuestion(question_id="why", text=why, required=expected_detail),
                     ArticleQuestion(
                         question_id="reaction",
                         text="근거가 있는 반응과 그 시점은 무엇인가?",

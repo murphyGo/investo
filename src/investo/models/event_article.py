@@ -5,7 +5,14 @@ from __future__ import annotations
 from hashlib import sha256
 from typing import Annotated, Literal, Self
 
-from pydantic import ConfigDict, Field, StrictInt, model_validator
+from pydantic import (
+    ConfigDict,
+    Field,
+    SerializerFunctionWrapHandler,
+    StrictInt,
+    model_serializer,
+    model_validator,
+)
 
 from investo.models.event_context import ContextRef, ReactionContext
 from investo.models.event_identity import EntityBinding, FactBinding
@@ -18,7 +25,7 @@ ARTICLE_POLICY = (
     "receipt-purpose:sentence-enclosure:literal-frequency:"
     "source-initials:exact-concepts:document-attribution:"
     "source-bound-role-types:plain-allegation-concept:korean-reporting-frame:present-reporting:"
-    "review:600,900,600,900,600:3900"
+    "core-only-brief:explicit-detail-basis:why-beyond-core:review:600,900,600,900,600:3900"
 )
 ARTICLE_POLICY_HASH = sha256(ARTICLE_POLICY.encode()).hexdigest()
 ARTICLE_FAILURE_CODES = frozenset(
@@ -32,6 +39,11 @@ ARTICLE_FAILURE_CODES = frozenset(
         "article.repair_invalid",
     }
 )
+
+
+DetailBasis = Literal[
+    "legacy_impact", "context_only", "core_only", "source_context", "structured_facts"
+]
 
 
 LocalId = Annotated[str, Field(strict=True, pattern=r"^[a-z][a-z0-9_-]{0,39}$")]
@@ -83,9 +95,15 @@ class EventEvidencePacket(EventModel):
     allowed_refs: Refs
     questions: Annotated[tuple[ArticleQuestion, ...], Field(min_length=1, max_length=6)]
     expected_detail: bool = True
+    # Eligibility only; semantic review must still verify every required explanation.
+    detail_basis: DetailBasis = "legacy_impact"
 
     @model_validator(mode="after")
     def coherent_packet(self) -> Self:
+        if self.detail_basis != "legacy_impact" and self.expected_detail != (
+            self.detail_basis in {"source_context", "structured_facts"}
+        ):
+            raise ValueError("article.detail_basis_mismatch")
         if not set(self.required_fact_ids) <= {f.fact_id for f in self.facts}:
             raise ValueError("article.required_fact_missing")
         if len({(r.document_id, r.revision_id) for r in self.allowed_refs}) > 4:
@@ -96,6 +114,13 @@ class EventEvidencePacket(EventModel):
             if not set(passage.refs) <= set(self.allowed_refs):
                 raise ValueError("article.passage_unassigned")
         return self
+
+    @model_serializer(mode="wrap")
+    def versioned_serialization(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        data: dict[str, object] = handler(self)
+        if self.detail_basis == "legacy_impact":
+            data.pop("detail_basis", None)
+        return data
 
     @property
     def packet_hash(self) -> str:

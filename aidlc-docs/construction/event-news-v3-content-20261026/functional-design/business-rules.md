@@ -53,6 +53,8 @@ Stage3의 supported는 **자동 의미 검사 결과**다. source ref 유효성�
 | 주요 사건은 모두 빠졌고 footer만 남음 | `content_not_ready` | 정상 기사 생성 성공으로 집계하지 않음. 실제 corpus 합격 불가 |
 | 정상 관측과 외부 baseline에서 중요 새 사건 없음 | 기존 `quiet` | 억지 기사 생성·추가 검증 호출 불필요 |
 
+2026-11-23 실제 검수 보완: packet의 `detail_basis`는 상세 검토 자격의 근거이며 합격 점수가 아니다. `context_only`와 단일 text-action 사실만 있고 배정된 설명 refs·구별되는 본문 근거가 없는 `core_only`는 단신으로 제한한다. 단순 핵심 문장을 본문에 복제해도 설명 근거가 되지 않는다. 비교 수치/복수 사실, 배정된 설명 refs 또는 별도 본문은 기존 상세 검토 자격을 유지하되 의미 검수를 통과해야 한다. summary 형식이나 길이를 일괄 제한하지 않는다. 주체·행위·대상·상태와 업종 소개를 되풀이하는 것만으로 why를 답했다고 판정하지 않는다.
+
 새 state는 private readiness enum이며 공개 availability enum을 늘리지 않는다. source_limited는 source 관측 상태, trust_blocked는 finalization 상태, content_not_ready는 준비도다. 서로 대체하지 않는다. 유효 sibling 시장과 기존 partial exit/실패 안내는 보존한다. 출처가 제한됐어도 충분한 기사 하나는 표시할 수 있지만 중요 사건 누락을 숨기고 edition-ready라고 보고하지 않는다.
 
 u172 실제 수용에서는 외부 baseline의 must-cover를 100% 반영하고 required facts 100%, unsupported event/causality 0, 사람 what/when/why/react/source 5/5를 유지한다. brief의 충분성 판정은 사람 annotation과 대조하며 정상 news-rich 사례에서 detailed 기사가 최소 1개 필요하다. 외부 baseline이 없으면 recall은 null이고 100%로 대체하지 않는다.

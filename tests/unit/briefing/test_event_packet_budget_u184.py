@@ -35,6 +35,7 @@ def test_numeric_source_summary_keeps_prior_context_without_a_body():
     packet = build_article_packets(plan, bindings, (doc,))[0]
     assert len(packet.passages) == 1
     assert packet.passages[0].text == summary
+    assert packet.detail_basis == "structured_facts" and packet.expected_detail
     assert "1100" not in {fact.original_value for fact in packet.facts}
     wire = json.loads(packet_payload((packet,), (doc,)))
     passage = wire["packets"][0]["passages"][0]

@@ -1,0 +1,26 @@
+{
+  "recorded_at": "2026-11-23T06:00:11.757181+00:00",
+  "author_kind": "assistant",
+  "target_date": "2026-11-23",
+  "segment": "domestic-equity",
+  "scope": "technical and AI-assisted review of one unmodified private producer output",
+  "expected_news_rich": null,
+  "external_must_cover": null,
+  "external_recall": null,
+  "human_pre_annotation": false,
+  "human_acceptance_points": null,
+  "required_invariants": [
+    "every generated event claim must map to supplied same-run context",
+    "dates, before/after terms, conditions and source attribution must remain distinct",
+    "blocked or quota-deferred DART input must not reenter classification",
+    "the original October historical filing must not be substituted into current collection",
+    "quiet or source_limited is not a news-rich positive",
+    "model started/completed counts and budget must agree; no manual response injection",
+    "no publication, notification, production receipt or cursor writes"
+  ],
+  "not_counted_as": [
+    "human corpus acceptance",
+    "genuine scheduled acceptance",
+    "public activation readiness"
+  ]
+}

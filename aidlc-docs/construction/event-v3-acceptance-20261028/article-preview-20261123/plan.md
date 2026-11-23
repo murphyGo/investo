@@ -18,10 +18,20 @@ Functional Design/NFR Requirements는 아래 계약으로 완료한다. 기존 F
 
 - [x] 1. 준비 결과와 기사/운영 수용 계약, 최신 main·private 설정을 조사한다.
 - [x] 2. parser branch 통합, preview profile 전달과 bounded private evidence를 구현·검수한다.
-- [ ] 3. 정확한 CI 통과 후 전용 preview에 반영하고 현재 날짜 국내 비게시 실행 1회의 암호문을 즉시 확보한다.
+- [x] 3. 정확한 CI 통과 후 전용 preview에 반영하고 현재 날짜 국내 비게시 실행 1회의 암호문을 즉시 확보한다.
 - [ ] 4. 실제 결과의 사실·근거·내용·봉인/실패 원인을 독립 검수하고 발견된 결함은 범위 내 수리한다.
 - [ ] 5. 검수 가능한 자료와 운영 전환 잔여 조건을 기록한다.
 
 ## 완료와 잔여 구분
 
 이 실행의 technical/AI 품질 판정과 human corpus12, 시장별4/2일, viewport·성능·운영/예약 인수를 분리한다. 독립 공식 목록의 사전 human annotation이 없으면 external recall과 human 점수를 미확인으로 유지한다. 운영 전환은 그 수용 조건이 충족되어야 하며 현재 실행 성공만으로 활성화하지 않는다.
+
+## 실제 결과에 따른 수리 확장
+
+첫 run45122245131은 봉인·출처 대조에 성공했지만 core-only 단일 사실을 detailed_ready로 판정하는 Medium1을 발견했다. B185의 단순 완결 사건=brief 규칙에 따라 이 판정을 수리하고, 정확한 새 코드 CI 뒤 같은 날짜 국내 preview를 1회 재실행한다. 첫 원본·모델 응답은 보존하며 재실행을 별도 사람 corpus 표본으로 세지 않는다.
+
+- impact만으로 상세 자격을 부여하지 않고 packet에 닫힌 detail_basis를 기록한다. context_only와 단일 text-action/설명 근거 없는 core_only는 brief 상한이다.
+- 명시적으로 배정된 background/comparison/meaning/followup refs, 중복 summary 외 source body, 숫자/복수 fact는 기존 상세 검토 자격을 유지한다. 이 자격은 의미 검수 합격을 대신하지 않는다. summary 형식·글자 수·문장 수로 일괄 차단하지 않는다.
+- writer/reviewer는 핵심 주체·행위·대상·상태 및 업종 소개 반복을 why 설명으로 인정하지 않는다. 실제 비교·영향 범위·절차·조건을 근거로 답해야 한다.
+- 새 policy hash와 terminal packet 재구성으로 판정 근거를 결속한다. 기존 packet의 default 직렬화/hash는 읽기 호환을 유지한다.
+- 원run의 같은 근거·fact IDs에서 core_only/expected_detail=false로 재생하고, synthetic 핵심 반복 거절·조건 있는 summary·숫자 비교·본문·context-only 보존을 검증한다.
