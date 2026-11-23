@@ -3,16 +3,16 @@
 <rect class="card-bg" width="1200" height="630"/>
 <rect class="card-frame" x="40" y="40" width="1120" height="550" rx="8" stroke-width="3"/>
 <text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">크립토 관심 자산 관련성</text>
-<text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-11-20 · 매칭 21건 · 기본 바스켓</text>
+<text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-11-20 · 매칭 18건 · 기본 바스켓</text>
 <text class="card-emphasis" x="90" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">BTC</text>
 <text class="card-text" x="310" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">CFTC Bitcoin CME leveragedmoney net -1211 contracts</text>
 <text class="card-emphasis" x="90" y="256" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">BTC</text>
-<text class="card-text" x="310" y="256" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">Global crypto market cap $1,954,236,056,028; BTC dominance</text>
+<text class="card-text" x="310" y="256" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">Global crypto market cap $2,071,123,099,715; BTC dominance</text>
 <text class="card-emphasis" x="90" y="332" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">BTC</text>
-<text class="card-text" x="310" y="332" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">조회 시점 가격 · BTC $55,684.00 (-10.01%)</text>
+<text class="card-text" x="310" y="332" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">조회 시점 가격 · BTC $60,719.00 (+1.60%)</text>
 <text class="card-emphasis" x="90" y="408" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">BTC</text>
-<text class="card-text" x="310" y="408" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">BTC 거래소 일별 순유입 (2026-11-19, UTC)</text>
+<text class="card-text" x="310" y="408" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">BTC 일별 거래 건수 (2026-11-20, UTC)</text>
 <text class="card-emphasis" x="90" y="484" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">BTC</text>
-<text class="card-text" x="310" y="484" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">BTC 일별 거래 건수 (2026-11-20, UTC)</text>
+<text class="card-text" x="310" y="484" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">BTC 일별 활성 주소 수 (2026-11-20, UTC)</text>
 <text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
 </svg>

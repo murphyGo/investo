@@ -6,11 +6,11 @@
 <section class="investo-home" aria-label="최신 발행 시장별 시황" markdown="1">
 <nav class="investo-home-quick-links" aria-label="시장 바로가기"><a href="#domestic-equity">국내 증시</a><a href="#us-equity">미국 증시</a><a href="#crypto">크립토</a></nav>
 <div class="investo-market-grid" markdown="1">
-<article id="domestic-equity" markdown="1" class="investo-market-card" data-segment="domestic-equity" data-target-date="2026-11-20" data-generated="true" data-quality="normal">
+<article id="domestic-equity" markdown="1" class="investo-market-card" data-segment="domestic-equity" data-target-date="2026-11-20" data-generated="true" data-quality="partial">
 <h2 data-investo-field="market" markdown="0">국내 증시</h2>
 <p class="investo-market-date" data-investo-field="date" markdown="0">발행 2026-11-20</p>
-<p class="investo-market-status" data-investo-field="quality" markdown="0">근거 상태: 정상</p>
-<p class="investo-market-summary" markdown="span">제주반도체는 종속회사 H에 260억원 출자를 발표했다.</p>
+<p class="investo-market-status" data-investo-field="quality" markdown="0">근거 상태: 부분</p>
+<p class="investo-market-summary" markdown="span">제주반도체는 종속회사 H에 260억원을 출자한다고 밝혔다.</p>
 
 [국내 증시 2026-11-20 시황 읽기](archive/domestic-equity/2026/11/2026-11-20.md){ .investo-market-link }
 
@@ -19,7 +19,7 @@
 <h2 data-investo-field="market" markdown="0">미국 증시</h2>
 <p class="investo-market-date" data-investo-field="date" markdown="0">발행 2026-11-20</p>
 <p class="investo-market-status" data-investo-field="quality" markdown="0">근거 상태: 부분</p>
-<p class="investo-market-summary" markdown="span">SEC가 Consolidated Audit Trail 개편안을 발표했습니다.</p>
+<p class="investo-market-summary" markdown="span">뉴스 수집이 제한되어 중요 사건을 판단하기 어렵습니다.</p>
 
 [미국 증시 2026-11-20 시황 읽기](archive/us-equity/2026/11/2026-11-20.md){ .investo-market-link }
 

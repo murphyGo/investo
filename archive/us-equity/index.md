@@ -25,7 +25,7 @@
 
 [2026-11-20](2026/11/2026-11-20.md){ .investo-archive-link }
 
-<p class="investo-archive-snippet" markdown="0">SEC가 Consolidated Audit Trail 개편안을 발표했습니다.</p>
+<p class="investo-archive-snippet" markdown="0">뉴스 수집이 제한되어 중요 사건을 판단하기 어렵습니다.</p>
 </div>
 <div class="investo-archive-entry" data-date="2026-11-19" markdown="1">
 

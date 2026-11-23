@@ -25,7 +25,7 @@
 
 [2026-11-20](2026/11/2026-11-20.md){ .investo-archive-link }
 
-<p class="investo-archive-snippet" markdown="0">제주반도체는 종속회사 H에 260억원 출자를 발표했다.</p>
+<p class="investo-archive-snippet" markdown="0">제주반도체는 종속회사 H에 260억원을 출자한다고 밝혔다.</p>
 </div>
 
 </section>
