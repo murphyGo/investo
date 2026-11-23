@@ -25,12 +25,16 @@ from investo.sources._dart_document import parse_dart_document as _parse
 from investo.sources._dart_document import parse_dart_schedule_document as _parse_schedule
 from investo.sources._dart_terms_document import PARSER_VERSION as TERMS_PARSER_VERSION
 from investo.sources._dart_terms_document import parse_dart_terms_document
+from investo.sources._dart_trust_document import PARSER_VERSION as TRUST_PARSER_VERSION
+from investo.sources._dart_trust_document import REPORT_NAME as TRUST_REPORT_NAME
+from investo.sources._dart_trust_document import parse_dart_trust_document
 from investo.sources.dart_disclosure import DartDisclosureAdapter
 
 DartRequestKind = Literal["listing", "document"]
 _PARSERS = {
     "dart-cb-correction-6.4-v1": _parse,
     TERMS_PARSER_VERSION: parse_dart_terms_document,
+    TRUST_PARSER_VERSION: parse_dart_trust_document,
     "dart-cb-schedule-6.4-v1": _parse_schedule,
 }
 DART_PARSER_VERSIONS = frozenset(_PARSERS)
@@ -65,8 +69,17 @@ class DartRuntimeEvidence:
     field_refs: Mapping[str, tuple[ContextRef, ...]] = field(repr=False)
 
 
-def dart_identity(item: NormalizedItem) -> tuple[str, str]:
+def dart_identity(
+    item: NormalizedItem, parser_version: DartParserVersion = "dart-cb-correction-6.4-v1"
+) -> tuple[str, str]:
     """Reject malformed request identities before any credential-bearing GET."""
+    if parser_version not in _PARSERS:
+        raise DartRequestError("parser_unsupported")
+    expected_report = (
+        TRUST_REPORT_NAME
+        if parser_version == TRUST_PARSER_VERSION
+        else "[기재정정]주요사항보고서(전환사채권발행결정)"
+    )
     filing = item.raw_metadata.get("rcept_no")
     corp = item.raw_metadata.get("corp_code")
     report = item.raw_metadata.get("report_nm")
@@ -80,8 +93,7 @@ def dart_identity(item: NormalizedItem) -> tuple[str, str]:
         or item.raw_metadata.get("rcept_dt") != filing[:8]
         or str(item.url) != f"https://dart.fss.or.kr/dsaf001/main.do?rcpNo={filing}"
         or not isinstance(report, str)
-        or re.sub(r"\s+", "", normalize_evidence_text(report))
-        != "[기재정정]주요사항보고서(전환사채권발행결정)"
+        or re.sub(r"\s+", "", normalize_evidence_text(report)) != expected_report
     ):
         raise DartRequestError("parser_unsupported")
     try:
@@ -248,7 +260,7 @@ async def prepare_dart_item(
         return response
 
     try:
-        filing, corp = dart_identity(item)
+        filing, corp = dart_identity(item, parser_version)
         listing = await get(
             "listing",
             {

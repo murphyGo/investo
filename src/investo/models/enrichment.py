@@ -29,7 +29,10 @@ EnrichmentMode = Literal["off", "shadow", "preview", "active"]
 EnrichmentSource = Literal["fomc-rss", "fed-speech-rss", "sec-newsroom-rss", "cftc-policy-rss"]
 EvidenceSource = EnrichmentSource | Literal["dart-disclosure"]
 DartParserVersion = Literal[
-    "dart-cb-correction-6.4-v1", "dart-cb-terms-correction-6.4-v2", "dart-cb-schedule-6.4-v1"
+    "dart-cb-correction-6.4-v1",
+    "dart-cb-terms-correction-6.4-v2",
+    "dart-cb-schedule-6.4-v1",
+    "dart-trust-termination-6.2-v1",
 ]
 ENRICHMENT_MODE_ENV = "INVESTO_EVENT_ENRICHMENT_MODE"
 EVENT_ENRICHMENT_ACTIVE_READY = False
@@ -204,7 +207,11 @@ class DartTransportQualification(EventModel):
 
     @model_validator(mode="after")
     def versioned_projection(self) -> Self:
-        if self.parser_version in {"dart-cb-correction-6.4-v1", "dart-cb-schedule-6.4-v1"}:
+        if self.parser_version in {
+            "dart-cb-correction-6.4-v1",
+            "dart-cb-schedule-6.4-v1",
+            "dart-trust-termination-6.2-v1",
+        }:
             if (
                 self.projection_version != "dart-field-paragraph-v1"
                 or self.max_projection_chars > 1200

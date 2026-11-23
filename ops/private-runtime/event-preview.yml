@@ -44,7 +44,7 @@ on:
         required: false
         default: price
         type: choice
-        options: [price, schedule]
+        options: [price, schedule, trust-termination]
       record_model_io:
         description: 'Capture bounded model IO in the encrypted schema 3 artifact.'
         required: false

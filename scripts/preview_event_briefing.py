@@ -269,7 +269,9 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument("--document-schema", choices=(2, 3), type=int, default=2)
     parser.add_argument("--official-body-preview", action="store_true")
     parser.add_argument("--dart-body-preview", action="store_true")
-    parser.add_argument("--dart-parser-profile", choices=("price", "schedule"), default="price")
+    parser.add_argument(
+        "--dart-parser-profile", choices=("price", "schedule", "trust-termination"), default="price"
+    )
     parser.add_argument("--dart-parser-version", choices=("v1", "v2"), default="v1")
     parser.add_argument("--article-profile", choices=("role_v1", "article_v2"), default="role_v1")
     parser.add_argument(
@@ -288,7 +290,7 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
         raise PreviewInputError
     if args.dart_parser_version != "v1" and not args.dart_body_preview:
         raise PreviewInputError
-    if args.dart_parser_profile == "schedule" and (
+    if args.dart_parser_profile != "price" and (
         not args.dart_body_preview or args.dart_parser_version != "v1"
     ):
         raise PreviewInputError
@@ -546,7 +548,7 @@ async def run_preview(
     article_profile: EventProfile = "role_v1",
     official_body_preview: bool = False,
     dart_body_preview: bool = False,
-    dart_parser_profile: Literal["price", "schedule"] = "price",
+    dart_parser_profile: Literal["price", "schedule", "trust-termination"] = "price",
     dart_parser_version: Literal["v1", "v2"] = "v1",
     enrichment_policy: EnrichmentPolicy = DEFAULT_ENRICHMENT_POLICY,
     enrichment_qualification: EnrichmentQualification | None = None,
@@ -571,8 +573,8 @@ async def run_preview(
         dart_parser_version != "v1" and not dart_body_preview
     ):
         raise PreviewInputError
-    if dart_parser_profile not in {"price", "schedule"} or (
-        dart_parser_profile == "schedule" and (not dart_body_preview or dart_parser_version != "v1")
+    if dart_parser_profile not in {"price", "schedule", "trust-termination"} or (
+        dart_parser_profile != "price" and (not dart_body_preview or dart_parser_version != "v1")
     ):
         raise PreviewInputError
     slot_qualification = None
@@ -583,7 +585,9 @@ async def run_preview(
             _REPOSITORY_ROOT / "ops/event_source_qualification.json"
         )
         if dart_body_preview:
-            profile_key = "schedule" if dart_parser_profile == "schedule" else dart_parser_version
+            profile_key = (
+                dart_parser_profile if dart_parser_profile != "price" else dart_parser_version
+            )
             policy_name, matrix_name, expected_parser = {
                 "v1": (
                     "event_dart_preview_qualification.json",
@@ -599,6 +603,11 @@ async def run_preview(
                     "event_dart_schedule_preview_qualification.json",
                     "event_dart_schedule_slot_qualification.json",
                     "dart-cb-schedule-6.4-v1",
+                ),
+                "trust-termination": (
+                    "event_dart_trust_preview_qualification.json",
+                    "event_dart_trust_slot_qualification.json",
+                    "dart-trust-termination-6.2-v1",
                 ),
             }[profile_key]
             dart_qualification = load_event_evidence_qualification(

@@ -20,6 +20,7 @@ import httpx
 
 from investo.models.enrichment import (
     DartEnrichmentTrace,
+    DartParserVersion,
     DartTransportQualification,
     EndpointScope,
     EnrichmentOutcome,
@@ -290,6 +291,7 @@ def _candidates(
     records: Mapping[str, SourceQualification],
     *,
     include_dart: bool = False,
+    dart_parser_version: DartParserVersion = "dart-cb-correction-6.4-v1",
 ) -> tuple[_Candidate, ...]:
     # A newer testimony or other non-qualified URL cannot spend the body quota
     # of an older, directly linked qualified release from the same RSS feed.
@@ -325,7 +327,7 @@ def _candidates(
         )
         if is_dart:
             try:
-                dart_identity(item)
+                dart_identity(item, dart_parser_version)
                 eligible = True
             except DartRequestError:
                 eligible = False
@@ -382,6 +384,7 @@ def _dart_transport_allowed(
                     "dart-cb-correction-6.4-v1": "ops/event_source_slot_qualification.json",
                     "dart-cb-terms-correction-6.4-v2": "ops/event_dart_v2_slot_qualification.json",
                     "dart-cb-schedule-6.4-v1": "ops/event_dart_schedule_slot_qualification.json",
+                    "dart-trust-termination-6.2-v1": "ops/event_dart_trust_slot_qualification.json",
                 }[record.parser_version]
             )
         )
@@ -457,7 +460,15 @@ async def enrich_event_evidence(
     candidates = tuple(
         candidate
         for candidate in _candidates(
-            items, policy.max_items_per_source, records, include_dart=include_dart
+            items,
+            policy.max_items_per_source,
+            records,
+            include_dart=include_dart,
+            dart_parser_version=(
+                qualification.dart.parser_version
+                if qualification.dart
+                else "dart-cb-correction-6.4-v1"
+            ),
         )
         if policy.mode != "preview" or candidate.source in policy.preview_sources
     )
