@@ -243,9 +243,7 @@ def test_trust_matrix_is_dedicated_and_keeps_other_source_rows():
         root / "ops/event_dart_schedule_slot_qualification.json"
     )
     matrix = load_source_slot_qualification(root / "ops/event_dart_trust_slot_qualification.json")
-    policy = load_enrichment_qualification(
-        root / "ops/event_dart_trust_preview_qualification.json"
-    )
+    policy = load_enrichment_qualification(root / "ops/event_dart_trust_preview_qualification.json")
     assert [r for r in previous.records if r.source_name != "dart-disclosure"] == [
         r for r in matrix.records if r.source_name != "dart-disclosure"
     ]
