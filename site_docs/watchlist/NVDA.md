@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-23 begin -->
+
+## 2026-11-23
+
+- [theblock-crypto] **ticker**: Bitcoin, crypto and tech stocks rally as Nvidia reinstates Jensen Huang as CEO; NVDA jumps 30%
+- [yfinance-price] **ticker**: NVDA 165.05 (+31.48%)
+
+<!-- u33 entry 2026-11-23 end -->
 <!-- u33 entry 2026-11-20 begin -->
 
 ## 2026-11-20

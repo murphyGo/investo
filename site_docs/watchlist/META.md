@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-23 begin -->
+
+## 2026-11-23
+
+- [sec-edgar-8k] **ticker**: 8-K: Meta Platforms, Inc. (CIK 0001326801)
+- [yfinance-price] **ticker**: META 597.60 (+6.55%)
+
+<!-- u33 entry 2026-11-23 end -->
 <!-- u33 entry 2026-11-20 begin -->
 
 ## 2026-11-20

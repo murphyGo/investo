@@ -2,6 +2,25 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-23 begin -->
+
+## 2026-11-23
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -1211 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,108,222,150,160; BTC dominance 57.80%
+- [coingecko-price] **ticker**: 조회 시점 가격 · BTC $60,669.00 (-1.67%)
+- [coinmetrics-exchange-flows] **ticker**: BTC 거래소 일별 순유입 (2026-11-22, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 거래 건수 (2026-11-23, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 활성 주소 수 (2026-11-23, UTC)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $677,031,330 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000611036466402 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin, crypto and tech stocks rally as Nvidia reinstates Jensen Huang as CEO; NVDA jumps 30%
+- [theblock-crypto] **ticker**: Cross River Bank launches first bitcoin-backed loans with LendingUSA, offering up to $250,000
+- [theblock-crypto] **ticker**: Grayscale says bitcoin and major altcoins look ‘oversold’ as AI risks cloud near-term outlook
+- [theblock-crypto] **ticker**: Solo bitcoin miner beats the odds to win $191,000 block reward
+- [theblock-crypto] **ticker**: ‘The dots aren’t done,’ Michael Saylor says as Strategy buys another 457 BTC for $30 million
+
+<!-- u33 entry 2026-11-23 end -->
 <!-- u33 entry 2026-11-20 begin -->
 
 ## 2026-11-20

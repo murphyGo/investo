@@ -2,6 +2,19 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-23 begin -->
+
+## 2026-11-23
+
+- [coingecko-price] **ticker**: 조회 시점 가격 · ETH $1,706.68 (-1.58%)
+- [coinmetrics-exchange-flows] **ticker**: ETH 거래소 일별 순유입 (2026-11-22, UTC)
+- [coinmetrics-network-activity] **ticker**: ETH 일별 거래 건수 (2026-11-23, UTC)
+- [coinmetrics-network-activity] **ticker**: ETH 일별 활성 주소 수 (2026-11-23, UTC)
+- [defillama-market-structure] **ticker**: DeFi TVL $69.1B; leader Ethereum
+- [theblock-crypto] **ticker**: Ark buys $146 million in Anthropic shares last week, trims Ethereum and Solana Staking ETF holdings
+- [theblock-crypto] **ticker**: Bitmine adds 7,819 ETH as Tom Lee makes the ‘hard money’ case
+
+<!-- u33 entry 2026-11-23 end -->
 <!-- u33 entry 2026-11-20 begin -->
 
 ## 2026-11-20
