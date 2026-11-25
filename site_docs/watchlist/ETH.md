@@ -2,6 +2,19 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-24 begin -->
+
+## 2026-11-24
+
+- [coingecko-price] **ticker**: 조회 시점 가격 · ETH $1,654.22 (-3.01%)
+- [coinmetrics-exchange-flows] **ticker**: ETH 거래소 일별 순유입 (2026-11-23, UTC)
+- [coinmetrics-network-activity] **ticker**: ETH 일별 거래 건수 (2026-11-24, UTC)
+- [coinmetrics-network-activity] **ticker**: ETH 일별 활성 주소 수 (2026-11-24, UTC)
+- [defillama-market-structure] **ticker**: DeFi TVL $68.2B; leader Ethereum
+- [theblock-crypto] **ticker**: Ethereum Foundation doubles protocol security team, calls AI a ‘more urgent risk’ than quantum
+- [theblock-crypto] **ticker**: Ethereum treasury firm BTCS sells $43.8 million in ETH to cut Aave debt, CEO says ‘we do not take this lightly’
+
+<!-- u33 entry 2026-11-24 end -->
 <!-- u33 entry 2026-11-23 begin -->
 
 ## 2026-11-23

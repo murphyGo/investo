@@ -2,6 +2,26 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-24 begin -->
+
+## 2026-11-24
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -1211 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,050,973,583,699; BTC dominance 57.68%
+- [coingecko-price] **ticker**: 조회 시점 가격 · BTC $59,003.00 (-2.59%)
+- [coinmetrics-exchange-flows] **ticker**: BTC 거래소 일별 순유입 (2026-11-23, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 거래 건수 (2026-11-24, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 활성 주소 수 (2026-11-24, UTC)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $662,325,210 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000917030113163 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin ETFs see another $570 million in net outflows as November total nears $5 billion and BTC dips below $60K
+- [theblock-crypto] **ticker**: Bitcoin miner CleanSpark swings to $987 million annual loss as BTC production declines
+- [theblock-crypto] **ticker**: Bitcoin slips back toward $60,000 as Jensen Huang’s Nvidia return rally fizzles
+- [theblock-crypto] **ticker**: Ledn brings US business onshore with account to hold, swap and borrow against bitcoin
+- [theblock-crypto] **ticker**: Payward’s Krak plans early 2027 launch of US credit cards with bitcoin cashback, including one secured by USDC
+- [theblock-crypto] **ticker**: We’ve Entered Peak FEAR; SKY Falls
+
+<!-- u33 entry 2026-11-24 end -->
 <!-- u33 entry 2026-11-23 begin -->
 
 ## 2026-11-23

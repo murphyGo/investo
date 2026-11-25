@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-24 begin -->
+
+## 2026-11-24
+
+- [theblock-crypto] **ticker**: Bitcoin slips back toward $60,000 as Jensen Huang’s Nvidia return rally fizzles
+- [yfinance-price] **ticker**: NVDA 155.38 (-5.86%)
+
+<!-- u33 entry 2026-11-24 end -->
 <!-- u33 entry 2026-11-23 begin -->
 
 ## 2026-11-23
