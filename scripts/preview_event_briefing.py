@@ -13,6 +13,7 @@ import re
 import subprocess
 import threading
 import time
+from dataclasses import asdict
 from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Literal, Never, cast, get_args
@@ -69,6 +70,7 @@ from investo.publisher._public_document_policy import SURFACE_ISSUE_CODES
 from investo.publisher.errors import PublisherGitError
 from investo.publisher.public_document import PublicDocumentFinalizationError
 from investo.sources import collect_sources
+from investo.sources._dart_discovery import DartDiscoveryAdapter
 from investo.sources.event_evidence import _dart_transport_allowed, load_source_slot_qualification
 
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
@@ -654,7 +656,44 @@ async def run_preview(
     )
     output.mkdir(parents=True, mode=0o700, exist_ok=False)
     preparation_started = time.monotonic()
-    report = await collect_sources(target_date, evidence_received_at=clock)
+    discovery_capture = (
+        DartCapture(os.environ.get("OPENDART_API_KEY", "").strip().encode())
+        if record_model_io and dart_body_preview
+        else None
+    )
+    discovery = None
+    if dart_body_preview:
+        assert enrichment_qualification is not None and enrichment_qualification.dart is not None
+        discovery = DartDiscoveryAdapter(
+            enrichment_qualification.dart.parser_version, transport=discovery_capture
+        )
+    collection_options = {"dart_discovery": discovery} if discovery is not None else {}
+    try:
+        report = await collect_sources(
+            target_date, evidence_received_at=clock, **collection_options
+        )
+    finally:
+        if discovery_capture is not None:
+            await discovery_capture.aclose()
+    if discovery_capture is not None:
+        discovery_capture.validate()
+    discovery_summary = (
+        {
+            "query_scope": discovery.query_scope,
+            "parser_version": discovery.parser_version,
+            "window_coverages": [
+                {
+                    **asdict(row),
+                    "requested_start": row.requested_start.isoformat(),
+                    "end_utc": row.end_utc.isoformat(),
+                }
+                for row in report.window_coverages
+                if row.source_name == discovery.name
+            ],
+        }
+        if discovery is not None
+        else None
+    )
     capture = (
         DartCapture(os.environ.get("OPENDART_API_KEY", "").strip().encode())
         if record_model_io
@@ -674,9 +713,15 @@ async def run_preview(
         )
     if capture is not None:
         capture.validate()
-        _write_private(
-            output, "dart-http-recording.json", json.dumps({"records": capture.records}).encode()
-        )
+        dart_recording_bytes = json.dumps(
+            {
+                "records": capture.records,
+                "discovery_records": discovery_capture.records if discovery_capture else [],
+            }
+        ).encode()
+        if len(dart_recording_bytes) > 256 * 1024:
+            raise PreviewInputError
+        _write_private(output, "dart-http-recording.json", dart_recording_bytes)
     anchors, _history = await _load_market_anchors_for_run(target_date)
     archive = repository_root.resolve() / "archive"
     projection = project_domestic_public_items(
@@ -737,6 +782,7 @@ async def run_preview(
             "clock": clock.isoformat(),
             "input_manifest_hash": input_manifest_hash,
             "items": [item.model_dump(mode="json") for item in candidates[segment]],
+            "dart_discovery": discovery_summary,
             "dart_inputs": [
                 item.model_dump(mode="json")
                 for item in report.items
@@ -829,6 +875,7 @@ async def run_preview(
         "schema_version": 1,
         "mode": "preview",
         "dart_body_preview": dart_body_preview,
+        "dart_discovery": discovery_summary,
         "dart_parser_profile": dart_parser_profile,
         "dart_parser_version": dart_parser_version,
         "slot_qualification_sha256": hashlib.sha256(

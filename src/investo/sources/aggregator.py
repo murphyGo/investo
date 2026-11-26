@@ -39,6 +39,7 @@ from investo.sources.tiers import adapter_tier
 
 if TYPE_CHECKING:
     from investo.models.news_window import NewsObservationWindow
+    from investo.sources._dart_discovery import DartDiscoveryAdapter
 
 _logger = logging.getLogger(__name__)
 _MAX_FUTURE_PUBLISHED_AT = timedelta(days=30)
@@ -81,6 +82,7 @@ async def collect_sources(
     evidence_received_at: datetime | None = None,
     price_snapshot_at: datetime | None = None,
     insights_enabled: bool = False,
+    dart_discovery: DartDiscoveryAdapter | None = None,
 ) -> SourceCollectionReport:
     """Run every registered adapter concurrently and return a full report.
 
@@ -106,6 +108,21 @@ async def collect_sources(
     if set(overrides) & held_news_sources:
         raise ValueError("held news source cannot also have a fetch window")
     adapters = [adapter for adapter in list_sources() if adapter.name not in held_news_sources]
+    coverage_sources = set(overrides)
+    if dart_discovery is not None:
+        # A per-call preview replacement, never a registry mutation or cursor
+        # collection. Skip/failure/outcome handling stays with this collector.
+        from investo.sources._dart_discovery import DartDiscoveryAdapter
+
+        if not isinstance(dart_discovery, DartDiscoveryAdapter) or news_windows is not None:
+            raise ValueError("DART discovery requires an isolated preview collection")
+        if dart_discovery.name in held_news_sources:
+            raise ValueError("held DART source cannot run discovery")
+        adapters = [
+            dart_discovery if adapter.name == dart_discovery.name else adapter
+            for adapter in adapters
+        ]
+        coverage_sources.add(dart_discovery.name)
     if not adapters:
         return SourceCollectionReport(items=(), outcomes=())
 
@@ -141,7 +158,7 @@ async def collect_sources(
                             adapter,
                             client,
                             windows[adapter.name],
-                            with_coverage=adapter.name in overrides,
+                            with_coverage=adapter.name in coverage_sources,
                         )
                         for adapter in active
                     ),
@@ -166,7 +183,7 @@ async def collect_sources(
         result = timed.result
         elapsed_s = timed.elapsed_s
         if isinstance(result, SourceFetchError):
-            if adapter.name in overrides:
+            if adapter.name in coverage_sources:
                 failed_window = windows[adapter.name]
                 window_coverages.append(
                     SourceWindowCoverage(

@@ -1,0 +1,20 @@
+{
+  "reviewer": "dart_schedule_review",
+  "phase": "code_and_local_only",
+  "findings": {
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 0
+  },
+  "independent_pytest_passed": 136,
+  "independent_additional_checks": [
+    "cumulative capture overflow remains fail closed",
+    "redirect not followed",
+    "encoded response rejected"
+  ],
+  "parent_related_pytest_passed": 307,
+  "ruff_files": 889,
+  "mypy_source_files": 375,
+  "runtime_acceptance": false
+}

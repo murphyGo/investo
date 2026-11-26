@@ -109,6 +109,9 @@ class DartCapture(httpx.AsyncBaseTransport):
                     "page_no",
                     "page_count",
                     "last_reprt_at",
+                    "pblntf_detail_ty",
+                    "sort",
+                    "sort_mth",
                 }
             },
             "http_status": response.status_code,

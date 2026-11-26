@@ -38,6 +38,8 @@ async def test_profile_uses_reviewed_matrix_before_collection(
 
     async def collect(*args, **kwargs):
         calls.append("collect")
+        assert kwargs["dart_discovery"].parser_version == expected
+        assert kwargs["dart_discovery"].query_scope == "B001:selected_parser"
         return SourceCollectionReport(items=(), outcomes=())
 
     async def prepare(*args, **kwargs):
@@ -285,3 +287,53 @@ def test_trust_qualification_binds_context_fixture_separately_from_xml():
     )
     assert policy.policy_hash == evidence["preview_policy_sha256"]
     assert evidence["source_slot_replay"]["status"] == "pass"
+
+
+async def test_discovery_and_preparation_capture_combined_limit_blocks_before_model(
+    script, repository, monkeypatch
+):
+    captures = []
+
+    class Capture(httpx.AsyncBaseTransport):
+        def __init__(self, *args, **kwargs):
+            self.records = [{"payload": "x" * (135 * 1024)}]
+            captures.append(self)
+
+        def validate(self):
+            pass
+
+        async def aclose(self):
+            pass
+
+    async def collect(*args, **kwargs):
+        assert kwargs["dart_discovery"] is not None
+        return SourceCollectionReport(items=(), outcomes=())
+
+    async def prepare(*args, **kwargs):
+        return EnrichmentResult(items=())
+
+    async def forbidden(*args, **kwargs):
+        pytest.fail("oversize recording reached model/anchor preparation")
+
+    delegate = preview_helpers._RecordingDelegate()
+    monkeypatch.setattr(script, "DartCapture", Capture)
+    monkeypatch.setattr(script, "collect_sources", collect)
+    monkeypatch.setattr(script, "prepare_event_evidence", prepare)
+    monkeypatch.setattr(script, "_load_market_anchors_for_run", forbidden)
+    with pytest.raises(script.PreviewInputError):
+        await script.run_preview(
+            target_date=date(2026, 11, 26),
+            segment="domestic-equity",
+            output_dir=Path(".tmp/preview"),
+            repository_root=repository,
+            observed_at=datetime(2026, 11, 26, tzinfo=UTC),
+            document_schema=3,
+            article_profile="article_v2",
+            official_body_preview=True,
+            dart_body_preview=True,
+            dart_parser_profile="trust-termination",
+            record_model_io=True,
+            runner=delegate,
+        )
+    assert len(captures) == 2 and delegate.calls == 0
+    assert not (repository / ".tmp/preview/dart-http-recording.json").exists()
