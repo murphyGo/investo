@@ -2,6 +2,20 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-25 begin -->
+
+## 2026-11-25
+
+- [coingecko-price] **ticker**: 조회 시점 가격 · ETH $1,697.42 (+2.19%)
+- [coinmetrics-exchange-flows] **ticker**: ETH 거래소 일별 순유입 (2026-11-24, UTC)
+- [coinmetrics-network-activity] **ticker**: ETH 일별 거래 건수 (2026-11-25, UTC)
+- [coinmetrics-network-activity] **ticker**: ETH 일별 활성 주소 수 (2026-11-25, UTC)
+- [defillama-market-structure] **ticker**: DeFi TVL $68.9B; leader Ethereum
+- [theblock-crypto] **ticker**: Bit Digital repays $50 million to Galaxy after selling 29,825 ETH
+- [theblock-crypto] **ticker**: Bitcoin, ether get CFTC staff nod for expense requirements, Ethereum Foundation doubles security team, and more
+- [theblock-crypto] **ticker**: Ethereum Foundation researchers pick one hash ‘to rule them all’ for post-quantum upgrade
+
+<!-- u33 entry 2026-11-25 end -->
 <!-- u33 entry 2026-11-24 begin -->
 
 ## 2026-11-24

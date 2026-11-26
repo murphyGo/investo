@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-25 begin -->
+
+## 2026-11-25
+
+- [coingecko-price] **ticker**: 조회 시점 가격 · SOL $71.11 (+2.77%)
+- [defillama-market-structure] **ticker**: DeFi TVL $68.9B; leader Ethereum
+- [theblock-crypto] **ticker**: Japan’s SBI, SMFG launch Solana joint venture for stablecoin payments and tokenization
+
+<!-- u33 entry 2026-11-25 end -->
 <!-- u33 entry 2026-11-24 begin -->
 
 ## 2026-11-24

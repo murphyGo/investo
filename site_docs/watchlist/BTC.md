@@ -2,6 +2,27 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-25 begin -->
+
+## 2026-11-25
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -1211 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,104,493,607,978; BTC dominance 57.89%
+- [coingecko-price] **ticker**: 조회 시점 가격 · BTC $60,744.00 (+2.42%)
+- [coinmetrics-exchange-flows] **ticker**: BTC 거래소 일별 순유입 (2026-11-24, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 거래 건수 (2026-11-25, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 활성 주소 수 (2026-11-25, UTC)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $656,921,270 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Ark sells $6.8 million in its own bitcoin ETF as BTC dips below $59,000
+- [theblock-crypto] **ticker**: Bitcoin falls below $58,000 as CoinShares’ Butterfill sees ‘tail end of the bear market’
+- [theblock-crypto] **ticker**: Bitcoin miners hit by hashrate hijacking attack exploiting unencrypted connections
+- [theblock-crypto] **ticker**: Bitcoin, ether get CFTC staff nod for expense requirements, Ethereum Foundation doubles security team, and more
+- [theblock-crypto] **ticker**: Hyperliquid’s HYPE will join bitcoin, ether and more in Franklin Templeton’s crypto ETF
+- [theblock-crypto] **ticker**: UniCredit offers bitcoin exposure to Italian retail clients with capital protection at maturity
+- [theblock-crypto] **ticker**: ‘Don’t mess with X,’ Elon Musk says after platform secures default judgment in alleged bitcoin content-farm case
+
+<!-- u33 entry 2026-11-25 end -->
 <!-- u33 entry 2026-11-24 begin -->
 
 ## 2026-11-24
