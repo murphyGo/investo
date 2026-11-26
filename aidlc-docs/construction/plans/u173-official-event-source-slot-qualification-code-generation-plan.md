@@ -120,3 +120,8 @@ In progress — 6/7; private parser capture pending. [공통 검증](../event-ne
 
 
 2026-11-23 신탁계약 해지 결정 후속: explicit trust-termination6.2와 개별 준비를 구현했다. CI45150453547/4737ec42 8316PASS/1skip·JS39. 실제45152929626 현재목록N/Y+XML3GET/model0/native1/5slots29refs32XMLbindings/945자 및 독립 검수 통과. 일반 기사45143245424는지원양식0/DART HTTP0·단신1/상세0/source_limited로 별도 유지한다. 하위계획5/5만 완료하며 해당 부모 단계는 계속미완료다. [인계](../event-v3-acceptance-20261028/dart-trust-termination-20261123/handoff.json).
+
+
+### 2026-11-26 bounded DART discovery 후속
+
+39f75729/CI45812557093(8361PASS1skip)과실제45814759782에서지원profile선정→cap전발견·실제48행중1건을검증했다. 초기전체행접수번호날짜가정오류를수정했고기존선택identity/Y/XML은보존한다. 최종3GET/model1,원문날짜표기·주석길이가기존계약밖이라본문/native/기사양성0·source_limited다. discovery양성1만인정하며본Step·unit전체를완료하지않는다. 다음은관측된날짜표기와328자전체주석의별도bounded지원·자격/현재기사검증이다. [인계](../event-v3-acceptance-20261028/dart-discovery-20261126/handoff.json).

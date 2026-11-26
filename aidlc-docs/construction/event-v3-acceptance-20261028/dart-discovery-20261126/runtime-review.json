@@ -1,0 +1,31 @@
+{
+  "reviewer": "dart_runtime_review",
+  "phase": "pre_execution",
+  "status": "pass",
+  "fixed_findings": [
+    {
+      "severity": "medium",
+      "finding": "Discovery replay did not bind success outcome or failed coverage",
+      "resolution": "Exact singleton status/count/transient and entire success or failed coverage comparison"
+    },
+    {
+      "severity": "low",
+      "finding": "Unrecorded non-transient failures were replayed as transient errors",
+      "resolution": "Keep failed/count0/unknown bounds; mark unrecorded transient cause unverified and never count as discovery replay positive"
+    }
+  ],
+  "helper_sha256": {
+    "open_artifact.py": "a456158c8c1bcff7e226148554ca1bee3c422078e1e05205fb825d9c9d1e071b",
+    "fetch_artifact.py": "6b4df56944a1f8808d8bd27829fb4945fbb2762901cdcf71eaa0a755e676f011",
+    "run_and_capture.py": "3cb785dd4fec67d51abf353327945229ffa1dad1b036eda14c3d22ccdcf4ce7c"
+  },
+  "production_write_authorized": false,
+  "actual_run_status": "not_dispatched",
+  "findings": {
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 0
+  },
+  "synthetic_review_cases_passed": 10
+}

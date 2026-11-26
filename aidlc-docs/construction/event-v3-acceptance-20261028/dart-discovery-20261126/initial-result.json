@@ -1,0 +1,98 @@
+{
+  "artifact_integrity": "pass",
+  "receipt": {
+    "article_content_status": "content_not_ready",
+    "article_profile": "article_v2",
+    "availability": "source_limited",
+    "classified_event_count": 0,
+    "collected_item_count": 271,
+    "dart_body_preview": true,
+    "dart_discovery": {
+      "parser_version": "dart-trust-termination-6.2-v1",
+      "query_scope": "B001:selected_parser",
+      "window_coverages": [
+        {
+          "basis": "none",
+          "cap_reached": false,
+          "completeness": "unknown",
+          "earliest_observed": null,
+          "end_utc": "2026-11-26T15:00:00+00:00",
+          "latest_observed": null,
+          "pages": 0,
+          "parse_failures": 0,
+          "requested_start": "2026-11-25T15:00:00+00:00",
+          "source_name": "dart-disclosure"
+        }
+      ]
+    },
+    "dart_parser_profile": "trust-termination",
+    "detailed_article_count": 0,
+    "document_schema": 3,
+    "enrichment_request_count": 0,
+    "input_manifest_hash": "7cc43975bbf0e251b8db72c8b38eceb4464ab007f6721203ef0c81652c665c46",
+    "markdown_sha256": "04cfcf5024df219721b97099e21db03139920c2d8661b542af05fc2f47b13aa3",
+    "model_call_count": 1,
+    "projection_sha256": "ac926000b2840eb51369afdb0c536a19c31dc1904c968a00c4df79d448a9313f",
+    "routed_item_count": 136,
+    "segment": "domestic-equity",
+    "slot_qualification_sha256": "6c1f19884fa78674f6c7a927f570c982338542fbb8310d80d40cace403b54c5b",
+    "source_qualification_hash": "76a0c8a9fdacf84efec36611738974ab7e9ab33e619b954a5720da38fc249cfb",
+    "source_status_counts": {
+      "failed": 5,
+      "ok": 29,
+      "zero": 11
+    },
+    "status": "sealed",
+    "target_date": "2026-11-26",
+    "terminal_event_count": 0
+  },
+  "artifact_sha256": "c9b6262764c1ac9e5ac20b8af62b695685d46d614b905e1a931f32cdbd6b2669",
+  "file_sha256": {
+    "dart-http-recording.json": "1900153ea347d636b520cd0983b9ae7e32fa0813ecc67488509bd78e61859141",
+    "edition.json": "0a994d5f74386b0508e42ddaeb579eb0409344214ba51e7c769f1931c620a856",
+    "manifest.json": "9e15e9eb661019c20ce9a2f706ccb1dfa492eb3dfbbeb2e028c12938e98b00e4",
+    "model-recording.json": "7ade7b3f9a898a673fea75e10c3d9ba88f8034bcca9e5784a74f626ca2ecd9a1",
+    "preview.md": "04cfcf5024df219721b97099e21db03139920c2d8661b542af05fc2f47b13aa3",
+    "source-evidence.json": "e89642e4ae99264b4fdeeaecb9a69e415f1160b938ffcc5c8fb53f3d6707e17e"
+  },
+  "model_recording_status": "complete",
+  "model_records_verified": 1,
+  "dart_http_records_verified": 0,
+  "discovery_records_verified": 1,
+  "discovery_replay_verified": false,
+  "discovery_unrecorded_attempts": 0,
+  "discovery_failure_transient_verified": true,
+  "dart_preparation_replays": 0,
+  "dart_transport_failures_without_body": 0,
+  "routed_items": 136,
+  "contexts_verified": 40,
+  "dart_inputs": 0,
+  "dart_prepared": 0,
+  "draft_articles": 0,
+  "draft_digests": 0,
+  "draft_documents": 15,
+  "publication": false,
+  "notification": false,
+  "human_accepted": 0,
+  "semantic_review": "Reviewed empty output; not human acceptance or proof that the market had no important events",
+  "run_id": 45811756622,
+  "code_sha": "214daa2bb803b8d2be6e62ca2f087d01109af255",
+  "independent_actual_review": {
+    "status": "pass",
+    "findings": {
+      "critical": 0,
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    },
+    "scope": "Evidence and outcome truth; separate application discovery defect reproduced"
+  },
+  "application_finding": {
+    "severity": "medium",
+    "reason": "An unrelated prior-day receipt identifier with current reception date invalidated all 48 entries",
+    "corrected_code_sha": "39f757297c320e804277ac3b51657581f9a175c9"
+  },
+  "source_discovery_positive": 0,
+  "article_positive": 0,
+  "external_recall": null
+}

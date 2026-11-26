@@ -545,3 +545,20 @@ u173Step4/u184Step5의명시적DARTpreview를공통owner에연결하고exacteff7
 privateHEADaef573a7, previewpin386d1390·preparationpin4737ec42만 필요한 범위로 변경했고 production378bccee/qualification6ac349fe·다른repo변수·빈environment·게시/알림/cursor/receipt를 보존했다. 일반수집의 지원양식 coverage와 현재DART상세기사, human0/12·externalrecallnull·canonical local3/8/runtime0/activationfalse·v3예약수용0·viewport/성능/운영인수는 남는다. 하위계획5/5만 완료하며 부모 u173/u184/u172/u171은 미완료다. 공유dirty소스/HEAD/index와publicmain을 보존했다.
 
 [계획](construction/event-v3-acceptance-20261028/dart-trust-termination-20261123/plan.md), [인계](construction/event-v3-acceptance-20261028/dart-trust-termination-20261123/handoff.json), [세션](../docs/sessions/2026-11-23-dart-trust-termination.md).
+
+
+### 2026-11-26 — DART 지원 양식 discovery 진행
+
+사용자 “진행시켜”로 직전 general latest30 누락 후속을 진행한다. 별도 B001/profile discovery를 cap 전에 연결했고 기존 등록 adapter/본문 검증은 보존했다. 격리 branch codex/dart-discovery-20261126의 code214daa2b, 관련307PASS와 합산capture모델전차단 추가24PASS·Ruff889/mypy375·독립코드C/H/M/L0, exact CI45809403700 진행 중이다. private runtime helper도 success/failure outcome·coverage 및 미기록 원인의 검증 범위를 보강했다. 현재 실제dispatch/pinwrites0이고 production378bccee/privateaef573a7·기존 canonical/human/운영 인수 상태는 그대로다. 이후 exact CI 성공→전용 비게시 실행→독립 실제검수·기록을 완료한다. [계획](construction/event-v3-acceptance-20261028/dart-discovery-20261126/plan.md).
+
+
+### 2026-11-26 — DART discovery 실제 관측과 수정
+
+초기214daa2b/CI45809403700은8360PASS/1skip·JS39·Ruff889/mypy375·strictdocs9.07초통과했다. 비게시45811756622의B001당일48행중비지원전일접수번호/당일접수일1행에새전역일치가정이실패해sourcefailed/unknown이었다. model1·기사0·source_limited,6파일57194bytes암호문즉시확보·독립증거검수0이며양성으로세지않는다. 잘못된전체행조건1줄만제거한39f75729는기존선택identity/Y/XML을보존하고실제48행→지원1오프라인재생·관련100PASS·독립68PASS/잔여0이다. 새exactCI45812557093진행중이며새폴더에서현재조회검증을다시한다. 전용previewpin은현재214이며production378bccee·privateaef·다른변수/emptyenv보존,부모·canonical·human인수상태변경없음. [초기결과](construction/event-v3-acceptance-20261028/dart-discovery-20261126/initial-result.json), [수정검수](construction/event-v3-acceptance-20261028/dart-discovery-20261126/correction-review.json).
+
+
+### 2026-11-26 — DART 지원 양식 discovery 실측 완료
+
+최종39f75729/CI45812557093은8361PASS/1skip·JS39·Ruff889/mypy375·정책/strictdocs9.12초통과다. 수정실제45814759782에서B00148행→지원1/full조회·discovery1GET+최신Y/XML2GET을확인했다. 원문날짜가YYYY.MM.DD·주석328자로기존파서한국어날짜/240자주석계약밖이라정상차단,본문/nativeDART/기사양성0·model1/events0/source_limited다. source discovery양성1만인정하고전체DART coverage·중요사건부재를주장하지않는다. 암호문62816bytes/6파일·원문/입력/문맥/모델/시각/checkout/전후변수재생과독립실제C/H/M/L0이다. 첫실행실패도별도보존한다.
+
+privateHEADaef573a7·previewpin39f75729,production378bccee/preparation4737ec42/qualification6ac349fe·다른변수·빈환경·예약·게시/알림/cursor/receipt를보존했다. 하위계획5/5만완료하며canonical local3/8/runtime0/activationfalse·human0/12·externalrecallnull·v3예약수용0·부모u173/u184/u172/u171미완료를유지한다. 다음은관측된날짜표기·328자전체주석의bounded근거지원/별도자격과현재DART상세기사검증이다. 공유dirty소스/HEAD/index를보존했고코드는codex/dart-discovery-20261126에있다. [세션](../docs/sessions/2026-11-26-dart-discovery.md), [인계](construction/event-v3-acceptance-20261028/dart-discovery-20261126/handoff.json).

@@ -1,0 +1,24 @@
+{
+  "first_run_id": 45811756622,
+  "first_code_sha": "214daa2bb803b8d2be6e62ca2f087d01109af255",
+  "reviewer": "dart_schedule_review",
+  "fixed_finding": "Unrelated carry-over receipt rejected the complete B001 page",
+  "final_code_sha": "39f757297c320e804277ac3b51657581f9a175c9",
+  "remaining_findings": {
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 0
+  },
+  "independent_tests_passed": 68,
+  "actual_response_offline_replay": {
+    "raw_rows": 48,
+    "supported_items": 1,
+    "pages": 1,
+    "filtered_query_completeness": "full",
+    "external_http": 0,
+    "models": 0
+  },
+  "old_source_failure_reproduced": true,
+  "new_actual_success_pending": true
+}

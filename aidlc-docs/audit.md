@@ -8478,3 +8478,21 @@ u173Step4/u184Step5의명시적DARTpreview를공통owner에연결하고exacteff7
 privateHEADaef573a7, previewpin386d1390·preparationpin4737ec42만 필요한 범위로 변경했고 production378bccee/qualification6ac349fe·다른repo변수·빈environment·게시/알림/cursor/receipt를 보존했다. 일반수집의 지원양식 coverage와 현재DART상세기사, human0/12·externalrecallnull·canonical local3/8/runtime0/activationfalse·v3예약수용0·viewport/성능/운영인수는 남는다. 하위계획5/5만 완료하며 부모 u173/u184/u172/u171은 미완료다. 공유dirty소스/HEAD/index와publicmain을 보존했다.
 
 [계획](construction/event-v3-acceptance-20261028/dart-trust-termination-20261123/plan.md), [인계](construction/event-v3-acceptance-20261028/dart-trust-termination-20261123/handoff.json), [세션](../docs/sessions/2026-11-23-dart-trust-termination.md).
+
+
+### 2026-11-26T11:22:53Z — DART discovery FD/NFR 및 구현
+
+- User: “진행시켜”. 기존 승인 범위의 u173/u184 후속 구현·비게시 검증을 계속한다.
+- FD/NFR Required로 조회 범위 B001:selected_parser, GET3/20초/개별8초/500KiB, 기존 준비 GET6/20초와 구분했다. 비용 추가0, production/cursor/게시/알림 전환 없음.
+- 공유 dirty source/HEAD/index 보존, 격리214daa2b/branch codex/dart-discovery-20261126. exact CI45809403700 진행 중. 코드 독립검수0, helper outcome/coverage M1 및 미기록 실패원인 L1 보강 후 재검수 중.
+- 실제양성·human·canonical qualification은 아직 승격하지 않는다. 계획: construction/event-v3-acceptance-20261028/dart-discovery-20261126/plan.md.
+
+
+### 2026-11-26 — 실제 discovery 실패 보존 및 날짜가정 수정
+
+초기run45811756622의실제B001응답으로전역접수번호날짜가정M1을발견했다. 기존검증을완화하지않고비지원전체행에추가한가정만제거한39f75729를독립검수했다. actualHTTP를재사용한오프라인48행재생/지원1,신규sourceHTTP0/model0이다. 수정코드CI45812557093후새조회로검증한다. 초기failure/unknown/model1/기사0은독립증거검수C/H/M/L0로보존한다. 사람·runtimequalification·게시/운영승격없음.
+
+
+### 2026-11-26 — DART discovery bounded 완료
+
+최종39f75729 exactCI45812557093 PASS(8361/1skip). 실제45814759782 지원발견1/3GET,원문계약밖parser_unsupported로본문·기사0/model1. source/원문/모델/시각/전체변수재생·독립검수C/H/M/L0. 전용previewpin만필요한범위로갱신했고production/예약/게시/알림/cursor/receipt0. 최초실패증거보존. 하위계획5/5,상위unit/canonical/human/운영인수는미완료. 다음원문표기·전체주석gap을인계문서에구체화했다.

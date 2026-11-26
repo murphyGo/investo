@@ -1,0 +1,42 @@
+{
+  "original_run_id": 45814759782,
+  "filing_no": "20261126000356",
+  "parser_version": "dart-trust-termination-6.2-v1",
+  "document_code": "11335",
+  "form_version": "6.2",
+  "form_date": "20260723",
+  "xml_sha256": "ef9ea0858c6d22d651df1925001ffe575250bfd49b67f63ab574718bfba40918",
+  "xml_bytes": 27458,
+  "observed_date_fields": [
+    {
+      "field": "CNL_BGN",
+      "display_format": "YYYY.MM.DD",
+      "encoded_matches_display": true
+    },
+    {
+      "field": "CNL_END",
+      "display_format": "YYYY.MM.DD",
+      "encoded_matches_display": true
+    },
+    {
+      "field": "CNL_SCH",
+      "display_format": "YYYY.MM.DD",
+      "encoded_matches_display": true
+    },
+    {
+      "field": "DEC_DATE",
+      "display_format": "YYYY.MM.DD",
+      "encoded_matches_display": true
+    }
+  ],
+  "notes_nodes": 1,
+  "notes_chars": [
+    328
+  ],
+  "current_note_char_limit": 240,
+  "native_supported": false,
+  "diagnosis": "Current parser requires Korean year/month/day literals. A memory-only exact date/value equivalence probe then reaches the existing note length guard. Neither date guard nor source text budget was changed in delivered code.",
+  "new_http": 0,
+  "new_model_calls": 0,
+  "next_scope": "Qualify exact alternate date representation and complete bounded note evidence; preserve source literal refs/unknowns/status without truncating material terms."
+}

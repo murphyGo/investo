@@ -1,0 +1,189 @@
+{
+  "run_id": 45809403700,
+  "head_sha": "214daa2bb803b8d2be6e62ca2f087d01109af255",
+  "job_id": 139873015415,
+  "conclusion": "success",
+  "log_sha256": "017c5ede14dcc665483d29e0d864b40f635b11a9662f2db3e45c8c3895d5116b",
+  "steps": [
+    {
+      "name": "Set up job",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 1,
+      "started_at": "2026-11-26T11:18:39Z",
+      "completed_at": "2026-11-26T11:18:40Z"
+    },
+    {
+      "name": "Check out repository",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 2,
+      "started_at": "2026-11-26T11:18:40Z",
+      "completed_at": "2026-11-26T11:18:43Z"
+    },
+    {
+      "name": "Install uv",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 3,
+      "started_at": "2026-11-26T11:18:43Z",
+      "completed_at": "2026-11-26T11:18:45Z"
+    },
+    {
+      "name": "Set up Python 3.11",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 4,
+      "started_at": "2026-11-26T11:18:45Z",
+      "completed_at": "2026-11-26T11:18:46Z"
+    },
+    {
+      "name": "Install project with dev and docs dependencies",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 5,
+      "started_at": "2026-11-26T11:18:46Z",
+      "completed_at": "2026-11-26T11:18:48Z"
+    },
+    {
+      "name": "Ruff check",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 6,
+      "started_at": "2026-11-26T11:18:48Z",
+      "completed_at": "2026-11-26T11:18:49Z"
+    },
+    {
+      "name": "Ruff format check",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 7,
+      "started_at": "2026-11-26T11:18:49Z",
+      "completed_at": "2026-11-26T11:18:49Z"
+    },
+    {
+      "name": "Mypy",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 8,
+      "started_at": "2026-11-26T11:18:49Z",
+      "completed_at": "2026-11-26T11:18:58Z"
+    },
+    {
+      "name": "Set up Node for client behavior checks",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 9,
+      "started_at": "2026-11-26T11:18:58Z",
+      "completed_at": "2026-11-26T11:18:59Z"
+    },
+    {
+      "name": "Pytest",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 10,
+      "started_at": "2026-11-26T11:18:59Z",
+      "completed_at": "2026-11-26T11:32:40Z"
+    },
+    {
+      "name": "Chart client behavior",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 11,
+      "started_at": "2026-11-26T11:32:40Z",
+      "completed_at": "2026-11-26T11:32:40Z"
+    },
+    {
+      "name": "Anthropic SDK guard",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 12,
+      "started_at": "2026-11-26T11:32:40Z",
+      "completed_at": "2026-11-26T11:32:40Z"
+    },
+    {
+      "name": "Paid API guard",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 13,
+      "started_at": "2026-11-26T11:32:40Z",
+      "completed_at": "2026-11-26T11:32:40Z"
+    },
+    {
+      "name": "Curated assets guard",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 14,
+      "started_at": "2026-11-26T11:32:40Z",
+      "completed_at": "2026-11-26T11:32:41Z"
+    },
+    {
+      "name": "Image store guard",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 15,
+      "started_at": "2026-11-26T11:32:41Z",
+      "completed_at": "2026-11-26T11:32:44Z"
+    },
+    {
+      "name": "Strict documentation build",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 16,
+      "started_at": "2026-11-26T11:32:44Z",
+      "completed_at": "2026-11-26T11:32:54Z"
+    },
+    {
+      "name": "Material image-theme contract guard",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 17,
+      "started_at": "2026-11-26T11:32:54Z",
+      "completed_at": "2026-11-26T11:32:54Z"
+    },
+    {
+      "name": "Calendar render contract guard",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 18,
+      "started_at": "2026-11-26T11:32:54Z",
+      "completed_at": "2026-11-26T11:32:54Z"
+    },
+    {
+      "name": "Post Set up Node for client behavior checks",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 34,
+      "started_at": "2026-11-26T11:32:54Z",
+      "completed_at": "2026-11-26T11:32:54Z"
+    },
+    {
+      "name": "Post Install uv",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 35,
+      "started_at": "2026-11-26T11:32:54Z",
+      "completed_at": "2026-11-26T11:32:55Z"
+    },
+    {
+      "name": "Post Check out repository",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 36,
+      "started_at": "2026-11-26T11:32:55Z",
+      "completed_at": "2026-11-26T11:32:55Z"
+    },
+    {
+      "name": "Complete job",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 37,
+      "started_at": "2026-11-26T11:32:55Z",
+      "completed_at": "2026-11-26T11:32:55Z"
+    }
+  ],
+  "pytest_result": "2026-11-26T11:32:39.0031628Z ================= 8360 passed, 1 skipped in 817.93s (0:13:37) ==================",
+  "local_related_passed": 307,
+  "local_capture_profile_passed": 24,
+  "independent_review": "C0/H0/M0/L0"
+}
