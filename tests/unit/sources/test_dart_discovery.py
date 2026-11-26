@@ -163,7 +163,6 @@ async def test_empty_filtered_query_is_not_failure(payload):
         {**page([entry(1)]), "page_no": 2},
         {**page([entry(1)]), "total_count": 2},
         page([entry(1), entry(1)]),
-        page([{**entry(1), "rcept_no": "20261125000001"}]),
         page([{**entry(1), "rcept_dt": "20261125"}]),
         page([{**entry(1), "corp_code": "invalid"}]),
         page([{**entry(1), "corp_cls": "Z"}]),
@@ -286,3 +285,22 @@ async def test_collector_failed_discovery_has_failed_outcome_not_zero(monkeypatc
     report = await aggregator.collect_sources(WINDOW.target_date, dart_discovery=discovery)
     assert not report.items and report.outcomes[0].status == "failed"
     assert report.window_coverages[0].completeness == "unknown"
+
+
+async def test_unrelated_carry_over_receipt_does_not_discard_supported_form():
+    # A receipt identifier is not the provider's rcept_dt publication field.
+    # Real B001 responses can include prior-day identifiers on today's date.
+    rows = [
+        entry(1),
+        {**entry(2, "[기재정정]주요사항보고서(영업양도결정)"), "rcept_no": "20261125000002"},
+    ]
+    result, requests = await fetch([page(rows)])
+    assert len(requests) == 1 and len(result.items) == 1
+    assert result.items[0].raw_metadata["rcept_no"] == "20261126000001"
+    assert result.window_coverage.completeness == "full"
+
+
+async def test_selected_form_still_requires_existing_parser_identity_contract():
+    result, requests = await fetch([page([{**entry(1), "rcept_no": "20261125000001"}])])
+    assert len(requests) == 1 and result.items == ()
+    assert result.window_coverage.completeness == "full"

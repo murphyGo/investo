@@ -121,7 +121,6 @@ class DartDiscoveryAdapter(DartDisclosureAdapter):
                                 or re.fullmatch(r"[0-9]{8}", entry["corp_code"]) is None
                                 or entry["corp_cls"] not in {"Y", "K", "N", "E"}
                                 or not bounds[0] <= entry["rcept_dt"] <= bounds[1]
-                                or entry["rcept_no"][:8] != entry["rcept_dt"]
                                 or entry["rcept_no"] in seen | page_ids
                             ):
                                 raise self._error("invalid_entries")

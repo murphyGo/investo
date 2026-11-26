@@ -19,3 +19,8 @@
 비지원100건 뒤 다음 페이지의 지원양식,30cap 전 필터,3page/20초/8초/byte cap, pagination 변화/duplicate/응답·날짜·identity/credential/withdrawn 후속차단, skip/실패/기본경로 불변을 mock으로 검사한다. 독립 검수 후 전체 quality를 exact SHA에서 완료한다. 실제 run은 당일 조회를 사용하고 discovery HTTP와 이후 Y목록/XML 및 모델 입력을 결속한다. 지원공시가 없거나 원문 검사가 실패하면 이를 그대로 기록하며 반복 호출로 양성을 만들지 않는다.
 
 공식 조회 계약(2026-11-26 확인): [OpenDART 공시검색](https://opendart.fss.or.kr/guide/detail.do?apiGrpCd=DS001&apiId=2019001). B001, last_reprt_at=N, sort=date, sort_mth=desc, page_count=100. 이는 discovery 필터이며 본문 자격을 부여하지 않는다.
+
+
+## 실제 응답으로 보정한 접수번호 의미
+
+첫 실행45811756622의 B001 당일48행에서 비지원 영업양도 정정1행은 접수번호의 날짜 접두부가 전일이고 rcept_dt는당일이었다. 공식가이드는 접수번호와 접수일을 별도 필드로 정의하며 두 날짜 동일성을 규정하지 않는다. 전체행에 잘못 추가한 접두부 일치 가정을 제거한다. 모든행의 YYYYMMDD 실제접수일·조회범위·14자리번호·8자리회사·중복·pagination은 그대로 검증한다. 지원항목에 대한 기존 dart_identity의 더 좁은 신원 계약 및 Y목록/XML은 바꾸지 않는다. 이는 비지원 공시 한 행 때문에 다른 지원 공시까지 버린 구현 오류를 수정하는 것이며, 실패한 원문을 건너뛰어 기사 양성을 만들지 않는다.
