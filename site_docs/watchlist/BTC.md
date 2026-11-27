@@ -2,6 +2,26 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-11-26 begin -->
+
+## 2026-11-26
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -1211 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,126,309,517,802; BTC dominance 57.97%
+- [coingecko-price] **ticker**: 조회 시점 가격 · BTC $61,401.00 (+1.13%)
+- [coinmetrics-exchange-flows] **ticker**: BTC 거래소 일별 순유입 (2026-11-25, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 거래 건수 (2026-11-26, UTC)
+- [coinmetrics-network-activity] **ticker**: BTC 일별 활성 주소 수 (2026-11-26, UTC)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $667,404,170 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000710509619005 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Europe’s only spot bitcoin ETF starts trading in Switzerland, BIT says
+- [theblock-crypto] **ticker**: Fidelity files for Chainlink ETF, Musk’s X wins ruling in alleged bitcoin content-farm case, and more
+- [theblock-crypto] **ticker**: Galaxy walks back bitcoin’s June-bottom call, warns of deeper losses below $58,525
+- [theblock-crypto] **ticker**: House Committee advances Strategic Bitcoin Reserve bill with narrow path to passage
+- [theblock-crypto] **ticker**: JPMorgan says bitcoin ‘capitulation’ signaled by Strategy’s record-low NAV multiple
+- [theblock-crypto] **ticker**: Spot bitcoin ETFs on track for worst month on record as bear market drags on
+
+<!-- u33 entry 2026-11-26 end -->
 <!-- u33 entry 2026-11-25 begin -->
 
 ## 2026-11-25
